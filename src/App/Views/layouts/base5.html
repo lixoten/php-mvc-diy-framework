@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<?php
+
+use App\Helpers\DebugRt as Debug;
+use App\Helpers\HtmlHelper;
+
+?>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/assets/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/menu.css" />
+    <?php
+    //Debug::p($data['pageInfo']);
+    if (isset($data['pageInfo']['pageStyles']) && !empty($data['pageInfo']['pageStyles'])) {
+        $x = $data['pageInfo']['pageStyles'];
+        //Debug::p($x);
+        foreach ($x as $style) {
+            //Debug::p($style, 0);
+            echo '<link rel="stylesheet" href="/assets/css/' . HtmlHelper::escape($style) . '.css">';
+        }
+    }
+    //Debug::p($data['pageInfo']);
+
+    ?>
+    <title><?= $data['pageInfo']['pageTitle'] ?></title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-language" content="en">
+    <meta name="robots" content="index, follow">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+    </style>
+</head>
+<body>
+
+<div class="containerLayout">
+    <header class="header">
+        <!--<h1>Responsive (CSS Grid Demo)</h1>-->
+        <!--<p>By foo</p>-->
+        <?php
+            require ('../App/Views/menu.php');
+            print $data['debugBar'];
+            print "<br />Prev: {$data['myReturnToPage']}";
+        ?>
+    </header>
+    <main class="main-content">
+         <?= $data['pageInfo']['routes'].'<hr />' ?>
+         <?= $newObj->renderMessages(); ?>
+         <?php
+            //Debug::p($data['errors']);
+            //if (!empty($data['errors'])) {
+            //    foreach($data['errors'] as $error) {
+            //        echo '<div class="error">' . HtmlHelper::escape($error) . '</div>';
+            //    }
+            //}
+
+            if (!empty($data['resultSet'])) {
+                //$listRenderer = new \App\ViewHelpers\ListRenderer();
+                //Debug::p($data['resultSet']);
+                //echo $listRenderer->renderList($data['resultSet'], ['post_id', 'title', 'content', 'created_at']);
+                //$renderer = new ListRenderer();
+                //$output = $renderer->renderList($records, $fields);
+
+                //echo $output;
+            }
+         ?>
+         <?= $content ?>
+        <?php
+            //print $data['wtfStuff']['routes'].'<hr />';
+            //$flashRenderer->renderMessages();
+
+            //print $mainContent;
+            //print $notes;
+        ?>
+        <!--<h2>Main content</h2>-->
+        <!--<p>xx</p>-->
+    </main>
+    <section class="left-sidebar">
+        <!--<h2>Left sidebar</h2>-->
+         <?= "<h1>{$data['pageInfo']['head']}</h1>" ?>
+         <?= "<p>{$data['pageInfo']['line1Txt']}</p>" ?>
+         <?= "<h2>Current Url: </h2>{$data['lineUrl']}" ?>
+         <?= "<hr /><h2>Features</h2>{$data['pageInfo']['features']}<hr />" ?>
+         <?= "<h3>Valid URLS</h3>{$data['pageInfo']['sampleUrls']}<hr />" ?>
+         <?= "<h3>xxxxxxx</h3>{$data['signupOrLogin']}<hr />" ?>
+        <?php
+        //print $lineHead;
+        //print $line1;
+
+        //print $data['sampleUrls'];
+        //print $signupOrLogin;
+        ?>
+    </section>
+    <footer class="footer">
+        <h2>Footer</h2>
+    </footer>
+</div>
+
+<!-- Include Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

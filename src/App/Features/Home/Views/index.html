@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block body %}
+
+    <h1>Welcome</h1>
+    <p>This includes Post.php but no add or delete for it</p>
+    <p>Part2 of tutorials by dave.h</p>
+    <hr />
+    <h1>my_notes</h1>
+    <ul>
+        {% for post in my_notes %}
+        <li>{{ post }}</li>
+        {% endfor %}
+    </ul>
+    <hr />
+
+
+
+    {% if current_user %}
+        Hello {{ current_user.name }}.
+    {% else %}
+        <a href="/signup/new">Sign up</a> or <a href="/login">log in</a>.
+    {% endif %}
+
+{% endblock %}

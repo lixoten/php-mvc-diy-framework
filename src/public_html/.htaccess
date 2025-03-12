@@ -1,0 +1,17 @@
+# Remove the question mark from the request but maintain the query string
+RewriteEngine On
+RewriteBase /
+# Handle missing resources with a simple 404 error message
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|svg|ico)$">
+    ErrorDocument 404 "Resource not found."
+</FilesMatch>
+
+# Handle missing resources with a simple 404 error message
+RewriteCond %{REQUEST_URI} \.(css|js|png|jpg|jpeg|gif|svg|ico)$
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule .* - [R=404,L]
+
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?$1 [L,QSA]

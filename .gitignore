@@ -1,0 +1,46 @@
+# Composer dependencies
+/vendor/
+composer.phar
+
+# PHPUnit
+/.phpunit.result.cache
+/phpunit.xml.dist
+/coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE files
+/.idea/
+/.vscode/*                    # Ignore everything in .vscode...
+!/.vscode/launch.json         # ...except these files
+!/.vscode/settings.json
+!/.vscode/extensions.json
+*.sublime-project
+*.sublime-project
+*.sublime-workspace
+.project
+.buildpath
+.settings/
+
+# System files
+.DS_Store
+Thumbs.db
+*.log
+
+# Cache and logs
+/var/cache/*
+/var/logs/*
+/logs/*
+/temp/*
+
+# User uploaded content (if applicable)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Built assets
+/public/build/
+/public/assets/
+/node_modules/

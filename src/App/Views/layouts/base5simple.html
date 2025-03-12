@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<?php
+
+use App\Helpers\DebugRt as Debug;
+use App\Helpers\HtmlHelper;
+//DebugRt::p(111);
+
+//$flash = $data['flash'];
+//Debug::p($data['flash']->peek());
+//Debug::p($data['flashRenderer']);
+//Debug::p($data['flash']->peek());
+
+?>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="/assets/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/menu.css" />
+    <title>xxxxxx</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="content-language" content="en">
+    <meta name="robots" content="index, follow">
+    <!-- Include Bootstrap CSS -->
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+    </style>
+</head>
+<body>
+
+<div class="containerLayout">
+    <header class="header">
+        <!--<h1>Responsive (CSS Grid Demo)</h1>-->
+        <!--<p>By foo</p>-->
+
+        <?php
+            require ('../App/Views/menu.php');
+        ?>
+    </header>
+    <main class="main-content">
+        <h2>Main contentsss</h2>
+        <p><?= $data['title'] ?></p>
+        <?php
+        //print "aaaaaaaaaaaa";
+        //Debug::p($data);
+        ?>
+
+ <!-- Flash Messages - Add here -->
+
+        <!-- Use the flash renderer -->
+        <!-- <?php if (isset($flashRenderer)): ?> -->
+            <?= $flashRenderer->render() ?>
+        <!-- <?php endif; ?> -->
+
+
+        <?= $content ?>
+
+    </main>
+    <section class="left-sidebar">
+        <h2>Left sidebar</h2>
+    </section>
+    <footer class="footer">
+        <h2>Footer</h2>
+    </footer>
+</div>
+
+<!-- Include Bootstrap JS and jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+[
+    {
+        "type": "Group",
+        "name": "external files",
+        "parent_id": null,
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "TmsWnBVwjIaqtQ2l"
+    },
+    {
+        "type": "Group",
+        "name": "sss",
+        "parent_id": null,
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "glKqMWNxEhuXop6n"
+    },
+    {
+        "type": "File",
+        "name": "D:\\xampp\\apache\\conf\\extra\\httpd-vhosts.conf",
+        "parent_id": "TmsWnBVwjIaqtQ2l",
+        "fsPath": "D:\\xampp\\apache\\conf\\extra\\httpd-vhosts.conf",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "ZKbnzRXoPSfNmD2i"
+    },
+    {
+        "type": "File",
+        "name": "c:\\Windows\\System32\\Drivers\\etc\\hosts",
+        "parent_id": "TmsWnBVwjIaqtQ2l",
+        "fsPath": "c:\\Windows\\System32\\Drivers\\etc\\hosts",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "c8QvVsKYCzbfrdHB"
+    },
+    {
+        "type": "File",
+        "name": "D:\\xampp\\apache\\conf\\httpd.conf",
+        "parent_id": "TmsWnBVwjIaqtQ2l",
+        "fsPath": "D:\\xampp\\apache\\conf\\httpd.conf",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "ehFJ4Om0QEjU3nlo"
+    },
+    {
+        "type": "File",
+        "name": "c:\\Users\\rudyt\\AppData\\Roaming\\Code\\User\\settings.json",
+        "parent_id": null,
+        "fsPath": "c:\\Users\\rudyt\\AppData\\Roaming\\Code\\User\\settings.json",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "LtmwKyC4YfildubU"
+    },
+    {
+        "type": "File",
+        "name": "D:\\xampp\\php\\php.ini",
+        "parent_id": "TmsWnBVwjIaqtQ2l",
+        "fsPath": "D:\\xampp\\php\\php.ini",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "2c7aXEHLkQ6C1SGd"
+    },
+    {
+        "type": "File",
+        "name": "d:\\xampp\\apache\\conf\\extra\\httpd-ssl.conf",
+        "parent_id": "TmsWnBVwjIaqtQ2l",
+        "fsPath": "d:\\xampp\\apache\\conf\\extra\\httpd-ssl.conf",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "TZ05PoOygVBezIdk"
+    }
+]

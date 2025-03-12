@@ -1,0 +1,37 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    padding: 20px;
+}
+.default-table {
+    border: 11px solid #da0606;
+    border-collapse: collapse;
+    width: 100%;
+    /* table-layout: fixed; */
+
+}
+
+.default-table th,
+.default-table td {
+    padding: 5px;
+    text-align: left;
+    white-space: nowrap;
+    width: min-content;
+}
+
+.default-table th:last-child,
+.default-table td:last-child {
+    width: 60%;
+}
+
+th {
+    border: 1px solid #dddddd;
+    border-bottom: 4px solid #dddddd;
+    padding: 8px;
+    text-align: left;
+}
+
+td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
