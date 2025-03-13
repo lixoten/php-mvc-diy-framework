@@ -1,3 +1,9 @@
+# Allow direct access to test-logger.php
+<Files "test-logger.php">
+    # Skip rewrite rules for this file
+    RewriteEngine off
+</Files>
+
 # Remove the question mark from the request but maintain the query string
 RewriteEngine On
 RewriteBase /

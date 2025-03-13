@@ -4,7 +4,8 @@
     "autoload": {
         "psr-4": {
             "App\\": "src/App/",
-            "Core\\": "src/Core/"
+            "Core\\": "src/Core/",
+            "Tests\\": "Tests/"
         }
     },
     "authors": [
@@ -16,9 +17,11 @@
     "require": {
         "php": "^8.2.12",
         "ext-pdo": "*",
-        "php-di/php-di": "^7.0"
+        "php-di/php-di": "^7.0",
+        "psr/log": "^3.0"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.11"
+        "squizlabs/php_codesniffer": "^3.11",
+        "phpunit/phpunit": "^9.5"
     }
 }

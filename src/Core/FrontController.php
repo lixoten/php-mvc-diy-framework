@@ -35,6 +35,24 @@ class FrontController
         #Single record with ID
         $this->router->add('{controller}/{action}/{level:\d}{exe:j|n}{pageid:\d\d\d\d}/{returnid:\d\d\d\d}/{id:\d+}');
 
+
+        $this->router->add('test-logger', ['controller' => 'Home', 'action' => 'testLogger']);
+        /**
+         * Route for handling key-value parameters
+         *
+         * This route handles URLs with variable key-value pairs:
+         * /controller/action/param/key1/value1/key2/value2/
+         *
+         * - Only processes complete key-value pairs
+         * - Unpaired parameters are ignored
+         * - Both keys and values are restricted to word characters (letters, numbers, underscore)
+         *
+         * Access in controller:
+         *   $this->route_params['key1'], $this->route_params['key2'], etc.
+         */
+        $this->router->add('{controller}/param/{args:[\w+\/\w+\/]*}', ['action' => 'index']);
+        $this->router->add('{controller}/{action}/param/{args:[\w+\/\w+\/]*}');
+
         ## Edit page
         $this->router->add('{controller}/{action}/{id:\d+}');
         $this->router->add('{controller}/{action}/{textid:\w+}');
@@ -46,3 +64,8 @@ class FrontController
         $this->router->add("{controller}/{action}");
     }
 }
+
+/*
+http://localhost/testy/param/ddd/ddddd
+http://localhost/testy/test/parm/hhh/hhhh
+*/

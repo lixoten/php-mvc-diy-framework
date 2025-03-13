@@ -2,7 +2,7 @@
 
 namespace Core;
 
-use App\Helpers\DebugRt;
+use App\Helpers\DebugRt as Debug;
 use DI\Container as DIContainer;
 use InvalidArgumentException;
 
@@ -52,19 +52,48 @@ class Router implements RouterInterface
      */
     protected function match(string $url): bool
     {
+        // Extract query string if present
+        // $urlParts = parse_url($url);
+        // $path = $urlParts['path'] ?? $url;
+
+        // Process query string if it exists
+        // $queryParams = [];
+        // if (isset($urlParts['query'])) {
+            // parse_str($urlParts['query'], $queryParams);
+        // }
+//Debug::p($url,0);
         foreach ($this->routes as $route => $params) {
             if (preg_match($route, $url, $matches)) {
                 // Get named capture group values
                 //Debug::p($matches, 0);
                 foreach ($matches as $key => $match) {
-                    if (is_string($key)) {
+                    // Check if this is our special 'args' parameter for repetitive params
+                    if ($key === 'args' && strpos($url, '/param/') !== false) {
+                        // Extract the part after /param/
+                        $argsString = $match;
+                        $segments = explode('/', $argsString);
+
+                        // Process segments in pairs as key-value
+                        for ($i = 0; $i < count($segments) - 1; $i += 2) {
+                            $paramKey = $segments[$i];
+                            $paramValue = $segments[$i + 1] ?? null;
+                            $params[$paramKey] = $paramValue;
+                        }
+
+                        // Store original args too for reference
+                        $params['args'] = $argsString;
+                    } else {
+                        // Normal parameter handling
                         $params[$key] = $match;
                     }
                 }
+                //Debug::p($path);
+
 
                 $params["url"] = $url;
                 //Debug::p($params,0);
                 $this->params = $params;
+                //Debug::p($params, 0);
                 return true;
             }
         }
