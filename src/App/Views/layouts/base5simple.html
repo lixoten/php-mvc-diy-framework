@@ -38,19 +38,12 @@ use App\Helpers\HtmlHelper;
         ?>
     </header>
     <main class="main-content">
-        <h2>Main contentsss</h2>
-        <p><?= $data['title'] ?></p>
+        <?= $flashRenderer->render() ?>
+        <!-- <h2>Main contentsss</h2> -->
         <?php
         //print "aaaaaaaaaaaa";
         //Debug::p($data);
         ?>
-
- <!-- Flash Messages - Add here -->
-
-        <!-- Use the flash renderer -->
-        <!-- <?php if (isset($flashRenderer)): ?> -->
-            <?= $flashRenderer->render() ?>
-        <!-- <?php endif; ?> -->
 
 
         <?= $content ?>

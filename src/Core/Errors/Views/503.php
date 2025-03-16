@@ -9,7 +9,9 @@ use App\Helpers\DebugRt as Debug;
  */
 //Debug::p($message);
 ///////////////////
-// BadRequest
+// Service Unavailable - 503
 ///////////////////
 ?>
-<h1><?= $message ?></h1>
+<h1>Error Page: View 503</h1>
+<h4><?= $message ?></h4>
+<p><?= '503 BOOOOO LINE: ' . $data['line'] ?></p>

@@ -2,25 +2,41 @@
 
 namespace Core;
 
-use App\Helpers\DebugRt;
+use App\Helpers\DebugRt as Dubug;
+use Core\Http\HttpFactory;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 class FrontController
 {
     protected $router;
+    protected $httpFactory;
 
-    public function __construct(RouterInterface $router)
+    public function __construct(RouterInterface $router, HttpFactory $httpFactory)
     {
         $this->router = $router;
+        $this->httpFactory = $httpFactory;
         $this->registerRoutes();
     }
 
-    public function run(string $url)
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        // $url = $_GET['url'] ?? '';
-        // DebugRt::p($_GET, 0);
-        // $url = $_SERVER['QUERY_STRING'] ?? '';
-        // DebugRt::p($url);
-        $this->router->dispatch($url);
+        return $this->router->dispatch($request);
+    }
+
+    // Legacy method for backward compatibility
+    public function run(string $url): void
+    {
+        // Create request from URL
+        $uri = $this->httpFactory->createUri('http://localhost/' . ltrim($url, '/'));
+        $request = $this->httpFactory->createServerRequestFromGlobals()->withUri($uri);
+
+        // Process the request
+        $response = $this->handle($request);
+
+        // Emit response
+        $emitter = new Http\ResponseEmitter();
+        $emitter->emit($response);
     }
 
     protected function registerRoutes()

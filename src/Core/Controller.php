@@ -6,7 +6,10 @@ namespace Core;
 
 use App\Enums\FlashMessageType;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Http\HttpFactory;
 use InvalidArgumentException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 
 //use App\Views\Components\Page\MessageBox;
 //use App\Views\HtmlTable;
@@ -29,51 +32,55 @@ abstract class Controller
     public array $route_params;
     protected FlashMessageServiceInterface $flash;
     protected View $view;
+    protected HttpFactory $httpFactory;
 
     public function __construct(
         array $route_params,
         FlashMessageServiceInterface $flash,
-        View $view
+        View $view,
+        HttpFactory $httpFactory
     ) {
         $this->route_params = $route_params;
         $this->flash = $flash;
         $this->view = $view;
+        $this->httpFactory = $httpFactory;
     }
+
 
     /**
      * Magic method called when a non-existent or inaccessible method is
-     * called on an object of this class. Used to execute before and after
-     * filter methods on action methods. Action methods need to be named
-     * with an "Action" suffix, e.g. indexAction, showAction etc.
-     *
-     * @param string $name Method name
-     * @param array $args  Arguments passed to the method
-     *
-     * @return void
+     * called on an object of this class.
      */
     public function __call(string $name, array $args)
     {
         $method = $name . "Action";
+        $request = $args[0] ?? null; // Get request from args if available
 
         if (method_exists($this, $method)) {
             if ($this->before() !== false) {
-                call_user_func_array([$this, $method], $args);
-
+                $result = call_user_func_array([$this, $method], $args);
                 $this->after();
+
+                // Convert result to ResponseInterface
+                if ($result instanceof ResponseInterface) {
+                    return $result;
+                } elseif (is_string($result)) {
+                    $response = $this->httpFactory->createResponse();
+                    $response->getBody()->write($result);
+                    return $response;
+                } else {
+                    // Return empty response for null or other types
+                    return $this->httpFactory->createResponse();
+                }
             }
         } else {
-            ####################################################################################
-            // Danger Danger Danger // DANGER //
-            // Question to ask, Should we throw here? or return something that we can process.
-            // this __call is called when we do a dynamic call to the controller Object in
-            // the router on this line: $controller_object->$action();
-            // Can we place this "$controller_object->$action()" in a try/catch????
-            throw new InvalidArgumentException("WTF11.....Method $name (in controller scrapObj) not found", 404);
-            ###################################################################################
+            throw new InvalidArgumentException("Method $name (in controller) not found", 404);
         }
     }
 
-    // TODO
+
+
+    // TOxDO
     // private function requiredLogin()
     // {
     //     if (! isset($_SESSION['user_id'])) {
@@ -108,8 +115,9 @@ abstract class Controller
     {
         // DANGER
         // if (in_array($this->route_params['controller'].'/'. $this->route_params['action'], $this->login_required)) {
-        //     $this->requiredLogin();//TODO
+        //     $this->requiredLogin();//TOxDO
         // }
+        return true; // Default to allowing the action
     }
 
     /**
@@ -122,7 +130,51 @@ abstract class Controller
     }
 
 
-    protected function view(string $template, array $args = []): void
+    // Update view method to return Response
+    protected function view(string $template, array $args = [], int $statusCode = 200): ResponseInterface
+    {
+        //exit();
+        $args['flash'] = $this->flash;
+        $content = $this->view->renderWithLayout($template, $args);
+
+        $response = $this->httpFactory->createResponse($statusCode);
+        $response->getBody()->write($content);
+
+        $body = (string)$response->getBody();
+        error_log("Response Body Length: " . strlen($body));
+        error_log("Response Body Preview: " . substr($body, 0, 200));
+        error_log("Response Headers: " . json_encode($response->getHeaders()));
+
+        return $response;
+    }
+
+    /**
+     * Create a JSON response
+     */
+    protected function json($data, int $statusCode = 200): ResponseInterface
+    {
+        $response = $this->httpFactory->createResponse($statusCode);
+        $response->getBody()->write(json_encode($data));
+        return $response->withHeader('Content-Type', 'application/json');
+    }
+
+    /**
+     * Create a redirect response
+     */
+    protected function redirect(string $url, int $statusCode = 302): ResponseInterface
+    {
+        return $this->httpFactory->createResponse($statusCode)
+            ->withHeader('Location', $url);
+    }
+
+    //// Keep your existing helper methods
+    //protected function convertToCamelCase(string $string): string
+    //{
+    //    return lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $string))));
+    //}
+
+
+    protected function oldview(string $template, array $args = []): void
     {
         $args['flash'] = $this->flash;
 
@@ -143,6 +195,21 @@ abstract class Controller
     protected function convertToCamelCase(string $string): string
     {
         return lcfirst(str_replace(' ', '', ucwords(str_replace('-', ' ', $string))));
+    }
+
+    protected function getActionLinks(string $page, array $needArr = []): array
+    {
+        if ($needArr === null || !is_array($needArr) || empty($needArr)) {
+            return [];
+        }
+
+        $contentArr = [];
+
+        foreach ($needArr as $key => $need) {
+            $contentArr[$need . 'Action' ] = "$page/$need";
+        }
+
+        return $contentArr;
     }
 }
 # End of File 1919 430 149

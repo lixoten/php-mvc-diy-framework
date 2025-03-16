@@ -31,10 +31,10 @@ class ListRenderer
                 $flattenedFields = "<pre>";
                 $flattenedFields .= print_r($fields, true);
                 $flattenedFields .= "</pre>";
-                $exceptionMessage = 'The $fields array must be fully associative.'.$flattenedFields;
+                $exceptionMessage = 'The $fields array must be fully associative.' . $flattenedFields;
 
                 Debug::boom($exceptionMessage);
-                throw new InvalidArgumentException ($exceptionMessage, 99);
+                throw new InvalidArgumentException($exceptionMessage, 99);
             }
         }
 
@@ -96,7 +96,8 @@ class ListRenderer
 
 
 
-    private function generatePageToken() {
+    private function generatePageToken()
+    {
         $token = bin2hex(random_bytes(16)); // Smaller token size is fine here
 
         // Initialize token storage if not exists
@@ -118,4 +119,3 @@ class ListRenderer
         return $token;
     }
 }
-

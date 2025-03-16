@@ -21,9 +21,13 @@ use Core\Exceptions\ForbiddenException;
 use Core\Exceptions\NotFoundException;
 use Core\Exceptions\PageNotFoundException;
 use Core\Exceptions\RecordNotFoundException;
+use Core\Exceptions\ServerErrorException;
+use Core\Exceptions\ServiceUnavailableException;
 use Core\Exceptions\UnauthenticatedException;
 use Core\Exceptions\ValidationException;
+use Core\Http\HttpFactory;
 use Core\View;
+use Psr\Http\Message\ResponseInterface;
 
 /**
  * Home controller
@@ -34,14 +38,62 @@ class HomeController extends Controller
     public function __construct(
         array $route_params,
         FlashMessageServiceInterface $flash,
-        View $view
+        View $view,
+        HttpFactory $httpFactory
     ) {
         parent::__construct(
             $route_params,
             $flash,
-            $view
+            $view,
+            $httpFactory
         );
     }
+
+    /**
+     * Show the index page
+     *
+     * @return ResponseInterface
+     */
+    public function indexAction(): ResponseInterface
+    {
+        $this->flash->add('Welcome to the Home Page.');
+
+        return $this->view(HomeConst::VIEW_HOME_INDEX, [
+            'title' => 'Index Action',
+            'actionLinks' => $this->getActionLinks('home', ['index', 'test']),
+            // 'content' => $this->getActionLinks(['index','test']),
+        ]);
+    }
+
+    /**
+     * Show the index page
+     *
+     * @return ResponseInterface
+     */
+    public function testAction(): ResponseInterface
+    {
+        if (isset($this->route_params['textid'])) {
+            return $this->errorPage($this->route_params['textid']);
+        }
+
+        return $this->view(HomeConst::VIEW_HOME_TEST, [
+            'title' => 'Test Action',
+            'errorLinks' => $this->getErrorLinks(),
+            'actionLinks' => $this->getActionLinks('home', ['index', 'test']),
+        ]);
+    }
+
+
+    public function testResponseAction(): ResponseInterface
+    {
+        // Create a direct response with no view
+        $response = $this->httpFactory->createResponse(200);
+        $response->getBody()->write("TESTING DIRECT OUTPUT - NO TEMPLATE");
+        return $response;
+    }
+
+
+
 
 
     private function getErrorLinks(): string
@@ -53,84 +105,65 @@ class HomeController extends Controller
             <li><a href=\"/home/test/recordnotfound\">404 - recordnotfound</a></li>
             <li><a href=\"/home/test/badrequest\">400 - badrequest</a></li>
             <li><a href=\"/home/test/validation\">422 - validation</a></li>
+            <li><a href=\"/home/test/servererror\">500 - servererror</a></li>
+            <li><a href=\"/home/test/serviceunavailable\">503 - serviceunavailable</a></li>
             <li></li>
         </ul>";
     }
 
 
-    /**
-     * Show the index page
-     *
-     * @return void
-     */
-    public function testAction(): void
-    {
-        if (isset($this->route_params['textid'])) {
-            $this->errorPage($this->route_params['textid']);
-        }
-
-        $this->view('home/index', [
-            'title' => $this->getErrorLinks()
-        ]);
-    }
 
     // /home/testLogging - Normal request
     // /home/testLogging?error=1 - Test exception logging
     // /home/testLogging?slow=1 - Test performance logging
-    public function testLogging()
+    public function testLogging(): ResponseInterface
     {
-        echo "Testing logging middleware - basic test";
+        $response = $this->httpFactory->createResponse();
+        $response->getBody()->write("Testing logging middleware - basic test");
+        return $response;
     }
 
-    public function testLoggingError()
+    public function testLoggingError(): ResponseInterface
     {
-        echo "Testing logging middleware - error test";
-        //throw new \Exception("Test exception for logging");
+        $response = $this->httpFactory->createResponse();
+        $response->getBody()->write("Testing logging middleware - error test");
         throw new \DI\NotFoundException("Test exception for logging");
     }
 
-    public function testLoggingSlow()
+    public function testLoggingSlow(): ResponseInterface
     {
-        echo "Testing logging middleware - slow response test";
+        // Fix return type and direct output
+        $response = $this->httpFactory->createResponse();
+        $response->getBody()->write("Testing logging middleware - slow response test");
         sleep(5);
-        echo "Completed after delay";
-    }
-
-    /**
-     * Show the index page
-     *
-     * @return void
-     */
-    public function indexAction(): void
-    {
-        $this->flash->add('Welcome to the Home Page.');
-
-        // $this->view('home/index', [
-        $this->view(HomeConst::VIEW_HOME_INDEX, [
-            'title' => $this->getErrorLinks()
-        ]);
+        $response->getBody()->rewind();
+        $body = (string)$response->getBody();
+        $response->getBody()->write($body . "\nCompleted after delay");
+        return $response;
     }
 
 
     /**
      * Show the index page
      *
-     * @return void
+     * @param string $exceptionType
+     * @return ResponseInterface
      */
-    public function errorPage(string $exceptionType): void
+    public function errorPage(string $exceptionType): ResponseInterface
     {
-        echo $this->getErrorLinks();
+        $content =  $this->getErrorLinks();
 
         try {
             // Debug::p($exceptionType);
             switch ($exceptionType) {
                 case 'divide':
-                    echo "<p>About to trigger a division by zero exception...</p>";
+                    $content .= "<p>About to trigger a division by zero exception...</p>";
+
                     $rr = 5 / 0;
                     break;
 
                 case 'unauthenticated': //401
-                    echo "<p>About to trigger a unauthenticated exception...</p>";
+                    $content .= "<p>About to trigger a unauthenticated exception...</p>";
                     throw new UnauthenticatedException(
                         message: "Oops!!! Please log in again",
                         //code: 401,
@@ -141,7 +174,7 @@ class HomeController extends Controller
                     break;
 
                 case 'forbidden': // 403
-                    echo "<p>About to trigger a forbidden exception...</p>";
+                    $content .= "<p>About to trigger a forbidden exception...</p>";
                     // For permission issues
                     throw new ForbiddenException(
                         // message: "You don't have permission to edit this post",
@@ -153,7 +186,7 @@ class HomeController extends Controller
                     break;
 
                 case 'pagenotfound': //404
-                    echo "<p>About to trigger a page-not-found exception...</p>";
+                    $content .= "<p>About to trigger a page-not-found exception...</p>";
                     throw new PageNotFoundException(
                         //message: "Page was not fssssound...........",
                         requestedRoute: "Poooost/edit",
@@ -161,7 +194,7 @@ class HomeController extends Controller
                     break;
 
                 case 'recordnotfound': //404
-                    echo "<p>About to trigger a record-not-found exception...</p>";
+                    $content .= "<p>About to trigger a record-not-found exception...</p>";
                     throw new RecordNotFoundException(
                         message: "Record not found......",
                         entityType: "Post table",
@@ -170,14 +203,14 @@ class HomeController extends Controller
                     break;
 
                 case 'badrequest': //400
-                    echo "<p>About to trigger a bad request exception...</p>";
+                    $content .= "<p>About to trigger a bad request exception...</p>";
                     throw new BadRequestException(
                         //message: "Bad Request...........",
                     );
                     break;
 
                 case 'validation': //422
-                    echo "<p>About to trigger a validation exception...</p>";
+                    $content .= "<p>About to trigger a validation exception...</p>";
                     throw new ValidationException(
                         // message: "Record not found...........",
                         // entityType: "Post table",
@@ -191,44 +224,35 @@ class HomeController extends Controller
                     );
                     break;
 
+                case 'servererror': //500
+                    $content .= "<p>About to trigger a server error exception...</p>";
+                    throw new ServerErrorException(
+                        //message: "Bad Request...........",
+                    );
+                    break;
+
+                case 'serviceunavailable': //503
+                    $content .= "<p>About to trigger a service unavailable exception...</p>";
+                    throw new ServiceUnavailableException(
+                        //message: "Bad Request...........",
+                    );
+                    break;
+
                 default:
-                    echo "<p>No exception triggered. Add ?error=divide or ?error=forbidden to URL to test.</p>";
+                    $content .= "<p>No exception triggered. Add ?error=divide or ?error=forbidden to URL to test.</p>";
             }
         } catch (\Exception $e) {
             // Then re-throw to let the global handler take over
              throw $e;
-
-             Debug::p(111);
-            // Handle the exception
-            $bgColor = $e->getCode() == 403 ? '#fff3cd' : '#ffdddd';
-            $borderColor = $e->getCode() == 403 ? '#ffeeba' : '#ff0000';
-
-            echo "<div style='background-color: $bgColor;
-            border: 1px solid $borderColor; padding: 10px; margin: 10px 0;'>";
-            echo "<h3>Caught " . ($e->getCode() == 403 ? 'Forbidden' : 'Exception') . ":</h3>";
-            echo "<p>Message: " . htmlspecialchars($e->getMessage()) . "</p>";
-            echo "<p>File: " . $e->getFile() . "</p>";
-            echo "<p>Line: " . $e->getLine() . "</p>";
-            echo "<p>Code: " . $e->getCode() . "</p>";
-            echo "</div>";
-            Debug::p(22);
-
-            // For a real 403 response, you'd set the HTTP status code:
-            if ($e->getCode() == 403) {
-                header('HTTP/1.1 403 Forbidden');
-            }
-
-            // Log the error (optional)
-            error_log($e->getMessage());
         }
         // finally {
         //     // This will always execute
-        //     echo "<p>Finally block executed</p>";
+        //     $content .= "<p>-----------</p>";
         // }
 
 
         //$this->view(HomeConst::VIEW_HOME_INDEX, [
-        $this->view('home/index', [
+        return $this->view('home/index', [
             'title' => 'Welcome Home'
         ]);
     }

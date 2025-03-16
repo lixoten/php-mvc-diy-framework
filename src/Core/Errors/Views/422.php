@@ -10,18 +10,22 @@ use App\Helpers\DebugRt as Debug;
  */
 //Debug::p($message);
 ///////////////////
-// ValidationException
+// ValidationException - 422
 ///////////////////
 ?>
 
 <div class="error-container validation-error">
-    <h1><?= htmlspecialchars($message) ?></h1>
+    <h1>Error Page: View 422</h1>
+    <h4><?= htmlspecialchars($message) ?></h4>
+    <p><?= '422 BOOOOO LINE: ' . $data['line'] ?></p>
 
-    <?php if ($data['exception'] instanceof \Core\Exceptions\ValidationException): ?>
+
+
+    <?php if ($data['exception'] instanceof \Core\Exceptions\ValidationException) : ?>
         <div class="validation-errors">
-            <?php if ($data['exception']->hasErrors()): ?>
+            <?php if ($data['exception']->hasErrors()) : ?>
                 <ul class="error-list">
-                    <?php foreach ($data['exception']->getErrors() as $field => $error): ?>
+                    <?php foreach ($data['exception']->getErrors() as $field => $error) : ?>
                         <li>
                             <strong><?= htmlspecialchars(ucfirst($field)) ?>:</strong>
                             <?= htmlspecialchars($error) ?>

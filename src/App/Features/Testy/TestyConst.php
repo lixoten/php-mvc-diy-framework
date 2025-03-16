@@ -2,10 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Features\About;
+namespace App\Features\Testy;
 
-class AboutConst
+class TestyConst
 {
     // Application constants
-    public const VIEW_ABOUT_INDEX = 'about/index';
+    public const VIEW_TESTY_INDEX = 'testy/index';
+    public const VIEW_TESTY_TESTLOGGER = 'testy/testlogger';
 }

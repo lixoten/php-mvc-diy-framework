@@ -10,8 +10,9 @@ use App\Helpers\DebugRt as Debug;
 //Debug::p($message);
 //Debug::p($data);
 ///////////////////
-// Forbidden
+// Not Found - 404
 ///////////////////
 ?>
-<h1><?= $message ?></h1>
-<h1><?= 'Line : ' . $data['line'] ?></h1>
+<h1>Error Page: View 404</h1>
+<h4><?= $message ?></h4>
+<p><?= '404 BOOOOO LINE: ' . $data['line'] ?></p>

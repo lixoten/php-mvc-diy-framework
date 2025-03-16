@@ -16,3 +16,6 @@ $linkList = $helperObj->ulLinks($actionLinks);
 <h1><?= $title ?></h1>
 <?= $linkList ?>
 
+
+<?= $additional_content ?>
+

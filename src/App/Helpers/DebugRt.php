@@ -23,16 +23,12 @@ namespace App\Helpers;
 
 class DebugRt
 {
-    public const DEBUG_HIDE_MSG = false; // Add this line to define the constant
+    public const DEBUG_HIDE_MSG = false;
     //old file name was class Class_Rt_Debug.php
     public static bool $display = true;
     public static bool $runTrackLoc  = true;
 
-    //public static string
     public static string $debugLine = 'off';
-    //public static string$debugLine    = 'on';
-    //public static string$runTrackLoc = true;
-    //$debugLine = 'on',
     public static string $runningPad = '';
     public static string $tag = '';
     //public static string
@@ -51,11 +47,7 @@ class DebugRt
 
     public function __construct()
     {
-        //print "ssss";
         //$this->pageKey = $pageKey;
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." new creat : ";
-        //exit();
-        //print "<br />".__FUNCTION__." | ".subStr(__FILE__,23).": ".__LINE__." HELLO ";
     }
 
 
@@ -123,11 +115,6 @@ class DebugRt
         } else {
             echo htmlspecialchars((string)$data);
         }
-        // if (is_array($data) || is_object($data)) {
-        //     echo '<pre>' . print_r($data, true) . '</pre>';
-        // } else {
-        //     echo htmlspecialchars((string)$data);
-        // }
 
         echo '</div>';
     }
@@ -332,25 +319,7 @@ class DebugRt
         );
         $options = array_merge($defaults, $options);
         extract($options);
-
-//        if (isset($msgX))
-//            $msgX = $msgX;
-//        else
             $msgX = '';
-
-
-//        if (isset($action) && $action){
-//            //self::$runningPad .= self::pad(8 );
-//            $msg .= "<br />".self::$runningPad."______________$msgX";
-//            //self::$runningPad .= self::pad(8 );
-//            if (isset($fields)) {
-//                //$msg .= "<br /> ------------ $fields";
-//                $msg .= "<br />".self::$runningPad."______________$fields";
-//                //\HelperRt::print_r($arr,'dataArr');
-//                //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $xxx;
-//                //exit();
-//            }
-//        }
         print "<br />loc : $loc";
 
         if ($loc === 'about') {
@@ -408,13 +377,6 @@ class DebugRt
                     <br />function     = $function0
                     <br />Line = $line0
                     </div>";
-
-
-        //self::$testY .= "$file ";
-        //print "<br />oopsBoomBoom"." ". self::$testY;
-        //print "<br />oopsBoomBoom";
-        //print "<br />oopsBoomBoom";
-        //print "<br />oopsBoomBoom";
     }
 
 
@@ -495,23 +457,6 @@ class DebugRt
      */
     public static function oopsBoom(int $ver = 33, int $traceIndex = 0, array $options = array()): void
     {
-        /* Ver. 32
-                $msg    = 'XXXX2 for XXXX1, was not found or was not initialized.';
-                $val1   = $this->ttObj->page."/".$this->ttObj->op;
-                $val2   = 'sapPageMenuBtnSet';
-                $fix    = 'Go to FFFF1 and set FFFF2 property value.';
-                $fixV1  = 'Class_Page_Sap_Xxxxxx().initializePage';
-                $fixV2  = 'sapPageMenuBtnSet';
-                DebugHelpRt::oopsBoom(32, 0, array('uniqueTag'=>"crapiking",'msg'=>$msg,'fix'=>$fix,'val1'=>$val1,'val2'=>$val2,'fix'=>$fix,'fixV1'=>$fixV1,'fixV2'=>$fixV2,));
-        */
-
-
-
-        //if (!ADMIN) {
-        //    ob_clean();
-        //    echo 'oops';
-        //    exit();
-        //}
         $class0      = "";
         $function0   = "";
         $i = 0;
@@ -661,12 +606,6 @@ class DebugRt
         $functionA   = debug_backtrace()[$traceIndex]['function'];
         $A = subStr($fileA, 45);
 
-        //if (isset(debug_backtrace()[$traceIndex+1]['file'])) {
-        // $fileFor = debug_backtrace()[$traceIndex + 1]['function'];
-        // //$fileFor    = subStr($fileFor,45);
-        // $msg .= " ( $fileFor in File $A around line $lineA)";
-        //}
-
         if (isset($val1)) {
             if ((str_contains($msg, "XXXX1"))) {
                 $msg    = str_replace("XXXX1", '<span style="font-weight: bold; color:red;">(' . $val1 . ')</span>', $msg);
@@ -776,14 +715,6 @@ class DebugRt
             $oops .= " <br /> --------------- Function5 : " . "<span style='font-weight: bold; color:red;'>$function5</span>";
             $oops .= " <br /> --------------- Class5 : " . "<span style='font-weight: bold; color:red;'>$class5</span>";
         }
-
-        //$oops      .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['file']."</span>";
-        //$oops      .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['line']."</span>";
-        //
-        //if (isset(debug_backtrace()[1]['function']))
-        //    $oops  .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['function']."</span>";
-        //if (isset(debug_backtrace()[1]['class']))
-        //    $oops  .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['class']."</span>";
 
         $oops = "<div style='border: red solid 6px; padding:10px; width:50%;margin: auto'>$oops</div>";
 
@@ -962,12 +893,6 @@ class DebugRt
         $functionA   = debug_backtrace()[$traceIndex]['function'];
         $A = subStr($fileA, 45);
 
-        //if (isset(debug_backtrace()[$traceIndex+1]['file'])) {
-        //    $fileFor = debug_backtrace()[$traceIndex + 1]['function'];
-        //    //$fileFor    = subStr($fileFor,45);
-        //    $msg .= " ( $fileFor in File $A around line $lineA)";
-        //}
-
         if (isset($val1)) {
             if ((str_contains($msg, "XXXX1"))) {
                 $msg    = str_replace("XXXX1", '<span style="font-weight: bold; color:red;">(' . $val1 . ')</span>', $msg);
@@ -1081,14 +1006,6 @@ class DebugRt
             $oops .= " <br /> --------------- Function5 : " . "<span style='font-weight: bold; color:red;'>$function5</span>";
             $oops .= " <br /> --------------- Class5 : " . "<span style='font-weight: bold; color:red;'>$class5</span>";
         }
-
-        // $oops .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['file']."</span>";
-        // $oops .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['line']."</span>";
-        //
-        //if (isset(debug_backtrace()[1]['function']))
-        // $oops  .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['function']."</span>";
-        //if (isset(debug_backtrace()[1]['class']))
-        // $oops  .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['class']."</span>";
 
         $oops = "<div style='border: red solid 6px; padding:10px; width:50%;margin: auto'>$oops</div>";
 
@@ -1224,38 +1141,6 @@ class DebugRt
         $oops       .= " <br /> --------------- Class2 : " . "<span style='font-weight: bold; color:red;'>$class2</span>";
 
 
-        // if (isset(debug_backtrace()[3]['file'])) {
-        // $oops .= " <hr />";
-        // $oops .= " <br /> --------------- File3 : " . "<span style='font-weight: bold; color:red;'>$file3</span>";
-        // $oops .= " <br /> --------------- Line3 : " . "<span style='font-weight: bold; color:red;'>$line3</span>";
-        // $oops .= " <br /> --------------- Function3 : " . "<span style='font-weight: bold; color:red;'>$function3</span>";
-        // $oops .= " <br /> --------------- Class3 : " . "<span style='font-weight: bold; color:red;'>$class3</span>";
-        // }
-
-        // if (isset(debug_backtrace()[4]['file'])) {
-        // $oops .= " <hr />";
-        // $oops .= " <br /> --------------- File4 : " . "<span style='font-weight: bold; color:red;'>$file4</span>";
-        // $oops .= " <br /> --------------- Line4 : " . "<span style='font-weight: bold; color:red;'>$line4</span>";
-        // $oops .= " <br /> --------------- Function4 : " . "<span style='font-weight: bold; color:red;'>$function4</span>";
-        // $oops .= " <br /> --------------- Class4 : " . "<span style='font-weight: bold; color:red;'>$class4</span>";
-        // }
-
-        // if (isset(debug_backtrace()[5]['file'])) {
-        // $oops .= " <hr />";
-        // $oops .= " <br /> --------------- File5 : " . "<span style='font-weight: bold; color:red;'>$file5</span>";
-        // $oops .= " <br /> --------------- Line5 : " . "<span style='font-weight: bold; color:red;'>$line5</span>";
-        // $oops .= " <br /> --------------- Function5 : " . "<span style='font-weight: bold; color:red;'>$function5</span>";
-        // $oops .= " <br /> --------------- Class5 : " . "<span style='font-weight: bold; color:red;'>$class5</span>";
-        // }
-
-        //$oops      .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['file']."</span>";
-        //$oops      .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['line']."</span>";
-        //
-        //if (isset(debug_backtrace()[1]['function']))
-        //    $oops  .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['function']."</span>";
-        //if (isset(debug_backtrace()[1]['class']))
-        //    $oops  .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>".debug_backtrace()[1]['class']."</span>";
-
         $oops = "<div style='border: red solid 6px; padding:10px; width:50%;margin: auto'>$oops</div>";
 
 
@@ -1372,19 +1257,6 @@ class DebugRt
             //exit();
         }
 
-
-        //if ($printIt != "everything" ) {
-         //   if ($printIt != $printItKey ) {
-            //    return;
-         //   }
-        //}
-
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $printIt;
-        //exit();
-
-        //print_r($options);
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $options['foo'];
-        //exit();
         $defaults = array(
             'textx'    => 'xxx : ',
             'pgNmx'    => 'fofo',
@@ -1392,15 +1264,6 @@ class DebugRt
         $options = array_merge($defaults, $options);
         extract($options);
 
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $foo;
-        //exit();
-//        $x = substr("\$value",1);
-//        print $x;
-//        print " xxx : " . "\$value";
-//
-//        print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $label;
-//        print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx $x : " . $value;
-//        exit();
 
         if (ADMIN) {
             //print "hello";
@@ -1450,26 +1313,6 @@ class DebugRt
         ## chanter it here to make it match
         $printItKey = "moo2";
 
-        //Danger temp out
-//        if (DEBUG_HIDE_MSG || $exitSw=='h') {     #hide/unhide code = ind101
-//            return;
-//            print "<br />".subStr(__FILE__,23).": ".__LINE__." BOOOMMMMM";
-//            exit();
-//        }
-
-
-        //if ($printIt != "everything" ) {
-        //   if ($printIt != $printItKey ) {
-        //    return;
-        //   }
-        //}
-
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $printIt;
-        //exit();
-
-        //print_r($options);
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $options['foo'];
-        //exit();
         $defaults = array(
             'textx'    => 'xxx : ',
             'pgNmx'    => 'fofo',
@@ -1478,14 +1321,6 @@ class DebugRt
         extract($options);
 
         //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $foo;
-        //exit();
-//        $x = substr("\$value",1);
-//        print $x;
-//        print " xxx : " . "\$value";
-//
-//        print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $label;
-//        print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx $x : " . $value;
-//        exit();
 
         if (ADMIN) {
             //print "hello";
@@ -1494,24 +1329,11 @@ class DebugRt
             $file = $trace[$i]["file"];
             $line = $trace[$i]["line"];
 
-            //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[0]["file"],23)." : ".$trace[0]["line"] . " $textDisp : $value</span>";
-            //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[2]["file"],23)." : ".$trace[2]["line"] . " $textDisp : $value</span>";
-
-//                De::priLn('n', 'xxx', $label);
-//                De::priLn('y', 'xxx', $value);
-            //$x = substr("$value",1);
-
             print  "<span style='font-weight:bold; color:red;'><br />LLINE : " . subStr($file, 24) . " : " . $line . " $label  : $value</span>";//($x)
             if ($exitSw == 'y') {
                 exit();
             }
         }
-        //return;
-
-        #print "<br />".__FUNCTION__." | ".subStr(__FILE__,23).": ".__LINE__." xxx : ". $inVfile;
-        #exit();
-        #print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : ". $xxx;
-        #exit();
     }
 
     public static function x(string $exitSw = 'n', string $label = 'xxx', $value = null, string $printIt = "e", array $options = array()): string
@@ -1529,18 +1351,6 @@ class DebugRt
         }
 
 
-        //if ($printIt != "everything" ) {
-        //   if ($printIt != $printItKey ) {
-        //    return;
-        //   }
-        //}
-
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $printIt;
-        //exit();
-
-        //print_r($options);
-        //print "<br />".subStr(__FILE__,23).": ".__LINE__." xxx : " . $options['foo'];
-        //exit();
         $defaults = array(
             'textx'    => 'xxx : ',
             'pgNmx'    => 'fofo',
@@ -1615,30 +1425,6 @@ class DebugRt
              exit();
         }
     }
-    //public static function pre($arr, $value=null): void {
-//
-////        if (DEBUG_HIDE_MSG) {     #hide/unhide code = ind101
-////            return;
-////            print "<br />".subStr(__FILE__,23).": ".__LINE__." BOOOMMMMM";
-////            exit();
-////        }
-//
-    //    if (ADMIN){
-    //        $trace = debug_backtrace();
-    //        $i=0;
-    //        $file   = $trace[$i]["file"];
-    //        $line   = $trace[$i]["line"];
-    //        $method = $trace[$i+1]["function"];
-//
-    //        //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[0]["file"],23)." : ".$trace[0]["line"] . " $textDisp : $value</span>";
-    //        //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[2]["file"],23)." : ".$trace[2]["line"] . " $textDisp : $value</span>";
-    //        //$x = "<span style='font-weight:bold; color:red;'>".subStr($file,23)."---$method : ".$line . "</span>";
-    //        Debug::printStep("inside pre for debug", "login");
-    //        print "<hr /><pre>";
-    //        print_r($arr);
-    //        echo '</pre>';
-    //    }
-    //}//end function
 
     /**
      * @param string $exitSw
@@ -1737,3 +1523,4 @@ class DebugRt
         return self::$testVar;
     }
 }
+# 1526

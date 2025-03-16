@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core;
 
-use App\Features\Errors\ErrorsController;
+use Core\Errors\ErrorsController;
 use App\Helpers\FlashMessages;
 use App\Helpers\Redirector;
 use App\Helpers\ReturnPageManager;
@@ -21,21 +21,27 @@ use Exception;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
 use Throwable;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+use Core\Http\HttpFactory;
 
 class ErrorHandler
 {
     private bool $developmentMode;
     private Logger $logger;
     private ?ContainerInterface $container;
+    private ?HttpFactory $httpFactory;
 
     public function __construct(
         bool $developmentMode = false,
         Logger $logger = null,
-        ?ContainerInterface $container = null  // Make nullable
+        ?ContainerInterface $container = null,
+        ?HttpFactory $httpFactory = null
     ) {
         $this->developmentMode = $developmentMode;
-        $this->logger = $logger;  // No fallback creation
+        $this->logger = $logger;
         $this->container = $container;
+        $this->httpFactory = $httpFactory;
     }
 
     //TODO
@@ -51,7 +57,7 @@ class ErrorHandler
         array $additionalContext = []
         // string $redirectPath,
         // string $flashId
-    ): never {
+    ): void {
         // Log the exception
         $context = [
             'file' => $e->getFile(),
@@ -73,16 +79,6 @@ class ErrorHandler
 
         $this->logger->error($prefix . ": " . $e->getMessage(), $context);
 
-        //$extraMessage = $this->getExtraMessage($e);
-
-        // $this->flashObj->addMessage(
-        //     $e->getMessage(),
-        //     sticky: true,
-        //     extraMessage: $extraMessage,
-        //     flashId: $flashId
-        // );
-        // $this->returnPageManagerObj->setReturnToPage($redirectPath);
-
 
         // Forward to error controller (without redirect)
         ///////////////$errorController = $this->container->get(ErrorsController::class);
@@ -99,7 +95,12 @@ class ErrorHandler
             ]);
             $flashService = new \App\Services\FlashMessageService($sessionManager);
             $view = new \Core\View(); // Create a View instance
-            $errorController = new ErrorsController([], $flashService, $view);
+            $errorController = new ErrorsController(
+                [],
+                $flashService,
+                $view,
+                $this->httpFactory ?? new HttpFactory() // Pass the httpFactory
+            );
         }
 
 
@@ -112,157 +113,152 @@ class ErrorHandler
             'line' => $e->getLine()
             ]
         );
-
-        exit;
-
-
-        // DIRECT OUTPUT - NO REDIRECTS!
-        http_response_code($statusCode);
-        echo '<!DOCTYPE html>';
-        echo '<html><head><title>' . $statusCode . ' Error</title>';
-        echo '<style>body{font-family:sans-serif;max-width:800px;margin:0 auto;padding:20px}</style>';
-        echo '</head><body>';
-        echo '<h1>' . $statusCode . ' Error</h1>';
-        echo '<p>' . htmlspecialchars($e->getMessage()) . '</p>';
-        echo '<p>File: ' . htmlspecialchars($e->getFile()) . ' Line: ' . $e->getLine() . '</p>';
-        echo '<p><a href="/">Back to Home</a></p>';
-        echo '</body></html>';
-        exit;
     }
 
-    public function handleException(Throwable $e): void
+    /**
+     * Handle an exception and return a PSR-7 response
+     *
+     * @param Throwable $e
+     * @param ServerRequestInterface|null $request
+     * @return ResponseInterface
+     */
+    public function handleException(Throwable $e, ?ServerRequestInterface $request = null): ResponseInterface
     {
-        // Dispatch to specialized handlers based on exception type
+        ////////////////////////////////////////////
+        //  * Exception (base class)
+        // ├── LogicException
+        // │   ├── BadFunctionCallException // TODO
+        // │   ├── DomainException          // TODO
+        // │   ├── InvalidArgumentException // Done
+        // │   ├── LengthException          // TODO
+        // │   └── OutOfRangeException      // TODO
+        // └── RuntimeException
+        //     ├── OutOfBoundsException     // TODO
+        //     ├── OverflowException        // TODO
+        //     ├── RangeException           // TODO
+        //     ├── UnderflowException       // TODO
+        //     └── UnexpectedValueException // TODO
+        //
+        // HttpExceptionInterface (interface)               // TODO
+        // └── HttpException (custom base class)            // Done
+        //     ├── HttpBadRequestException (400)            // Done
+        //     │   └── ValidationException (400 with field errors)
+        //     ├── HttpUnauthorizedException (401)          // sd
+        //     ├── HttpForbiddenException (403)             // Done
+        //     ├── HttpNotFoundException (404)              // Done
+        //     │   └── ResourceNotFoundException (404 for specific resources)
+        //     ├── HttpMethodNotAllowedException (405)        // TODO
+        //     ├── HttpNotAcceptableException (406)
+        //     ├── HttpRequestTimeoutException (408)
+        //     ├── HttpConflictException (409)                // TODO
+        //     ├── HttpGoneException (410)
+        //     ├── HttpUnsupportedMediaTypeException (415)
+        //     ├── HttpUnprocessableEntityException (422)     // TODO
+        //     ├── HttpTooManyRequestsException (429)
+        //     └── HttpServerErrorException (500+)
+        //         ├── HttpInternalServerErrorException (500) // TODO
+        //         ├── HttpNotImplementedException (501)
+        //         ├── HttpBadGatewayException (502)
+        //         ├── HttpServiceUnavailableException (503)
+        //         └── HttpGatewayTimeoutException (504)
+        ////////////////////////////////////////////
+
+        // Log the exception regardless of type
+        $this->logger?->error(get_class($e) . ": " . $e->getMessage(), [
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+            'code' => $e->getCode(),
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        // Determine status code based on exception type
+        $statusCode = 500; // Default
+        $additionalContext = [];
+
+        // Handle specific exception types
         if ($e instanceof UnauthenticatedException) {
-            $this->handleUnauthenticatedException($e);
-            return;
-        } elseif ($e instanceof ForbiddenException) {
-            $this->handleForbiddenException($e);
-            return;
-        } elseif ($e instanceof RecordNotFoundException) {
-            $this->handleRecordNotFoundException($e);
-            return;
-        } elseif ($e instanceof PageNotFoundException) {
-            $this->handlePageNotFoundException($e);
-            return;
-        } elseif ($e instanceof BadRequestException) {
-            $this->handleBadRequestException($e);
-            return;
-        // } elseif ($e instanceof DatabaseException) {  // TODO
-            // $this->handleDatabaseException($e);
-            // return;
-        } elseif ($e instanceof InvalidArgumentException) {
-            $this->handleInvalidArgumentException($e);
-            return;
-        }
-
-        // Fall back to generic handling for unrecognized exceptions
-        $statusCode = $e->getCode() >= 100 && $e->getCode() < 600 ? $e->getCode() : 500;
-
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // '/errors/server-error',
-            // "02052025-500"
-        );
-    }
-
-    public function handleUnauthenticatedException(UnauthenticatedException $e): void
-    {
-        $statusCode = 401;
-
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // Enhanced logging with authentication details
-            [
+            $statusCode = 401;
+            $additionalContext = [
                 'attempted_resource' => $e->getAttemptedResource(),
                 'auth_method' => $e->getAuthMethod(),
                 'reason_code' => $e->getReasonCode()
-            ]
-        );
-    }
-
-
-    public function handleForbiddenException(ForbiddenException $e): void
-    {
-        $statusCode = 403;
-
-        // // Enhanced logging with permission details
-        // $this->logger->error("Access forbidden: " . $e->getMessage(), [
-        //     'user_id' => $e->getUserId(),
-        //     'required_permission' => $e->getRequiredPermission(),
-        //     'user_roles' => $e->getUserRoles() ? implode(', ', $e->getUserRoles()) : null
-        // ]);
-
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // Enhanced logging with authentication details
-            [
+            ];
+        } elseif ($e instanceof ForbiddenException) {
+            $statusCode = 403;
+            $additionalContext = [
                 'user_id' => $e->getUserId(),
                 'required_permission' => $e->getRequiredPermission(),
                 'user_roles' => $e->getUserRoles() ? implode(', ', $e->getUserRoles()) : null
-            ]
-        );
-    }
-
-    public function handleRecordNotFoundException(RecordNotFoundException $e): void
-    {
-        $statusCode = 404;
-
-        // // Log with entity information
-        // $this->logger->error("Not found: " . $e->getMessage(), [
-        //     'entity_type' => $e->getEntityType(),
-        //     'entity_id' => $e->getEntityId()
-        // ]);
-
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // Enhanced logging with RecordNotFound details
-            [
+            ];
+        } elseif ($e instanceof RecordNotFoundException) {
+            $statusCode = 404;
+            $additionalContext = [
                 'entity_type' => $e->getEntityType(),
                 'entity_id' => $e->getEntityId()
-            ]
-            // '/errors/not-found',
-            // "02052025-404"
-        );
-    }
-
-    public function handlePageNotFoundException(PageNotFoundException $e): void
-    {
-        $statusCode = 404;
-
-        // // Log with entity information
-        // $this->logger->error("Not found: " . $e->getMessage(), [
-        //     'entity_type' => $e->getEntityType(),
-        //     'entity_id' => $e->getEntityId()
-        // ]);
-
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // Enhanced logging with PageNotFound details
-            [
+            ];
+        } elseif ($e instanceof PageNotFoundException) {
+            $statusCode = 404;
+            $additionalContext = [
                 'requestedRoute' => $e->getRequestedRoute(),
-            ]
-        );
-    }
+            ];
+        } elseif ($e instanceof BadRequestException) {
+            $statusCode = 400;
+        } elseif ($e instanceof InvalidArgumentException) {
+            ## InvalidArgumentException is not HTTP exception
+            ## it is a logic exception
+            $statusCode = 400;
+        } else {
+            // For unspecified exceptions, use the exception code if it's a valid HTTP status
+            $statusCode = ($e->getCode() >= 100 && $e->getCode() < 600) ? $e->getCode() : 500;
+        }
 
-    public function handleBadRequestException(BadRequestException $e): void
-    {
-        $statusCode = 400;
+        // If httpFactory is not available, use the old method
+        if (!$this->httpFactory) {
+            $this->handleExceptionBase($e, $statusCode, $additionalContext);
+            exit; // This should never be reached as handleExceptionBase exits
+        }
 
-        // // Log with entity information
-        // $this->logger->error("Not found: " . $e->getMessage(), [
-        //     'entity_type' => $e->getEntityType(),
-        //     'entity_id' => $e->getEntityId()
-        // ]);
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-        );
+        // Create a PSR-7 response
+        $response = $this->httpFactory->createResponse($statusCode);
+
+        // Try to use the ErrorsController if available
+        if ($this->container && $this->container->has('Core\Errors\ErrorsController')) {
+            try {
+                $errorController = $this->container->get('Core\Errors\ErrorsController');
+
+                // Use the response object directly instead of output buffering
+                $errorResponse = $errorController->showError(
+                    $statusCode,
+                    $e->getMessage(),
+                    [
+                        'exception' => $e,
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine(),
+                        'additionalContext' => $additionalContext
+                    ]
+                );
+
+                // Add Content-Type header if needed
+                if (!$errorResponse->hasHeader('Content-Type')) {
+                    $errorResponse = $errorResponse->withHeader('Content-Type', 'text/html');
+                }
+
+                return $errorResponse;
+            } catch (\Throwable $innerException) {
+                // If ErrorsController fails, fall back to simple error page
+                $this->logger?->error("Error in ErrorsController: " . $innerException->getMessage());
+            }
+        }
+
+        // Fallback to basic error pages
+        if ($this->developmentMode) {
+            $content = $this->generateDevelopmentErrorPage($e, $request);
+        } else {
+            $content = $this->generateProductionErrorPage($statusCode);
+        }
+
+        $response->getBody()->write($content);
+        return $response;
     }
 
 
@@ -313,7 +309,6 @@ class ErrorHandler
     //     );
     // }
 
-    // In your exception handler methods, add this:
     private function getExtraMessage(Exception $e): string
     {
         if ($this->developmentMode) {
@@ -346,4 +341,55 @@ class ErrorHandler
         // Don't execute PHP's internal error handler
         return true;
     }
+
+
+    /**
+     * Generate a detailed error page for development
+     *
+     * @param Throwable $exception
+     * @param ServerRequestInterface|null $request
+     * @return string
+     */
+    private function generateDevelopmentErrorPage(Throwable $exception, ?ServerRequestInterface $request): string
+    {
+        $content = '<h1>Error: ' . htmlspecialchars($exception->getMessage()) . '</h1>';
+        $content .= '<p>Uncaught exception: ' . get_class($exception) . '</p>';
+        $content .= '<p>Code: ' . $exception->getCode() . '</p>';
+        $content .= '<p>File: ' . $exception->getFile() . ' (line ' . $exception->getLine() . ')</p>';
+        $content .= '<h2>Stack Trace</h2>';
+        $content .= '<pre>' . htmlspecialchars($exception->getTraceAsString()) . '</pre>';
+
+        if ($request) {
+            $content .= '<h2>Request Details</h2>';
+            $content .= '<p>Method: ' . htmlspecialchars($request->getMethod()) . '</p>';
+            $content .= '<p>URI: ' . htmlspecialchars((string)$request->getUri()) . '</p>';
+
+            $content .= '<h3>Query Parameters</h3>';
+            $content .= '<pre>' . htmlspecialchars(print_r($request->getQueryParams(), true)) . '</pre>';
+
+            $content .= '<h3>Request Body</h3>';
+            $content .= '<pre>' . htmlspecialchars(print_r($request->getParsedBody(), true)) . '</pre>';
+        }
+
+        return $content;
+    }
+
+    /**
+     * Generate a user-friendly error page for production
+     *
+     * @param int $statusCode
+     * @return string
+     */
+    private function generateProductionErrorPage(int $statusCode): string
+    {
+        $messages = [
+            404 => 'The page you requested could not be found.',
+            500 => 'An error occurred while processing your request.',
+        ];
+
+        $message = $messages[$statusCode] ?? 'An error occurred.';
+
+        return '<h1>Error</h1><p>' . $message . '</p>';
+    }
 }
+## 455

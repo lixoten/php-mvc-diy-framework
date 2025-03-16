@@ -44,6 +44,9 @@ class Logger implements LoggerInterface
     private static $instanceCounter = 0;
     private $instanceId;
 
+    private string $debugBuffer = '';
+    private bool $collectDebugOutput = false;
+
     /**
      * Constructor
      *
@@ -56,7 +59,8 @@ class Logger implements LoggerInterface
         string $logDirectory = null,
         int $minLevel = self::INFO,
         bool $debugMode = false,
-        float $samplingRate = 1.0
+        float $samplingRate = 1.0,
+        bool $collectDebugOutput = false
     ) {
         $this->instanceId = ++self::$instanceCounter;
 
@@ -64,30 +68,34 @@ class Logger implements LoggerInterface
         $this->minLevel = $minLevel;
         $this->debugMode = $debugMode;
         $this->samplingRate = max(0, min(1, $samplingRate));
+        $this->collectDebugOutput = $collectDebugOutput;
 
         // Ensure log directory exists
         if (!is_dir($this->logDirectory)) {
             if (!mkdir($this->logDirectory, 0755, true)) {
                 if ($this->debugMode) {
-                    echo "<div style='background:#fdd;padding:5px;margin:5px;border:1px solid #d00;'>";
-                    echo "Log directory is not writable: " . $this->logDirectory;
-                    echo "</div>";
+                    $this->addDebug(
+                        "Log directory is not writable: " . $this->logDirectory,
+                        'error'
+                    );
                 }
                 throw new \RuntimeException("Cannot create log directory: {$this->logDirectory}");
             }
             if ($this->debugMode) {
-                echo "<div style='background:#dfd;padding:5px;margin:5px;border:1px solid #0d0;'>";
-                echo "Created log directory: " . $this->logDirectory;
-                echo "</div>";
+                $this->addDebug(
+                    "Created log directory: " . $this->logDirectory,
+                    'error'
+                );
             }
         }
 
         // Check if directory is writable
         if (!is_writable($this->logDirectory)) {
             if ($this->debugMode) {
-                echo "<div style='background:#fdd;padding:5px;margin:5px;border:1px solid #d00;'>";
-                echo "Log directory is not writable: " . $this->logDirectory;
-                echo "</div>";
+                $this->addDebug(
+                    "og directory is not writable: " . $this->logDirectory,
+                    'error'
+                );
             }
         }
     }
@@ -136,22 +144,25 @@ class Logger implements LoggerInterface
         // Write to file
         $filename = $this->getLogFilePath();
 
+        error_log("did we reach");
+        //Debug::p($this->debugMode);
         // Debug log writing
         if ($this->debugMode) {
-            echo '<div style="background:#eef;padding:5px;margin:5px;border:1px solid #aad;">';
-            echo "<h4>Log</h4>";
-            echo "Writing log: " . htmlspecialchars($logMessage);
-            echo "<br>To file: " . $filename;
-            echo "</div>";
+            $this->addDebug(
+                "<h4>Log</h4>" .
+                "Writing log: " . htmlspecialchars($logMessage) .
+                "<br>To file: " . $filename
+            );
         }
 
         $result = @file_put_contents($filename, $logMessage, FILE_APPEND);
 
         if ($result === false) {
             if ($this->debugMode) {
-                echo "<div style='background:#fdd;padding:5px;margin:5px;border:1px solid #d00;'>";
-                echo "Failed to write log! Error: " . error_get_last()['message'];
-                echo "</div>";
+                $this->addDebug(
+                    "Failed to write log! Error: " . error_get_last()['message'],
+                    'error'
+                );
             }
         }
     }
@@ -348,5 +359,53 @@ class Logger implements LoggerInterface
 
         // Interpolate replacement values into the message and return
         return strtr($message, $replace);
+    }
+
+
+        /**
+     * Add debug output to buffer instead of echoing
+     */
+    private function addDebug(string $message, string $type = 'info'): void
+    {
+        if (!$this->debugMode) {
+            return;
+        }
+
+        $bgColor = '#eef';
+        $borderColor = '#aad';
+
+        if ($type === 'error') {
+            $bgColor = '#fdd';
+            $borderColor = '#d00';
+        } elseif ($type === 'success') {
+            $bgColor = '#dfd';
+            $borderColor = '#0d0';
+        }
+
+        $html = '<div style="background:' . $bgColor
+            . ';padding:5px;margin:5px;border:1px solid ' . $borderColor . ';">';
+        $html .= $message;
+        $html .= '</div>';
+
+        if ($this->collectDebugOutput) {
+            $this->debugBuffer .= $html;
+        } else {
+            // Store in error log instead of echo
+            error_log("[Logger Debug] " . strip_tags($message));
+        }
+    }
+
+    /**
+     * Get and optionally clear the debug buffer
+     */
+    public function getDebugOutput(bool $clear = true): string
+    {
+        $output = $this->debugBuffer;
+
+        if ($clear) {
+            $this->debugBuffer = '';
+        }
+
+        return $output;
     }
 }

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\ViewHelpers;
 
 use App\Helpers\DebugRt as Debug;
-use App\Enums\FlashMessageType;  // Change this to App\Enums\FlashMessageType
+use App\Enums\FlashMessageType;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 
 /**
@@ -15,13 +15,12 @@ class FlashMessageRendererView
 {
     private FlashMessageServiceInterface $flash;
 
-    // Change constructor to accept service
     public function __construct(FlashMessageServiceInterface $flash)
     {
         $this->flash = $flash;
     }
 
-    // Add this method that your template is calling
+    // method that your template is calling
     public function render(): string
     {
         ob_start();
@@ -35,7 +34,7 @@ class FlashMessageRendererView
         return $type !== null ? $this->flash->get($type) : $this->flash->get();
     }
 
-    public function renderMessages(): void
+    private function renderMessages(): void
     {
         $messages = $this->getMessages();
 
@@ -46,7 +45,6 @@ class FlashMessageRendererView
         }
     }
 
-    // Keep your existing formatMessage method
     protected function formatMessage(array $msgData, string $type): string
     {
         $cssClass = "alert alert-$type";

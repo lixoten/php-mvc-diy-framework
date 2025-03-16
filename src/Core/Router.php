@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Core;
 
 use App\Helpers\DebugRt as Debug;
+use Core\Http\HttpFactory;
 use DI\Container as DIContainer;
 use InvalidArgumentException;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Core\Exceptions\PageNotFoundException;
 
 class Router implements RouterInterface
 {
@@ -14,12 +20,13 @@ class Router implements RouterInterface
     protected $params = [];
     protected $routes = [];
     protected $container;
-
+    protected $httpFactory;
 
     // Manual DI // public function __construct(Container $container = null)
-    public function __construct(\Psr\Container\ContainerInterface $container = null)
+    public function __construct(\Psr\Container\ContainerInterface $container = null, HttpFactory $httpFactory = null)
     {
         $this->container = $container;
+        $this->httpFactory = $httpFactory;
     }
 
     public function add($route, array $params = [])
@@ -102,8 +109,95 @@ class Router implements RouterInterface
     }
 
 
+    // Update dispatch method to work with PSR-7
+    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    {
+        $url = ltrim($request->getUri()->getPath(), '/');
 
-    public function dispatch($url)
+        // Default to root if URL is empty
+        if ($url == '') {
+            $url = 'home/index';
+        }
+
+        if ($this->match($url)) {
+            $this->params['controller'] = $this->toPascalCase($this->params['controller']);
+
+            $qualifiedNamespace = $this->getNamespace();
+
+            // For admin routes, add the controller name as a subfolder too
+            if (array_key_exists('namespace', $this->params)) {
+                if ($this->params['namespace'] === 'Admin') {
+                    $qualifiedNamespace .= $this->params['controller'] . '\\';
+                }
+                $this->params['namespace'] = $qualifiedNamespace;
+            }
+
+            $controllerClass = $qualifiedNamespace
+                . $this->convertToStudlyCaps($this->params['controller'])
+                . 'Controller';
+
+            if (class_exists($controllerClass)) {
+                // Add route params to request attributes
+                foreach ($this->params as $key => $value) {
+                    if (is_string($key)) {
+                        $request = $request->withAttribute($key, $value);
+                    }
+                }
+
+                // Store updated request and route params in container
+                if ($this->container) {
+                    if ($this->container instanceof \DI\Container) {
+                        $this->container->set('route_params', $this->params);
+                        $this->container->set('current_request', $request);
+                    }
+                    //$this->container->set('route_params', $this->params);
+                    //$this->container->set('current_request', $request);
+                }
+
+                    // Create controller
+                if ($this->container instanceof \DI\Container) {
+                    $controllerObject = $this->container->make($controllerClass, [
+                        'route_params' => $this->params
+                    ]);
+                } else {
+                    $controllerObject = new $controllerClass($this->params);
+                }
+
+                $action = $this->convertToCamelCase($this->params['action']);
+
+                if (is_callable([$controllerObject, $action])) {
+                    // Call the action with the request
+                    $result = $controllerObject->$action($request);
+
+                    // Return result if it's already a ResponseInterface
+                    if ($result instanceof ResponseInterface) {
+                        return $result;
+                    }
+
+                    // Convert other return types to Response
+                    if ($this->httpFactory) {
+                        $response = $this->httpFactory->createResponse();
+                        if (is_string($result)) {
+                            $response->getBody()->write($result);
+                        }
+                        return $response;
+                    } else {
+                        throw new \RuntimeException("HttpFactory not available for response creation");
+                    }
+                } else {
+                    throw new InvalidArgumentException(
+                        "Method $action (in controller $controllerClass) not found",
+                        404
+                    );
+                }
+            }
+        }
+
+        throw new PageNotFoundException('Page not found');
+    }
+
+
+    public function dispatchOld($url)
     {
         $url = rtrim($url, '/');
         // Default to root if URL is empty
@@ -164,7 +258,7 @@ class Router implements RouterInterface
                 ## Step 3 : We check to see if the action exists in class
                 if (is_callable([$controllerObject, $action])) {
                     $controllerObject->$action();
-                    return; // Add this return statement to exit after handling the route
+                    return;
                 } else {
                     throw new InvalidArgumentException(
                         "WTF1..Method $action (in controller $controllerClass) not found",
@@ -184,26 +278,14 @@ class Router implements RouterInterface
 
     protected function getNamespace(): string
     {
-        //Debug::p($this->params);
-        // TEMP LOGIC while switching to a FEATURE tree structure //TODO
-        // if (Config::USE_CLASSIC_TREE) {
-        //     $namespace = 'App\Controllers\\';
-        //     if (array_key_exists('namespace', $this->params)) {
-        //         $namespace .= $this->params['namespace'] . '\\';
-        //         //print "<br />level>>>> " .$this->params['level'];
-        //     }
-        // } else {
         $baseNamespace = 'App\Features\\';
         if (array_key_exists('controller', $this->params)) {
-            //$namespace = 'App\Features\\' . $this->params['controller'] . '\Controllers\\'; < In Folder Controller
-            //$namespace = 'App\Features\\' . $this->params['controller'] . '\\';
             if (array_key_exists('namespace', $this->params)) {
                 $baseNamespace .= $this->params['namespace'] . '\\';
             } else {
                 $baseNamespace = $baseNamespace . $this->params['controller'] . '\\';
             }
         }
-        //}
 
         return $baseNamespace;
     }
@@ -234,7 +316,7 @@ class Router implements RouterInterface
         return lcfirst($this->convertToStudlyCaps($string));
     }
 
-        // Add this helper function to convert to PascalCase
+
     protected function toPascalCase($string)
     {
         return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $string)));

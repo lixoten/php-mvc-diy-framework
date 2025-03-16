@@ -9,7 +9,9 @@ use App\Helpers\DebugRt as Debug;
  */
 //Debug::p($message);
 ///////////////////
-// ?????????????/ 500 ??????????????////FIXME
+// Unauthenticated - 401
 ///////////////////
 ?>
-<h1><?= "boo500 " . $message ?></h1>
+<h1>Error Page: View 401</h1>
+<h4><?= $message ?></h4>
+<p><?= '401 BOOOOO LINE: ' . $data['line'] ?></p>

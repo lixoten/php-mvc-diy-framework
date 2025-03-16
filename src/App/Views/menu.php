@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-//print "hiiiiiiiiiiiiiiiiiiiiiiiiiiiii";
 $home = '<li><a href="/">Home</a></li>';
 $about = '<li><a href="/about">About</a></li>';
 $testy = '<li><a href="/testy">Testy</a></li>';

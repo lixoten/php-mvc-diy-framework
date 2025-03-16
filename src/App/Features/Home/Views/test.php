@@ -11,8 +11,9 @@ $linkList = $helperObj->ulLinks($actionLinks);
 /**
  * @var array $data
  */
-// DebugRt::p($data);
+//  DebugRt::p($content2);
 ?>
 <h1><?= $title ?></h1>
 <?= $linkList ?>
-
+<hr />
+<?= $errorLinks ?>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -19,16 +21,6 @@ use Core\Services\ConfigService;
 
 // Initialize error handling
 $environment = $_SERVER['APP_ENV'] ?? 'development';
-// Set up configuration with environment awareness
-//require_once __DIR__ . '/../../src/Core/Services/ConfigService.php';
-//Config::init(__DIR__ . '/src', $environment);
-
-// $errorHandler = new ErrorHandler(
-//     $environment === 'development',  // developmentMode
-//     null,                           // logger (uses default).
-//     null                            // temporarily null container
-// );
-
 
 ///////////////////////////////////////////////////////
 // Create PHP-DI container
@@ -38,12 +30,17 @@ if ($environment === 'production') {
 }
 
 
-
-
-
 // Define services
 $definitions = [
     'environment' => $environment,
+
+    'httpFactory' => function () {
+        return new \Core\Http\HttpFactory();
+    },
+
+    'responseEmitter' => function () {
+        return new \Core\Http\ResponseEmitter();
+    },
 
     'config' => function (\Psr\Container\ContainerInterface $c) use ($environment) {
         // Create Config service with base path and environment
@@ -53,8 +50,6 @@ $definitions = [
         );
     },
 
-
-    // Add this to your $definitions array
     'route_params' => \DI\factory(function () {
         return [];
     }),
@@ -79,17 +74,23 @@ $definitions = [
         return $logger;
     },
 
+    'errorHandler' => function (\Psr\Container\ContainerInterface $c) {
+        return new \Core\ErrorHandler(
+            $c->get('environment') === 'development',
+            $c->get('logger'),
+            $c,
+            $c->get('httpFactory')
+        );
+    },
 
-
-    'errorHandler' => \DI\autowire(ErrorHandler::class)
-        ->constructorParameter('developmentMode', $environment === 'development')
-        ->constructorParameter('logger', \DI\get('logger'))
-        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class)),
 
     'router' => \DI\autowire(Router::class)
-        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class)),
+        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     'frontController' => \DI\autowire(FrontController::class)
-        ->constructorParameter('router', \DI\get('router')),
+        ->constructorParameter('router', \DI\get('router'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
 
 
     'sessionManager' => function () use ($environment) {
@@ -109,7 +110,8 @@ $definitions = [
             return new $controller_class(
                 $route_params,
                 $c->get('flashMessageService'),
-                $c->get('view')
+                $c->get('view'),
+                $c->get('httpFactory')
             );
         }
 
@@ -122,22 +124,33 @@ $definitions = [
         ->constructorParameter('sessionManager', \DI\get('sessionManager')),
     'flashMessageService' => \DI\get('flash'),
 
-    'App\Features\Errors\ErrorsController' => \DI\autowire()
+    'Core\Errors\ErrorsController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
-         ->constructorParameter('flash', \DI\get('flash')),
+         ->constructorParameter('flash', \DI\get('flash'))
+         ->constructorParameter('view', \DI\get('view'))
+         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     'App\Features\Home\HomeController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
-         ->constructorParameter('flash', \DI\get('flash')),
+         ->constructorParameter('flash', \DI\get('flash'))
+         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     'App\Features\About\AboutController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash')),
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('config', \DI\get('config')),//feey
+        ->constructorParameter('config', \DI\get('config'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash')),
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+
     // More services...
 ];
 
@@ -148,57 +161,48 @@ $container = $containerBuilder->build();
 $errorHandler = $container->get('errorHandler');
 
 
-// Different error handling based on environment
+// Define a common exception handler function
+$handleException = function ($exception) use ($errorHandler, $container, $environment) {
+    // For ParseError in development, show PHP's error
+    if ($environment === 'development' && $exception instanceof \ParseError) {
+        throw $exception;
+    }
+
+    // For all other exceptions
+    $response = $errorHandler->handleException($exception);
+    $container->get('responseEmitter')->emit($response);
+};
+
+// Different error display settings based on environment
 if ($environment === 'development') {
-    // DEVELOPMENT: Show raw PHP errors
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-
-    // Don't convert warnings to exceptions in development
-    // This makes undefined variables show as warnings, not trigger error pages
-
-    // Only handle uncaught exceptions with the error handler
-    set_exception_handler(function ($exception) use ($errorHandler) {
-        // Check if the exception is a ParseError
-            //throw $exception;
-        //Debug::p($exception);
-        if ($exception instanceof \ParseError) {
-            // Let PHP display the ParseError directly
-            throw $exception;
-        } else {
-            // Handle other exceptions with the error handler
-            $errorHandler->handleException($exception);
-        }
-    });
 } else {
-    // PRODUCTION: Use custom error pages
     ini_set('display_errors', 0);
-    error_reporting(E_ALL);
-
-    // Convert PHP errors to exceptions
+    // Convert PHP errors to exceptions in production
     set_error_handler(function ($level, $message, $file, $line) {
         throw new \ErrorException($message, 0, $level, $file, $line);
     });
-
-    // Handle exceptions with custom error pages
-    set_exception_handler(function ($exception) use ($errorHandler) {
-        $errorHandler->handleException($exception);
-    });
 }
 
-
-
-
-
-
-
-
+// Set common exception handler
+set_exception_handler($handleException);
 
 // Force logger initialization to see debug output
 $container->get('logger');
 
 /** @var \Core\FrontController $frontController */
 $frontController = $container->get('frontController');
-$url = $_SERVER['QUERY_STRING'] ?? '';
-$frontController->run($url);
+
+
+// PSR-7 approach
+$httpFactory = $container->get('httpFactory');
+
+// Create and process the request
+$request = $httpFactory->createServerRequestFromGlobals();
+
+// Handle the request and get a response
+$response = $frontController->handle($request);
+
+// Output the response to the browser
+$container->get('responseEmitter')->emit($response);

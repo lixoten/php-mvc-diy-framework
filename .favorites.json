@@ -68,5 +68,14 @@
         "workspaceRoot": null,
         "workspacePath": null,
         "id": "TZ05PoOygVBezIdk"
+    },
+    {
+        "type": "File",
+        "name": "D:\\xampp\\php\\logs\\php_error_log",
+        "parent_id": "glKqMWNxEhuXop6n",
+        "fsPath": "D:\\xampp\\php\\logs\\php_error_log",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "oUhSaYwJTugvybVp"
     }
 ]

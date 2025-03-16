@@ -8,10 +8,10 @@ use App\Helpers\DebugRt as Debug;
  * @var array $data
  */
 //Debug::p($message);
-//Debug::p($data);
 ///////////////////
-// Not Found
+// BadRequest - 400
 ///////////////////
 ?>
-<h1><?= $message ?></h1>
-<h1><?= '404 BOOOOOO LINE: ' . $data['line'] ?></h1>
+<h1>Error Page: View 400</h1>
+<h4><?= $message ?></h4>
+<p><?= '400 BOOOOO LINE: ' . $data['line'] ?></p>

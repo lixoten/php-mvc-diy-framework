@@ -7,10 +7,12 @@ namespace App\Features\About;
 use Core\Controller;
 use App\Helpers\DebugRt as Debug;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Http\HttpFactory;
 use Core\View;
+use Psr\Http\Message\ResponseInterface;
 
 /**
- * Home controller
+ * About controller
  *
  */
 class AboutController extends Controller
@@ -18,12 +20,14 @@ class AboutController extends Controller
     public function __construct(
         array $route_params,
         FlashMessageServiceInterface $flash,
-        View $view
+        View $view,
+        HttpFactory $httpFactory
     ) {
         parent::__construct(
             $route_params,
             $flash,
-            $view
+            $view,
+            $httpFactory
         );
     }
 
@@ -31,16 +35,14 @@ class AboutController extends Controller
     /**
      * Show the index page
      *
-     * @return void
+     * @return ResponseInterface
      */
-    public function indexAction(): void
+    public function indexAction(): ResponseInterface
     {
-        echo "hello";
-
         $this->flash->add("FOOFEE");
-        //$this->view(HomeConst::VIEW_HOME_INDEX, [
-        $this->view('about/index', [
-            'title' => 'Welcome About'
+        return $this->view(AboutConst::VIEW_ABOUT_INDEX, [
+            'title' => 'About Index Action',
+            'actionLinks' => $this->getActionLinks('about', ['index']),
         ]);
     }
 }
