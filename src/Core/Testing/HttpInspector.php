@@ -65,11 +65,11 @@ class HttpInspector
         $body = (string)$response->getBody();
 
         $this->log("RESPONSE: HTTP $statusCode");
-        $this->log("Response headers: " . json_encode($headers));
-        $this->log("Response body length: " . strlen($body));
+        $this->log("xResponse headers: " . json_encode($headers));
+        $this->log("xResponse body length: " . strlen($body));
 
         if (strlen($body) > 0) {
-            $this->log("Response body preview: " . substr($body, 0, 200));
+            $this->log("xResponse body preview: " . substr($body, 0, 200));
         }
 
         // Rewind the body so it can be read again

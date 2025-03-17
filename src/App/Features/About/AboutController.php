@@ -40,6 +40,7 @@ class AboutController extends Controller
     public function indexAction(): ResponseInterface
     {
         $this->flash->add("FOOFEE");
+
         return $this->view(AboutConst::VIEW_ABOUT_INDEX, [
             'title' => 'About Index Action',
             'actionLinks' => $this->getActionLinks('about', ['index']),

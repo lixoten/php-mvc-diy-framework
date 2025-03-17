@@ -71,4 +71,11 @@ interface SessionManagerInterface
      * @return bool True if successful
      */
     public function destroy(): bool;
+
+    /**
+     * Get all session data
+     *
+     * @return array All session data
+     */
+    public function all(): array;
 }

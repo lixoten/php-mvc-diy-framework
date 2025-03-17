@@ -16,8 +16,8 @@ class ResponseEmitter
      */
     public function emit(ResponseInterface $response): void
     {
-        error_log("EMITTER: Starting to emit response with status code: " . $response->getStatusCode());
-        error_log("EMITTER: Body length: " . $response->getBody()->getSize());
+        //error_log("EMITTER: Starting to emit response with status code: " . $response->getStatusCode());
+        //error_log("EMITTER: Body length: " . $response->getBody()->getSize());
 
 
         $statusCode = $response->getStatusCode();
@@ -48,6 +48,6 @@ class ResponseEmitter
             echo $body->read(8192);
         }
 
-        error_log("EMITTER: Finished emitting response");
+        //error_log("EMITTER: Finished emitting response");
     }
 }

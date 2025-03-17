@@ -51,69 +51,6 @@ class ErrorHandler
     // ConflictException (409)
     // InternalServerErrorException (500)
 
-    public function handleExceptionBase(
-        Throwable $e,
-        int $statusCode,
-        array $additionalContext = []
-        // string $redirectPath,
-        // string $flashId
-    ): void {
-        // Log the exception
-        $context = [
-            'file' => $e->getFile(),
-            'line' => $e->getLine(),
-            'code' => $e->getCode(),
-            'trace' => $e->getTraceAsString()
-        ];
-
-        // Merge with any additional context from specialized handlers
-        $context = array_merge($context, $additionalContext);
-
-        if ($e instanceof HttpException) {
-            $prefix = "HTTP({$statusCode})";
-        } elseif ($e instanceof \PDOException) {
-            $prefix = "DATABASE";
-        } else {
-            $prefix = get_class($e);
-        }
-
-        $this->logger->error($prefix . ": " . $e->getMessage(), $context);
-
-
-        // Forward to error controller (without redirect)
-        ///////////////$errorController = $this->container->get(ErrorsController::class);
-        if ($this->container) {
-            // Use container if available
-            $errorController = $this->container->get(ErrorsController::class);
-        } else {
-            // Manual fallback if container is null
-            $sessionManager = new \Core\Session\SessionManager([
-                'name' => 'mvc3_session',
-                'secure' => false,
-                'httponly' => true,
-                'samesite' => 'Lax'
-            ]);
-            $flashService = new \App\Services\FlashMessageService($sessionManager);
-            $view = new \Core\View(); // Create a View instance
-            $errorController = new ErrorsController(
-                [],
-                $flashService,
-                $view,
-                $this->httpFactory ?? new HttpFactory() // Pass the httpFactory
-            );
-        }
-
-
-        $errorController->showError(
-            $statusCode,
-            $e->getMessage(),
-            [
-            'exception' => $e,
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-            ]
-        );
-    }
 
     /**
      * Handle an exception and return a PSR-7 response
@@ -124,44 +61,7 @@ class ErrorHandler
      */
     public function handleException(Throwable $e, ?ServerRequestInterface $request = null): ResponseInterface
     {
-        ////////////////////////////////////////////
-        //  * Exception (base class)
-        // ├── LogicException
-        // │   ├── BadFunctionCallException // TODO
-        // │   ├── DomainException          // TODO
-        // │   ├── InvalidArgumentException // Done
-        // │   ├── LengthException          // TODO
-        // │   └── OutOfRangeException      // TODO
-        // └── RuntimeException
-        //     ├── OutOfBoundsException     // TODO
-        //     ├── OverflowException        // TODO
-        //     ├── RangeException           // TODO
-        //     ├── UnderflowException       // TODO
-        //     └── UnexpectedValueException // TODO
-        //
-        // HttpExceptionInterface (interface)               // TODO
-        // └── HttpException (custom base class)            // Done
-        //     ├── HttpBadRequestException (400)            // Done
-        //     │   └── ValidationException (400 with field errors)
-        //     ├── HttpUnauthorizedException (401)          // sd
-        //     ├── HttpForbiddenException (403)             // Done
-        //     ├── HttpNotFoundException (404)              // Done
-        //     │   └── ResourceNotFoundException (404 for specific resources)
-        //     ├── HttpMethodNotAllowedException (405)        // TODO
-        //     ├── HttpNotAcceptableException (406)
-        //     ├── HttpRequestTimeoutException (408)
-        //     ├── HttpConflictException (409)                // TODO
-        //     ├── HttpGoneException (410)
-        //     ├── HttpUnsupportedMediaTypeException (415)
-        //     ├── HttpUnprocessableEntityException (422)     // TODO
-        //     ├── HttpTooManyRequestsException (429)
-        //     └── HttpServerErrorException (500+)
-        //         ├── HttpInternalServerErrorException (500) // TODO
-        //         ├── HttpNotImplementedException (501)
-        //         ├── HttpBadGatewayException (502)
-        //         ├── HttpServiceUnavailableException (503)
-        //         └── HttpGatewayTimeoutException (504)
-        ////////////////////////////////////////////
+        // Important!!!// SEE NOTES BELLOW for list of all Exception (base class)
 
         // Log the exception regardless of type
         $this->logger?->error(get_class($e) . ": " . $e->getMessage(), [
@@ -212,14 +112,34 @@ class ErrorHandler
             $statusCode = ($e->getCode() >= 100 && $e->getCode() < 600) ? $e->getCode() : 500;
         }
 
-        // If httpFactory is not available, use the old method
+        // If httpFactory is not available, create a simple response
         if (!$this->httpFactory) {
-            $this->handleExceptionBase($e, $statusCode, $additionalContext);
-            exit; // This should never be reached as handleExceptionBase exits
+            // Create a basic response (without PSR-7)
+            header('HTTP/1.1 ' . $statusCode);
+            echo $this->developmentMode ?
+                $this->generateDevelopmentErrorPage($e, $request) :
+                $this->generateProductionErrorPage($statusCode);
+            exit;
         }
 
         // Create a PSR-7 response
         $response = $this->httpFactory->createResponse($statusCode);
+
+        // Get session from request if available
+        $sessionManager = null;
+        if ($request) {
+            $sessionManager = $request->getAttribute('session');
+        }
+
+        // If no session in request, create a fallback one
+        if (!$sessionManager) {
+            $sessionManager = new \Core\Session\SessionManager([
+                'name' => 'mvc3_session',
+                'secure' => false,
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+        }
 
         // Try to use the ErrorsController if available
         if ($this->container && $this->container->has('Core\Errors\ErrorsController')) {
@@ -261,53 +181,6 @@ class ErrorHandler
         return $response;
     }
 
-
-    // public function handleDatabaseException(DatabaseException $e): void  // TODO
-    // {
-    //     // Check if method exists or use default status code
-    //     $statusCode = method_exists($e, 'getHttpStatusCode') ? $e->getHttpStatusCode() : 500;
-
-    //     $this->handleExceptionBase(
-    //         $e,
-    //         $statusCode,
-    //         // '/errors/service-unavailable',
-    //         // "02052025-503"
-    //     );
-    // }
-
-    public function handleInvalidArgumentException(InvalidArgumentException $e): void
-    {
-        // Get status code from exception or default based on exception code
-        $statusCode = 400; // InvalidArgumentException always maps to 400
-
-        $redirectPath = match ($e->getCode()) {
-            22, 99 => '/errors/invalid-argument',
-            404 => '/errors/not-found',
-            400 => '/errors/bad-request',
-            default => '/errors/server-error'
-        };
-
-        // Use common base handler for consistency
-        $this->handleExceptionBase(
-            $e,
-            $statusCode,
-            // $redirectPath,
-            // "02052025-" . ($e->getCode() ?: 500)
-        );
-    }
-
-    // public function handleActivationTokenGenerationException(ActivationTokenGenerationException $e): void
-    // {
-    //     // Check if method exists or use default status code
-    //     $statusCode = method_exists($e, 'getHttpStatusCode') ? $e->getHttpStatusCode() : 500;
-
-    //     $this->handleExceptionBase(
-    //         $e,
-    //         $statusCode,
-    //         // '/errors/service-unavailable',
-    //         // "02052025-503"
-    //     );
-    // }
 
     private function getExtraMessage(Exception $e): string
     {
@@ -392,4 +265,44 @@ class ErrorHandler
         return '<h1>Error</h1><p>' . $message . '</p>';
     }
 }
-## 455
+
+////////////////////////////////////////////
+//  * Exception (base class)
+// ├── LogicException
+// │   ├── BadFunctionCallException // TODO
+// │   ├── DomainException          // TODO
+// │   ├── InvalidArgumentException // Done
+// │   ├── LengthException          // TODO
+// │   └── OutOfRangeException      // TODO
+// └── RuntimeException
+//     ├── OutOfBoundsException     // TODO
+//     ├── OverflowException        // TODO
+//     ├── RangeException           // TODO
+//     ├── UnderflowException       // TODO
+//     └── UnexpectedValueException // TODO
+//
+// HttpExceptionInterface (interface)               // TODO
+// └── HttpException (custom base class)            // Done
+//     ├── HttpBadRequestException (400)            // Done
+//     │   └── ValidationException (400 with field errors)
+//     ├── HttpUnauthorizedException (401)          // sd
+//     ├── HttpForbiddenException (403)             // Done
+//     ├── HttpNotFoundException (404)              // Done
+//     │   └── ResourceNotFoundException (404 for specific resources)
+//     ├── HttpMethodNotAllowedException (405)        // TODO
+//     ├── HttpNotAcceptableException (406)
+//     ├── HttpRequestTimeoutException (408)
+//     ├── HttpConflictException (409)                // TODO
+//     ├── HttpGoneException (410)
+//     ├── HttpUnsupportedMediaTypeException (415)
+//     ├── HttpUnprocessableEntityException (422)     // TODO
+//     ├── HttpTooManyRequestsException (429)
+//     └── HttpServerErrorException (500+)
+//         ├── HttpInternalServerErrorException (500) // TODO
+//         ├── HttpNotImplementedException (501)
+//         ├── HttpBadGatewayException (502)
+//         ├── HttpServiceUnavailableException (503)
+//         └── HttpGatewayTimeoutException (504)
+////////////////////////////////////////////
+
+## 455 309

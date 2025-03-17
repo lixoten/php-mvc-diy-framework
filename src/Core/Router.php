@@ -154,13 +154,18 @@ class Router implements RouterInterface
                     //$this->container->set('current_request', $request);
                 }
 
-                    // Create controller
+                // Create controller
                 if ($this->container instanceof \DI\Container) {
                     $controllerObject = $this->container->make($controllerClass, [
                         'route_params' => $this->params
                     ]);
                 } else {
                     $controllerObject = new $controllerClass($this->params);
+                }
+
+                // initialize controller with request if method exists
+                if (method_exists($controllerObject, 'initialize')) {
+                    $controllerObject->initialize($request);
                 }
 
                 $action = $this->convertToCamelCase($this->params['action']);

@@ -4,10 +4,12 @@ namespace Core;
 
 use App\Helpers\DebugRt as Dubug;
 use Core\Http\HttpFactory;
+use Psr\Http\Server\RequestHandlerInterface;
+use Core\RouterInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
-class FrontController
+class FrontController implements RequestHandlerInterface
 {
     protected $router;
     protected $httpFactory;

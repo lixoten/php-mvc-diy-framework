@@ -38,6 +38,15 @@ class DashboardController extends Controller
      */
     public function indexAction(): ResponseInterface
     {
+        // In a controller action you want to measure:
+        $startTime = microtime(true);
+        // Expensive operation
+        sleep(5);
+        $endTime = microtime(true);
+        error_log('Operation took: ' . (($endTime - $startTime) * 1000) . 'ms');
+
+
+
         return $this->view(DashboardConst::VIEW_DASHBOARD_INDEX, [
             'title' => 'Dashboard Index Action',
             'actionLinks' => $this->getActionLinks('admin/dashboard', ['index'])

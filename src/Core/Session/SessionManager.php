@@ -221,4 +221,18 @@ class SessionManager implements SessionManagerInterface
             $this->start();
         }
     }
+
+    /**
+     * Get all session data
+     *
+     * @return array All session data
+     */
+    public function all(): array
+    {
+        // Make sure session is started
+        $this->start();
+
+        // Return all session data
+        return $_SESSION;
+    }
 }

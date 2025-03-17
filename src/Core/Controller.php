@@ -7,6 +7,7 @@ namespace Core;
 use App\Enums\FlashMessageType;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
+use Core\Session\SessionManagerInterface;
 use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -33,6 +34,7 @@ abstract class Controller
     protected FlashMessageServiceInterface $flash;
     protected View $view;
     protected HttpFactory $httpFactory;
+    protected ?SessionManagerInterface $session = null;
 
     public function __construct(
         array $route_params,
@@ -44,6 +46,16 @@ abstract class Controller
         $this->flash = $flash;
         $this->view = $view;
         $this->httpFactory = $httpFactory;
+    }
+
+
+    /**
+     * Initialize controller with request data
+     */
+    public function initialize(ServerRequestInterface $request): void
+    {
+        // Get session from request attributes
+        $this->session = $request->getAttribute('session');
     }
 
 
@@ -141,9 +153,9 @@ abstract class Controller
         $response->getBody()->write($content);
 
         $body = (string)$response->getBody();
-        error_log("Response Body Length: " . strlen($body));
-        error_log("Response Body Preview: " . substr($body, 0, 200));
-        error_log("Response Headers: " . json_encode($response->getHeaders()));
+        //error_log("Response Body Length: " . strlen($body));
+        //error_log("Response Body Preview: " . substr($body, 0, 200));
+        //error_log("Response Headers: " . json_encode($response->getHeaders()));
 
         return $response;
     }

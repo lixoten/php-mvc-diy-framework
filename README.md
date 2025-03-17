@@ -13,14 +13,18 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - Environment-aware configuration service
 - PSR-3 compliant logging system with rotation and sampling
 - PSR-7 HTTP message interfaces for requests and responses
+- PSR-15 Middleware and request handler interfaces
+- Request execution timing and performance monitoring
 - View helpers for common UI components
 - Clean separation of core framework and application code
 
-## Key Features Missing
+## Key Features Missing and upcoming
 - Database, there is none 
 - Login, Authentication, there is none
 - Repository Layer, nope...
-- Middleware/PSR-15, Coming up next
+- CsrfMiddleware
+- Some type of AP
+- Enhance Logger to work with middleware - Next up on the list
 
 ## PSR Standards Implemented
 - **PSR-3**: Logger Interface - Standardized logger implementation
@@ -28,6 +32,7 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - **PSR-7**: HTTP Message Interface - Standard HTTP request/response objects
 - **PSR-11**: Container Interface - DI Container implementation via PHP-DI
 - **PSR-12**: Extended Coding Style - Code formatting and structure standards
+- **PSR-15**: HTTP Server Request Handlers - Middleware and request handler interfaces
 
 ## Requirements
 
@@ -46,6 +51,7 @@ mvclixo/
 │   │   └── Services/      # Application services
 │   ├── Core/              # Framework core components
 │   │   ├── Interfaces/    # Framework interfaces
+│   │   │── Middleware/    # PSR-15 middleware components
 │   │   └── Services/      # Framework services
 │   ├── Config/            # Configuration files
 │   └── public_html/       # Document root

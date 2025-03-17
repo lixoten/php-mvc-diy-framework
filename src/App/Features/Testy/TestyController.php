@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Testy;
 
+use App\Enums\FlashMessageType;
 use Core\Controller;
 use App\Helpers\DebugRt as Debug;
 use App\Services\Interfaces\FlashMessageServiceInterface;
@@ -51,7 +52,7 @@ class TestyController extends Controller
 
         return $this->view(TestyConst::VIEW_TESTY_INDEX, [
             'title' => 'Testy Index Action',
-            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger'])
+            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger', 'testsession'])
         ]);
     }
 
@@ -139,6 +140,45 @@ class TestyController extends Controller
             'additional_content' => $content
         ]);
     }
+
+
+    // Test action for session
+    public function testsessionAction(): ResponseInterface
+    {
+        // Get visit count from session or initialize
+        $visits = $this->session->get('visit_count', 0);
+        $visits++;
+
+        // Update count in session
+        $this->session->set('visit_count', $visits);
+
+        // Add flash messages - use the enum instead of strings
+        $messageType = $visits % 2 ? FlashMessageType::Success : FlashMessageType::Info;
+        $this->flash->add("You've visited this page $visits times", $messageType);
+
+        // Return view
+        return $this->view(TestyConst::VIEW_TESTY_TESTSESSION, [
+            'title' => 'Session Test',
+            'visits' => $visits,
+            'sessionData' => $this->session->all() // Show all session data
+        ]);
+    }
+
+    // Test action to clear session
+    // public function resetSessionAction(): void
+    public function resetSessionAction(): ResponseInterface
+    {
+        // Clear visit counter
+        $this->session->remove('visit_count');
+
+        // Add flash message
+        $this->flash->add("Session counter reset", FlashMessageType::Success);
+
+        // Redirect back to session test
+        return $this->redirect('/testy/testsession');
+    }
+
+
 
 
 

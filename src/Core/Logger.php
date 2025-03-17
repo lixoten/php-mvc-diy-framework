@@ -144,7 +144,7 @@ class Logger implements LoggerInterface
         // Write to file
         $filename = $this->getLogFilePath();
 
-        error_log("did we reach");
+        //error_log("did we reach");
         //Debug::p($this->debugMode);
         // Debug log writing
         if ($this->debugMode) {

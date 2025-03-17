@@ -9,4 +9,5 @@ class TestyConst
     // Application constants
     public const VIEW_TESTY_INDEX = 'testy/index';
     public const VIEW_TESTY_TESTLOGGER = 'testy/testlogger';
+    public const VIEW_TESTY_TESTSESSION = 'testy/testsession';
 }

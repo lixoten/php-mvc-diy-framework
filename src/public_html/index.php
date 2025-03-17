@@ -25,6 +25,8 @@ $environment = $_SERVER['APP_ENV'] ?? 'development';
 ///////////////////////////////////////////////////////
 // Create PHP-DI container
 $containerBuilder = new \DI\ContainerBuilder();
+$containerBuilder->useAutowiring(true);
+
 if ($environment === 'production') {
     $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
 }
@@ -34,21 +36,13 @@ if ($environment === 'production') {
 $definitions = [
     'environment' => $environment,
 
-    'httpFactory' => function () {
-        return new \Core\Http\HttpFactory();
-    },
+    'httpFactory' => \DI\autowire(\Core\Http\HttpFactory::class),
 
-    'responseEmitter' => function () {
-        return new \Core\Http\ResponseEmitter();
-    },
+    'responseEmitter' => \DI\autowire(\Core\Http\ResponseEmitter::class),
 
-    'config' => function (\Psr\Container\ContainerInterface $c) use ($environment) {
-        // Create Config service with base path and environment
-        return new ConfigService(
-            __DIR__ . '/../../src',  // Path to src directory
-            $environment             // Current environment
-        );
-    },
+    'config' => \DI\autowire(ConfigService::class)
+        ->constructorParameter('basePath', __DIR__ . '/../../src')
+        ->constructorParameter('environment', \DI\get('environment')),
 
     'route_params' => \DI\factory(function () {
         return [];
@@ -74,23 +68,44 @@ $definitions = [
         return $logger;
     },
 
-    'errorHandler' => function (\Psr\Container\ContainerInterface $c) {
-        return new \Core\ErrorHandler(
-            $c->get('environment') === 'development',
-            $c->get('logger'),
-            $c,
-            $c->get('httpFactory')
-        );
-    },
+    // 'errorHandler' => \DI\autowire(\Core\ErrorHandler::class)
+    //     ->constructorParameter('displayErrors', \DI\get('environment') === 'development')
+    //     ->constructorParameter('logger', \DI\get('logger'))
+    //     ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
+    //     ->constructorParameter('httpFactory', \DI\get('httpFactory')),
 
+    'errorHandler' => \DI\autowire(\Core\ErrorHandler::class)
+        // Replace 'displayErrors' with the actual parameter name from your constructor
+        // ->constructorParameter('showErrors', \DI\get('environment') === 'development')
+        ->constructorParameter('developmentMode', \DI\get('environment') === 'development')
+        ->constructorParameter('logger', \DI\get('logger'))
+        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
 
     'router' => \DI\autowire(Router::class)
         ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+    Core\Router::class => \DI\get('router'),
+    Core\RouterInterface::class => \DI\get('router'),
+
+
+    Core\Middleware\MiddlewarePipeline::class => function ($container) {
+        return Core\Middleware\MiddlewareFactory::createPipeline($container);
+    },
+
+
+    Core\Middleware\TimingMiddleware::class => \DI\autowire(),
+
+    Core\Middleware\ErrorHandlerMiddleware::class => \DI\autowire()
+    ->constructorParameter('errorHandler', \DI\get('errorHandler')),
+
+    Core\Middleware\SessionMiddleware::class => \DI\autowire()
+    ->constructorParameter('sessionManager', \DI\get('sessionManager')),
 
     'frontController' => \DI\autowire(FrontController::class)
         ->constructorParameter('router', \DI\get('router'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+    FrontController::class => \DI\get('frontController'),
 
 
     'sessionManager' => function () use ($environment) {
@@ -162,16 +177,29 @@ $errorHandler = $container->get('errorHandler');
 
 
 // Define a common exception handler function
-$handleException = function ($exception) use ($errorHandler, $container, $environment) {
-    // For ParseError in development, show PHP's error
-    if ($environment === 'development' && $exception instanceof \ParseError) {
-        throw $exception;
+// $handleException = function ($exception) use ($errorHandler, $container, $environment) {
+//     // For ParseError in development, show PHP's error
+//     if ($environment === 'development' && $exception instanceof \ParseError) {
+//         throw $exception;
+//     }
+
+//     // For all other exceptions
+//     $response = $errorHandler->handleException($exception);
+//     $container->get('responseEmitter')->emit($response);
+// };
+
+// Simple fallback for critical exceptions outside the HTTP flow
+set_exception_handler(function ($exception) use ($container) {
+    error_log('CRITICAL: ' . $exception->getMessage());
+
+    if (!headers_sent()) {
+        http_response_code(500);
+        echo "Server Error";
     }
 
-    // For all other exceptions
-    $response = $errorHandler->handleException($exception);
-    $container->get('responseEmitter')->emit($response);
-};
+    exit(1);
+});
+
 
 // Different error display settings based on environment
 if ($environment === 'development') {
@@ -186,7 +214,7 @@ if ($environment === 'development') {
 }
 
 // Set common exception handler
-set_exception_handler($handleException);
+//set_exception_handler($handleException);
 
 // Force logger initialization to see debug output
 $container->get('logger');
@@ -201,8 +229,13 @@ $httpFactory = $container->get('httpFactory');
 // Create and process the request
 $request = $httpFactory->createServerRequestFromGlobals();
 
-// Handle the request and get a response
-$response = $frontController->handle($request);
+// Get middleware pipeline
+$pipeline = $container->get(Core\Middleware\MiddlewarePipeline::class);
+
+// Process request through middleware pipeline (instead of directly through frontController)
+$response = $pipeline->handle($request);
 
 // Output the response to the browser
 $container->get('responseEmitter')->emit($response);
+
+# 244 233

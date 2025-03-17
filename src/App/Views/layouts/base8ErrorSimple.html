@@ -12,24 +12,24 @@
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <?php
     // Log that the layout template is being executed
-    error_log('Layout template base8ErrorSimple.html is being loaded');
+    //error_log('Layout template base8ErrorSimple.html is being loaded');
     //echo "Error log path: " . ini_get('error_log');
     // Add at the top of base8ErrorSimple.html to log more info
-    error_log('Layout template is loading with variables: ' . implode(', ', array_keys(get_defined_vars())));
+    //error_log('Layout template is loading with variables: ' . implode(', ', array_keys(get_defined_vars())));
 
     // Check if content variable exists
-    if (isset($content)) {
-        error_log('Content variable exists with length: ' . strlen($content));
-    } else {
-        error_log('Content variable is MISSING');
-    }
+    //if (isset($content)) {
+    //    error_log('Content variable exists with length: ' . strlen($content));
+    //} else {
+    //    error_log('Content variable is MISSING');
+    //}
 
     // Check if the view data is available
-    if (isset($message)) {
-        error_log('Message: ' . $message);
-    } else {
-        error_log('Message variable is MISSING');
-    }
+    //if (isset($message)) {
+   //     error_log('Message: ' . $message);
+    //} else {
+   //     error_log('Message variable is MISSING');
+    //}
     //phpinfo();
     //exit();
     ?>
