@@ -28,6 +28,7 @@ use Core\Exceptions\ValidationException;
 use Core\Http\HttpFactory;
 use Core\View;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Home controller
@@ -39,13 +40,15 @@ class HomeController extends Controller
         array $route_params,
         FlashMessageServiceInterface $flash,
         View $view,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
-            $httpFactory
+            $httpFactory,
+            $container
         );
     }
 

@@ -24,7 +24,8 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - Repository Layer, nope...
 - CsrfMiddleware
 - Some type of AP
-- Enhance Logger to work with middleware - Next up on the list
+- Enhance Logger to work with middleware - comming soon
+- Introduce Forms to mvc - next
 
 ## PSR Standards Implemented
 - **PSR-3**: Logger Interface - Standardized logger implementation

@@ -9,6 +9,7 @@ use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
 use Core\Session\SessionManagerInterface;
 use InvalidArgumentException;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -29,6 +30,7 @@ use Psr\Http\Message\ServerRequestInterface;
 //abstract class Controller extends DIP
 abstract class Controller
 {
+    protected ContainerInterface $container;
     protected string $pageTitle;
     public array $route_params;
     protected FlashMessageServiceInterface $flash;
@@ -40,12 +42,14 @@ abstract class Controller
         array $route_params,
         FlashMessageServiceInterface $flash,
         View $view,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
     ) {
         $this->route_params = $route_params;
         $this->flash = $flash;
         $this->view = $view;
         $this->httpFactory = $httpFactory;
+        $this->container = $container;
     }
 
 

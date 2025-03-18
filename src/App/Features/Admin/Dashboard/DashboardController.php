@@ -10,6 +10,7 @@ use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
 use Core\View;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Home controller
@@ -21,13 +22,15 @@ class DashboardController extends Controller
         array $route_params,
         FlashMessageServiceInterface $flash,
         View $view,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
-            $httpFactory
+            $httpFactory,
+            $container
         );
     }
 

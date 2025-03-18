@@ -9,6 +9,7 @@ use App\Helpers\DebugRt as Debug;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
 use Core\View;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -21,13 +22,15 @@ class AboutController extends Controller
         array $route_params,
         FlashMessageServiceInterface $flash,
         View $view,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
-            $httpFactory
+            $httpFactory,
+            $container
         );
     }
 

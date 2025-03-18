@@ -5,7 +5,8 @@
         "psr-4": {
             "App\\": "src/App/",
             "Core\\": "src/Core/",
-            "Tests\\": "Tests/"
+            "Tests\\": "Tests/",
+            "Database\\": "src/Database/"
         }
     },
     "authors": [
@@ -23,7 +24,8 @@
         "nyholm/psr7": "^1.8",
         "nyholm/psr7-server": "^1.1",
         "psr/http-server-handler": "^1.0",
-        "psr/http-server-middleware": "^1.0"
+        "psr/http-server-middleware": "^1.0",
+        "vlucas/phpdotenv": "^5.6"
     },
     "require-dev": {
         "squizlabs/php_codesniffer": "^3.11",

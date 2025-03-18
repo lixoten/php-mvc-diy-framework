@@ -17,6 +17,7 @@ use Core\Database;
 use Core\Http\HttpFactory;
 use Core\View;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Container\ContainerInterface;
 
 /**
  * Home controller
@@ -28,7 +29,8 @@ class ErrorsController extends Controller
         array $route_params,
         FlashMessageServiceInterface $flash,
         View $view,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
         // Scrap $scrapObj,
         // Database $dbx,
         // FlashMessages $flashObj,
@@ -41,7 +43,8 @@ class ErrorsController extends Controller
             $route_params,
             $flash,
             $view,
-            $httpFactory
+            $httpFactory,
+            $container
             // $scrapObj,
             // $dbx,
             // $flashObj,

@@ -1,23 +1,27 @@
 <?php
+
+declare(strict_types=1);
+
 namespace Core\Services;
 
 use Core\Interfaces\ConfigInterface;
+use App\Helpers\DebugRt as Debug;
 
 class ConfigService implements ConfigInterface
 {
     private $configs = [];
-    private $basePath;
+    private $configPath;
     private $environment;
 
     /**
      * Constructor
      *
-     * @param string $basePath Base path to config directory
+     * @param string $configPath Path to config directory
      * @param string $environment Current environment (development, production, etc)
      */
-    public function __construct(string $basePath, string $environment = 'development')
+    public function __construct(string $configPath, string $environment = 'development')
     {
-        $this->basePath = $basePath;
+        $this->configPath = $configPath;
         $this->environment = $environment;
     }
 
@@ -63,19 +67,23 @@ class ConfigService implements ConfigInterface
     private function getEnvironmentConfig(string $file): array
     {
         // Cache key includes the environment
-        $cacheKey = "{$file}_{$this->environment}";
+        $cacheKey = $this->configPath . "/{$file}_{$this->environment}";
 
         // Load and cache if not already loaded
         if (!isset($this->configs[$cacheKey])) {
-            $path = $this->basePath . "/Config/{$file}.php";
+            $path = $this->configPath . "/{$file}.php";
 
             if (file_exists($path)) {
                 $allConfigs = require $path;
 
-                // Get environment-specific config or fall back to production
-                $this->configs[$cacheKey] = $allConfigs[$this->environment]
-                    ?? $allConfigs['production']
-                    ?? [];
+                // Check if this is an environment-based config or a flat config
+                if (is_array($allConfigs) && array_key_exists($this->environment, $allConfigs)) {
+                    // It's an environment-based config
+                    $this->configs[$cacheKey] = $allConfigs[$this->environment];
+                } else {
+                    // It's a flat config, use as is
+                    $this->configs[$cacheKey] = $allConfigs;
+                }
             } else {
                 $this->configs[$cacheKey] = [];
             }

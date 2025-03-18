@@ -18,6 +18,25 @@ use Core\ErrorHandler;
 use Core\Router;
 use Core\FrontController;
 use Core\Services\ConfigService;
+use Psr\Container\ContainerInterface;
+
+// Define base URL constant for views
+// Fucking hack by copilot // TODO
+// define('BASE_PATH', dirname(__DIR__)); // Points to project root
+// define('SRC_PATH', BASE_PATH . '/src');
+// define('CONFIG_PATH', SRC_PATH . '/Config');
+// define('LOG_PATH', BASE_PATH . '/logs');
+// define('PUBLIC_PATH', SRC_PATH . '/public_html');
+
+if (!defined('BASE_URL')) {
+    define('BASE_URL', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'));
+}
+
+// Load .env file if it exists
+if (file_exists(__DIR__ . '/../../.env')) {
+    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+    $dotenv->load();
+}
 
 // Initialize error handling
 $environment = $_SERVER['APP_ENV'] ?? 'development';
@@ -32,142 +51,8 @@ if ($environment === 'production') {
 }
 
 
-// Define services
-$definitions = [
-    'environment' => $environment,
 
-    'httpFactory' => \DI\autowire(\Core\Http\HttpFactory::class),
-
-    'responseEmitter' => \DI\autowire(\Core\Http\ResponseEmitter::class),
-
-    'config' => \DI\autowire(ConfigService::class)
-        ->constructorParameter('basePath', __DIR__ . '/../../src')
-        ->constructorParameter('environment', \DI\get('environment')),
-
-    'route_params' => \DI\factory(function () {
-        return [];
-    }),
-
-    'logger' => function (\Psr\Container\ContainerInterface $c) {
-        // Get environment and configs
-        $config = $c->get('config')->get('logger');
-
-        // Create logger with appropriate settings
-        $logger = new \Core\Logger(
-            $config['directory'] ?? __DIR__ . '/../../logs',
-            $config['min_level'] ?? \Core\Logger::INFO,
-            $config['debug_mode'] ?? false,
-            $config['sampling_rate'] ?? 0.1
-        );
-
-
-        if ($config['rotation'] ?? true) {
-            $logger->cleanupOldLogs($config['retention_days'] ?? 30);
-        }
-
-        return $logger;
-    },
-
-    // 'errorHandler' => \DI\autowire(\Core\ErrorHandler::class)
-    //     ->constructorParameter('displayErrors', \DI\get('environment') === 'development')
-    //     ->constructorParameter('logger', \DI\get('logger'))
-    //     ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
-    //     ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'errorHandler' => \DI\autowire(\Core\ErrorHandler::class)
-        // Replace 'displayErrors' with the actual parameter name from your constructor
-        // ->constructorParameter('showErrors', \DI\get('environment') === 'development')
-        ->constructorParameter('developmentMode', \DI\get('environment') === 'development')
-        ->constructorParameter('logger', \DI\get('logger'))
-        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'router' => \DI\autowire(Router::class)
-        ->constructorParameter('container', \DI\get(\Psr\Container\ContainerInterface::class))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-    Core\Router::class => \DI\get('router'),
-    Core\RouterInterface::class => \DI\get('router'),
-
-
-    Core\Middleware\MiddlewarePipeline::class => function ($container) {
-        return Core\Middleware\MiddlewareFactory::createPipeline($container);
-    },
-
-
-    Core\Middleware\TimingMiddleware::class => \DI\autowire(),
-
-    Core\Middleware\ErrorHandlerMiddleware::class => \DI\autowire()
-    ->constructorParameter('errorHandler', \DI\get('errorHandler')),
-
-    Core\Middleware\SessionMiddleware::class => \DI\autowire()
-    ->constructorParameter('sessionManager', \DI\get('sessionManager')),
-
-    'frontController' => \DI\autowire(FrontController::class)
-        ->constructorParameter('router', \DI\get('router'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-    FrontController::class => \DI\get('frontController'),
-
-
-    'sessionManager' => function () use ($environment) {
-        return new \Core\Session\SessionManager([
-            'name' => 'mvc3_session',
-            'secure' => $environment === 'production',
-            'httponly' => true,
-            'samesite' => 'Lax'
-        ]);
-    },
-
-
-
-    'view' => \DI\autowire(Core\View::class),
-    'controller' => \DI\factory(function ($c, $route_params, $controller_class) {
-        if (class_exists($controller_class)) {
-            return new $controller_class(
-                $route_params,
-                $c->get('flashMessageService'),
-                $c->get('view'),
-                $c->get('httpFactory')
-            );
-        }
-
-        throw new \Exception("Controller class $controller_class not found");
-    }),
-
-
-
-    'flash' => \DI\autowire(\App\Services\FlashMessageService::class)
-        ->constructorParameter('sessionManager', \DI\get('sessionManager')),
-    'flashMessageService' => \DI\get('flash'),
-
-    'Core\Errors\ErrorsController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-         ->constructorParameter('flash', \DI\get('flash'))
-         ->constructorParameter('view', \DI\get('view'))
-         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'App\Features\Home\HomeController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-         ->constructorParameter('flash', \DI\get('flash'))
-         ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'App\Features\About\AboutController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'App\Features\Testy\TestyController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('config', \DI\get('config'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
-
-    // More services...
-];
+$definitions = require __DIR__ . '/../dependencies.php';
 
 $containerBuilder->addDefinitions($definitions);
 $container = $containerBuilder->build();
@@ -238,4 +123,4 @@ $response = $pipeline->handle($request);
 // Output the response to the browser
 $container->get('responseEmitter')->emit($response);
 
-# 244 233
+# 244 233 108

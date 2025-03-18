@@ -12,6 +12,7 @@ use Core\Services\ConfigService;
 use stdClass;
 use Core\Http\HttpFactory;
 use Core\View;
+use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -27,13 +28,15 @@ class TestyController extends Controller
         FlashMessageServiceInterface $flash,
         View $view,
         ConfigService $config,
-        HttpFactory $httpFactory
+        HttpFactory $httpFactory,
+        ContainerInterface $container
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
-            $httpFactory
+            $httpFactory,
+            $container
         );
         $this->config = $config;
     }
@@ -52,7 +55,7 @@ class TestyController extends Controller
 
         return $this->view(TestyConst::VIEW_TESTY_INDEX, [
             'title' => 'Testy Index Action',
-            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger', 'testsession'])
+            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger', 'testsession', 'testdatabase'])
         ]);
     }
 
@@ -65,6 +68,7 @@ class TestyController extends Controller
 
         // Create logger with debug collection enabled
         $loggerConfig = $this->config->get('logger');
+        //Debug::p($loggerConfig);
         $logger = new \Core\Logger(
             logDirectory: $loggerConfig['directory'],
             minLevel: $loggerConfig['min_level'],
@@ -180,6 +184,74 @@ class TestyController extends Controller
 
 
 
+
+    // Test action for session
+    public function testDatabaseAction(): ResponseInterface
+    {
+        try {
+            // Get database connection from container
+            $db = $this->container->get('db');
+
+            // Check connection by running simple query
+            $connectionTest = $db->query("SELECT 'Connected successfully' as message");
+
+            // Create test table if it doesn't exist
+            $db->execute("
+                CREATE TABLE IF NOT EXISTS test_data (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ");
+
+            // Insert test record
+            $name = 'Test Record ' . date('Y-m-d H:i:s');
+            $db->execute(
+                "INSERT INTO test_data (name) VALUES (?)",
+                [$name]
+            );
+            $insertId = $db->lastInsertId();
+
+
+            // Test transaction
+            $transactionResult = $db->transaction(function ($db) {
+                $db->execute(
+                    "INSERT INTO test_data (name) VALUES (?)",
+                    ['Transaction Test ' . date('Y-m-d H:i:s')]
+                );
+                return 'Transaction completed successfully';
+            });
+
+
+            // Fetch records
+            $records = $db->query("SELECT * FROM test_data ORDER BY id DESC LIMIT 10");
+
+
+            // Return view with results
+            return $this->view(TestyConst::VIEW_TESTY_TESTDATABASE, [
+                'title' => 'Database Test',
+                'connectionStatus' => $connectionTest[0]['message'],
+                'insertId' => $insertId,
+                'records' => $records,
+                'transactionResult' => $transactionResult,
+                'error' => null
+            ]);
+        } catch (\Throwable $e) {
+            // Handle errors gracefully
+            return $this->view(TestyConst::VIEW_TESTY_TESTDATABASE, [
+                'title' => 'Database Test',
+                'connectionStatus' => 'Failed',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+
+
+        // // Return view
+        // return $this->view(TestyConst::VIEW_TESTY_TESTDATABASE, [
+        //     'title' => 'Database Test Action',
+        // ]);
+    }
 
 
 

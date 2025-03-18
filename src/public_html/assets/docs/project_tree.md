@@ -1,5 +1,8 @@
 MVCLIXO/ (project-root)
 │
+├── bin/
+│   └─ console.php                        # Command-line interface script
+│
 ├── src/
 │   ├── App/
 │   │   ├── Enums/
@@ -56,9 +59,33 @@ MVCLIXO/ (project-root)
 │   │       └── menu.php
 │   │
 │   ├── Config/
+│   │   ├── database.php                  # Database configuration
+│   │   ├── logger.php                    # Logger configuration
 │   │   └── (config files)
 │   │
 │   ├── Core/
+│   │   ├── Database/                      # Database component
+│   │   │   ├── Connection.php             # Database connection class
+│   │   │   ├── ConnectionInterface.php    # Connection interface
+│   │   │   │
+│   │   │   ├── Migrations/                # Migration system
+│   │   │   │   ├── Migration.php          # Base Migration class
+│   │   │   │   ├── MigrationRepository.php # Track migrations in database
+│   │   │   │   └── MigrationRunner.php    # Execute migrations
+│   │   │   │
+│   │   │   ├── Query/                     # Query builder components
+│   │   │   │   └── QueryBuilder.php       # (not implemented)
+│   │   │   │
+│   │   │   ├── Schema/                    # Schema definition
+│   │   │   │   ├── Blueprint.php          # Table schema blueprint
+│   │   │   │   ├── Index.php              # Index definition
+│   │   │   │   ├── Column.php             # Column definition
+│   │   │   │   └── SchemaBuilder.php      # Create/alter tables
+│   │   │   │ 
+│   │   │   └── Seeder/                    # Database seeding
+│   │   │       ├── Seeder.php             # Base seeder class
+│   │   │       └── TableSeeder.php        # Table seeder
+│   │   │
 │   │   ├── Errors/
 │   │   │   ├── ErrorsController.php
 │   │   │   └── Views/
@@ -72,9 +99,12 @@ MVCLIXO/ (project-root)
 │   │   │
 │   │   ├── Exceptions/
 │   │   │   ├── BadRequestException.php
+│   │   │   ├── ConnectionException.php     # Database connection exception
+│   │   │   ├── DatabaseException.php       # General database exception
 │   │   │   ├── ForbiddenException.php
 │   │   │   ├── HttpException.php
 │   │   │   ├── PageNotFoundException.php
+│   │   │   ├── QueryException.php          # Query execution exception
 │   │   │   ├── RecordNotFoundException.php
 │   │   │   ├── ServerErrorException.php
 │   │   │   ├── ServiceUnavailableException.php
@@ -95,6 +125,7 @@ MVCLIXO/ (project-root)
 │   │   │   ├── MiddlewareFactory.php
 │   │   │   ├── MiddlewareInterface.php
 │   │   │   ├── MiddlewarePipeline.php
+│   │   │   ├── SessionMiddleware.php      # Session handler middleware
 │   │   │   └── TimingMiddleware.php
 │   │   │
 │   │   ├── Services/
@@ -115,17 +146,28 @@ MVCLIXO/ (project-root)
 │   │   ├── RouterInterface.php
 │   │   └── View.php
 │   │
+│   ├── Database/                          # Application database
+│   │   ├── Migrations/                    # Migration files
+│   │   │   ├── CreateUsersTable.php       # 
+│   │   │   └── CreateTestTable.php        #
+│   │   │
+│   │   └── Seeder/                        # Database seeders
+│   │       └── TestSeeder.php             # Test data seeder
+│   │
 │   ├── logs/
 │   │   └── (log files)
 │   │
-│   └── public_html/
-│       ├── assets/
-│       ├── .htaccess
-│       ├── index.php
-│       └── Assets/
-│           └── Css/
-│               ├── menu.css
-│               └── style.css
+│   │── public_html/
+│   │   ├── assets/
+│   │   ├── .htaccess
+│   │   ├── index.php
+│   │   └── Assets/
+│   │       ├── Docs/
+│   │   │   │   └── project_tree.md        # This file
+│   │       └── Css/
+│   │           ├── menu.css
+│   │           └── style.css
+│   └── dependencies.php                   # DI container definitions
 │
 ├── temp/
 │   └── (temporary files)
@@ -133,6 +175,7 @@ MVCLIXO/ (project-root)
 ├── vendor/
 │   └── (vendor files)
 │
+├── .env                                   # Environment variables
 ├── .favorites.json
 ├── composer.json
 └── composer.lock
