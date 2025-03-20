@@ -199,6 +199,19 @@ class Logger implements LoggerInterface
         $this->debugMode = $debug;
     }
 
+
+    /**
+     * Enable/disable debug output collection
+     *
+     * @param bool $collect
+     * @return void
+     */
+    public function setCollectDebugOutput(bool $collect): void
+    {
+        $this->collectDebugOutput = $collect;
+    }
+
+
     /**
      * Get debug mode status
      *

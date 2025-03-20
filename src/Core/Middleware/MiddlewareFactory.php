@@ -39,6 +39,9 @@ class MiddlewareFactory
         // to most other middleware and all controllers
         $pipeline->pipe($container->get(SessionMiddleware::class));
 
+        // In the createPipeline method, add this after SessionMiddleware:
+        $pipeline->pipe($container->get(CSRFMiddleware::class));
+
         // Future middleware can be added here in the desired order
         // $pipeline->pipe($container->get(SecurityMiddleware::class));
         // $pipeline->pipe($container->get(CsrfMiddleware::class));

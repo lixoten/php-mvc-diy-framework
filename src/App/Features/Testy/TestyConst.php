@@ -11,4 +11,6 @@ class TestyConst
     public const VIEW_TESTY_TESTLOGGER = 'testy/testlogger';
     public const VIEW_TESTY_TESTSESSION = 'testy/testsession';
     public const VIEW_TESTY_TESTDATABASE = 'testy/testdatabase';
+    public const VIEW_TESTY_CONTACT = 'testy/contact';
+    public const VIEW_TESTY_CONTACTSIMPLE = 'testy/contactsimple';
 }

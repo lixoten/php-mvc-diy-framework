@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Features\Testy\Form\ContactFieldRegistry;
+use App\Features\Testy\Form\ContactFormType;
 use Core\Database\Connection;
 use Core\FrontController;
 use Core\Router;
@@ -9,6 +11,19 @@ use Core\Services\ConfigService;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use App\Helpers\DebugRt as Debug;
+use Core\Form\CSRF\CSRFToken;
+// use Core\Form\Validation\Validator;
+use Core\Middleware\CSRFMiddleware;
+// use Core\Form\FormBuilder;
+use Core\Form\FormBuilder;
+use Core\Form\FormFactory;
+use Core\Form\FormHandler;
+use Core\Form\FormBuilderInterface;
+use Core\Form\FormFactoryInterface;
+use Core\Form\FormHandlerInterface;
+use Core\Form\FieldRegistryInterface;
+use App\Features\Testy\Form\UserFieldRegistry;
+use App\Features\Testy\Form\UserEditFormType;
 
 // Define services
 return [
@@ -116,10 +131,28 @@ return [
     }),
 
 
-
     'flash' => \DI\autowire(\App\Services\FlashMessageService::class)
         ->constructorParameter('sessionManager', \DI\get('sessionManager')),
     'flashMessageService' => \DI\get('flash'),
+
+
+
+
+    // Field registries - Create separate registry for contact forms
+    ContactFieldRegistry::class => DI\create(App\Features\Testy\Form\ContactFieldRegistry::class),
+
+
+    ContactFormType::class => function (ContainerInterface $c) {
+        // Get the specific registry for contact forms
+        $registry = $c->get(ContactFieldRegistry::class);
+
+        // Return the form type with an empty config - config will be passed directly
+        return new App\Features\Testy\Form\ContactFormType($registry, []);
+    },
+
+    //ContactFormType::class => function (ContainerInterface $c) {
+   //     return new ContactFormType($c->get(ContactFieldRegistry::class), []);
+    //},
 
     'Core\Errors\ErrorsController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -140,9 +173,15 @@ return [
     'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('config', \DI\get('config'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
+        ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+        ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+        ->constructorParameter('logger', \DI\get('logger'))
+        ->constructorParameter('contactFieldRegistry', \DI\get(ContactFieldRegistry::class))
+        ->constructorParameter('contactFormType', \DI\get(ContactFormType::class)),
 
     'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -198,6 +237,62 @@ return [
     'db' => function (ContainerInterface $c) {
         return $c->get('Core\Database\ConnectionInterface');
     },
+
+
+
+
+    // CSRF Token
+    CSRFToken::class => \DI\factory(function ($c) {
+        return new CSRFToken(
+            $c->get('sessionManager')  // Changed from 'session' to 'sessionManager'
+        );
+    }),
+
+    // CSRF Middleware
+    CSRFMiddleware::class => \DI\factory(function ($c) {
+        return new CSRFMiddleware(
+            $c->get(CSRFToken::class),
+            $c->get('httpFactory'),
+            ['/api'] // Exclude API paths from CSRF validation if needed
+        );
+    }),
+
+    // Register the CSRF token as a service
+    'csrf' => \DI\get(CSRFToken::class),
+
+
+    // Form system
+    FormBuilderInterface::class => DI\factory(function ($c) {
+        return new FormBuilder($c->get(CSRFToken::class), 'form');
+    }),
+    FormFactoryInterface::class => DI\create(FormFactory::class)
+        ->constructor(DI\get(FormBuilderInterface::class)),
+    FormHandlerInterface::class => DI\factory(function ($c) {
+        return new Core\Form\FormHandler(
+            $c->get(CSRFToken::class)
+        );
+    }),
+
+    // Shortcuts
+    'formBuilder' => DI\get(FormBuilderInterface::class),
+    'formFactory' => DI\get(FormFactoryInterface::class),
+    'formHandler' => DI\factory(function ($c) {
+        return new Core\Form\FormHandler(
+            $c->get(CSRFToken::class)
+        );
+    }),
+
+    // Field registries
+    FieldRegistryInterface::class => DI\get(UserFieldRegistry::class),
+    UserFieldRegistry::class => DI\create(UserFieldRegistry::class),
+
+    // Form types
+    UserEditFormType::class => DI\factory(function ($c, $params = []) {
+        return new UserEditFormType(
+            $c->get(UserFieldRegistry::class),
+            $params['config'] ?? []
+        );
+    }),
 
 
     // More services...

@@ -5,15 +5,30 @@ declare(strict_types=1);
 namespace App\Features\Testy;
 
 use App\Enums\FlashMessageType;
+use App\Features\Testy\Form\ContactFieldRegistry;
+use App\Features\Testy\Form\ContactFormType;
 use Core\Controller;
 use App\Helpers\DebugRt as Debug;
+use App\Helpers\FormHelper;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Form\FormBuilder;
+use Core\Form\Validation\Validator;
 use Core\Services\ConfigService;
 use stdClass;
 use Core\Http\HttpFactory;
 use Core\View;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Core\Form\Form;
+use Core\Form\FormFactory;
+use Core\Form\FormFactoryInterface;
+use Core\Form\FormHandler;
+use Core\Form\FormHandlerInterface;
+use Core\Form\Validation\Rules\MaxLength;
+use Core\Form\Validation\Rules\MinLength;
+use Core\Form\Validation\Rules\Required;
+use Core\Logger;
 
 /**
  * Testy controller
@@ -22,6 +37,17 @@ use Psr\Http\Message\ResponseInterface;
 class TestyController extends Controller
 {
     protected ConfigService $config;
+    protected ?ServerRequestInterface $request = null; // Declare correctly with proper type
+
+    protected FormFactoryInterface $formFactory;
+    protected FormHandlerInterface $formHandler;
+    protected Logger $logger;
+    protected ContactFieldRegistry $contactFieldRegistry;
+    protected ContactFormType $contactFormType;
+
+    // protected FormBuilder $formBuilder;
+    // protected Validator $validator;
+    // protected FormHelper $formHelper;
 
     public function __construct(
         array $route_params,
@@ -29,7 +55,12 @@ class TestyController extends Controller
         View $view,
         ConfigService $config,
         HttpFactory $httpFactory,
-        ContainerInterface $container
+        ContainerInterface $container,
+        FormFactoryInterface $formFactory,
+        FormHandlerInterface $formHandler,
+        Logger $logger,
+        ContactFieldRegistry $contactFieldRegistry,
+        ContactFormType $contactFormType
     ) {
         parent::__construct(
             $route_params,
@@ -39,6 +70,11 @@ class TestyController extends Controller
             $container
         );
         $this->config = $config;
+        $this->formFactory = $formFactory;
+        $this->formHandler = $formHandler;
+        $this->logger = $logger;
+        $this->contactFieldRegistry = $contactFieldRegistry;
+        $this->contactFormType = $contactFormType;
     }
 
 
@@ -49,13 +85,12 @@ class TestyController extends Controller
      */
     public function indexAction(): ResponseInterface
     {
-        // $response = $this->httpFactory->createResponse();
-        // $response->getBody()->write("<h1>Testsdddd</h1>");
-        // return $response;
-
         return $this->view(TestyConst::VIEW_TESTY_INDEX, [
             'title' => 'Testy Index Action',
-            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger', 'testsession', 'testdatabase'])
+            'actionLinks' => $this->getActionLinks(
+                'testy',
+                ['index', 'testlogger', 'testsession', 'testdatabase', 'contact', 'contactSimple']
+            )
         ]);
     }
 
@@ -69,13 +104,17 @@ class TestyController extends Controller
         // Create logger with debug collection enabled
         $loggerConfig = $this->config->get('logger');
         //Debug::p($loggerConfig);
-        $logger = new \Core\Logger(
-            logDirectory: $loggerConfig['directory'],
-            minLevel: $loggerConfig['min_level'],
-            debugMode: true,
-            samplingRate: 1.0,
-            collectDebugOutput: true  // Enable debug collection
-        );
+        // $logger = new \Core\Logger(
+        //     logDirectory: $loggerConfig['directory'],
+        //     minLevel: $loggerConfig['min_level'],
+        //     debugMode: true,
+        //     samplingRate: 1.0,
+        //     collectDebugOutput: true  // Enable debug collection
+        // );
+        // USE THE INJECTED LOGGER INSTEAD:
+        // Enable debug collection if needed
+        $this->logger->setDebugMode(true);
+        $this->logger->setCollectDebugOutput(true);
 
         // Your existing logging code...
         // Test different log levels
@@ -88,55 +127,55 @@ class TestyController extends Controller
 
         $content = "<h1>Logger String Interpolation Tests</h1>";
 
-        $logger->info("<h2>If you see this message in your log file, your logger is PSR-3 compliant!</h2>");
-        $content .= $logger->getDebugOutput();
+        $this->logger->info("<h2>If you see this message in your log file, your logger is PSR-3 compliant!</h2>");
+        $content .= $this->logger->getDebugOutput();
 
 
 
         // Simple variable interpolation
         $content .= "<b>Simple variable interpolation</b>";
-        $logger->info("User $username has logged in");
-        $content .= $logger->getDebugOutput();
+        $this->logger->info("User $username has logged in");
+        $content .= $this->logger->getDebugOutput();
 
         // Complex interpolation with expressions
         $content .= "<b>Complex interpolation with expressions</b>";
-        $logger->info("User {$username} (ID: {$userId}) purchased items for \${$amount}");
-        $content .= $logger->getDebugOutput();
+        $this->logger->info("User {$username} (ID: {$userId}) purchased items for \${$amount}");
+        $content .= $this->logger->getDebugOutput();
 
         // Interpolation with array access
         $content .= "<b>Interpolation with array access</b>";
         $user = ['name' => 'Alice', 'role' => 'admin'];
-        $logger->warning("Admin user {$user['name']} performed a sensitive operation");
-        $content .= $logger->getDebugOutput();
+        $this->logger->warning("Admin user {$user['name']} performed a sensitive operation");
+        $content .= $this->logger->getDebugOutput();
 
         // Interpolation with object properties
         $content .= "<b>Interpolation with object properties</b>";
         $product = new stdClass();
         $product->name = "Deluxe Widget";
         $product->price = 49.99;
-        $logger->error("Failed to process payment for {$product->name} at \${$product->price}");
-        $content .= $logger->getDebugOutput();
+        $this->logger->error("Failed to process payment for {$product->name} at \${$product->price}");
+        $content .= $this->logger->getDebugOutput();
 
         // Interpolation combined with context data
         $content .= "<b>Interpolation combined with context data</b>";
-        $logger->info("Payment of \${$amount} processed for user $username", [
+        $this->logger->info("Payment of \${$amount} processed for user $username", [
             'user_id' => $userId,
             'payment_method' => 'credit_card',
             'transaction_id' => 'TRX' . rand(10000, 99999)
         ]);
-        $content .= $logger->getDebugOutput();
+        $content .= $this->logger->getDebugOutput();
         $content .= "<p style='font-weight:bold;'>Test complete. Check your log file in the logs directory.</p><hr />";
-        $content .= $logger->getDebugOutput();
+        $content .= $this->logger->getDebugOutput();
 
 
 
-        $logger->error("Operation failed: Something went wrong", [
+        $this->logger->error("Operation failed: Something went wrong", [
             'message' => 'Something went wrong',
             'exception' => new \Exception('Something went wrong')
         ]);
 
         $content .= "<p style='font-weight:bold;'>PSR-3 compliance test completed. Check your log file.</p>";
-        $content .= $logger->getDebugOutput();
+        $content .= $this->logger->getDebugOutput();
 
         return $this->view(TestyConst::VIEW_TESTY_TESTLOGGER, [
             'title' => 'Testy testlogger Action',
@@ -181,9 +220,6 @@ class TestyController extends Controller
         // Redirect back to session test
         return $this->redirect('/testy/testsession');
     }
-
-
-
 
     // Test action for session
     public function testDatabaseAction(): ResponseInterface
@@ -254,71 +290,58 @@ class TestyController extends Controller
     }
 
 
-
-
     /**
-     * Show the index page
+     * Show the contact page
      *
+     * @param ServerRequestInterface $request The current request
      * @return ResponseInterface
      */
-    public function xxxtestloggerAction(): ResponseInterface
+    public function contactAction(ServerRequestInterface $request): ResponseInterface
     {
-       // Debug::p($this->route_params, 0);
-
-        // Get Logger config settings
-        $loggerConfig = $this->config->get('logger');
-
-        // Create logger with appropriate settings
-        $logger = new \Core\Logger(
-            logDirectory: $loggerConfig['directory'],
-            minLevel: $loggerConfig['min_level'],
-            debugMode: $loggerConfig['debug_mode']
-        );
-
-        // Test cases for string interpolation
-        $username = "john_doe";
-        $userId = 12345;
-        $amount = 99.95;
-        $content = "<h1>Logger String Interpolation Tests</h1>";
-
-        // Test different log levels
-        // Simple variable interpolation
-        $logger->info("User $username has logged in");
-
-        // Complex interpolation with expressions
-        $logger->info("User {$username} (ID: {$userId}) purchased items for \${$amount}");
-
-        // Interpolation with array access
-        $user = ['name' => 'Alice', 'role' => 'admin'];
-        $logger->warning("Admin user {$user['name']} performed a sensitive operation");
-
-        // Interpolation with object properties
-        $product = new stdClass();
-        $product->name = "Deluxe Widget";
-        $product->price = 49.99;
-        $logger->error("Failed to process payment for {$product->name} at \${$product->price}");
-
-        // Interpolation combined with context data
-        $logger->info("Payment of \${$amount} processed for user $username", [
-            'user_id' => $userId,
-            'payment_method' => 'credit_card',
-            'transaction_id' => 'TRX' . rand(10000, 99999)
+        $formType = $this->contactFormType;
+        //$formType = new ContactFormType(
+        $formType->setConfig([
+            'fields' => [
+                'name' => ['label' => 'Your Name'],
+                'email' => [],
+                'subject' => [],
+                'message' => ['attributes' => ['rows' => '8']],
+                'message2' => ['label' => 'test message', 'attributes' => ['rows' => '8']]
+            ]
         ]);
 
+        // Create the form
+        $form = $this->formFactory->create($formType);
 
-        $content .= "<p>Test complete. Check your log file in the logs directory.</p>";
 
-        $logger->info("If you see this message in your log file, your logger is PSR-3 compliant!");
-        $logger->error("Operation failed: Something went wrong", [
-            'message' => 'Something went wrong',
-            'exception' => new \Exception('Something went wrong')
-        ]);
+        // Handle form submission
+        if ($this->formHandler->handle($form, $request)) {
+            // Process the contact message
+            $data = $form->getData();
 
-        $content .= "PSR-3 compliance test completed. Check your log file.";
-        //Debug::p($content);
-        return $this->view('testy/index', [
-            'title' => "testAction in Testy",
-            'additional_content' => $content //
+            // $this->logger->setDebugMode(true);
+            // $this->logger->setCollectDebugOutput(true);
+
+            // Example: log the submission
+            $this->logger->info('Contact form submitted', $data);
+            // $content = $this->logger->getDebugOutput();
+            // Debug::p($content, 0);
+
+            // Add flash message
+            $this->flash->add("Your message has been sent successfully", FlashMessageType::Success);
+
+            // Redirect to thank you page or back to contact
+            return $this->redirect('/testy/contact');
+        }
+
+        return $this->view(TestyConst::VIEW_TESTY_CONTACT, [
+            'title' => 'Contact Us',
+            'actionLinks' => $this->getActionLinks(
+                'testy',
+                ['index', 'testlogger', 'testsession', 'testdatabase', 'contact']
+            ),
+            'form' => $form
         ]);
     }
 }
+## 403

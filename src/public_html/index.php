@@ -80,6 +80,7 @@ set_exception_handler(function ($exception) use ($container) {
     if (!headers_sent()) {
         http_response_code(500);
         echo "Server Error";
+        //Debug::p($exception);
     }
 
     exit(1);

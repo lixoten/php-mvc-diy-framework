@@ -7,6 +7,7 @@ namespace Core;
 use App\Enums\FlashMessageType;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
+use Core\Services\ConfigService;
 use Core\Session\SessionManagerInterface;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
@@ -37,6 +38,8 @@ abstract class Controller
     protected View $view;
     protected HttpFactory $httpFactory;
     protected ?SessionManagerInterface $session = null;
+    protected ?ServerRequestInterface $request = null;
+    //protected ConfigService $request; // This is incorrectly typed as ConfigService
 
     public function __construct(
         array $route_params,
@@ -60,6 +63,7 @@ abstract class Controller
     {
         // Get session from request attributes
         $this->session = $request->getAttribute('session');
+        $this->request = $request; // The base Controller sets this when initialized
     }
 
 
