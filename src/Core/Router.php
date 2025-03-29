@@ -198,7 +198,7 @@ class Router implements RouterInterface
             }
         }
 
-        throw new PageNotFoundException('Page not found');
+        throw new PageNotFoundException('Page not found..');
     }
 
 
@@ -266,7 +266,7 @@ class Router implements RouterInterface
                     return;
                 } else {
                     throw new InvalidArgumentException(
-                        "WTF1..Method $action (in controller $controllerClass) not found",
+                        "WTF1..Method $action (in controller $controllerClass) not found..",
                         404
                     );
                     //Fixme : Exception logic
@@ -277,7 +277,7 @@ class Router implements RouterInterface
         // Route not found
         //header('HTTP/1.1 404 Not Found');
         //echo '404 Page Not Found';
-        throw new \Core\Exceptions\PageNotFoundException('Page not found');
+        throw new \Core\Exceptions\PageNotFoundException('Page not foundzz');
     }
 
 

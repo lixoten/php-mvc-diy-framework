@@ -14,4 +14,4 @@ use App\Helpers\DebugRt as Debug;
 ?>
 <h1>Error Page: View 400</h1>
 <h4><?= $message ?></h4>
-<p><?= '400 BOOOOO LINE: ' . $data['line'] ?></p>
+<p><?= '400 BOOOOO LINE: ' . $data['line']  . ' file: ' .  $data['file'] ?></p>

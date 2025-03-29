@@ -18,12 +18,29 @@ composer.phar
 !/.vscode/launch.json         # ...except these files
 !/.vscode/settings.json
 !/.vscode/extensions.json
+*.code-workspace
+.favorites.json
 *.sublime-project
 *.sublime-project
 *.sublime-workspace
 .project
 .buildpath
 .settings/
+
+# Backup and copy files
+*copy.php
+*copy.md
+* copy.*
+
+# Development notes and scratch files
+**/scratchfile.php
+**/__*.md
+**/The LIES.md
+**/notes.md
+
+
+# Multiple versions of files (if needed)
+src/Core/Constants/Consts2.php
 
 # System files
 .DS_Store

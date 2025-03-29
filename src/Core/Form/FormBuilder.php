@@ -4,39 +4,79 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use Core\Form\CSRF\CSRFToken;
+use Core\Form\Field\FieldInterface;
+use Core\Form\Field\Type\FieldTypeRegistry;
 
 /**
  * Default form builder implementation
  */
 class FormBuilder implements FormBuilderInterface
 {
-    private string $name;
-    private array $fields = [];
-    private CSRFToken $csrf;
-    private array $attributes = [
-        'method' => 'POST',
-        'action' => '',
-    ];
+    private FormInterface $form;
+    private FieldTypeRegistry $fieldTypeRegistry;
 
     /**
      * Constructor
      *
-     * @param CSRFToken $csrf
-     * @param string $name Form name
+     * @param FormInterface $form
+     * @param FieldTypeRegistry $fieldTypeRegistry
      */
-    public function __construct(CSRFToken $csrf, string $name = 'form')
+    public function __construct(FormInterface $form, FieldTypeRegistry $fieldTypeRegistry)
     {
-        $this->csrf = $csrf;
-        $this->name = $name;
+        $this->form = $form;
+        $this->fieldTypeRegistry = $fieldTypeRegistry;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function add(string $name, array $options): self
+    public function add(string $name, array $options = []): self
     {
-        $this->fields[$name] = $options;
+        // Determine field type
+        $type = $options['type'] ?? 'text';
+
+        // Create field using registry
+        $field = $this->fieldTypeRegistry->createField($name, $type, $options);
+
+        // Add field to form
+        $this->form->addField($field);
+
+        return $this;
+    }
+
+    /**
+     * Add an existing field to the form
+     *
+     * @param FieldInterface $field
+     * @return self
+     */
+    public function addField(FieldInterface $field): self
+    {
+        $this->form->addField($field);
+        return $this;
+    }
+
+    /**
+     * Set form action
+     *
+     * @param string $action
+     * @return self
+     */
+    public function setAction(string $action): self
+    {
+        $this->form->setAttribute('action', $action);
+        return $this;
+    }
+
+    /**
+     * Set form method
+     *
+     * @param string $method
+     * @return self
+     */
+    public function setMethod(string $method): self
+    {
+        $this->form->setAttribute('method', $method);
         return $this;
     }
 
@@ -45,30 +85,18 @@ class FormBuilder implements FormBuilderInterface
      */
     public function getForm(): FormInterface
     {
-        $form = new Form($this->name, $this->csrf, $this->fields);
-
-        foreach ($this->attributes as $name => $value) {
-            $form->setAttribute($name, $value);
-        }
-
-        return $form;
+        return $this->form;
     }
 
     /**
-     * {@inheritdoc}
+     * Set form layout configuration
+     *
+     * @param array $layout Layout configuration
+     * @return self
      */
-    public function setAction(string $action): self
+    public function setLayout(array $layout): self
     {
-        $this->attributes['action'] = $action;
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setMethod(string $method): self
-    {
-        $this->attributes['method'] = $method;
+        $this->form->setLayout($layout);
         return $this;
     }
 }

@@ -1,0 +1,68 @@
+/* christmas-theme.css - revised for Bootstrap */
+:root {
+    --christmas-red: #c10e0e;
+    --christmas-green: #1a5d1a;
+    --christmas-gold: #ffd700;
+    --christmas-snow: #f8f9fa;
+
+    /* Add error styling variables */
+    --christmas-error-border: var(--christmas-red);
+    --christmas-error-text: var(--christmas-green);
+    --christmas-error-bg: rgba(193, 14, 14, 0.1);
+}
+
+/* Override Bootstrap variables */
+:root {
+    --bs-primary: var(--christmas-red);
+    --bs-secondary: var(--christmas-green);
+    --bs-success: #2a8735;
+    --bs-info: #0dcaf0;
+    --bs-warning: var(--christmas-gold);
+    --bs-danger: #990000;
+    --bs-light: var(--christmas-snow);
+    --bs-dark: #343a40;
+
+    /* Override Bootstrap validation styles */
+    --bs-form-invalid-border-color: var(--christmas-error-border);
+    --bs-form-invalid-color: var(--christmas-error-text);
+    --bs-form-invalid-bg: var(--christmas-error-bg);
+}
+
+  /* Custom header styling */
+  .header {
+    background-color: var(--christmas-green);
+    border-bottom: 3px solid var(--christmas-red);
+  }
+
+  /* Bootstrap component overrides */
+  .btn-primary {
+    background-color: var(--christmas-red);
+    border-color: var(--christmas-red);
+  }
+
+  .btn-secondary {
+    background-color: var(--christmas-green);
+    border-color: var(--christmas-green);
+  }
+
+  .card {
+    border-color: var(--christmas-red);
+  }
+
+  .card-header {
+    background-color: var(--christmas-green);
+    color: white;
+  }
+
+  /* Custom error styling */
+.invalid-feedback {
+    color: var(--christmas-error-text);
+    background-color: var(--christmas-error-bg);
+    padding: 0.5rem;
+    border-left: 3px solid var(--christmas-error-border);
+    margin-top: 0.25rem;
+}
+
+.is-invalid {
+    border-color: var(--christmas-error-border) !important;
+}

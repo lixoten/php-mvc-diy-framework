@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Features\Testy;
 
+use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
 use App\Features\Testy\Form\ContactFieldRegistry;
 use App\Features\Testy\Form\ContactFormType;
 use Core\Controller;
-use App\Helpers\DebugRt as Debug;
-use App\Helpers\FormHelper;
 use App\Services\Interfaces\FlashMessageServiceInterface;
-use Core\Form\FormBuilder;
-use Core\Form\Validation\Validator;
+use Core\Constants\Consts;
 use Core\Services\ConfigService;
 use stdClass;
 use Core\Http\HttpFactory;
@@ -20,14 +18,8 @@ use Core\View;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Core\Form\Form;
-use Core\Form\FormFactory;
 use Core\Form\FormFactoryInterface;
-use Core\Form\FormHandler;
 use Core\Form\FormHandlerInterface;
-use Core\Form\Validation\Rules\MaxLength;
-use Core\Form\Validation\Rules\MinLength;
-use Core\Form\Validation\Rules\Required;
 use Core\Logger;
 
 /**
@@ -44,10 +36,6 @@ class TestyController extends Controller
     protected Logger $logger;
     protected ContactFieldRegistry $contactFieldRegistry;
     protected ContactFormType $contactFormType;
-
-    // protected FormBuilder $formBuilder;
-    // protected Validator $validator;
-    // protected FormHelper $formHelper;
 
     public function __construct(
         array $route_params,
@@ -89,7 +77,8 @@ class TestyController extends Controller
             'title' => 'Testy Index Action',
             'actionLinks' => $this->getActionLinks(
                 'testy',
-                ['index', 'testlogger', 'testsession', 'testdatabase', 'contact', 'contactSimple']
+                ['index', 'testlogger', 'testsession', 'testdatabase',
+                'contact', 'contactViewTestAction']
             )
         ]);
     }
@@ -179,7 +168,7 @@ class TestyController extends Controller
 
         return $this->view(TestyConst::VIEW_TESTY_TESTLOGGER, [
             'title' => 'Testy testlogger Action',
-            'actionLinks' => $this->getActionLinks('testy', ['index', 'testlogger']),
+            'actionLinks' => $this->getActionLinks('testy'),
             'additional_content' => $content
         ]);
     }
@@ -298,34 +287,98 @@ class TestyController extends Controller
      */
     public function contactAction(ServerRequestInterface $request): ResponseInterface
     {
-        $formType = $this->contactFormType;
-        //$formType = new ContactFormType(
-        $formType->setConfig([
-            'fields' => [
-                'name' => ['label' => 'Your Name'],
-                'email' => [],
-                'subject' => [],
-                'message' => ['attributes' => ['rows' => '8']],
-                'message2' => ['label' => 'test message', 'attributes' => ['rows' => '8']]
-            ]
-        ]);
+
+        $formLayoutType = $this->config->getConfigValue('view', 'form.layout_type');
+        $formErrorDisplay = $this->config->getConfigValue('view', 'form.error_display');
+
+        ## this is only needed if we want to apply a theme to the for form... specifically
+        ## if used remember to pass it in the view
+        $formTheme = "dotted";
+        $themeClass = $this->config->getConfigValue('view', "form.themes.$formTheme.class", 'form-theme-dotted');
+        //Debug::p($themeClassCss);
+
 
         // Create the form
-        $form = $this->formFactory->create($formType);
+        $form = $this->formFactory->create(
+            $this->contactFormType,
+            [],  // Empty initial data
+            [
+                'fields' => [
+                    'name' => ['label' => 'Your Nameeeee'],
+                    'email' => [],
+                    'subject' => [],
+                    'message' => ['label' => 'Nessage', 'attributes' => ['rows' => '8']],
+                    'message2' => [
+                        'label' => 'testss message',
+                        'type' => 'textarea',
+                        'attributes' => ['rows' => '8']
+                    ]
+                ],
+                'layout' => [
+                    'columns' => 2,  // Creates a 2-column layout
+                    'fieldsets' => [
+                        'personalzz' => [
+                            'legend' => 'Personal Information FSL',
+                            'fields' => ['name', 'email']
+                        ],
+                        'message' => [
+                            'legend' => 'Your Message FSL',
+                            'fields' => ['subject', 'message']
+                        ],
+                        'message11' => [
+                            'legend' => 'Yourssss Message FSL',
+                            'fields' => ['message2']
+                        ]
+                    ],
+                    'sections' => [
+                        [
+                            'type' => 'header',
+                            'title' => 'Basic Information SECTION-L'
+                        ],
+                        [
+                            'type' => 'fields',
+                            'fields' => ['name', 'email']
+                        ],
+                        [
+                            'type' => 'divider'
+                        ],
+                        [
+                            'type' => 'header',
+                            'title' => 'Your Message SECTION-L'
+                        ],
+                        [
+                            'type' => 'fields',
+                            'fields' => ['subject', 'message', 'message2']
+                        ]
+                    ]
+                ],
 
+                // Option 1: 'none' - No layout at all (fields render sequentially)
+                // Option 2: 'fieldsets' - Generated fieldsets layout
+                // Option 3: 'sections' - Generated sections layout
+                //'layout_type' => 'none',  // Default if omitted
+                'layout_type' => $formLayoutType, // 'none', 'fieldsets', 'sections'
+
+                // Summary - errors display at top of form
+                // Inline - errora display (next to each field)
+                'error_display' => $formErrorDisplay, // 'inline' / 'summary'
+
+                // Specify the renderer to use (bootstrap, tailwind, etc.)
+                'renderer' => 'bootstrap',
+
+                 // Just pass the string, not the whole config service
+                 'css_theme_class' => $themeClass,
+            ]
+        );
 
         // Handle form submission
-        if ($this->formHandler->handle($form, $request)) {
+        $formHandled = $this->formHandler->handle($form, $request);
+        if ($formHandled) {
             // Process the contact message
             $data = $form->getData();
 
-            // $this->logger->setDebugMode(true);
-            // $this->logger->setCollectDebugOutput(true);
-
             // Example: log the submission
             $this->logger->info('Contact form submitted', $data);
-            // $content = $this->logger->getDebugOutput();
-            // Debug::p($content, 0);
 
             // Add flash message
             $this->flash->add("Your message has been sent successfully", FlashMessageType::Success);
@@ -336,11 +389,91 @@ class TestyController extends Controller
 
         return $this->view(TestyConst::VIEW_TESTY_CONTACT, [
             'title' => 'Contact Us',
-            'actionLinks' => $this->getActionLinks(
-                'testy',
-                ['index', 'testlogger', 'testsession', 'testdatabase', 'contact']
-            ),
-            'form' => $form
+            'form' => $form,
+            'formTheme' => $formTheme // if $formTheme isset/used
+        ]);
+    }
+
+
+    /**
+     * Show the contact page
+     *
+     * @param ServerRequestInterface $request The current request
+     * @return ResponseInterface
+     */
+    public function contactViewTestAction(ServerRequestInterface $request): ResponseInterface
+    {
+        // Get defaults from config
+        $formLayoutType = $this->config->getConfigValue('view', 'form.layout_type', 'none');
+        $formErrorDisplay = $this->config->getConfigValue('view', 'form.error_display', 'inline');
+        //$formTheme = $this->config->getConfigValue('view', 'themes.form', '');
+
+        ## this is only needed if we want to apply a theme to the for form... specifically
+        ## if used remember to pass it in the view
+        $formTheme = "dotted";
+        $themeClass = $this->config->getConfigValue('view', "form.themes.$formTheme.class", 'form-theme-dotted');
+        //Debug::p($themeClassCss);
+
+
+
+
+        // Create the form
+        $form = $this->formFactory->create(
+            $this->contactFormType,
+            [],  // Empty initial data
+            [
+                'fields' => [
+                    'name' => ['label' => 'Your Nameeeee'],
+                    'email' => [],
+                    'subject' => [],
+                    'message' => ['label' => 'Nessage', 'attributes' => ['rows' => '8']],
+                    'message2' => [
+                        'label' => 'testss message',
+                        'type' => 'textarea',
+                        'attributes' => ['rows' => '8']
+                    ]
+                ],
+
+                // Option 1: 'none' - No layout at all (fields render sequentially)
+                // Option 2: 'fieldsets' - Generated fieldsets layout
+                // Option 3: 'sections' - Generated sections layout
+                //'layout_type' => 'none',  // Default if omitted
+                'layout_type' =>  $formLayoutType, // 'none', 'fieldsets', 'sections'
+
+                // Specify the renderer to use (bootstrap, tailwind, etc.)
+                'renderer' => 'bootstrap',
+
+                 // Just pass the string, not the whole config service
+                 'css_theme_class' => $themeClass,
+            ]
+        );
+
+        // Handle form submission
+        $formHandled = $this->formHandler->handle($form, $request);
+        if ($formHandled) {
+            // Process the contact message
+            $data = $form->getData();
+
+            // Example: log the submission
+            $this->logger->info('Contact form submitted', $data);
+
+            // Add flash message
+            $this->flash->add("Your message has been sent successfully", FlashMessageType::Success);
+
+            // Redirect to thank you page or back to contact
+            return $this->redirect('/testy/contact');
+        }
+
+
+        // Create FormView with error display option
+        $formView = new \Core\Form\View\FormView($form, [
+            'error_display' => $formErrorDisplay  // or 'inline/summary'
+        ]);
+
+        return $this->view(TestyConst::VIEW_TESTY_CONTACTVIEWTEST, [
+            'title' => 'Contact Us',
+            'form' => $formView,
+            'formTheme' => $formTheme // if $formTheme isset/used
         ]);
     }
 }

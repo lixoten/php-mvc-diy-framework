@@ -10,9 +10,25 @@ namespace Core\Form;
 interface FormTypeInterface
 {
     /**
-     * Get all fields with overrides already applied
+     * Get form name
+     *
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
+     * Get form options
      *
      * @return array
      */
-    public function getFields(): array;
+    public function getOptions(): array;
+
+    /**
+     * Build the form
+     *
+     * @param FormBuilderInterface $builder
+     * @param array $options
+     * @return void
+     */
+    public function buildForm(FormBuilderInterface $builder, array $options = []): void;
 }

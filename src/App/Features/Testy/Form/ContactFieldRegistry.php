@@ -71,6 +71,7 @@ class ContactFieldRegistry implements FieldRegistryInterface
             'type' => 'text',
             'label' => 'Subject',
             'required' => true,
+            'minLength' => 10,
             'maxLength' => 200,
             'attributes' => [
                 'class' => 'form-control',

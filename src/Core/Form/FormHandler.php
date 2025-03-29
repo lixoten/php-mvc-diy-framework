@@ -5,25 +5,29 @@ declare(strict_types=1);
 namespace Core\Form;
 
 use Core\Form\CSRF\CSRFToken;
-//use Psr\Http\Message\RequestInterface;
-use App\Helpers\DebugRt as Debug;
+use Core\Form\Event\FormEvent;
+use Core\Form\Event\FormEvents;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
 /**
- * Handles form submissions from HTTP requests
+ * Form handler implementation
  */
 class FormHandler implements FormHandlerInterface
 {
     private CSRFToken $csrf;
+    private ?EventDispatcherInterface $eventDispatcher;
 
     /**
      * Constructor
      *
      * @param CSRFToken $csrf
+     * @param EventDispatcherInterface|null $eventDispatcher
      */
-    public function __construct(CSRFToken $csrf)
+    public function __construct(CSRFToken $csrf, ?EventDispatcherInterface $eventDispatcher = null)
     {
         $this->csrf = $csrf;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -31,40 +35,49 @@ class FormHandler implements FormHandlerInterface
      */
     public function handle(FormInterface $form, ServerRequestInterface $request): bool
     {
-        // Only process POST requests
+        // Only process if it's a POST request
         if ($request->getMethod() !== 'POST') {
             return false;
         }
 
         // Get form data from request
         $data = $this->parseRequestData($request);
-        //Debug::p($data);
 
-        // Debug the data we're getting from the request
-        error_log("Form data received: " . print_r($data, true));
-
+        // Extract CSRF token
         $token = $data['csrf_token'] ?? '';
-        error_log("CSRF token received: " . $token);
+        unset($data['csrf_token']);
 
-        if (!$this->csrf->validate($token)) {
-            $form->addError('_form', 'CSRF token validation failed. Please try again.');
+        // Dispatch PRE_SUBMIT event
+        $this->dispatchEvent(FormEvents::PRE_SUBMIT, $form, $data);
+
+        // Validate CSRF token
+        if (!$form->validateCSRFToken($token)) {
+            $form->addError('_form', 'Invalid form submission.');
             return false;
         }
 
-        // Remove token from data before submitting to form
-        unset($data['csrf_token']);
+        // Set form data
+        $form->setData($data);
 
-        // Submit data to form (validates internally)
-        $form->submit($data);
+        // Dispatch POST_SUBMIT event
+        $this->dispatchEvent(FormEvents::POST_SUBMIT, $form, $data);
 
-        // Return validation result
-        return $form->isValid();
+        // Dispatch PRE_VALIDATE event
+        $this->dispatchEvent(FormEvents::PRE_VALIDATE, $form, $data);
+
+        // Validate form
+        $isValid = $form->validate();
+
+        // Dispatch POST_VALIDATE event
+        $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+
+        return $isValid;
     }
 
     /**
      * Parse request data based on content type
      *
-     * @param RequestInterface $request
+     * @param ServerRequestInterface $request
      * @return array
      */
     private function parseRequestData(ServerRequestInterface $request): array
@@ -83,6 +96,16 @@ class FormHandler implements FormHandlerInterface
             return json_decode($content, true) ?? [];
         }
 
+        // If it's a multipart form (with file uploads)
+        if (strpos($contentType, 'multipart/form-data') !== false) {
+            // Get parsed body and uploaded files
+            $parsedBody = $request->getParsedBody() ?? [];
+            $uploadedFiles = $request->getUploadedFiles() ?? [];
+
+            // Merge everything into a single array
+            return array_merge($parsedBody, $uploadedFiles);
+        }
+
         // Try to parse form data from raw body as fallback
         $content = (string) $request->getBody();
         if (!empty($content)) {
@@ -91,5 +114,20 @@ class FormHandler implements FormHandlerInterface
         }
 
         return [];
+    }
+
+    /**
+     * Dispatch a form event
+     *
+     * @param string $eventName
+     * @param FormInterface $form
+     * @param mixed $data
+     */
+    private function dispatchEvent(string $eventName, FormInterface $form, $data = null): void
+    {
+        if ($this->eventDispatcher) {
+            $event = new FormEvent($eventName, $form, $data);
+            $this->eventDispatcher->dispatch($event);
+        }
     }
 }

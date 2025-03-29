@@ -112,6 +112,18 @@ MVCLIXO/ (project-root)
 │   │   │   ├── UnauthenticatedException.php
 │   │   │   └── ValidationException.php
 │   │   │
+
+│   │   │
+│   │   ├── Form/                          ...# New form handling system
+│   │   │   ├── CSRF/                      ...# CSRF protection
+│   │   │   │   └── CSRFToken.php
+│   │   │   │
+│   │   │   ├── FormBuilder.php            ...# Form generation
+│   │   │   ├── FormValidator.php          ...# Validation rules
+│   │   │   └── ValidationError.php        ...# Error representation
+│   │   │
+
+
 │   │   ├── Http/
 │   │   │   ├── HttpFactory.php
 │   │   │   └── ResponseEmitter.php
@@ -121,6 +133,7 @@ MVCLIXO/ (project-root)
 │   │   │   └── ConfigInterface.php
 │   │   │
 │   │   ├── Middleware/
+│   │   │   ├── CSRFMiddleware.php         ...# New CSRF middleware
 │   │   │   ├── ErrorHandlerMiddleware.php
 │   │   │   ├── MiddlewareFactory.php
 │   │   │   ├── MiddlewareInterface.php

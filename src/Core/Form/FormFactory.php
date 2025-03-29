@@ -4,54 +4,80 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use Core\Form\CSRF\CSRFToken;
+use Core\Form\Field\Type\FieldTypeRegistry;
+use Core\Form\Validation\Validator;
+use Core\Form\FormTypeInterface;
+use Core\Form\FormInterface;
+use App\Helpers\DebugRt as Debug;
+use Core\Form\Renderer\RendererRegistry;
+
 /**
- * Form factory that creates forms from form types
+ * Form factory implementation
  */
 class FormFactory implements FormFactoryInterface
 {
-    private FormBuilderInterface $formBuilder;
+    private CSRFToken $csrf;
+    private FieldTypeRegistry $fieldTypeRegistry;
+    private ?Validator $validator;
+    private ?RendererRegistry $rendererRegistry = null;
 
     /**
      * Constructor
      *
-     * @param FormBuilderInterface $formBuilder
+     * @param CSRFToken $csrf
+     * @param FieldTypeRegistry $fieldTypeRegistry
+     * @param Validator|null $validator
+     * @param RendererRegistry|null $rendererRegistry
      */
-    public function __construct(FormBuilderInterface $formBuilder)
-    {
-        $this->formBuilder = $formBuilder;
+    public function __construct(
+        CSRFToken $csrf,
+        FieldTypeRegistry $fieldTypeRegistry,
+        ?Validator $validator = null,
+        ?RendererRegistry $rendererRegistry = null
+    ) {
+        $this->csrf = $csrf;
+        $this->fieldTypeRegistry = $fieldTypeRegistry;
+        $this->validator = $validator;
+        $this->rendererRegistry = $rendererRegistry;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function create(FormTypeInterface $formType, $data = null): FormInterface
+    public function create(FormTypeInterface $formType, array $data = [], array $options = []): FormInterface
     {
-        // Create a new form builder
-        $builder = clone $this->formBuilder;
+        // Create form instance
+        $form = new Form($formType->getName(), $this->csrf);
 
-        // Get fields from the form type
-        $fields = $formType->getFields();
-
-        // // DEBUG: Log field types
-        // error_log("FormType class: " . get_class($formType));
-        // // Check if fields is actually an array
-        // if (!is_array($fields)) {
-        //     error_log("ERROR: FormType::getFields() did not return an array, got: " . gettype($fields));
-        //     throw new \RuntimeException("FormType::getFields() must return an array, got: " . gettype($fields));
-        // }
-
-        // Add each field to the form
-        foreach ($fields as $name => $field) {
-            $builder->add($name, $field);
+        // Set validator if available
+        if ($this->validator) {
+            $form->setValidator($this->validator);
         }
 
-        // Build the form
-        $form = $builder->getForm();
+        // Create form builder
+        $builder = new FormBuilder($form, $this->fieldTypeRegistry);
+
+        // Build form using type
+        $formType->buildForm($builder, $options);
+
+        // Set form renderer if available
+        if ($this->rendererRegistry) {
+            // Get renderer name from options, fall back to css_framework from config
+            $rendererName = $options['renderer'] ?? 'bootstrap';
+
+            // Get the renderer
+            $renderer = $this->rendererRegistry->getRenderer($rendererName);
+            $form->setRenderer($renderer);
+        }
 
         // Set initial data if provided
-        if ($data !== null) {
+        if (!empty($data)) {
             $form->setData($data);
         }
+
+        // Add before returning the form
+        $form->setRenderOptions($options);
 
         return $form;
     }

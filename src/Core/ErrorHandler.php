@@ -108,6 +108,7 @@ class ErrorHandler
             ## it is a logic exception
             $statusCode = 400;
         } else {
+            //Debug::p($e);
             // For unspecified exceptions, use the exception code if it's a valid HTTP status
             $statusCode = ($e->getCode() >= 100 && $e->getCode() < 600) ? $e->getCode() : 500;
         }

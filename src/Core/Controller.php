@@ -94,7 +94,7 @@ abstract class Controller
                 }
             }
         } else {
-            throw new InvalidArgumentException("Method $name (in controller) not found", 404);
+            throw new InvalidArgumentException("Method $name (in controller) not found...", 404);
         }
     }
 

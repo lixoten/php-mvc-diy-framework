@@ -1,0 +1,21 @@
+/* Form theme: Dotted - adds playful dotted borders to form elements */
+.form-theme-dotted .form-control {
+  border: 5px dotted #6c757d !important;
+  border-radius: 0 !important;
+  padding: 10px !important;
+}
+
+.form-theme-dotted .form-label {
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-theme-dotted .form-select {
+  border: 5px dotted #6c757d !important;
+  border-radius: 0 !important;
+}
+
+.form-theme-dotted .btn-primary {
+  border: 5px dotted #0d6efd !important;
+  border-radius: 0 !important;
+}

@@ -7,6 +7,7 @@ namespace Core;
 use App\Scrap;
 use App\ViewHelpers\FlashMessageRendererView;
 use App\Helpers\DebugRt as Debug;
+use Core\Services\ConfigService;
 
 /**
  * View
@@ -18,10 +19,12 @@ class View
     private string $page;
     private string $op;
     private int $id;
+    private ConfigService $config;
 
 
-    public function __construct()
+    public function __construct(ConfigService $config)
     {
+        $this->config = $config;
         // $this->scrapObj = $scrapObj;
         // $this->flashObj = $flashObj;
     }
@@ -122,6 +125,13 @@ class View
      */
     public function renderWithLayout(string $view, array $data = []): string
     {
+        // Make config available to all views
+        //$config = $this->container->get('config');
+        // $theme = $this->config->get('view')['themes']['default'];
+        // $theme = $this->config->getConfigValue('view', 'themes.default');
+        // $theme = $this->config->getConfigValue('view', "themes.available.{$theme}.css", '');
+        // Debug::p($theme);
+
         //exit();
         //Debug::p($view);
         $content = $this->getTemplate($view, $data);

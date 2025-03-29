@@ -91,4 +91,26 @@ class ConfigService implements ConfigInterface
 
         return $this->configs[$cacheKey];
     }
+
+        /**
+     * Get nested config value with fallback and logging
+     */
+    public function getConfigValue(string $file, string $path, $default = null) {
+        $config = $this->get($file);
+
+        // Navigate the path segments
+        $segments = explode('.', $path);
+        $current = $config;
+
+        foreach ($segments as $segment) {
+            if (!is_array($current) || !isset($current[$segment])) {
+                //$this->logger->notice("Config fallback used: {$file}.{$path} defaulted to " .
+                //    (is_string($default) ? $default : gettype($default)));
+                return $default;
+            }
+            $current = $current[$segment];
+        }
+
+        return $current;
+    }
 }

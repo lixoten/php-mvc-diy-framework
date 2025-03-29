@@ -6,15 +6,19 @@ use App\Helpers\DebugRt as Debug;
 use App\Helpers\UiHelper;
 
 $helperObj = new UiHelper();
-$linkList = $helperObj->ulLinks($actionLinks);
+
+
+//Debug::p($themeCssPath);
 
 /**
  * @var array $data
  */
 // DebugRt::p($data);
 ?>
+
+
+
 <h1><?= $title ?></h1>
-<?= $linkList ?>
 
 
 <div class="container">

@@ -21,7 +21,7 @@ class RecordNotFoundException extends HttpException
 
         // Auto-generate message if not provided
         if ($message === null) {
-            $message = ucfirst($entityType) . ($entityId !== null ? " with ID '$entityId'" : '') . " not found";
+            $message = ucfirst($entityType) . ($entityId !== null ? " with ID '$entityId'" : '') . " not found..";
         }
 
         parent::__construct($message, $code, $previous);

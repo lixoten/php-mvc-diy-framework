@@ -54,7 +54,7 @@ $linkList = $helperObj->ulLinks($actionLinks);
     </div>
 </div>
 
-<?php if ($formData && empty($errors)): ?>
+<?php if ($formData && empty($errors)) : ?>
 <div class="card mt-4">
     <div class="card-header">
         <h5>Submitted Form Data (Debug)</h5>

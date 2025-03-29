@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use Core\Form\Field\FieldInterface;
+
 /**
  * Interface for form builders
  */
@@ -16,7 +18,15 @@ interface FormBuilderInterface
      * @param array $options Field options
      * @return self
      */
-    public function add(string $name, array $options): self;
+    public function add(string $name, array $options = []): self;
+
+    /**
+     * Add an existing field to the form
+     *
+     * @param FieldInterface $field
+     * @return self
+     */
+    public function addField(FieldInterface $field): self;
 
     /**
      * Get the built form
@@ -26,7 +36,7 @@ interface FormBuilderInterface
     public function getForm(): FormInterface;
 
     /**
-     * Set the form action URL
+     * Set form action URL
      *
      * @param string $action
      * @return self
@@ -34,10 +44,19 @@ interface FormBuilderInterface
     public function setAction(string $action): self;
 
     /**
-     * Set the form method
+     * Set form method
      *
      * @param string $method
      * @return self
      */
     public function setMethod(string $method): self;
+
+
+    /**
+     * Set form layout configuration
+     *
+     * @param array $layout Layout configuration
+     * @return self
+     */
+    public function setLayout(array $layout): self;
 }

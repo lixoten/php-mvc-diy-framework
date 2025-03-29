@@ -67,7 +67,7 @@ class ErrorsController extends Controller
 
         // $response->getBody()->write($body);
         // return $response;
-
+        //Debug::p(111);
         return $this->view('errors/500', [
             'layout' => 'error',
             'message' => 'Something went wrong on our end. Please try again later.',
