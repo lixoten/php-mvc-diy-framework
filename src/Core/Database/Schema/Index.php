@@ -10,7 +10,7 @@ class Index
     protected array $columns;
     protected string $type;
 
-    public function __construct(string $name, array $columns, string $type)
+    public function __construct(string $name, array $columns, string $type = 'INDEX')
     {
         $this->name = $name;
         $this->columns = $columns;

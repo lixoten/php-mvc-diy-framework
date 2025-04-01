@@ -2,41 +2,86 @@
 
 declare(strict_types=1);
 
-$home = '<li><a href="/">Home</a></li>';
-$about = '<li><a href="/about">About</a></li>';
-$testy = '<li><a href="/testy">Testy</a></li>';
-$test = '<li><a href="/test">Test</a></li>';
-$post = '<li><a href="/posts">Posts</a></li>';
-$user = '<li><a href="/users">Users</a></li>';
-$dash = '<li><a href="/admin/dashboard">Dash</a></li>';
-$signup = '<li><a href="/signup/new">Signup</a></li>';
-$login = '<li><a href="/login">Login</a></li>';
-$logout = '<li><a href="/logout">Logout</a></li>';
-$useLog = "";
-$profile = "";
+use Core\Auth\AuthenticationServiceInterface;
+use DI\Container;
 
-if (isset($_SESSION['user_id'])) {
-    $useLog = $logout;
-    $profile = '<li><a href="/admin/profile/index">Profile</a></li>';
-} else {
-    $useLog = $login;
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-echo "
-    <nav>
-        <ul>
-            $home
-            $about
-            $testy
-            $test
-            $post
-            $user
-            $dash
-            $signup
-            <div class=\"last-items-container\">
-                $profile
-                $useLog
-            </div>
-        </ul>
-    </nav>
-";
+// Get container instance for dependency injection
+global $container; // This should be available since we're including this file after container setup
+
+// Get auth service from container
+$authService = $container->get(AuthenticationServiceInterface::class);
+
+// Define menu items by section
+$publicItems = [
+    ['url' => '/', 'label' => 'Home'],
+    ['url' => '/about', 'label' => 'About'],
+    ['url' => '/posts', 'label' => 'Posts'],
+    ['url' => '/test', 'label' => 'Test'],
+    ['url' => '/testy', 'label' => 'Testy'],
+];
+
+$authItems = [
+    ['url' => '/admin/dashboard', 'label' => 'Dashboard'],
+    ['url' => '/admin/profile/index', 'label' => 'Profile'],
+];
+
+$adminItems = [
+    ['url' => '/users', 'label' => 'Users'],
+];
+
+$guestItems = [
+    ['url' => '/signup/new', 'label' => 'Signup'],
+];
+
+// Current path for highlighting active item
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+// Start menu HTML
+echo '<nav><ul>';
+
+// Always show public items
+foreach ($publicItems as $item) {
+    $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
+    echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
+}
+
+// Show items based on authentication status
+if ($authService->isAuthenticated()) {
+    // Show auth items
+    foreach ($authItems as $item) {
+        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
+        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
+    }
+
+    // Show admin items if user has admin role
+    if ($authService->hasRole('admin')) {
+        foreach ($adminItems as $item) {
+            $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
+            echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
+        }
+    }
+
+    // Add logout with container div
+    echo '<div class="last-items-container">';
+    echo '<li><a href="/logout">Logout</a></li>';
+    echo '</div>';
+} else {
+    // Show guest-only items
+    foreach ($guestItems as $item) {
+        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
+        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
+    }
+
+    // Add login with container div
+    echo '<div class="last-items-container">';
+    $loginActive = ($currentPath === '/login') ? ' class="active"' : '';
+    echo "<li{$loginActive}><a href=\"/login\">Login</a></li>";
+    echo '</div>';
+}
+
+echo '</ul></nav>';

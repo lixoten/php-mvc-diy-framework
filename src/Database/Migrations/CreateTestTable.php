@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// filepath: d:\xampp\htdocs\mvclixo\src\Database\Migrations\20250318000001_CreateTestTable.php
+// filepath: d:\xampp\htdocs\mvcxxlixo\src\Database\Migrations\20250318000001_CreateTestTable.php
 // 20250318000001_CreateTestTable.php
 
 namespace Database\Migrations;

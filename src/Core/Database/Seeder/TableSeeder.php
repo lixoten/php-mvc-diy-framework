@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-// filepath: d:\xampp\htdocs\mvclixo\src\Core\Database\Seeder\TableSeeder.php
-
 namespace Core\Database\Seeder;
 
 use Core\Database\ConnectionInterface;

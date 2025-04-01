@@ -1,7 +1,5 @@
 <?php
 
-// filepath: d:\xampp\htdocs\mvclixo\src\App\Helpers\FormHelper.php
-
 declare(strict_types=1);
 
 namespace App\Helpers;
@@ -84,7 +82,8 @@ class FormHelper
 
         $html = '<div class="form-group mb-3">';
         $html .= '<label for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-        $html .= '<input type="' . $type . '" id="' . $id . '" name="' . $name . '" class="' . $class . '" value="' . $value . '"';
+        $html .= '<input type="' . $type . '" id="' . $id . '" name="'
+                                 . $name . '" class="' . $class . '" value="' . $value . '"';
 
         // Add any remaining attributes
         foreach ($attributes as $attr => $val) {

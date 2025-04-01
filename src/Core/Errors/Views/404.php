@@ -15,4 +15,4 @@ use App\Helpers\DebugRt as Debug;
 ?>
 <h1>Error Page: View 404</h1>
 <h4><?= $message ?></h4>
-<p><?= '404 BOOOOO LINE: ' . $data['line'] ?></p>
+<p><?= '404 BOOOOO LINE: ' . $data['line']  . ' -- ' . $data['file'] ?></p>

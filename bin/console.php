@@ -1,17 +1,13 @@
 <?php
 
-require __DIR__ . '/../vendor/autoload.php';
-
-// Check if we can use the class
-if (class_exists('Database\\Migrations\\CreateUsersTable')) {
-    echo "Class exists after manual include!\n";
-} else {
-    echo "Class still doesn't exist after manual include!\n";
-}
 use Core\Database\Migrations\MigrationRepository;
 use Core\Database\Migrations\MigrationRunner;
+use App\Helpers\DebugRt as Debug;
+use Database\Seeders\UsersSeeder;
 
-// Set environment variable - THIS IS THE MISSING PIECE
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Set environment variable
 $environment = 'development';
 
 // Load .env file if it exists
@@ -22,12 +18,11 @@ if (file_exists(__DIR__ . '/../.env')) {
     $environment = $_ENV['APP_ENV'] ?? $environment;
 }
 
-
 // Initialize container
 $containerBuilder = new \DI\ContainerBuilder();
 // Define environment BEFORE loading dependencies.php
 $containerBuilder->addDefinitions([
-    'environment' => $environment, // THIS IS THE KEY ADDITION
+    'environment' => $environment,
 ]);
 $containerBuilder->addDefinitions(__DIR__ . '/../src/dependencies.php');
 $container = $containerBuilder->build();
@@ -51,9 +46,6 @@ $runner = new MigrationRunner(
 );
 
 echo "==== DEBUG INFO ====\n";
-
-
-
 
 // 1. Check if migrations table exists
 try {
@@ -96,41 +88,23 @@ echo "==================\n\n";
 // Execute command
 switch ($command) {
     case 'migrate':
+        echo "Running migrations...\n";
 
-        echo "Trying to run migrations...\n";
+        // Check for --force flag
+        $force = in_array('--force', $argv) || in_array('-f', $argv);
 
-        // Debug the migration loading process
-        $migrationPath = __DIR__ . '/../src/Database/Migrations';
-        foreach (scandir($migrationPath) as $file) {
-            if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                $name = pathinfo($file, PATHINFO_FILENAME);
-                $class = 'Database\\Migrations\\' . $name;
+        // Use the runner's built-in run method
+        //$migrations = $runner->run();
+        $migrations = $runner->run($force);  // Pass force parameter to run()
 
-                echo "Looking for class: $class from file: $file\n";
-
-                // Check if class exists
-                if (class_exists($class)) {
-                    echo "✓ Class exists\n";
-
-                    // Check if it extends Migration
-                    $reflection = new \ReflectionClass($class);
-                    if ($reflection->isSubclassOf(\Core\Database\Migrations\Migration::class)) {
-                        echo "✓ Class extends Migration\n";
-                    } else {
-                        echo "✗ Class does NOT extend Migration\n";
-                    }
-                } else {
-                    echo "✗ Class NOT found\n";
-                }
-                echo "\n";
+        if (empty($migrations)) {
+            echo "No migrations were executed.\n";
+        } else {
+            echo count($migrations) . " migrations executed:\n";
+            foreach ($migrations as $migration) {
+                echo "- $migration\n";
             }
         }
-
-
-
-        echo "Running migrations...\n";
-        $migrations = $runner->run();
-        echo count($migrations) . " migrations executed.\n";
         break;
 
     case 'rollback':
@@ -141,17 +115,35 @@ switch ($command) {
         break;
 
     case 'seed':
-        $seederClass = $arg ?? 'Database\\Seeders\\DatabaseSeeder';
-        echo "Running seeder: {$seederClass}\n";
-
-        if (!class_exists($seederClass)) {
-            echo "Seeder class not found: {$seederClass}\n";
+        if (!$arg) {
+            echo "Error: Seeder name is required\n";
+            echo "Usage: php bin/console.php seed [seeder_name]\n";
             break;
         }
+        // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {
+        //     // Direct execution of UsersSeeder
+        //     //D:\xampp\htdocs\my_projects\mvclixo\src\Database\Seeder\UsersSeeder.php
+        //     $seeder = new UsersSeeder();
+        //     $seeder->run($db);
+        //     echo "UsersSeeder executed successfully!\n";
+        // } else {
+        $className = $arg ?? 'DatabaseSeeder';
 
-        $seeder = new $seederClass($db);
-        $seeder->run();
-        echo "Seeding completed.\n";
+        $seederClass = (strpos($className, '\\') === false)
+        ? 'Database\\Seeders\\' . $className  // Add namespace when needed
+        : $className;
+        // Debug::p($seederClass);
+        echo "Running seeder: {$seederClass}\n";
+
+        if (class_exists($seederClass)) {
+            //Debug::p(111);
+            $seeder = new $seederClass($db);
+            $seeder->run();
+            echo "Seeding completed.\n";
+        } else {
+            echo "Seeder class not found: {$seederClass}\n";
+        }
+        // }
         break;
 
     case 'help':
@@ -159,5 +151,6 @@ switch ($command) {
         echo "Migration Commands:\n";
         echo "  migrate           Run pending migrations\n";
         echo "  rollback [steps]  Roll back the last batch or specific number of batches\n";
+        echo "  seed [class]      Run database seeders\n";
         break;
 }

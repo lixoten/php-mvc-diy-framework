@@ -1,17 +1,16 @@
 
-<!-- filepath: d:\xampp\htdocs\mvclixo\src\App\Features\Testy\Views\dbtest.php -->
 <div class="container">
     <h1><?= $title ?></h1>
 
-    <?php if (isset($error)): ?>
+    <?php if (isset($error)) : ?>
         <div class="alert alert-danger">
             <h3>Error:</h3>
             <p><?= htmlspecialchars($error) ?></p>
-            <?php if (isset($trace)): ?>
+            <?php if (isset($trace)) : ?>
                 <pre><?= htmlspecialchars($trace) ?></pre>
             <?php endif; ?>
         </div>
-    <?php else: ?>
+    <?php else : ?>
         <div class="card mb-4">
             <div class="card-header bg-success text-white">
                 <h2>Connection Test</h2>
@@ -53,7 +52,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($records as $record): ?>
+                        <?php foreach ($records as $record) : ?>
                         <tr>
                             <td><?= htmlspecialchars($record['id']) ?></td>
                             <td><?= htmlspecialchars($record['name']) ?></td>

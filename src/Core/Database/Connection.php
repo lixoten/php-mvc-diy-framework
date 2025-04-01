@@ -41,7 +41,7 @@ class Connection implements ConnectionInterface
                 "Failed to connect to database: {$e->getMessage()}",
                 $this->config['driver'] ?? 'unknown',
                 $this->config,
-                $e->getCode(),
+                (string)$e->getCode(),   // Cast to string to match parameter type
                 0,
                 $e
             );
@@ -65,7 +65,10 @@ class Connection implements ConnectionInterface
 
         switch ($driver) {
             case 'mysql':
-                return "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']};charset={$config['charset']}";
+                return "mysql:host={$config['host']};" .
+                       "port={$config['port']};" .
+                       "dbname={$config['database']};" .
+                       "charset={$config['charset']}";
 
             case 'sqlite':
                 return "sqlite:{$config['database']}";
@@ -103,6 +106,33 @@ class Connection implements ConnectionInterface
     {
         return $this->pdo->lastInsertId();
     }
+
+
+    /**
+     * Prepare a SQL statement
+     *
+     * @param string $sql The SQL statement to prepare
+     * @return \PDOStatement The prepared statement
+     */
+    public function prepare(string $sql): \PDOStatement
+    {
+        try {
+            $startTime = microtime(true);
+            $stmt = $this->pdo->prepare($sql);
+            $endTime = microtime(true);
+            $executionTime = ($endTime - $startTime) * 1000; // in ms
+
+            if ($this->logger) {
+                $this->logger->debug("Prepare SQL: {$sql} | Time: {$executionTime}ms");
+            }
+
+            return $stmt;
+        } catch (\PDOException $e) {
+            throw $this->convertException($e, $sql, []);
+        }
+    }
+
+
 
     public function beginTransaction(): bool
     {

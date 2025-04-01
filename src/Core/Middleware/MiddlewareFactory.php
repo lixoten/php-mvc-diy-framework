@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Core\Middleware;
 
 use Core\FrontController;
+use Core\Middleware\Auth\GuestOnlyMiddleware;
+use Core\Middleware\Auth\RequireAuthMiddleware;
+use Core\Middleware\Auth\RequireRoleMiddleware;
 use Psr\Container\ContainerInterface;
 
 /**
@@ -39,12 +42,26 @@ class MiddlewareFactory
         // to most other middleware and all controllers
         $pipeline->pipe($container->get(SessionMiddleware::class));
 
-        // In the createPipeline method, add this after SessionMiddleware:
+        // CSRF protection
         $pipeline->pipe($container->get(CSRFMiddleware::class));
+
+        // Authentication middleware for protected routes
+
+        // Guest-only middleware for login/register pages
+        $pipeline->pipe(new RoutePatternMiddleware('/login', $container->get(GuestOnlyMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/register', $container->get(GuestOnlyMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/forgot-password', $container->get(GuestOnlyMiddleware::class)));
+
+        // Require authentication for protected areas
+        $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireAuthMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/profile/*', $container->get(RequireAuthMiddleware::class)));
+
+        // Role-based protection for admin area
+        $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireRoleMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/users', $container->get(RequireRoleMiddleware::class)));
 
         // Future middleware can be added here in the desired order
         // $pipeline->pipe($container->get(SecurityMiddleware::class));
-        // $pipeline->pipe($container->get(CsrfMiddleware::class));
         // $pipeline->pipe($container->get(AuthenticationMiddleware::class));
 
         return $pipeline;

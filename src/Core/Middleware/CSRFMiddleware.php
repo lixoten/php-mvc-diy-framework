@@ -1,7 +1,5 @@
 <?php
 
-// filepath: d:\xampp\htdocs\mvclixo\src\Core\Middleware\CSRFMiddleware.php
-
 declare(strict_types=1);
 
 namespace Core\Middleware;

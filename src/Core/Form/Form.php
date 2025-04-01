@@ -468,17 +468,6 @@ class Form implements FormInterface
         return $this->layout;
     }
 
-    /**
-     * Store rendering options for later use
-     *
-     * @param array $options Rendering options
-     * @return self
-     */
-    public function xxxsetRenderOptions(array $options): self
-    {
-        $this->renderOptions = $options;
-        return $this;
-    }
 
     /**
      * Set the render options for the form
@@ -512,5 +501,4 @@ class Form implements FormInterface
     {
         return $this->renderOptions;
     }
-
 }

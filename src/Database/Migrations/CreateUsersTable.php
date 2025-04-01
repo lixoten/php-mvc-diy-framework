@@ -2,27 +2,41 @@
 
 declare(strict_types=1);
 
-// Example migration file
-
 namespace Database\Migrations;
 
 use Core\Database\Migrations\Migration;
 
 class CreateUsersTable extends Migration
 {
+    /**
+     * Run the migration
+     */
     public function up(): void
     {
         $this->create('users', function ($table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->timestamp('email_verified_at')->nullable();
-            $table->boolean('is_active')->default(true);
+            $table->bigIncrements('user_id');
+            $table->string('username', 50)->unique();
+            $table->string('email', 255)->unique();
+            $table->string('password_hash', 255);
+            $table->text('roles')->nullable(); // Will store serialized array
+            $table->char('status', 1)->default('P'); // P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted
+            $table->string('activation_token', 64)->nullable();
+            $table->string('reset_token', 64)->nullable();
+            $table->timestamp('reset_token_expiry')->nullable();
             $table->timestamps();
+
+            // Add indexes for commonly searched fields
+            $table->index('username');
+            $table->index('email');
+            $table->index('status');
+            $table->index('activation_token');
+            $table->index('reset_token');
         });
     }
 
+    /**
+     * Reverse the migration
+     */
     public function down(): void
     {
         $this->drop('users');

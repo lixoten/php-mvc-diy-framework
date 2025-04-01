@@ -55,86 +55,9 @@ class ContactFormType implements FormTypeInterface
         return $this->options;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function xxxxxbuildForm(FormBuilderInterface $builder, array $options = []): void
-    {
-
-        //Debug::p($this->options);
-        // Merge options with those set via setConfig
-        //$options = array_merge($this->options, $options);
-        //Debug::p($options , 1);
-
-        // Define default fields if not specified
-        $fieldNames = array_keys($options['fields'] ?? [
-            'name' => [],
-            'email' => [],
-            'subject' => [],
-            'message' => []
-        ]);
-
-        //$rrr  =  $this->fieldRegistry->getName();
-        //Debug::p($rrr, 1);
-
-        // only used if NOT in $options coming in..
-
-        //The need to be LOOKED UP against the  ContactFieldRegistry.... so if 'name' comes in, we ifnore the defaults on here, and look it up in ContactFieldRegistry and then meger it with that item.
-
-
-        // Process each field
-        foreach ($fieldNames as $name) {
-            // 1. Get definition from registry (or empty array if not found)
-            $fieldDefinition = match ($name) {
-                'name' => $this->fieldRegistry->getName(),
-                'email' => $this->fieldRegistry->getEmail(),
-                'subject' => $this->fieldRegistry->getSubject(),
-                'message' => $this->fieldRegistry->getMessage(),
-                'message2' => $this->fieldRegistry->getMessage2(),
-                default => []
-            };
-
-            // 2. Merge with any overrides from options
-            $fieldOptions = array_merge(
-                $fieldDefinition,
-                $options['fields'][$name] ?? []
-            );
-
-            // 3. Add the field with combined options
-            $builder->add($name, $fieldOptions);
-        }
-    }
 
     public function buildForm(FormBuilderInterface $builder, array $options = []): void
     {
-
-        //Debug::p($options);
-        // 1. Check if layout actually contains valid sections/fieldsets
-        // $hasFieldsets = isset($options['layout']['fieldsets']) && !empty($options['layout']['fieldsets']);
-        // $hasSections = isset($options['layout']['sections']) && !empty($options['layout']['sections']);
-
-        // if (
-        //     !isset($options['layout_type']) ||
-        //     ($options['layout_type'] !== 'fieldsets' && $options['layout_type'] !== 'sections')
-        // ) {
-        //     $options['layout_type'] = 'none';
-        // } else {
-        //     if ($options['layout_type'] === 'fieldsets') { // if no 'fieldsets' but we do have a 'sections'
-        //         $options['layout_type'] = 'fieldsets';
-        //     elseif ($options['layout_type'] === 'sections') { // if no 'fieldsets' but we do have a 'sections'
-        //         $options['layout_type'] = 'sections';
-
-
-
-        //     if (!$hasFieldsets && $hasSections) { // if no 'fieldsets' but we do have a 'sections'
-        //         $options['layout_type'] = 'sections';
-        //     } elseif (!$hasFieldsets && !$hasSections) {
-        //         $options['layout_type'] = 'fieldsets'; // <<< use defaults set in generateFieldsetLayout()
-        //     } else {
-        //         $options['layout_type'] = 'none';
-        //     }
-        // }
-
 
         // Define default fields if not specified
         $fieldConfig = $options['fields'] ?? [

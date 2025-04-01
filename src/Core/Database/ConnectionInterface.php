@@ -10,6 +10,7 @@ interface ConnectionInterface
     public function query(string $sql, array $params = []): array;
     public function execute(string $sql, array $params = []): int;
     public function lastInsertId(): string;
+    public function prepare(string $sql): \PDOStatement;
 
     // Transaction methods
     public function beginTransaction(): bool;

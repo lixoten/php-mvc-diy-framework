@@ -8,8 +8,9 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\UriInterface;
+use Psr\Http\Message\ResponseFactoryInterface;
 
-class HttpFactory
+class HttpFactory implements ResponseFactoryInterface
 {
     private Psr17Factory $factory;
     private ServerRequestCreator $requestCreator;

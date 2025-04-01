@@ -198,7 +198,7 @@ class Router implements RouterInterface
             }
         }
 
-        throw new PageNotFoundException('Page not found..');
+        throw new PageNotFoundException('Page not found');
     }
 
 

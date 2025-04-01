@@ -54,6 +54,19 @@ class FrontController implements RequestHandlerInterface
         $this->router->add('{controller}/{action}/{level:\d}{exe:j|n}{pageid:\d\d\d\d}/{returnid:\d\d\d\d}/{id:\d+}');
 
 
+        // Auth routes
+        $this->router->add('login', [
+            'controller' => 'Login',
+            'action' => 'index',
+            'namespace' => 'Auth'
+        ]);
+
+        $this->router->add('logout', [
+            'controller' => 'Login',
+            'action' => 'logout',
+            'namespace' => 'Auth'
+        ]);
+
         $this->router->add('test-logger', ['controller' => 'Home', 'action' => 'testLogger']);
         /**
          * Route for handling key-value parameters

@@ -89,8 +89,15 @@ class FormView
     /**
      * Render a submit button
      */
-    public function submit(string $label = 'Submit', string $class = 'btn btn-primary'): string
+    public function submit(string $label = 'Submit', $options = 'btn btn-primary'): string
     {
+        // Handle options as string (class) or array (attributes)
+        if (is_array($options)) {
+            $class = $options['class'] ?? 'btn btn-primary';
+        } else {
+            $class = $options;
+        }
+
         return sprintf(
             '<div class="mb-3"><button type="submit" class="%s">%s</button></div>',
             htmlspecialchars($class),

@@ -10,8 +10,11 @@ use Core\Router;
 use Core\Services\ConfigService;
 use Psr\Container\ContainerInterface;
 use Core\Form\CSRF\CSRFToken;
+use Core\Form\FieldRegistryInterface;
+use Core\Form\FormBuilderInterface;
 use Core\Middleware\CSRFMiddleware;
 use Core\Form\FormFactoryInterface;
+use Core\Form\FormHandlerInterface;
 
 // use Core\Form\FormFactory;
 
@@ -117,6 +120,64 @@ return [
     },
 
 
+    // Auth components - add these here
+    'Core\Http\ResponseFactory' => function (ContainerInterface $c) {
+        return new \Core\Http\ResponseFactory(
+            $c->get('httpFactory')
+        );
+    },
+
+    'App\Repository\UserRepositoryInterface' => function (ContainerInterface $c) {
+        return new \App\Repository\UserRepository(
+            $c->get('Core\Database\ConnectionInterface')
+        );
+    },
+
+    'Core\Auth\AuthenticationServiceInterface' => function (ContainerInterface $c) {
+        return $c->get('Core\Auth\SessionAuthenticationService');
+    },
+
+    'Core\Auth\SessionAuthenticationService' => function (ContainerInterface $c) {
+        return new \Core\Auth\SessionAuthenticationService(
+            $c->get('App\Repository\UserRepositoryInterface'),
+            $c->get('sessionManager'),
+            [
+                'session_lifetime' => 7200, // 2 hours
+                'secure_cookie' => $c->get('environment') === 'production'
+            ]
+        );
+    },
+
+    // Auth Middleware
+    'Core\Middleware\Auth\RequireAuthMiddleware' => function (ContainerInterface $c) {
+        return new \Core\Middleware\Auth\RequireAuthMiddleware(
+            $c->get('Core\Auth\AuthenticationServiceInterface'),
+            $c->get('Core\Http\ResponseFactory'),
+            '/login'
+        );
+    },
+
+    'Core\Middleware\Auth\RequireRoleMiddleware' => function (ContainerInterface $c) {
+        return new \Core\Middleware\Auth\RequireRoleMiddleware(
+            $c->get('Core\Auth\AuthenticationServiceInterface'),
+            $c->get('Core\Http\ResponseFactory'),
+            'admin',
+            '/unauthorized'
+        );
+    },
+
+    'Core\Middleware\Auth\GuestOnlyMiddleware' => function (ContainerInterface $c) {
+        return new \Core\Middleware\Auth\GuestOnlyMiddleware(
+            $c->get('Core\Auth\AuthenticationServiceInterface'),
+            $c->get('Core\Http\ResponseFactory'),
+            '/'
+        );
+    },
+
+
+
+
+
 
     //'view' => \DI\autowire(Core\View::class)
    //     ->constructorParameter('config', \DI\get('config')),
@@ -168,14 +229,16 @@ return [
     'App\Features\Home\HomeController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('view', \DI\get('view'))  // Add this line
+        ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
     'App\Features\About\AboutController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
     'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -190,10 +253,37 @@ return [
         ->constructorParameter('contactFieldRegistry', \DI\get(ContactFieldRegistry::class))
         ->constructorParameter('contactFormType', \DI\get(ContactFormType::class)),
 
+
+    // Auth Controllers
+    'App\Features\Auth\LoginController' => \DI\autowire()
+        ->constructorParameter('route_params', \DI\get('route_params'))
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+        ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+        ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
+        ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
+
+
     'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory')),
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
+
+    // Auth components
+    'App\Features\Auth\Form\LoginFieldRegistry' => \DI\factory(function () {
+        return new \App\Features\Auth\Form\LoginFieldRegistry();
+    }),
+
+    'App\Features\Auth\Form\LoginFormType' => \DI\factory(function (ContainerInterface $c) {
+        return new \App\Features\Auth\Form\LoginFormType(
+            $c->get('App\Features\Auth\Form\LoginFieldRegistry')
+        );
+    }),
 
 
     // ...existing definitions
@@ -270,12 +360,22 @@ return [
         return new \Core\Form\Field\Type\TextareaType();
     },
 
+    'field.type.password' => function () {
+        return new \Core\Form\Field\Type\PasswordType();
+    },
+
+    'field.type.checkbox' => function () {
+        return new \Core\Form\Field\Type\CheckboxType();
+    },
+
     // Field Type Registry
     \Core\Form\Field\Type\FieldTypeRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Field\Type\FieldTypeRegistry([
             $c->get('field.type.text'),
             $c->get('field.type.email'),
-            $c->get('field.type.textarea')
+            $c->get('field.type.textarea'),
+            $c->get('field.type.password'),
+            $c->get('field.type.checkbox')
         ]);
         return $registry;
     }),
