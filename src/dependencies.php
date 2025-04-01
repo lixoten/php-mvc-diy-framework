@@ -119,6 +119,8 @@ return [
         ]);
     },
 
+    // Add this interface binding here
+    'Core\Session\SessionManagerInterface' => DI\get('sessionManager'),
 
     // Auth components - add these here
     'Core\Http\ResponseFactory' => function (ContainerInterface $c) {
@@ -133,20 +135,45 @@ return [
         );
     },
 
+    'App\Repository\RememberTokenRepositoryInterface' => DI\autowire(App\Repository\RememberTokenRepository::class)
+        ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+
     'Core\Auth\AuthenticationServiceInterface' => function (ContainerInterface $c) {
         return $c->get('Core\Auth\SessionAuthenticationService');
     },
 
-    'Core\Auth\SessionAuthenticationService' => function (ContainerInterface $c) {
-        return new \Core\Auth\SessionAuthenticationService(
-            $c->get('App\Repository\UserRepositoryInterface'),
-            $c->get('sessionManager'),
-            [
-                'session_lifetime' => 7200, // 2 hours
-                'secure_cookie' => $c->get('environment') === 'production'
-            ]
-        );
-    },
+    'Core\Auth\SessionAuthenticationService' => DI\autowire()
+        ->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
+        ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
+        ->constructorParameter(
+            'rememberTokenRepository',
+            DI\get(App\Repository\RememberTokenRepositoryInterface::class)
+        )
+        ->constructorParameter(
+            'loginAttemptsRepository',
+            DI\get(App\Repository\LoginAttemptsRepositoryInterface::class)
+        )
+        ->constructorParameter('config', DI\get('auth.config')),
+
+    // Add this to your dependencies.php file
+    'auth.config' => [
+        'session_lifetime' => 7200, // 2 hours
+        'max_attempts' => 5, // Maximum login attempts
+        'lockout_time' => 900, // 15 minutes
+        'secure_cookie' => function (ContainerInterface $c) {
+            return $c->get('environment') === 'production';
+        },
+        'cookie_path' => '/',
+        'cookie_domain' => '',
+    ],
+
+    // Add this after the RememberTokenRepository registration
+    'App\Repository\LoginAttemptsRepositoryInterface' => DI\autowire(App\Repository\LoginAttemptsRepository::class)
+        ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+
+
+
+
 
     // Auth Middleware
     'Core\Middleware\Auth\RequireAuthMiddleware' => function (ContainerInterface $c) {

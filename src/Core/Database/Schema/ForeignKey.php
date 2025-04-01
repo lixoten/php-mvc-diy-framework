@@ -25,35 +25,20 @@ class ForeignKey
         $this->referencedColumns = $referencedColumns;
     }
 
-    /**
-     * Set ON DELETE action
-     *
-     * @param string $action RESTRICT, CASCADE, SET NULL, NO ACTION
-     * @return $this
-     */
+    // The rest of your methods stay the same
+
     public function onDelete(string $action): self
     {
-        $this->onDelete = $action;
+        $this->onDelete = strtoupper($action);
         return $this;
     }
 
-    /**
-     * Set ON UPDATE action
-     *
-     * @param string $action RESTRICT, CASCADE, SET NULL, NO ACTION
-     * @return $this
-     */
     public function onUpdate(string $action): self
     {
-        $this->onUpdate = $action;
+        $this->onUpdate = strtoupper($action);
         return $this;
     }
 
-    /**
-     * Generate SQL for this foreign key constraint
-     *
-     * @return string
-     */
     public function toSql(): string
     {
         return "CONSTRAINT {$this->name} FOREIGN KEY (" . implode(', ', $this->columns) . ") " .

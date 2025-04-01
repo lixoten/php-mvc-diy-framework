@@ -21,6 +21,16 @@ The "Remember Me" feature allows users to remain logged in even after closing th
    - Tokens should be single-use (regenerate after each use)
    - HTTP-only cookies prevent JavaScript access
 
+### Token Security Pattern:
+We use a selector:validator pattern where:
+- Selector: Used to look up the token in the database (stored in plain text)
+- Validator: Secret proof component (stored only as a hash in the database)
+This prevents timing attacks while maintaining security.
+
+## Security Considerations:
+- Remember that "Remember Me" is always a trade-off between security and convenience.
+- The longer a token is valid, the more vulnerable it is to theft or misuse.
+
 ## Your Current Implementation:
 
 In your `LoginController.php`, you already have:
@@ -45,33 +55,3 @@ public function login(string $username, string $password, bool $remember = false
     return true;
 }
 ```
-
-## Testing the Remember Me Feature:
-
-1. **Manual Testing:**
-   - Log in and check "Remember Me"
-   - Close your browser completely
-   - Reopen browser and visit your site
-   - You should still be logged in
-
-2. **Cookie Inspection:**
-   - After login with "Remember Me", check your browser cookies
-   - You should see a cookie named something like "remember_token"
-   - This cookie should have a long expiration date
-
-3. **Database Verification:**
-   - Check your `remember_tokens` table
-   - You should see an entry with your user ID and token hash
-
-4. **Security Testing:**
-   - Try manipulating the cookie value - should invalidate the token
-   - Check if tokens expire properly after their configured lifetime
-
-If the "Remember Me" feature isn't fully implemented yet, you'll need to:
-
-1. Create a `remember_tokens` table in your database
-2. Implement token generation and storage in your auth service
-3. Add cookie handling for the remember token
-4. Implement automatic login from the remember cookie
-
-Would you like me to provide code for any of these components?

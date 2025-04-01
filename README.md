@@ -17,21 +17,13 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - Request execution timing and performance monitoring
 - View helpers for common UI components
 - Clean separation of core framework and application code
-- **NEW**: Database migrations and seeders
-- **NEW**: Form system with validation
-- **NEW**: Authentication with role-based access control
-- **NEW**: Repository pattern implementation
-- **NEW**: Entity support with proper type handling
-
-## Recently Added Features
-- **Database Layer**: Full database abstraction with migrations, seeding, and query building
-- **Authentication System**: Login, logout, remember me, and session management
-- **Repository Pattern**: Clean data access through repositories
-- **Entity Mapping**: Map database records to PHP objects
-- **Form System**: Advanced form handling with validation and CSRF protection
 - **Middleware Protection**: Route protection via middleware
+- **Database Layer**: Full database abstraction with migrations, seeding, and query building
+- **Form System**: Advanced form handling with validation and CSRF protection
 - **Role-Based Access Control**: User roles and permissions
-
+- **Authentication System**: Login, logout, remember me, and session management
+    - Login Remember Me
+    - Login Brute Force Protection
 
 ## Key Features Missing and upcoming
 - User Registration.

@@ -30,5 +30,13 @@ class UsersSeeder extends Seeder
             'roles' => json_encode(['admin']),
             'status' => 'A'
         ], ['username', 'email']);
+
+        $this->createIfNotExists('users', [
+            'username' => 'admin2',
+            'email' => 'admin2@example.com',
+            'password_hash' => $passwordHash,
+            'roles' => json_encode(['admin']),
+            'status' => 'A'
+        ], ['username', 'email']);
     }
 }

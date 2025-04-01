@@ -69,6 +69,7 @@ class LoginFieldRegistry implements FieldRegistryInterface
             'type' => 'checkbox',
             'label' => 'Remember me',
             'required' => false,
+            'value' => false, // set default to false (unchecked)
             'attributes' => [
                 'class' => 'form-check-input',
                 'id' => 'remember'

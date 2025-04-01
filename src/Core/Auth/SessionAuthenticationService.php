@@ -6,6 +6,8 @@ namespace Core\Auth;
 
 use App\Entities\User;
 use App\Enums\UserStatus;
+use App\Repository\LoginAttemptsRepositoryInterface;
+use App\Repository\RememberTokenRepository;
 use App\Repository\UserRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
 use Core\Session\SessionManagerInterface;
@@ -52,6 +54,8 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
     public function __construct(
         UserRepositoryInterface $userRepository,
         SessionManagerInterface $session,
+        protected RememberTokenRepository $rememberTokenRepository,
+        protected LoginAttemptsRepositoryInterface $loginAttemptsRepository,
         array $config = []
     ) {
         $this->userRepository = $userRepository;
@@ -128,18 +132,30 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
     }
 
     /**
-     * {@inheritdoc}
+     * Override logout method to clear remember me tokens
      */
     public function logout(): void
     {
+        // Get user ID before clearing session
+        $userId = null;
+        if ($this->isAuthenticated()) {
+            $user = $this->getCurrentUser();
+            if ($user) {
+                $userId = $user->getUserId();
+            }
+        }
+
         // Clear session data
         $this->session->remove(self::SESSION_USER_ID);
         $this->session->remove(self::SESSION_USER_ROLES);
         $this->session->remove(self::SESSION_AUTH_TIME);
         $this->session->remove(self::SESSION_LAST_ACTIVITY);
 
-        // Clear remember me cookie if present
+        // Clear remember me cookie and any stored tokens for this user
         $this->clearRememberMeCookie();
+        if ($userId) {
+            $this->rememberTokenRepository->deleteByUserId($userId);
+        }
 
         // Regenerate session ID
         $this->session->regenerateId(true);
@@ -267,7 +283,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
     }
 
     /**
-     * Generate and set a remember me cookie
+     * Set a remember me cookie
      */
     private function setRememberMeCookie(User $user): void
     {
@@ -277,11 +293,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
 
         // Hash the validator for storage
         $hashedValidator = hash('sha256', $validator);
-
-        // Store token in database
-        // Note: In a real implementation, you would store this in the database
-        // and associate it with the user. This is just a placeholder.
-        // $this->rememberTokenRepository->create($user->getUserId(), $selector, $hashedValidator);
 
         // Set cookie with selector:validator
         $token = $selector . ':' . $validator;
@@ -299,6 +310,15 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
                 'httponly' => true,
                 'samesite' => 'Lax'
             ]
+        );
+
+        // Store token in database with expiration date
+        $expiresAt = date('Y-m-d H:i:s', $expires);
+        $this->rememberTokenRepository->create(
+            $user->getUserId(),
+            $selector,
+            $hashedValidator,
+            $expiresAt
         );
     }
 
@@ -322,8 +342,9 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         );
     }
 
+
     /**
-     * Attempt to login via remember me cookie
+     * Attempt login using remember me cookie
      */
     private function attemptRememberMeLogin(): void
     {
@@ -338,45 +359,97 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         }
 
         $cookie = $_COOKIE[self::REMEMBER_COOKIE_NAME];
-        list($selector, $validator) = explode(':', $cookie);
 
-        // TODO: Implement the actual remember me token validation
-        // This would involve looking up the token in the database
-        // and validating it. For now, this is just a placeholder.
+        // Cookie should contain 'selector:validator'
+        $parts = explode(':', $cookie);
+        if (count($parts) !== 2) {
+            $this->clearRememberMeCookie();
+            return;
+        }
 
-        // If implemented, this could look something like:
-        // $token = $this->rememberTokenRepository->findBySelector($selector);
-        // if ($token && hash_equals(hash('sha256', $validator), $token->getHashedValidator())) {
-        //     $user = $this->userRepository->findById($token->getUserId());
-        //     if ($user && $user->isActive()) {
-        //         $this->storeUserInSession($user);
-        //     }
-        // }
+        [$selector, $validator] = $parts;
 
-        // Always clear the cookie to prevent replay attacks
-        $this->clearRememberMeCookie();
+        // Find token by selector
+        $token = $this->rememberTokenRepository->findBySelector($selector);
+
+        // If no token found or token is expired, clear cookie and return
+        if (!$token || $token->isExpired()) {
+            $this->clearRememberMeCookie();
+            if ($token) {
+                $this->rememberTokenRepository->deleteBySelector($selector);
+            }
+            return;
+        }
+
+        // Verify the validator
+        if (!hash_equals($token->getHashedValidator(), hash('sha256', $validator))) {
+            // Invalid token, possible attack
+            $this->clearRememberMeCookie();
+            $this->rememberTokenRepository->deleteByUserId($token->getUserId());
+            return;
+        }
+
+        // Token is valid, load the user
+        $user = $this->userRepository->findById($token->getUserId());
+
+        if (!$user || !$user->isActive()) {
+            $this->clearRememberMeCookie();
+            if ($token) {
+                $this->rememberTokenRepository->deleteBySelector($selector);
+            }
+            return;
+        }
+
+        // Delete the used token (single use token)
+        $this->rememberTokenRepository->deleteBySelector($selector);
+
+        // Create a new token for future use (token rotation)
+        $this->setRememberMeCookie($user);
+
+        // Set user session
+        $this->storeUserInSession($user);
+        $this->currentUser = $user;
+
+        // Delete expired tokens periodically (1/100 chance to run this cleanup)
+        if (rand(1, 100) === 1) {
+            $this->rememberTokenRepository->deleteExpired();
+        }
     }
+
 
     /**
      * Check for too many failed login attempts
      */
     private function checkForBruteForce(string $usernameOrEmail): void
     {
-        // TODO: Implement brute force protection
-        // This would involve tracking failed login attempts in the database
-        // or cache and blocking if too many attempts are made.
+        // Check attempts by username/email
+        $attempts = $this->loginAttemptsRepository->countRecentAttempts(
+            $usernameOrEmail,
+            time() - $this->config['lockout_time']
+        );
 
-        // For now, this is just a placeholder.
-        // $attempts = $this->loginAttemptsRepository->countRecentAttempts(
-        //     $usernameOrEmail,
-        //     time() - $this->config['lockout_time']
-        // );
-        // // if ($attempts >= $this->config['max_attempts']) {
-        //     throw new AuthenticationException(
-        //         'Too many failed login attempts. Please try again later.',
-        //         AuthenticationException::TOO_MANY_ATTEMPTS
-        //     );
-        // }
+        if ($attempts >= $this->config['max_attempts']) {
+            throw new AuthenticationException(
+                'Too many failed login attempts. Please try again later.',
+                AuthenticationException::TOO_MANY_ATTEMPTS
+            );
+        }
+
+        // Also check attempts from current IP address to prevent
+        // username enumeration attacks and general brute forcing
+        $ipAttempts = $this->loginAttemptsRepository->countRecentAttemptsFromIp(
+            $_SERVER['REMOTE_ADDR'],
+            time() - $this->config['lockout_time']
+        );
+
+        // Use a higher threshold for IP-based lockouts to avoid
+        // blocking legitimate users behind shared IPs
+        if ($ipAttempts >= $this->config['max_attempts'] * 3) {
+            throw new AuthenticationException(
+                'Too many failed login attempts from your location. Please try again later.',
+                AuthenticationException::TOO_MANY_ATTEMPTS
+            );
+        }
     }
 
     /**
@@ -384,22 +457,26 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
      */
     private function recordFailedLogin(string $usernameOrEmail): void
     {
-        // TODO: Implement failed login tracking
-        // $this->loginAttemptsRepository->record([
-        //     'username_or_email' => $usernameOrEmail,
-        //     'ip_address' => $_SERVER['REMOTE_ADDR'],
-        //     'attempted_at' => time()
-        // ]);
+        $this->loginAttemptsRepository->record([
+            'username_or_email' => $usernameOrEmail,
+            'ip_address' => $_SERVER['REMOTE_ADDR'],
+            'attempted_at' => time(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
+        ]);
     }
-
 
     /**
      * Reset failed login attempts
      */
     private function resetFailedLogins(string $usernameOrEmail): void
     {
-        // TODO: Implement clearing of failed login tracking
-        // TODO: Implement clearing of failed login tracking
-        // $this->loginAttemptsRepository->clearForUser($usernameOrEmail);
+        $this->loginAttemptsRepository->clearForUser($usernameOrEmail);
+
+        // Also periodically clean up old attempts (1/10 chance)
+        if (rand(1, 10) === 1) {
+            $this->loginAttemptsRepository->deleteExpired(
+                time() - ($this->config['lockout_time'] * 2)
+            );
+        }
     }
 }

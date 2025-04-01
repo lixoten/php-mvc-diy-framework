@@ -64,7 +64,9 @@ class LoginController extends Controller
         // Create login form
         $form = $this->formFactory->create(
             $this->loginFormType,
-            [],
+            [
+                'remember' => false // Set default value here
+            ],
             [
                 'layout_type' => 'none',
                 'error_display' => 'summary',
