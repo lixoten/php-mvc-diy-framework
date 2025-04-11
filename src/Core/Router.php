@@ -120,22 +120,24 @@ class Router implements RouterInterface
         }
 
         if ($this->match($url)) {
+            //Debug::p($this->params);
             $this->params['controller'] = $this->toPascalCase($this->params['controller']);
 
             $qualifiedNamespace = $this->getNamespace();
 
             // For admin routes, add the controller name as a subfolder too
             if (array_key_exists('namespace', $this->params)) {
-                if ($this->params['namespace'] === 'Admin') {
+                if ($this->params['namespace'] === 'Admin' || $this->params['namespace'] === 'Account') {
                     $qualifiedNamespace .= $this->params['controller'] . '\\';
                 }
                 $this->params['namespace'] = $qualifiedNamespace;
             }
+            //Debug::p($this->params);
 
             $controllerClass = $qualifiedNamespace
                 . $this->convertToStudlyCaps($this->params['controller'])
                 . 'Controller';
-
+             //Debug::p($controllerClass);
             if (class_exists($controllerClass)) {
                 // Add route params to request attributes
                 foreach ($this->params as $key => $value) {
@@ -156,12 +158,15 @@ class Router implements RouterInterface
 
                 // Create controller
                 if ($this->container instanceof \DI\Container) {
+               //Debug::p($this->params);
+
                     $controllerObject = $this->container->make($controllerClass, [
                         'route_params' => $this->params
                     ]);
                 } else {
                     $controllerObject = new $controllerClass($this->params);
                 }
+               // Debug::p($controllerClass);
 
                 // initialize controller with request if method exists
                 if (method_exists($controllerObject, 'initialize')) {
@@ -305,6 +310,7 @@ class Router implements RouterInterface
      */
     protected function convertToStudlyCaps(string $string): string
     {
+        //Debug::p($string);
         return str_replace(' ', '', ucwords(str_replace('-', ' ', $string)));
     }
 

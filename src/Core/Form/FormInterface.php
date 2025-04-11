@@ -28,6 +28,13 @@ interface FormInterface
     public function isValid(): bool;
 
     /**
+     * Check if the form has any errors
+     *
+     * @return bool True if the form has errors, false otherwise
+     */
+    public function hasErrors(): bool;
+
+    /**
      * Get form data
      *
      * @return array

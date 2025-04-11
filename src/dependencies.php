@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Features\Testy\Form\ContactFieldRegistry;
 use App\Features\Testy\Form\ContactFormType;
+use App\Helpers\DebugRt;
 use Core\Constants\Consts;
 use Core\FrontController;
 use Core\Router;
@@ -15,6 +16,7 @@ use Core\Form\FormBuilderInterface;
 use Core\Middleware\CSRFMiddleware;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
+use Core\Form\Validation\ValidatorRegistry;
 
 // use Core\Form\FormFactory;
 
@@ -32,8 +34,7 @@ use Core\Form\FormHandlerInterface;
 
 // Define services
 return [
-    // 'environment' => $environment,
-    'environment' => 'development',
+    'environment' => $_ENV['APP_ENV'] ?? 'development',
 
     'httpFactory' => \DI\autowire(\Core\Http\HttpFactory::class),
 
@@ -44,9 +45,72 @@ return [
         ->constructorParameter('configPath', __DIR__ . '\\Config')
         ->constructorParameter('environment', \DI\get('environment')),
 
+    'Core\Interfaces\ConfigInterface' => \DI\get('config'),
+
     'route_params' => \DI\factory(function () {
         return [];
     }),
+
+
+    // // Token service
+    // 'Core\Security\TokenServiceInterface' => \DI\factory(function () {
+    //     return new \Core\Security\TokenService();
+    // }),
+    // // Also register the concrete class for direct use if needed
+    // 'Core\Security\TokenService' => \DI\factory(function () {
+    //     return new \Core\Security\TokenService();
+    // }),
+
+    // Add this line near the top of the file
+    'Core\Database\ConnectionInterface' => \DI\autowire(\Core\Database\Connection::class),
+
+    // Token service
+    'Core\Security\TokenServiceInterface' => \DI\autowire(\Core\Security\TokenService::class),
+    // Also register the concrete class for direct use if needed
+    'Core\Security\TokenService' => \DI\autowire(),
+
+    'Core\View' => \DI\get('view'),
+
+
+    'App\Services\Email\MailgunEmailService' => \DI\autowire()
+        ->constructorParameter('config', \DI\get('config'))
+        ->constructorParameter('logger', \DI\get('logger'))
+        ->constructorParameter('view', \DI\get('view')),
+
+    'App\Services\Email\SMTPEmailService' => \DI\autowire()
+        ->constructorParameter('config', \DI\get('config'))
+        ->constructorParameter('logger', \DI\get('logger'))
+        ->constructorParameter('view', \DI\get('view')),
+
+    // Dynamic email service provider selection:
+    'App\Services\Interfaces\EmailServiceInterface' => function (ContainerInterface $container) {
+        $config = $container->get('config');
+        // $env = $config->get('app.env');
+        // echo "Env: $env";
+
+        // Get email config for the current environment
+        $emailConfig = $config->get('email');
+
+        // DebugRt::p($emailConfig);
+        // echo "<br />EmailConfig: ";
+        // echo "<pre>";
+        // print_r($emailConfig);
+        // echo "</pre>";
+
+        if (!isset($emailConfig)) {
+            //DebugRt::p(111); // TODO
+            // If no config found, default to Mailgun
+            return $container->get('App\Services\Email\MailgunEmailService');
+        }
+
+        // Get provider from the environment-specific config
+        $provider = $emailConfig['providers']['default']; // No Fallback needed: 'mailgun';
+
+        return match ($provider) {
+            'smtp' => $container->get('App\Services\Email\SMTPEmailService'),
+            'mailgun' => $container->get('App\Services\Email\MailgunEmailService')
+        };
+    },
 
     'logger' => function (\Psr\Container\ContainerInterface $c) {
         // Get environment and configs
@@ -129,11 +193,14 @@ return [
         );
     },
 
-    'App\Repository\UserRepositoryInterface' => function (ContainerInterface $c) {
-        return new \App\Repository\UserRepository(
-            $c->get('Core\Database\ConnectionInterface')
-        );
-    },
+
+    // 'App\Repository\UserRepositoryInterface' => function (ContainerInterface $c) {
+    //     return new \App\Repository\UserRepository(
+    //         $c->get('Core\Database\ConnectionInterface') // Ensure this is registered
+    //     );
+    // },
+
+    'App\Repository\UserRepositoryInterface' => \DI\autowire(App\Repository\UserRepository::class),
 
     'App\Repository\RememberTokenRepositoryInterface' => DI\autowire(App\Repository\RememberTokenRepository::class)
         ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
@@ -142,6 +209,39 @@ return [
         return $c->get('Core\Auth\SessionAuthenticationService');
     },
 
+    // 'Core\Auth\SessionAuthenticationService' => DI\autowire()
+    //     ->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
+    //     ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
+    //     ->constructorParameter(
+    //         'rememberTokenRepository',
+    //         DI\get(App\Repository\RememberTokenRepositoryInterface::class)
+    //     )
+    //     ->constructorParameter(
+    //         'loginAttemptsRepository',
+    //         DI\get(App\Repository\LoginAttemptsRepositoryInterface::class)
+    //     )
+    //     ->constructorParameter('config', DI\get('auth.config')),
+
+    'App\Repository\RateLimitRepositoryInterface' => DI\autowire(App\Repository\RateLimitRepository::class)
+        ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+
+    'Core\Security\BruteForceProtectionService' => DI\autowire()
+        ->constructorParameter('repository', DI\get('App\Repository\RateLimitRepositoryInterface'))
+        ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('customConfig', [
+            // Override email verification to be more permissive for testing
+            'email_verification' => [
+                'max_attempts' => 4,      // Allow more attempts (default is 5)
+                'ip_max_attempts' => 7,   // Allow more IP attempts (default is 15)
+                'lockout_time' => 300      // Only 5 minutes lockout (default is 15 minutes/900s)
+            ],
+            // Make login much stricter
+            'login' => [
+                'max_attempts' => 2,       // More strict than default (5)
+                'lockout_time' => 60     // Longer lockout (30 minutes)
+            ]
+        ]),
+
     'Core\Auth\SessionAuthenticationService' => DI\autowire()
         ->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
         ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
@@ -149,31 +249,99 @@ return [
             'rememberTokenRepository',
             DI\get(App\Repository\RememberTokenRepositoryInterface::class)
         )
-        ->constructorParameter(
-            'loginAttemptsRepository',
-            DI\get(App\Repository\LoginAttemptsRepositoryInterface::class)
-        )
-        ->constructorParameter('config', DI\get('auth.config')),
+        // ->constructorParameter('loginAttemptsRepository',
+        // DI\get(App\Repository\LoginAttemptsRepositoryInterface::class))
+        ->constructorParameter('bruteForceProtection', DI\get('Core\Security\BruteForceProtectionService')),
 
-    // Add this to your dependencies.php file
-    'auth.config' => [
-        'session_lifetime' => 7200, // 2 hours
-        'max_attempts' => 5, // Maximum login attempts
-        'lockout_time' => 900, // 15 minutes
-        'secure_cookie' => function (ContainerInterface $c) {
-            return $c->get('environment') === 'production';
-        },
-        'cookie_path' => '/',
-        'cookie_domain' => '',
-    ],
+    // // Add this to your dependencies.php file
+    // 'auth.config' => [
+    //     'session_lifetime' => 7200, // 2 hours
+    //     'secure_cookie' => function (ContainerInterface $c) {
+    //         return $c->get('environment') === 'production';
+    //     },
+    //     'cookie_path' => '/',
+    //     'cookie_domain' => '',
+    // ],
 
     // Add this after the RememberTokenRepository registration
-    'App\Repository\LoginAttemptsRepositoryInterface' => DI\autowire(App\Repository\LoginAttemptsRepository::class)
-        ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+    // 'App\Repository\LoginAttemptsRepositoryInterface' => DI\autowire(App\Repository\LoginAttemptsRepository::class)
+    //     ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+
+
+    // Registration form components
+    'App\Features\Auth\Form\RegistrationFieldRegistry' => \DI\factory(function () {
+        return new \App\Features\Auth\Form\RegistrationFieldRegistry();
+    }),
+
+    'App\Features\Auth\Form\RegistrationFormType' => \DI\factory(function (ContainerInterface $c) {
+        return new \App\Features\Auth\Form\RegistrationFormType(
+            $c->get('App\Features\Auth\Form\RegistrationFieldRegistry')
+        );
+    }),
+
+
+    // Rate limiting middleware
+    'Core\Middleware\RateLimitMiddleware' => \DI\autowire()
+        ->constructorParameter('protectionService', \DI\get('Core\Security\BruteForceProtectionService'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('configPath', [
+            'path_mappings' => [
+                '/registration' => 'registration',
+                '/login' => 'login',
+                '/forgot-password' => 'password_reset',
+                '/verify-email/resend' => 'activation_resend',
+                '/verify-email/verify' => 'email_verification'
+            ]
+        ]),
+
+
+    // UserService
+    'App\Services\UserService' => \DI\autowire()
+        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+        ->constructorParameter('tokenService', \DI\get('Core\Security\TokenServiceInterface')),
+
+    // UserValidationService
+    'App\Services\UserValidationService' => \DI\autowire(),
+
+    // RegistrationService
+    // 'App\Services\RegistrationService' => \DI\autowire()
+        // ->constructorParameter('userService', \DI\get('App\Services\UserService'))
+        // ->constructorParameter('validationService', \DI\get('App\Services\UserValidationService'))
+        // ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
+
+    // RegistrationService
+        'App\Services\RegistrationService' => \DI\autowire()
+            ->constructorParameter('userService', \DI\get('App\Services\UserService'))
+            ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
+
+    // Update RegistrationController to match current parameters
+    'App\Features\Auth\RegistrationController' => \DI\autowire()
+        ->constructorParameter('route_params', \DI\get('route_params'))
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+        ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+        ->constructorParameter('registrationFormType', \DI\get('App\Features\Auth\Form\RegistrationFormType'))
+        ->constructorParameter('registrationService', \DI\get('App\Services\RegistrationService')),
 
 
 
-
+    // // RegistrationController with all dependencies
+    // 'App\Features\Auth\RegistrationController' => \DI\autowire()
+    //     ->constructorParameter('route_params', \DI\get('route_params'))
+    //     ->constructorParameter('flash', \DI\get('flash'))
+    //     ->constructorParameter('view', \DI\get('view'))
+    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
+    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+    //     ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+    //     ->constructorParameter('registrationFormType', \DI\get('App\Features\Auth\Form\RegistrationFormType'))
+    //     ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
+    //     ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
     // Auth Middleware
     'Core\Middleware\Auth\RequireAuthMiddleware' => function (ContainerInterface $c) {
@@ -228,8 +396,18 @@ return [
         ->constructorParameter('sessionManager', \DI\get('sessionManager')),
     'flashMessageService' => \DI\get('flash'),
 
+    'App\Services\Interfaces\FlashMessageServiceInterface' => \DI\get('flash'),
 
 
+    'App\Features\Auth\EmailVerificationController' => \DI\autowire()
+        ->constructorParameter('route_params', \DI\get('route_params'))
+        ->constructorParameter('flash', \DI\get('flash'))  // Use 'flash', not the interface
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+        ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService'))
+        ->constructorParameter('logger', \DI\get('logger')),
 
     // Field registries - Create separate registry for contact forms
     ContactFieldRegistry::class => DI\create(App\Features\Testy\Form\ContactFieldRegistry::class),
@@ -267,6 +445,13 @@ return [
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
+    'App\Features\Account\Mynotes\MynotesController' => \DI\autowire()
+        ->constructorParameter('route_params', \DI\get('route_params'))
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
+
     'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
@@ -278,10 +463,18 @@ return [
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
         ->constructorParameter('logger', \DI\get('logger'))
         ->constructorParameter('contactFieldRegistry', \DI\get(ContactFieldRegistry::class))
-        ->constructorParameter('contactFormType', \DI\get(ContactFormType::class)),
+        ->constructorParameter('contactFormType', \DI\get(ContactFormType::class))
+        ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
 
-    // Auth Controllers
+    // LoginService
+    'App\Services\LoginService' => \DI\autowire()
+        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+        ->constructorParameter('loginAttemptsRepository', \DI\get('App\Repository\LoginAttemptsRepositoryInterface'))
+        ->constructorParameter('rememberTokenRepository', \DI\get('App\Repository\RememberTokenRepositoryInterface'))
+        ->constructorParameter('session', \DI\get('Core\Session\SessionManagerInterface')),
+
+    // Update LoginController to use LoginService
     'App\Features\Auth\LoginController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
@@ -290,9 +483,9 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
         ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+        //->constructorParameter('loginService', \DI\get('App\Services\LoginService'))
         ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
         ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
-
 
     'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -407,7 +600,7 @@ return [
         return $registry;
     }),
 
-    // Validators
+    // Static Single-Field Validators
     'validator.required' => function () {
         return new \Core\Form\Validation\Rules\RequiredValidator();
     },
@@ -417,13 +610,35 @@ return [
     'validator.length' => function () {
         return new \Core\Form\Validation\Rules\LengthValidator();
     },
+    'validator.regex' => function () {
+        return new \Core\Form\Validation\Rules\RegexValidator();
+    },
 
-    // Validator Registry
+    // custom Single-Field Validators too, but with external content
+    'validator.unique_username' => function (ContainerInterface $c) {
+        return new \Core\Form\Validation\Rules\UniqueEntityValidator(
+            $c->get('App\Repository\UserRepositoryInterface'),
+            'username',
+            'This username is already taken.'
+        );
+    },
+    'validator.unique_email' => function (ContainerInterface $c) {
+        return new \Core\Form\Validation\Rules\UniqueEntityValidator(
+            $c->get('App\Repository\UserRepositoryInterface'),
+            'email',
+            'This email address is already registered.'
+        );
+    },
+
+    // Register the ValidatorRegistry
     \Core\Form\Validation\ValidatorRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Validation\ValidatorRegistry([
             $c->get('validator.required'),
             $c->get('validator.email'),
-            $c->get('validator.length')
+            $c->get('validator.length'),
+            $c->get('validator.regex'),
+            $c->get('validator.unique_username'),
+            $c->get('validator.unique_email'),
         ]);
         return $registry;
     }),
@@ -509,6 +724,7 @@ return [
     FormHandlerInterface::class => \DI\factory(function (ContainerInterface $c) {
         return new \Core\Form\FormHandler(
             $c->get(CSRFToken::class),
+            $c->get(ValidatorRegistry::class),
             $c->get(Psr\EventDispatcher\EventDispatcherInterface::class)
         );
     }),

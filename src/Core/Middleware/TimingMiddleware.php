@@ -38,9 +38,9 @@ class TimingMiddleware implements MiddlewareInterface
         $startTime = microtime(true);
 
         // Process the request through the rest of the middleware stack
-        error_log('111 TimingMiddleware executed for: ' . $request->getUri()->getPath());
+        //error_log('111 TimingMiddleware executed for: ' . $request->getUri()->getPath());
         $response = $handler->handle($request);
-        error_log('222 TimingMiddleware executed for: ' . $request->getUri()->getPath());
+        //error_log('222 TimingMiddleware executed for: ' . $request->getUri()->getPath());
 
         // Calculate execution time in milliseconds
         $executionTime = (microtime(true) - $startTime) * 1000;

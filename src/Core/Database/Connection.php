@@ -36,6 +36,10 @@ class Connection implements ConnectionInterface
 
             // Create PDO instance
             $this->pdo = new \PDO($dsn, $username, $password, $options);
+
+            $timezone = date_default_timezone_get();
+            $offset = (new \DateTime('now', new \DateTimeZone($timezone)))->format('P');
+            $this->pdo->exec("SET time_zone = '$offset'");
         } catch (\PDOException $e) {
             throw new ConnectionException(
                 "Failed to connect to database: {$e->getMessage()}",

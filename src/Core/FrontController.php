@@ -50,16 +50,13 @@ class FrontController implements RequestHandlerInterface
         //$this->router->add('admin/{controller}/{action}');
         $this->router->add("admin/{controller}/{action}", ["namespace" => "Admin"]);
         $this->router->add("admin/{controller}", ["namespace" => "Admin", "action" => "index"]);
+
+        $this->router->add("account/{controller}/{action}", ["namespace" => "Account"]);
+        $this->router->add("account/{controller}", ["namespace" => "Account", "action" => "index"]);
+
         #Single record with ID
         $this->router->add('{controller}/{action}/{level:\d}{exe:j|n}{pageid:\d\d\d\d}/{returnid:\d\d\d\d}/{id:\d+}');
 
-
-        // TODO, this is a Draft id-1234
-        //$this->router->get('/admin/login-attempts', 'App\Features\Admin\LoginAttemptsController::indexAction');
-        //$this->router->get('/admin/login-attempts/user/{username}', 'App\Features\Admin\LoginAttemptsController::userAction');
-        //$this->router->get('/admin/login-attempts/clear/{username}', 'App\Features\Admin\LoginAttemptsController::clearAction');
-        //$this->router->get('/admin/login-attempts/cleanup', 'App\Features\Admin\LoginAttemptsController::cleanupAction');
-        // TODO, this is a Draft id-1234
 
 
         // Auth routes
@@ -72,6 +69,40 @@ class FrontController implements RequestHandlerInterface
         $this->router->add('logout', [
             'controller' => 'Login',
             'action' => 'logout',
+            'namespace' => 'Auth'
+        ]);
+
+
+        $this->router->add('registration', [
+            'controller' => 'Registration',
+            'action' => 'index',
+            'namespace' => 'Auth'
+        ]);
+
+        // Success page route (optional)
+        $this->router->add('registration/success', [
+            'controller' => 'Registration',
+            'action' => 'success',
+            'namespace' => 'Auth'
+        ]);
+
+
+        // Email verification routes
+        $this->router->add('verify-email/verify', [
+            'controller' => 'EmailVerification',
+            'action' => 'verify',
+            'namespace' => 'Auth'
+        ]);
+
+        $this->router->add('verify-email/pending', [
+            'controller' => 'EmailVerification',
+            'action' => 'pending',
+            'namespace' => 'Auth'
+        ]);
+
+        $this->router->add('verify-email/resend', [
+            'controller' => 'EmailVerification',
+            'action' => 'resend',
             'namespace' => 'Auth'
         ]);
 

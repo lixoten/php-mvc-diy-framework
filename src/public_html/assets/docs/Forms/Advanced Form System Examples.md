@@ -10,7 +10,7 @@ A multi-step registration form with validation between steps:
 
 ```php
 // RegistrationController.php
-public function registerStep1Action(ServerRequestInterface $request): ResponseInterface
+public function registrationStep1Action(ServerRequestInterface $request): ResponseInterface
 {
     // Create step 1 form
     $form = $this->formFactory->create(
@@ -30,7 +30,7 @@ public function registerStep1Action(ServerRequestInterface $request): ResponseIn
         $this->session->set('registration_data', $form->getData());
         
         // Move to next step
-        return $this->redirect('/register/step2');
+        return $this->redirect('/registration/step2');
     }
     
     // Render step 1
@@ -44,13 +44,13 @@ public function registerStep1Action(ServerRequestInterface $request): ResponseIn
 // Step 2 and 3 would follow similar patterns...
 
 // Final completion step
-public function registerCompleteAction(ServerRequestInterface $request): ResponseInterface
+public function registrationCompleteAction(ServerRequestInterface $request): ResponseInterface
 {
     // Retrieve all data from session
     $data = $this->session->get('registration_data', []);
     
     if (empty($data)) {
-        return $this->redirect('/register/step1');
+        return $this->redirect('/registration/step1');
     }
     
     // Process registration
@@ -69,7 +69,7 @@ public function registerCompleteAction(ServerRequestInterface $request): Respons
     
     // Handle failure
     $this->flash->add('There was a problem creating your account.', 'error');
-    return $this->redirect('/register/step1');
+    return $this->redirect('/registration/step1');
 }
 ```
 

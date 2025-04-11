@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use App\Helpers\DebugRt as Debug;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Validation\Validator;
@@ -154,95 +155,45 @@ class Form implements FormInterface
         return $this;
     }
 
-    /**
-     * {@inheritdoc}
-     */
+
     public function validate(): bool
     {
-        $this->errors = [];
+        //Debug::p($this, 0, "\$this: "); // line 106
+
+        $this->errors = []; // Reset errors before validation
         $isValid = true;
 
-        // Skip validation if validator not set
-        if (!$this->validator) {
-            // Fallback to basic validation
+        // Ensure the validator is set
+        if ($this->validator) {
             foreach ($this->fields as $name => $field) {
-                $fieldErrors = $this->validateField($name, $field->getValue(), $field->getOptions());
-
+                // Debug::p($field, 0, "--------- : $name"); // <<<line 167 here
+                // Validate the field using the Validator service
+                $fieldErrors = $this->validator->validateField($field);
                 if (!empty($fieldErrors)) {
-                    $isValid = false;
+                    // Debug::p($field['name']);
+                    // Debug::p($fieldErrors, 0, "FAIL: $name");
+                    // Add errors to the form's error list
+                    $this->errors[$name] = $fieldErrors;
 
-                    // Add errors to field
+                    // Add errors to the field itself
                     foreach ($fieldErrors as $error) {
                         $field->addError($error);
                     }
 
-                    // Add errors to form
-                    $this->errors[$name] = $fieldErrors;
+                    // Debug::p($fieldErrors);
+                    // Mark the form as invalid
+                    $isValid = false;
                 }
             }
-
-            return $isValid;
+        } else {
+            // If no validator is set, throw an exception
+            throw new \RuntimeException('Validator service is not set for the form.');
         }
 
-        // Use validator service
-        foreach ($this->fields as $name => $field) {
-            $fieldErrors = $this->validator->validateField($field);
-
-            if (!empty($fieldErrors)) {
-                $isValid = false;
-
-                // Add errors to field
-                foreach ($fieldErrors as $error) {
-                    $field->addError($error);
-                }
-
-                // Add errors to form
-                $this->errors[$name] = $fieldErrors;
-            }
-        }
-
+        // Debug::p($isValid);
         return $isValid;
     }
 
-    /**
-     * Validate a field value (basic validation fallback)
-     *
-     * @param string $name Field name
-     * @param mixed $value Field value
-     * @param array $options Field options
-     * @return array Validation errors
-     */
-    private function validateField(string $name, $value, array $options): array
-    {
-        $errors = [];
-
-        // Required validation
-        if (!empty($options['required']) && empty($value)) {
-            $errors[] = 'This field is required.';
-        }
-
-        // Skip other validations if empty and not required
-        if (empty($value) && empty($options['required'])) {
-            return $errors;
-        }
-
-        // Min length validation
-        if (isset($options['minLength']) && strlen((string)$value) < $options['minLength']) {
-            $errors[] = "Minimum length is {$options['minLength']} characters.";
-        }
-
-        // Max length validation
-        if (isset($options['maxLength']) && strlen((string)$value) > $options['maxLength']) {
-            $errors[] = "Maximum length is {$options['maxLength']} characters.";
-        }
-
-        // Email validation
-        if (isset($options['type']) && $options['type'] === 'email' && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            $errors[] = 'Please enter a valid email address.';
-        }
-
-        return $errors;
-    }
 
     /**
      * {@inheritdoc}

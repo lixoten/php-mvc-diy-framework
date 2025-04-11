@@ -23,10 +23,10 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - **Role-Based Access Control**: User roles and permissions
 - **Authentication System**: Login, logout, remember me, and session management
     - Login Remember Me
-    - Login Brute Force Protection
+    - Rate Limiting
 
 ## Key Features Missing and upcoming
-- User Registration.
+- CAPTCHA.
 
 ## PSR Standards Implemented
 - **PSR-3**: Logger Interface - Standardized logger implementation

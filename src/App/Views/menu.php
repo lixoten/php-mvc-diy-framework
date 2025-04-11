@@ -25,17 +25,23 @@ $publicItems = [
     ['url' => '/testy', 'label' => 'Testy'],
 ];
 
+// General authenticated features
 $authItems = [
-    ['url' => '/admin/dashboard', 'label' => 'Dashboard'],
-    ['url' => '/admin/profile/index', 'label' => 'Profile'],
+];
+
+// Account-specific features
+$accountItems = [
+    ['url' => '/account/profile/index', 'label' => 'Profile'],
+    ['url' => '/account/mynotes', 'label' => 'My Notes']
 ];
 
 $adminItems = [
-    ['url' => '/users', 'label' => 'Users'],
+    ['url' => '/admin/dashboard', 'label' => 'Dashboard'],
+    ['url' => '/admin/usersmanager', 'label' => 'AdminUsers'],
 ];
 
 $guestItems = [
-    ['url' => '/signup/new', 'label' => 'Signup'],
+    //['url' => '/registration', 'label' => 'Register'],
 ];
 
 // Current path for highlighting active item
@@ -52,14 +58,16 @@ foreach ($publicItems as $item) {
 
 // Show items based on authentication status
 if ($authService->isAuthenticated()) {
-    // Show auth items
-    foreach ($authItems as $item) {
+    // Show account items
+    echo '<li class="menu-category">My Account</li>';
+    foreach ($accountItems as $item) {
         $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
         echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
     }
 
     // Show admin items if user has admin role
     if ($authService->hasRole('admin')) {
+        echo '<li class="menu-category">Admin</li>';
         foreach ($adminItems as $item) {
             $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
             echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
@@ -68,6 +76,13 @@ if ($authService->isAuthenticated()) {
 
     // Add logout with container div
     echo '<div class="last-items-container">';
+
+    // Show auth items
+    foreach ($authItems as $item) {
+        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
+        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
+    }
+
     echo '<li><a href="/logout">Logout</a></li>';
     echo '</div>';
 } else {
@@ -79,9 +94,27 @@ if ($authService->isAuthenticated()) {
 
     // Add login with container div
     echo '<div class="last-items-container">';
-    $loginActive = ($currentPath === '/login') ? ' class="active"' : '';
-    echo "<li{$loginActive}><a href=\"/login\">Login</a></li>";
+        $registerActive = ($currentPath === '/registration') ? ' class="active"' : '';
+        echo "<li{$registerActive}><a href=\"/registration\">Register</a></li>";
+
+        $loginActive = ($currentPath === '/login') ? ' class="active"' : '';
+        echo "<li{$loginActive}><a href=\"/login\">Login</a></li>";
     echo '</div>';
 }
 
 echo '</ul></nav>';
+echo '<div class="debugbar">Debug| ';
+
+// Get current role status
+echo 'Current Role: ';
+if ($authService->isAuthenticated()) {
+    echo $authService->hasRole('admin') ? 'admin' : 'user';
+
+    // Get current username
+    $currentUser = $authService->getCurrentUser();
+    echo ' | Current User: ' . ($currentUser ? htmlspecialchars($currentUser->getUsername()) : 'Unknown');
+} else {
+    echo 'guest | Current User: none';
+}
+
+echo '</div>';

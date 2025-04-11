@@ -1,5 +1,15 @@
 <?php
 
+/**
+ * TestyController.php
+ *
+ * This file contains the TestyController class, which handles various actions
+ * such as logging, session management, database testing, and email testing.
+ * It is part of the Testy feature in the application.
+ *
+ * @package App\Features\Testy
+ */
+
 declare(strict_types=1);
 
 namespace App\Features\Testy;
@@ -8,6 +18,8 @@ use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
 use App\Features\Testy\Form\ContactFieldRegistry;
 use App\Features\Testy\Form\ContactFormType;
+use App\Services\Email\EmailNotificationService;
+use App\Services\Interfaces\EmailServiceInterface;
 use Core\Controller;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Constants\Consts;
@@ -36,6 +48,7 @@ class TestyController extends Controller
     protected Logger $logger;
     protected ContactFieldRegistry $contactFieldRegistry;
     protected ContactFormType $contactFormType;
+    protected EmailNotificationService $emailNotificationService;
 
     public function __construct(
         array $route_params,
@@ -48,7 +61,8 @@ class TestyController extends Controller
         FormHandlerInterface $formHandler,
         Logger $logger,
         ContactFieldRegistry $contactFieldRegistry,
-        ContactFormType $contactFormType
+        ContactFormType $contactFormType,
+        EmailNotificationService $emailNotificationService
     ) {
         parent::__construct(
             $route_params,
@@ -63,6 +77,7 @@ class TestyController extends Controller
         $this->logger = $logger;
         $this->contactFieldRegistry = $contactFieldRegistry;
         $this->contactFormType = $contactFormType;
+        $this->emailNotificationService = $emailNotificationService;
     }
 
 
@@ -77,8 +92,8 @@ class TestyController extends Controller
             'title' => 'Testy Index Action',
             'actionLinks' => $this->getActionLinks(
                 'testy',
-                ['index', 'testlogger', 'testsession', 'testdatabase',
-                'contact', 'contactViewTestAction']
+                ['index', 'pooptest',  'testlogger', 'testsession', 'testdatabase',
+                'contact', 'contactViewTestAction', 'emailtest']
             )
         ]);
     }
@@ -475,6 +490,88 @@ class TestyController extends Controller
             'form' => $formView,
             'formTheme' => $formTheme // if $formTheme isset/used
         ]);
+    }
+
+
+    /**
+     * Show .....
+     *
+     * @param ServerRequestInterface $request The current request
+     * @return ResponseInterface
+     */
+    public function placeHolderAction(ServerRequestInterface $request): ResponseInterface
+    {
+        return $this->view(TestyConst::VIEW_TESTY_PLACEHOLDER, [
+            'title' => 'Placeholder Action Page',
+        ]);
+    }
+
+
+    /**
+     * Show .....
+     *
+     * @param ServerRequestInterface $request The current request
+     * @return ResponseInterface
+     */
+    public function emailTestAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $emailResult = null;
+        $sent = false;
+
+        // Get CSRF token from middleware
+        $csrfToken = $request->getAttribute('csrf')->generate();
+
+        // Check if form was submitted
+        if ($request->getMethod() === 'POST') {
+            // Form was submitted, send the email
+            $emailResult = $this->testEmail();
+            $sent = true;
+        }
+
+        // Return view with result information
+        return $this->view(TestyConst::VIEW_TESTY_EMAILTEST, [
+            'title' => 'Email Test Results',
+            'result' => $emailResult,
+            'sent' => $sent,
+            'timestamp' => date('Y-m-d H:i:s'),
+            'csrf_token' => $csrfToken
+        ]);
+    }
+
+
+    // Example in a controller (for testing)
+    public function testEmail(): array
+    {
+        // Create a mock user for testing
+        $user = new \App\Entities\User();
+        $user->setEmail('lixoten@gmail.com');
+        $user->setUsername('testuser');
+
+        // Generate activation token with 24 hour expiry
+        $token = $user->generateActivationToken(24);
+
+        // Send the email with the notification service
+        $result = $this->emailNotificationService->sendVerificationEmail($user, $token);
+        //$result = null;
+        //Debug::p($result);
+        if ($result) {
+            return [
+                'success' => true,
+                'message' => 'Email sent successfully',
+                'recipient' => 'Lixo Ten <lixoten@gmail.com>',
+                'template' => 'Auth/verification_email'
+            ];
+        } else {
+            return [
+                'success' => false,
+                'message' => 'Failed to send email',
+                'error' => $this->emailNotificationService->getLastError()
+                    ?? 'Error sending email via notification service',
+                'recipient' => 'Lixo Ten <lixoten@gmail.com>',
+                'template' => 'Auth/verification_email'
+            ];
+            //Debug::p(111);
+        }
     }
 }
 ## 403

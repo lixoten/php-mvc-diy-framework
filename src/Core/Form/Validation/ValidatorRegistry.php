@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Form\Validation;
 
+use App\Helpers\DebugRt as Debug;
+
 /**
  * Registry for validators
  */
@@ -25,6 +27,7 @@ class ValidatorRegistry
             $this->register($validator);
         }
     }
+
 
     /**
      * Register a validator
@@ -75,6 +78,13 @@ class ValidatorRegistry
      */
     public function validate($value, string $validator, array $options = []): ?string
     {
-        return $this->get($validator)->validate($value, $options);
+        // Merge the full options array with the specific validator options
+        $validatorOptions = array_merge(
+            $options,
+            $options['validators'][$validator] ?? []
+        );
+
+
+        return $this->get($validator)->validate($value, $validatorOptions);
     }
 }

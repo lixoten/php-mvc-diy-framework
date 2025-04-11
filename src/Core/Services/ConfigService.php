@@ -34,10 +34,13 @@ class ConfigService implements ConfigInterface
      */
     public function get(string $key, $default = null)
     {
+        //Debug::p($key);
+
         // If it's a config group (like "logger"), return the environment-specific config
         if (!str_contains($key, '.')) {
             return $this->getEnvironmentConfig($key);
         }
+        //Debug::p($key);
 
         // Handle dot notation keys
         $parts = explode('.', $key);
@@ -95,7 +98,8 @@ class ConfigService implements ConfigInterface
         /**
      * Get nested config value with fallback and logging
      */
-    public function getConfigValue(string $file, string $path, $default = null) {
+    public function getConfigValue(string $file, string $path, $default = null)
+    {
         $config = $this->get($file);
 
         // Navigate the path segments

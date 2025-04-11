@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entities;
 
 use App\Enums\UserStatus;
+use App\Helpers\DebugRt;
 
 class User
 {
@@ -15,6 +16,7 @@ class User
     private array $roles = [];
     private UserStatus $status = UserStatus::PENDING;
     private ?string $activationToken = null;
+    private ?int $activationTokenExpiry = null;
     private ?string $resetToken = null;
     private ?string $resetTokenExpiry = null;
     private ?string $createdAt = null;
@@ -102,6 +104,12 @@ class User
      */
     public function verifyPassword(string $password): bool
     {
+
+        if (!password_verify($password, $this->passwordHash)) {
+            error_log("Password verification failed. Hash: {$this->passwordHash}, Input: $password");
+            //DebugRt::p("Password verification failed. Hash: {$this->passwordHash}, Input: $password");
+            return false;
+        }
         return password_verify($password, $this->passwordHash);
     }
 
@@ -233,6 +241,41 @@ class User
         return $this;
     }
 
+
+    /**
+     * Get activation token expiry
+     */
+    public function getActivationTokenExpiry(): ?string
+    {
+        return $this->activationTokenExpiry;
+    }
+
+    /**
+     * Set activation token expiry
+     */
+    public function setActivationTokenExpiry(?int $activationTokenExpiry): self
+    {
+        $this->activationTokenExpiry = $activationTokenExpiry;
+        return $this;
+    }
+
+    /**
+     * Check if activation token is expired
+     */
+    public function isActivationTokenExpired(): bool
+    {
+        if (empty($this->activationToken) || empty($this->activationTokenExpiry)) {
+            return false;
+        }
+
+        //$expiry = new \DateTime($this->activationTokenExpiry);
+        //$now = new \DateTime();
+
+        //return $now > $expiry;
+        return time() > $this->activationTokenExpiry;
+    }
+
+
     /**
      * Get password reset token
      */
@@ -302,12 +345,22 @@ class User
     }
 
     /**
-     * Create a new user activation token
+     * Create a new user activation token with expiry
+     *
+     * @param int $expireHours Hours until token expires
+     * @return string The generated token
      */
-    public function generateActivationToken(): string
+    public function generateActivationToken(int $expireHours = 24): string
     {
         $token = bin2hex(random_bytes(32));
         $this->activationToken = $token;
+
+        // Set expiry time
+        $expiry = new \DateTime();
+        $expiry->modify("+{$expireHours} hours");
+        //$this->activationTokenExpiry = $expiry->format('Y-m-d H:i:s');
+        $this->activationTokenExpiry = $expiry->getTimestamp(); // Use getTimestamp() to store as int
+
         return $token;
     }
 

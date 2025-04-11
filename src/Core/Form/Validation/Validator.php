@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Form\Validation;
 
+use App\Helpers\DebugRt as Debug;
 use Core\Form\Field\FieldInterface;
 
 /**
@@ -81,6 +82,7 @@ class Validator
                     $error = $this->registry->validate($value, $validator, $validatorOptions);
                     if ($error) {
                         $errors[] = $error;
+                        //Debug::p($errors);
                     }
                 }
             }

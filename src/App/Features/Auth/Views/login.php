@@ -33,5 +33,13 @@ use App\Helpers\DebugRt as Debug;
         </div>
 
         <?= $form->end() ?>
+
+        <div class="mt-3 text-center">
+            <p>Don't have an account? <a href="/registration">Create one</a></p>
+
+            <p class="mt-2"><small>
+                <a href="/verify-email/resend" class="text-muted">Need to verify your email?</a></small>
+            </p>
+        </div>
     </form>
 </div>

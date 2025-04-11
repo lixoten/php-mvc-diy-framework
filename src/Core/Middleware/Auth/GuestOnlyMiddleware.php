@@ -12,7 +12,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Middleware that only allows guests (non-authenticated users)
- * Useful for login, register, password reset pages
+ * Useful for login, registration, password reset pages
  */
 class GuestOnlyMiddleware extends AuthMiddleware
 {
@@ -46,7 +46,7 @@ class GuestOnlyMiddleware extends AuthMiddleware
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        // If user is already authenticated, redirect away from login/register pages
+        // If user is already authenticated, redirect away from login/registration pages
         if ($this->authService->isAuthenticated()) {
             // Check for return URL parameter
             $queryParams = $request->getQueryParams();

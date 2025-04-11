@@ -43,6 +43,7 @@ class LoginFieldRegistry implements FieldRegistryInterface
         ];
     }
 
+
     /**
      * Get the password field definition
      */

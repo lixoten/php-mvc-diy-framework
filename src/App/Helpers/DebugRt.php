@@ -393,7 +393,7 @@ class DebugRt
             $function   = debug_backtrace()[$i]['function'];
         }
 
-        self::$traceLine = $file . "---" . $line   ;
+        self::$traceLine = $file . ", Line: " . $line   ;
     }
 
 
@@ -1401,7 +1401,50 @@ class DebugRt
         }
     }
 
+    /**
+     * Outputs a JSON-encoded response for debugging purposes and optionally exits the script.
+     *
+     * @param string|int $exit Determines whether to exit the script after outputting the response.
+     *                         Use "1" or any truthy value to exit, or "0" or falsy value to continue execution.
+     * @param string $label An optional label to include in the output for context or identification.
+     * @param mixed $arr The value to be outputted. Can be any data type.
+     * @param bool $trace Whether to include a stack trace in the output. Defaults to true.
+     *
+     * @return void
+     */
+    public static function j(
+        string|int $exit = "1",
+        string $label = "",
+        mixed $arr = "--",
+        bool $trace = true
+    ): void {
+        $rr = '';
+        if ($trace) {
+            self::getBacktraceInfo();
+            $rr = "&nbsp -- Trace : " . self::$traceLine;
+        }
+        $label = $label ? "$label : " : '';
 
+
+        if (is_bool($arr)) {
+            $b = $arr ? '0 (false)' : '1 (true)';
+            print "<br />$label $b" . $rr;
+        } elseif (is_null($arr)) {
+            print "<br />$label NULL" . $rr;
+        } elseif (is_string($arr)) {
+            print "<br />$label $arr" . $rr;
+        } elseif (is_numeric($arr)) {
+            print "<br />$label $arr" . $rr;
+        } else {
+            print "<hr />$label" . $rr;
+            print "<pre>";
+            print_r($arr);
+            echo '</pre><hr />';
+        }
+        if ($exit === 1) {
+             exit();
+        }
+    }
 
     public static function p(bool|null|string|int|array|object $arr = "--", int $exit = 1, ?string $label = ""): void
     {
@@ -1410,10 +1453,10 @@ class DebugRt
         if (is_bool($arr)) {
             print "<br />$label -- $arr -- FRACKING BOOL --Trace--" . self::$traceLine;
         } elseif (is_null($arr)) {
-            print "<br />FRACKING NULL --Trace--" . self::$traceLine;
+            print "<br />$label NULL --Trace--" . self::$traceLine;
         } elseif (is_string($arr)) {
             print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--" . self::$traceLine;
-        } else if (is_numeric($arr)) {
+        } elseif (is_numeric($arr)) {
             print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--" . self::$traceLine;
         } else {
             print "<hr />$label --Trace--" . self::$traceLine;

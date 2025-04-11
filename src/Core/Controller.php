@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core;
 
+use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Http\HttpFactory;
@@ -154,6 +155,7 @@ abstract class Controller
     protected function view(string $template, array $args = [], int $statusCode = 200): ResponseInterface
     {
         //exit();
+        //Debug::p($template);
         $args['flash'] = $this->flash;
         $content = $this->view->renderWithLayout($template, $args);
 

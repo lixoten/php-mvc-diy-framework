@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Features\Auth;
 
+use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
 use App\Features\Auth\Form\LoginFormType;
 use Core\Auth\AuthenticationServiceInterface;
-use Core\Auth\Exception\AuthenticationException;
 use Core\Controller;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
@@ -18,6 +18,7 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Auth\Exception\AuthenticationException;
 
 /**
  * Login controller
@@ -64,9 +65,7 @@ class LoginController extends Controller
         // Create login form
         $form = $this->formFactory->create(
             $this->loginFormType,
-            [
-                'remember' => false // Set default value here
-            ],
+            ['remember' => false], // Default value for "remember me"
             [
                 'layout_type' => 'none',
                 'error_display' => 'summary',
@@ -78,33 +77,40 @@ class LoginController extends Controller
         $formHandled = $this->formHandler->handle($form, $request);
         if ($formHandled && $form->isValid()) {
             $data = $form->getData();
-
             try {
-                // Attempt login
+                // Use SessionAuthenticationService for credential validation
                 $remember = isset($data['remember']) ? (bool)$data['remember'] : false;
                 $this->authService->login($data['username'], $data['password'], $remember);
 
-                // Success! Redirect to intended URL or dashboard
-                $return = $request->getQueryParams()['return'] ?? '/admin/dashboard';
-                $this->flash->add('You have been logged in successfully', FlashMessageType::Success);
+                // Determine appropriate landing page based on user roles
+                $user = $this->authService->getCurrentUser();
+                $roles = $user->getRoles();
+                $defaultPage = in_array('admin', $roles) ? '/admin/dashboard' : '/dashboard';
 
+                // Redirect to intended URL or default page
+                $return = $request->getQueryParams()['return'] ?? $defaultPage;
                 return $this->redirect($return);
             } catch (AuthenticationException $e) {
-                // Handle login errors
-                $form->addError('_form', $e->getMessage());
+                // Handle authentication errors
+                $form->addError('username', $e->getMessage());
             }
         }
 
         // Create FormView for rendering
-        $formView = new FormView($form, [
-            'error_display' => 'summary'
-        ]);
+        $formView = new FormView($form, ['error_display' => 'summary']);
 
-        // Render the login form
-        return $this->view(AuthConst::VIEW_AUTH_LOGIN, [
+        // Create response with appropriate status code
+        $response = $this->view(AuthConst::VIEW_AUTH_LOGIN, [
             'title' => 'Log In',
             'form' => $formView
         ]);
+
+        // Set 422 Unprocessable Entity status for login failures
+        if ($form->hasErrors()) {
+            return $response->withStatus(422);
+        }
+
+        return $response;
     }
 
     /**

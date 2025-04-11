@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use App\Helpers\DebugRt as Debug;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Event\FormEvent;
 use Core\Form\Event\FormEvents;
+use Core\Form\Validation\ValidatorRegistry;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -15,18 +17,24 @@ use Psr\Http\Message\ServerRequestInterface;
  */
 class FormHandler implements FormHandlerInterface
 {
-    private CSRFToken $csrf;
+    private CSRFToken $csrf; // TODO-do we need
     private ?EventDispatcherInterface $eventDispatcher;
+    private ValidatorRegistry $validatorRegistry; // TODO-do we need
 
     /**
      * Constructor
      *
      * @param CSRFToken $csrf
+     * @param ValidatorRegistry $validatorRegistry
      * @param EventDispatcherInterface|null $eventDispatcher
      */
-    public function __construct(CSRFToken $csrf, ?EventDispatcherInterface $eventDispatcher = null)
-    {
+    public function __construct(
+        CSRFToken $csrf,
+        ValidatorRegistry $validatorRegistry,
+        ?EventDispatcherInterface $eventDispatcher = null
+    ) {
         $this->csrf = $csrf;
+        $this->validatorRegistry = $validatorRegistry;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -40,21 +48,19 @@ class FormHandler implements FormHandlerInterface
             return false;
         }
 
-        // Get form data from request
+        // Parse form data from the request
         $data = $this->parseRequestData($request);
 
-        // Extract CSRF token
+        // Extract and validate CSRF token
         $token = $data['csrf_token'] ?? '';
         unset($data['csrf_token']);
-
-        // Dispatch PRE_SUBMIT event
-        $this->dispatchEvent(FormEvents::PRE_SUBMIT, $form, $data);
-
-        // Validate CSRF token
         if (!$form->validateCSRFToken($token)) {
             $form->addError('_form', 'Invalid form submission.');
             return false;
         }
+
+        // Dispatch PRE_SUBMIT event
+        $this->dispatchEvent(FormEvents::PRE_SUBMIT, $form, $data);
 
         // Set form data
         $form->setData($data);
@@ -96,13 +102,10 @@ class FormHandler implements FormHandlerInterface
             return json_decode($content, true) ?? [];
         }
 
-        // If it's a multipart form (with file uploads)
+        // Handle multipart form data (with file uploads)
         if (strpos($contentType, 'multipart/form-data') !== false) {
-            // Get parsed body and uploaded files
             $parsedBody = $request->getParsedBody() ?? [];
             $uploadedFiles = $request->getUploadedFiles() ?? [];
-
-            // Merge everything into a single array
             return array_merge($parsedBody, $uploadedFiles);
         }
 
@@ -119,9 +122,9 @@ class FormHandler implements FormHandlerInterface
     /**
      * Dispatch a form event
      *
-     * @param string $eventName
-     * @param FormInterface $form
-     * @param mixed $data
+     * @param string $eventName The name of the event
+     * @param FormInterface $form The form instance
+     * @param mixed $data Additional data for the event
      */
     private function dispatchEvent(string $eventName, FormInterface $form, $data = null): void
     {

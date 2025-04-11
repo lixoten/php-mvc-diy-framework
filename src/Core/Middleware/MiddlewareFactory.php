@@ -45,14 +45,19 @@ class MiddlewareFactory
         // CSRF protection
         $pipeline->pipe($container->get(CSRFMiddleware::class));
 
+        // Rate limiting middleware
+        $pipeline->pipe($container->get(RateLimitMiddleware::class));
+
+
         // Authentication middleware for protected routes
 
-        // Guest-only middleware for login/register pages
+        // Guest-only middleware for login/registration pages
         $pipeline->pipe(new RoutePatternMiddleware('/login', $container->get(GuestOnlyMiddleware::class)));
-        $pipeline->pipe(new RoutePatternMiddleware('/register', $container->get(GuestOnlyMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/registration', $container->get(GuestOnlyMiddleware::class)));
         $pipeline->pipe(new RoutePatternMiddleware('/forgot-password', $container->get(GuestOnlyMiddleware::class)));
 
         // Require authentication for protected areas
+        $pipeline->pipe(new RoutePatternMiddleware('/account/*', $container->get(RequireAuthMiddleware::class)));
         $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireAuthMiddleware::class)));
         $pipeline->pipe(new RoutePatternMiddleware('/profile/*', $container->get(RequireAuthMiddleware::class)));
 

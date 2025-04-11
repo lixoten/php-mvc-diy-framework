@@ -104,4 +104,6 @@ interface FieldInterface
      * @return bool
      */
     public function isRequired(): bool;
+
+    public function setOptions(array $options): self;
 }

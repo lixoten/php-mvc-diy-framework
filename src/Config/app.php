@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-// src/Config/app.php
 return [
     // Application settings
     'name' => $_ENV['APP_NAME'] ?? 'MVC Lixo',
@@ -18,7 +17,7 @@ return [
     'fallback_locale' => 'en',
 
     // Security
-    'key' => $_ENV['APP_KEY'] ?? 'your-secret-key',
+    'secret' => $_ENV['APP_KEY'], // No Fallback needed: 'xxx';
     'cipher' => 'AES-256-CBC',
 
     // Session

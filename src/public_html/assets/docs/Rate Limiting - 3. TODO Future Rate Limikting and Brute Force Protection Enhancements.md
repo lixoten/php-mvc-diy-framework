@@ -3,25 +3,15 @@
 This document outlines potential improvements to our brute force protection system.
 
 
-## Files to refresh one memmory // Important!!!
+## Files to refresh one memory // Important!!!
 **Files used new/updated
-- CreateLoginAttemptsTable.php           
-- LoginAttempt.php                 
-- LoginAttemptsRepositoryInterface.php
-- LoginAttemptsRepository.php
+- CreateRateLimitAttemptsTable
+- RateLimitMiddleware
+- RateLimitRepository
+- RateLimitRepositoryInterface
 - SessionAuthenticationService.php    
 - dependencies.php                      
 - AuthenticationServiceInterface.php 
-- LoginController.php 
-
-## Files that are placeholders with // TODO....
-- Search for `// TODO, this is a Draft id-1234`
-- 4 files
-    - src\App\Features\Admin\loginattemptadmin.php
-    - src\App\Features\Admin\LoginAttemptsController.php
-    - src\App\Repository\LoginAttemptsRepository.php
-    - src\App\Repository\LoginAttemptsRepositoryInterface.php
-- This files might be in **wrong Namespace**
 
 ## Administrative Dashboard // TODO
 

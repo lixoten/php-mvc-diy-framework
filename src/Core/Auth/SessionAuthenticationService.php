@@ -6,10 +6,10 @@ namespace Core\Auth;
 
 use App\Entities\User;
 use App\Enums\UserStatus;
-use App\Repository\LoginAttemptsRepositoryInterface;
 use App\Repository\RememberTokenRepository;
 use App\Repository\UserRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
+use Core\Security\BruteForceProtectionService;
 use Core\Session\SessionManagerInterface;
 
 class SessionAuthenticationService implements AuthenticationServiceInterface
@@ -55,15 +55,13 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         UserRepositoryInterface $userRepository,
         SessionManagerInterface $session,
         protected RememberTokenRepository $rememberTokenRepository,
-        protected LoginAttemptsRepositoryInterface $loginAttemptsRepository,
+        protected BruteForceProtectionService $bruteForceProtection,
         array $config = []
     ) {
         $this->userRepository = $userRepository;
         $this->session = $session;
         $this->config = array_merge([
             'session_lifetime' => 7200, // 2 hours
-            'max_attempts' => 5, // Maximum login attempts
-            'lockout_time' => 900, // 15 minutes
             'secure_cookie' => false, // Set to true in production
             'cookie_path' => '/',
             'cookie_domain' => '',
@@ -81,9 +79,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
      */
     public function login(string $usernameOrEmail, string $password, bool $remember = false): bool
     {
-        // Check for too many failed attempts
-        $this->checkForBruteForce($usernameOrEmail);
-
         // Try to find user by username or email
         $user = null;
         if (filter_var($usernameOrEmail, FILTER_VALIDATE_EMAIL)) {
@@ -94,7 +89,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
 
         // Verify user exists and password is correct
         if (!$user || !$user->verifyPassword($password)) {
-            $this->recordFailedLogin($usernameOrEmail);
             throw new AuthenticationException(
                 'Invalid username/email or password',
                 AuthenticationException::INVALID_CREDENTIALS
@@ -121,9 +115,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         if ($remember) {
             $this->setRememberMeCookie($user);
         }
-
-        // Reset failed login attempts
-        $this->resetFailedLogins($usernameOrEmail);
 
         // Store user for later retrieval
         $this->currentUser = $user;
@@ -413,70 +404,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // Delete expired tokens periodically (1/100 chance to run this cleanup)
         if (rand(1, 100) === 1) {
             $this->rememberTokenRepository->deleteExpired();
-        }
-    }
-
-
-    /**
-     * Check for too many failed login attempts
-     */
-    private function checkForBruteForce(string $usernameOrEmail): void
-    {
-        // Check attempts by username/email
-        $attempts = $this->loginAttemptsRepository->countRecentAttempts(
-            $usernameOrEmail,
-            time() - $this->config['lockout_time']
-        );
-
-        if ($attempts >= $this->config['max_attempts']) {
-            throw new AuthenticationException(
-                'Too many failed login attempts. Please try again later.',
-                AuthenticationException::TOO_MANY_ATTEMPTS
-            );
-        }
-
-        // Also check attempts from current IP address to prevent
-        // username enumeration attacks and general brute forcing
-        $ipAttempts = $this->loginAttemptsRepository->countRecentAttemptsFromIp(
-            $_SERVER['REMOTE_ADDR'],
-            time() - $this->config['lockout_time']
-        );
-
-        // Use a higher threshold for IP-based lockouts to avoid
-        // blocking legitimate users behind shared IPs
-        if ($ipAttempts >= $this->config['max_attempts'] * 3) {
-            throw new AuthenticationException(
-                'Too many failed login attempts from your location. Please try again later.',
-                AuthenticationException::TOO_MANY_ATTEMPTS
-            );
-        }
-    }
-
-    /**
-     * Record a failed login attempt
-     */
-    private function recordFailedLogin(string $usernameOrEmail): void
-    {
-        $this->loginAttemptsRepository->record([
-            'username_or_email' => $usernameOrEmail,
-            'ip_address' => $_SERVER['REMOTE_ADDR'],
-            'attempted_at' => time(),
-            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? null
-        ]);
-    }
-
-    /**
-     * Reset failed login attempts
-     */
-    private function resetFailedLogins(string $usernameOrEmail): void
-    {
-        $this->loginAttemptsRepository->clearForUser($usernameOrEmail);
-
-        // Also periodically clean up old attempts (1/10 chance)
-        if (rand(1, 10) === 1) {
-            $this->loginAttemptsRepository->deleteExpired(
-                time() - ($this->config['lockout_time'] * 2)
-            );
         }
     }
 }

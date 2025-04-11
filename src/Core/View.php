@@ -32,9 +32,12 @@ class View
 
     public function getTemplate($template, $data = [])
     {
+        //Debug::p($template);
         extract($data);
+        //Debug::p($template);
+
         $feature = $this->convertToPath($template);
-// Debug::p(111);
+        //Debug::p($feature);
         if (strpos($template, 'errors/') === 0) {
             $path = __DIR__ . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "Core" .
             DIRECTORY_SEPARATOR . $feature;
@@ -42,13 +45,14 @@ class View
             $path = __DIR__ . ".." . DIRECTORY_SEPARATOR . ".." . DIRECTORY_SEPARATOR . "App/Features" .
             DIRECTORY_SEPARATOR . $feature;
         }
-
         //Debug::p($path);
+
         if (!file_exists($path)) {
             // Log the problem
             error_log("Template file not found: $path");
             return "<p>Template not found: $template</p>";
         }
+        //Debug::p($path);
 
         // Start output buffering and include the template
         ob_start();
@@ -62,7 +66,7 @@ class View
         // Split the template into parts
         $parts = explode('/', $template);
 
-        if (count($parts) >= 3 && strtolower($parts[0]) === 'admin') {
+        if (count($parts) >= 3 && strtolower($parts[0]) === 'admin' || strtolower($parts[0]) === 'account') {
             // For admin templates like "admin/dashboard/index"
             // Take "admin" and the feature name together
             $adminPart = array_shift($parts); // Get "admin"
@@ -135,6 +139,7 @@ class View
         //exit();
         //Debug::p($view);
         $content = $this->getTemplate($view, $data);
+        //Debug::p($content);
 
         $data = array_merge(['content' => $content], $data);
 

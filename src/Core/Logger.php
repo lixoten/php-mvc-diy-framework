@@ -93,7 +93,7 @@ class Logger implements LoggerInterface
         if (!is_writable($this->logDirectory)) {
             if ($this->debugMode) {
                 $this->addDebug(
-                    "og directory is not writable: " . $this->logDirectory,
+                    "Log directory is not writable: " . $this->logDirectory,
                     'error'
                 );
             }
@@ -375,7 +375,7 @@ class Logger implements LoggerInterface
     }
 
 
-        /**
+    /**
      * Add debug output to buffer instead of echoing
      */
     private function addDebug(string $message, string $type = 'info'): void

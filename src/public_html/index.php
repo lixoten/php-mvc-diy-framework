@@ -6,6 +6,8 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+date_default_timezone_set('America/Los_Angeles');
+
 /**
  * Application entry point
  */
@@ -37,6 +39,22 @@ if (file_exists(__DIR__ . '/../../.env')) {
     $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
     $dotenv->load();
 }
+
+
+// Validate required environment variables
+$dotenv->required([
+    'APP_ENV',
+    'MAIL_API_DEFAULT',
+    'SMTP_USERNAME',
+    'SMTP_PASSWORD',
+    'MAILGUN_API_KEY',
+    'MAILGUN_DOMAIN'
+])->notEmpty(); // TODO add all $ENV valiables to here
+
+// Validate specific values
+$dotenv->required('MAIL_API_DEFAULT')->allowedValues(['smtp', 'mailgun']);
+
+
 
 // Initialize error handling
 $environment = $_SERVER['APP_ENV'] ?? 'development';
