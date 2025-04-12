@@ -46,6 +46,9 @@ class LoginFormType implements FormTypeInterface
     {
         // Define default fields
         $fieldNames = ['username', 'password', 'remember'];
+        if ($options['captcha_required'] ?? false) {
+            $fieldNames[] = 'captcha';
+        }
 
         // Process each field
         foreach ($fieldNames as $name) {

@@ -215,4 +215,59 @@ class BruteForceProtectionService
         $this->ensureActionTypeExists($actionType);
         return $this->repository->updateLastAttemptStatus($identifier, $actionType, $success);
     }
+
+    /**
+     * Get configuration for a specific action type
+     *
+     * @param string $actionType
+     * @return array|null Action configuration or null if not found
+     */
+    public function getConfigForActionType(string $actionType): ?array
+    {
+        $this->ensureActionTypeExists($actionType);
+        return $this->config[$actionType] ?? null;
+    }
+
+    /**
+     * Get the count of recent failed attempts for an identifier
+     *
+     * @param string $identifier User identifier (email, username, etc.)
+     * @param string $actionType The action being checked (login, registration, etc.)
+     * @param int $since Unix timestamp representing cutoff time for counting attempts
+     * @return int Number of failed attempts since the specified timestamp
+     */
+    public function getAttemptCount(string $identifier, string $actionType, int $since): int
+    {
+        // Just pass the integer timestamp, don't convert it
+        return $this->repository->countRecentAttempts(
+            $identifier,
+            $actionType,
+            $since
+        );
+    }
+
+    /**
+     * Determine if CAPTCHA should be required for this identifier and action
+     *
+     * @param string $actionType
+     * @param string $identifier
+     * @return bool
+     */
+    public function isCaptchaRequired(string $actionType, string $identifier): bool
+    {
+        $threshold = $this->config[$actionType]['captcha_threshold'] ?? 0;
+
+        if ($threshold <= 0) {
+            return false;
+        }
+
+        $cutoffTime = time() - $this->config[$actionType]['lockout_time'];
+            $attempts = $this->repository->countRecentAttempts(
+                $identifier,
+                $actionType,
+                $cutoffTime // Just pass the integer timestamp
+            );
+
+        return $attempts >= $threshold;
+    }
 }

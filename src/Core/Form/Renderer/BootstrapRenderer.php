@@ -338,8 +338,7 @@ class BootstrapRenderer implements FormRendererInterface
             }
 
             return '';
-        }
-        else {
+        } else {
             // Original code for inline errors - only form level
             $errors = $form->getErrors('_form');
             if (empty($errors)) {
@@ -363,6 +362,22 @@ class BootstrapRenderer implements FormRendererInterface
     public function renderStart(FormInterface $form, array $options = []): string
     {
         $attributes = $form->getAttributes();
+
+
+        // Include HTML attributes from options (ADD THIS CODE)
+        $htmlAttributes = $options['attributes'] ?? [];
+        if (!empty($htmlAttributes)) {
+            $attributes = array_merge($attributes, $htmlAttributes);
+        }
+
+        // Handle direct HTML attributes like onsubmit (ADD THIS CODE)
+        $directAttributes = ['onsubmit', 'onclick', 'onchange', 'onblur', 'onfocus'];
+        foreach ($directAttributes as $attr) {
+            if (isset($options[$attr])) {
+                $attributes[$attr] = $options[$attr];
+            }
+        }
+
 
         // Set default method if not provided
         if (!isset($attributes['method'])) {
@@ -389,7 +404,9 @@ class BootstrapRenderer implements FormRendererInterface
             $attributes['class'] .= ' needs-validation';
         }
 
-        // Add novalidate attribute for custom validation
+
+
+        // novalidate attribute for custom validation
         $attributes['novalidate'] = '';
 
         // Build attribute string

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Validation\Validator;
@@ -156,22 +156,25 @@ class Form implements FormInterface
     }
 
 
-    public function validate(): bool
+    /**
+     * Validate the form
+     *
+     * @param array $context Additional context for validation (e.g. request object)
+     * @return bool True if valid, false otherwise
+     */
+    public function validate(array $context = []): bool
     {
-        //Debug::p($this, 0, "\$this: "); // line 106
-
         $this->errors = []; // Reset errors before validation
         $isValid = true;
-
         // Ensure the validator is set
         if ($this->validator) {
             foreach ($this->fields as $name => $field) {
-                // Debug::p($field, 0, "--------- : $name"); // <<<line 167 here
                 // Validate the field using the Validator service
-                $fieldErrors = $this->validator->validateField($field);
+
+                // Pass context to validator
+                $fieldErrors = $this->validator->validateField($field, $context);
+
                 if (!empty($fieldErrors)) {
-                    // Debug::p($field['name']);
-                    // Debug::p($fieldErrors, 0, "FAIL: $name");
                     // Add errors to the form's error list
                     $this->errors[$name] = $fieldErrors;
 
@@ -180,7 +183,6 @@ class Form implements FormInterface
                         $field->addError($error);
                     }
 
-                    // Debug::p($fieldErrors);
                     // Mark the form as invalid
                     $isValid = false;
                 }
@@ -190,7 +192,6 @@ class Form implements FormInterface
             throw new \RuntimeException('Validator service is not set for the form.');
         }
 
-        // Debug::p($isValid);
         return $isValid;
     }
 

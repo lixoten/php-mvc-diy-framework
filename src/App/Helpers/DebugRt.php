@@ -608,7 +608,8 @@ class DebugRt
 
         if (isset($val1)) {
             if ((str_contains($msg, "XXXX1"))) {
-                $msg    = str_replace("XXXX1", '<span style="font-weight: bold; color:red;">(' . $val1 . ')</span>', $msg);
+                $replacement = '<span style="font-weight: bold; color:red;">(' . $val1 . ')</span>';
+                $msg = str_replace("XXXX1", $replacement, $msg);
             } else {
                 $msg    = $msg . ' : <span style="font-weight: bold; color:red;">(' . $val1 . ')</span>';
             }
@@ -617,7 +618,11 @@ class DebugRt
         if (isset($val2)) {
             // if ((strpos($msg,"XXXX2") !== false))
             if ((str_contains($msg, "XXXX2"))) {
-                $msg    = str_replace("XXXX2", '<span style="font-weight: bold; color:red;">"' . $val2 . '"</span>', $msg);
+                $msg = str_replace(
+                    "XXXX2",
+                    '<span style="font-weight: bold; color:red;">"' . $val2 . '"</span>',
+                    $msg
+                );
             } else {
                 $msg    = $msg . ' : <span style="font-weight: bold; color:red;">"' . $val2 . '"</span>';
             }
@@ -625,7 +630,8 @@ class DebugRt
 
         if (isset($val3)) {
             if ((str_contains($msg, "XXXX3"))) {
-                $msg    = str_replace("XXXX3", '<span style="font-weight: bold; color:red;">' . $val3 . '</span>', $msg);
+                $msg    = str_replace("XXXX3", '<span style="font-weight: bold; color:red;">'
+                        . $val3 . '</span>', $msg);
             } else {
                 $msg = $msg . ' : <span style="font-weight: bold; color:red;">' . $val3 . '</span>';
             }
@@ -643,7 +649,8 @@ class DebugRt
         ## ver. 32
         if (isset($fixV1)) {
             if ((str_contains($fix, "FFFF1"))) {
-                $fix = str_replace("FFFF1", '<span style="font-weight: bold; color:green;">(' . $fixV1 . ')</span>', $fix);
+                $fix = str_replace("FFFF1", '<span style="font-weight: bold; color:green;">('
+                        . $fixV1 . ')</span>', $fix);
             } else {
                 $fix = $fix . ' : <span style="font-weight: bold; color:red;">(' . $fixV1 . ')</span>';
             }
@@ -652,7 +659,8 @@ class DebugRt
         ## ver. 32
         if (isset($fixV2)) {
             if ((str_contains($fix, "FFFF2"))) {
-                $fix = str_replace("FFFF2", '<span style="font-weight: bold; color:green;">"' . $fixV2 . '"</span>', $fix);
+                $fix = str_replace("FFFF2", '<span style="font-weight: bold; color:green;">"'
+                        . $fixV2 . '"</span>', $fix);
             } else {
                 $fix = $fix . ' : <span style="font-weight: bold; color:red;">"' . $fixV2 . '"</span>';
             }
@@ -662,25 +670,29 @@ class DebugRt
         //else
         //  $xx = 'BOOOOOOOOOOOOMMMMM - Debug Opps WARNING';
 
-        $oops       = " <div style='text-align:center; font-weight: bold; color:red; border-bottom: red 2px solid;'>$oopsType - $oopsType - BOOOOOOOOOMMM - Debug Opps $oopsType ERROR</div>";
+        $oops       = " <div style='text-align:center; font-weight: bold; color:red; border-bottom: red 2px solid;'>
+                                    $oopsType - $oopsType - BOOOOOOOOOMMM - Debug Opps $oopsType ERROR</div>";
         $oops      .= " $err <br />";
         $oops      .= " $msg <br />";
         ## ver. 32
         if (isset($fix)) {
             $oops      .= " <span style='font-weight: bold; color:darkgreen;'>FIX:</span>$fix <br />";
         }
-        $oops      .= " <br /> Version: $ver - Trace: $traceIndex - UniqueTag: <span style='font-weight: bold; color:black;'>$ui $uniqueTag</span> <br />";
+        $oops      .= " <br /> Version: $ver - Trace: $traceIndex - UniqueTag:
+                        <span style='font-weight: bold; color:black;'>$ui $uniqueTag</span> <br />";
         $oops      .= " <br /> --------------- File0 : " . "<span style='font-weight: bold; color:red;'>$file0</span>";
         $oops      .= " <br /> --------------- Line0 : " . "<span style='font-weight: bold; color:red;'>$line0</span>";
 
-        $oops  .= " <br /> --------------- Function0 : " . "<span style='font-weight: bold; color:red;'>$function0</span>";
+        $oops  .= " <br /> --------------- Function0 : "
+                                        . "<span style='font-weight: bold; color:red;'>$function0</span>";
         $oops  .= " <br /> --------------- Class0 : " . "<span style='font-weight: bold; color:red;'>$class0</span>";
 
         if (isset(debug_backtrace()[1]['file'])) {
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File1 : " . "<span style='font-weight: bold; color:red;'>$file1</span>";
             $oops .= " <br /> --------------- Line1 : " . "<span style='font-weight: bold; color:red;'>$line1</span>";
-            $oops .= " <br /> --------------- Function1 : " . "<span style='font-weight: bold; color:red;'>$function1</span>";
+            $oops .= " <br /> --------------- Function1 : "
+                                        . "<span style='font-weight: bold; color:red;'>$function1</span>";
             $oops .= " <br /> --------------- Class1 : " . "<span style='font-weight: bold; color:red;'>$class1</span>";
         }
 
@@ -688,7 +700,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File2 : " . "<span style='font-weight: bold; color:red;'>$file2</span>";
             $oops .= " <br /> --------------- Line2 : " . "<span style='font-weight: bold; color:red;'>$line2</span>";
-            $oops .= " <br /> --------------- Function2 : " . "<span style='font-weight: bold; color:red;'>$function2</span>";
+            $oops .= " <br /> --------------- Function2 : "
+                                . "<span style='font-weight: bold; color:red;'>$function2</span>";
             $oops .= " <br /> --------------- Class2 : " . "<span style='font-weight: bold; color:red;'>$class2</span>";
         }
 
@@ -696,7 +709,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File3 : " . "<span style='font-weight: bold; color:red;'>$file3</span>";
             $oops .= " <br /> --------------- Line3 : " . "<span style='font-weight: bold; color:red;'>$line3</span>";
-            $oops .= " <br /> --------------- Function3 : " . "<span style='font-weight: bold; color:red;'>$function3</span>";
+            $oops .= " <br /> --------------- Function3 : "
+                                . "<span style='font-weight: bold; color:red;'>$function3</span>";
             $oops .= " <br /> --------------- Class3 : " . "<span style='font-weight: bold; color:red;'>$class3</span>";
         }
 
@@ -704,7 +718,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File4 : " . "<span style='font-weight: bold; color:red;'>$file4</span>";
             $oops .= " <br /> --------------- Line4 : " . "<span style='font-weight: bold; color:red;'>$line4</span>";
-            $oops .= " <br /> --------------- Function4 : " . "<span style='font-weight: bold; color:red;'>$function4</span>";
+            $oops .= " <br /> --------------- Function4 : "
+                                . "<span style='font-weight: bold; color:red;'>$function4</span>";
             $oops .= " <br /> --------------- Class4 : " . "<span style='font-weight: bold; color:red;'>$class4</span>";
         }
 
@@ -712,7 +727,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File5 : " . "<span style='font-weight: bold; color:red;'>$file5</span>";
             $oops .= " <br /> --------------- Line5 : " . "<span style='font-weight: bold; color:red;'>$line5</span>";
-            $oops .= " <br /> --------------- Function5 : " . "<span style='font-weight: bold; color:red;'>$function5</span>";
+            $oops .= " <br /> --------------- Function5 : "
+                                    . "<span style='font-weight: bold; color:red;'>$function5</span>";
             $oops .= " <br /> --------------- Class5 : " . "<span style='font-weight: bold; color:red;'>$class5</span>";
         }
 
@@ -895,7 +911,8 @@ class DebugRt
 
         if (isset($val1)) {
             if ((str_contains($msg, "XXXX1"))) {
-                $msg    = str_replace("XXXX1", '<span style="font-weight: bold; color:red;">(' . $val1 . ')</span>', $msg);
+                $msg    = str_replace("XXXX1", '<span style="font-weight: bold; color:red;">('
+                            . $val1 . ')</span>', $msg);
             } else {
                 $msg    = $msg . ' : <span style="font-weight: bold; color:red;">(' . $val1 . ')</span>';
             }
@@ -903,7 +920,8 @@ class DebugRt
 
         if (isset($val2)) {
             if ((str_contains($msg, "XXXX2"))) {
-                $msg    = str_replace("XXXX2", '<span style="font-weight: bold; color:red;">"' . $val2 . '"</span>', $msg);
+                $msg    = str_replace("XXXX2", '<span style="font-weight: bold; color:red;">"' . $val2
+                                    . '"</span>', $msg);
             } else {
                 $msg    = $msg . ' : <span style="font-weight: bold; color:red;">"' . $val2 . '"</span>';
             }
@@ -911,7 +929,8 @@ class DebugRt
 
         if (isset($val3)) {
             if ((str_contains($msg, "XXXX3"))) {
-                $msg    = str_replace("XXXX3", '<span style="font-weight: bold; color:red;">' . $val3 . '</span>', $msg);
+                $msg    = str_replace("XXXX3", '<span style="font-weight: bold; color:red;">'
+                                        . $val3 . '</span>', $msg);
             } else {
                 $msg = $msg . ' : <span style="font-weight: bold; color:red;">' . $val3 . '</span>';
             }
@@ -919,7 +938,7 @@ class DebugRt
 
         if (isset($val4)) {
             if ((str_contains($msg, "XXXX4"))) {
-                $msg    = str_replace("XXXX4", '<span style="font-weight: bold; color:red;">' . $val4 . '</span>', $msg);
+                $msg = str_replace("XXXX4", '<span style="font-weight: bold; color:red;">' . $val4 . '</span>', $msg);
             } else {
                 $msg = $msg . ' : <span style="font-weight: bold; color:red;">' . $val4 . '</span>';
             }
@@ -928,7 +947,8 @@ class DebugRt
         ## ver. 32
         if (isset($fixV1)) {
             if ((str_contains($fix, "FFFF1"))) {
-                $fix = str_replace("FFFF1", '<span style="font-weight: bold; color:green;">(' . $fixV1 . ')</span>', $fix);
+                $fix = str_replace("FFFF1", '<span style="font-weight: bold; color:green;">('
+                                . $fixV1 . ')</span>', $fix);
             } else {
                 $fix = $fix . ' : <span style="font-weight: bold; color:red;">(' . $fixV1 . ')</span>';
             }
@@ -937,7 +957,8 @@ class DebugRt
         ## ver. 32
         if (isset($fixV2)) {
             if ((str_contains($fix, "FFFF2"))) {
-                $fix = str_replace("FFFF2", '<span style="font-weight: bold; color:green;">"' . $fixV2 . '"</span>', $fix);
+                $fix = str_replace("FFFF2", '<span style="font-weight: bold; color:green;">"' . $fixV2
+                                    . '"</span>', $fix);
             } else {
                 $fix = $fix . ' : <span style="font-weight: bold; color:red;">"' . $fixV2 . '"</span>';
             }
@@ -958,12 +979,14 @@ class DebugRt
             $oops      .= " <span style='font-weight: bold; color:darkgreen;'>FIX:</span>$fix <br />";
         }
 
-        $oops      .= " <br /> Version: $ver - Trace: $traceIndex - UniqueTag: <span style='font-weight: bold; color:black;'>$ui $uniqueTag</span> <br />";
+        $oops      .= " <br /> Version: $ver - Trace: $traceIndex - UniqueTag: <span style='font-weight: bold;
+                    color:black;'>$ui $uniqueTag</span> <br />";
         $oops      .= " <br /> --------------- File0 : " . "<span style='font-weight: bold; color:red;'>$file0</span>";
         $oops      .= " <br /> --------------- Line0 : " . "<span style='font-weight: bold; color:red;'>$line0</span>";
 
         //if (isset(debug_backtrace()[1]['function']))
-        $oops  .= " <br /> --------------- Function0 : " . "<span style='font-weight: bold; color:red;'>$function0</span>";
+        $oops  .= " <br /> --------------- Function0 : "
+                            . "<span style='font-weight: bold; color:red;'>$function0</span>";
         //if (isset(debug_backtrace()[1]['class']))
         $oops  .= " <br /> --------------- Class0 : " . "<span style='font-weight: bold; color:red;'>$class0</span>";
 
@@ -971,7 +994,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File1 : " . "<span style='font-weight: bold; color:red;'>$file1</span>";
             $oops .= " <br /> --------------- Line1 : " . "<span style='font-weight: bold; color:red;'>$line1</span>";
-            $oops .= " <br /> --------------- Function1 : " . "<span style='font-weight: bold; color:red;'>$function1</span>";
+            $oops .= " <br /> --------------- Function1 : "
+                                    . "<span style='font-weight: bold; color:red;'>$function1</span>";
             $oops .= " <br /> --------------- Class1 : " . "<span style='font-weight: bold; color:red;'>$class1</span>";
         }
 
@@ -979,7 +1003,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File2 : " . "<span style='font-weight: bold; color:red;'>$file2</span>";
             $oops .= " <br /> --------------- Line2 : " . "<span style='font-weight: bold; color:red;'>$line2</span>";
-            $oops .= " <br /> --------------- Function2 : " . "<span style='font-weight: bold; color:red;'>$function2</span>";
+            $oops .= " <br /> --------------- Function2 : "
+                                    . "<span style='font-weight: bold; color:red;'>$function2</span>";
             $oops .= " <br /> --------------- Class2 : " . "<span style='font-weight: bold; color:red;'>$class2</span>";
         }
 
@@ -987,7 +1012,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File3 : " . "<span style='font-weight: bold; color:red;'>$file3</span>";
             $oops .= " <br /> --------------- Line3 : " . "<span style='font-weight: bold; color:red;'>$line3</span>";
-            $oops .= " <br /> --------------- Function3 : " . "<span style='font-weight: bold; color:red;'>$function3</span>";
+            $oops .= " <br /> --------------- Function3 : "
+                                    . "<span style='font-weight: bold; color:red;'>$function3</span>";
             $oops .= " <br /> --------------- Class3 : " . "<span style='font-weight: bold; color:red;'>$class3</span>";
         }
 
@@ -995,7 +1021,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File4 : " . "<span style='font-weight: bold; color:red;'>$file4</span>";
             $oops .= " <br /> --------------- Line4 : " . "<span style='font-weight: bold; color:red;'>$line4</span>";
-            $oops .= " <br /> --------------- Function4 : " . "<span style='font-weight: bold; color:red;'>$function4</span>";
+            $oops .= " <br /> --------------- Function4 : "
+                            . "<span style='font-weight: bold; color:red;'>$function4</span>";
             $oops .= " <br /> --------------- Class4 : " . "<span style='font-weight: bold; color:red;'>$class4</span>";
         }
 
@@ -1003,7 +1030,8 @@ class DebugRt
             $oops .= " <hr />";
             $oops .= " <br /> --------------- File5 : " . "<span style='font-weight: bold; color:red;'>$file5</span>";
             $oops .= " <br /> --------------- Line5 : " . "<span style='font-weight: bold; color:red;'>$line5</span>";
-            $oops .= " <br /> --------------- Function5 : " . "<span style='font-weight: bold; color:red;'>$function5</span>";
+            $oops .= " <br /> --------------- Function5 : "
+                . "<span style='font-weight: bold; color:red;'>$function5</span>";
             $oops .= " <br /> --------------- Class5 : " . "<span style='font-weight: bold; color:red;'>$class5</span>";
         }
 
@@ -1117,28 +1145,33 @@ class DebugRt
         $msg = '<span style="font-weight: bold; color:red;">' . $msg . '</span>';
 
 
-        $oops       = " <div style='text-align:center; font-weight: bold; color:red; border-bottom: red 2px solid;'>BOOOOOOOOOOOOMMMMM - Debug Opps Fatal Error</div>";
+        $oops       = " <div style='text-align:center; font-weight: bold; color:red;
+                                    border-bottom: red 2px solid;'>BOOOOOOOOOOOOMMMMM - Debug Opps Fatal Error</div>";
         $oops      .= " $msg <br />";
         $oops      .= " trace: $traceIndex <br />";
         $oops      .= " <br /> --------------- File0 : " . "<span style='font-weight: bold; color:red;'>$file0</span>";
         $oops      .= " <br /> --------------- Line0 : " . "<span style='font-weight: bold; color:red;'>$line0</span>";
 
         //if (isset(debug_backtrace()[1]['function']))
-        $oops  .= " <br /> --------------- Function0 : " . "<span style='font-weight: bold; color:red;'>$function0</span>";
+        $oops  .= " <br /> --------------- Function0 : "
+            . "<span style='font-weight: bold; color:red;'>$function0</span>";
         //if (isset(debug_backtrace()[1]['class']))
         $oops  .= " <br /> --------------- Class0 : " . "<span style='font-weight: bold; color:red;'>$class0</span>";
 
         $oops .= " <hr />";
         $oops .= " <br /> --------------- File1 : " . "<span style='font-weight: bold; color:red;'>$file1</span>";
         $oops .= " <br /> --------------- Line1 : " . "<span style='font-weight: bold; color:red;'>$line1</span>";
-        $oops .= " <br /> --------------- Function1 : " . "<span style='font-weight: bold; color:red;'>$function1</span>";
+        $oops .= " <br /> --------------- Function1 : "
+            . "<span style='font-weight: bold; color:red;'>$function1</span>";
         $oops .= " <br /> --------------- Class1 : " . "<span style='font-weight: bold; color:red;'>$class1</span>";
 
         $oops  .= " <hr />";
         $oops       .= " <br /> --------------- File2 : " . "<span style='font-weight: bold; color:red;'>$file2</span>";
         $oops       .= " <br /> --------------- Line2 : " . "<span style='font-weight: bold; color:red;'>$line2</span>";
-        $oops       .= " <br /> --------------- Function2 : " . "<span style='font-weight: bold; color:red;'>$function2</span>";
-        $oops       .= " <br /> --------------- Class2 : " . "<span style='font-weight: bold; color:red;'>$class2</span>";
+        $oops       .= " <br /> --------------- Function2 : "
+            . "<span style='font-weight: bold; color:red;'>$function2</span>";
+        $oops       .= " <br /> --------------- Class2 : "
+            . "<span style='font-weight: bold; color:red;'>$class2</span>";
 
 
         $oops = "<div style='border: red solid 6px; padding:10px; width:50%;margin: auto'>$oops</div>";
@@ -1192,15 +1225,20 @@ class DebugRt
             $msg  = "";
             $msg  = str_replace("XXXX4", '<span style="font-weight: bold; color:red;">' . $val4 . '</span>', $msg);
 
-            $oops = " <div style='text-align:center; font-weight: bold; color:red; border-bottom: red 2px solid;'>Debug INFO for $type</div>";
+            $oops = " <div style='text-align:center; font-weight: bold;
+                    color:red; border-bottom: red 2px solid;'>Debug INFO for $type</div>";
 
             $oops .= " $msg BREAK LOCATION";
-            $oops .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>" . $file . "</span>";
-            $oops .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>" . $line . "</span>";
+            $oops .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>"
+            . $file . "</span>";
+            $oops .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>"
+            . $line . "</span>";
             //if (isset($function))
-                $oops .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>" . $function . "</span>";
+                $oops .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>"
+                . $function . "</span>";
             //if (isset($class))
-                $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>" . $class . "</span>";
+                $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>"
+                . $class . "</span>";
 
             ###############################################################################################################
             ###############################################################################################################
@@ -1215,16 +1253,21 @@ class DebugRt
                 $class    = basename(debug_backtrace()[$i]['class']);
             }
             $oops     .= " <br /><br /><br /> FOR :";
-            $oops     .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>" . $file . "</span>";
-            $oops     .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>" . $line . "</span>";
+            $oops     .= " <br /> --------------- File : " . "<span style='font-weight: bold; color:red;'>"
+            . $file . "</span>";
+            $oops     .= " <br /> --------------- Line : " . "<span style='font-weight: bold; color:red;'>"
+            . $line . "</span>";
             if (isset(debug_backtrace()[$i]['function'])) {
-                $oops .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>" . $function . "</span>";
+                $oops .= " <br /> --------------- Function : " . "<span style='font-weight: bold; color:red;'>"
+                . $function . "</span>";
             }
             if (isset(debug_backtrace()[$i]['class'])) {
-                $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>" . $class . "</span>";
+                $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>"
+                . $class . "</span>";
             }
 
-            $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>" . $var . "</span>";
+            $oops .= " <br /> --------------- Class : " . "<span style='font-weight: bold; color:red;'>"
+            . $var . "</span>";
 
             $oops = "<div style='border: red solid 6px; padding:10px; width:50%;margin: auto'>$oops</div>";
             echo $oops;
@@ -1233,9 +1276,15 @@ class DebugRt
     }
 
 
-    //public static function printLineInfo($exitSw='n', $textDisp='xxx', $value=null, $printIt="e", array $options=array()){
-    public static function priLn2(string $exitSw = 'n', string $label = 'xxx', ?string $value = null, string $printIt = "e", array $options = array()): void
-    {
+    //public static function printLineInfo($exitSw='n', $textDisp='xxx', $value=null, $printIt="e",
+    //      array $options=array()){
+    public static function priLn2(
+        string $exitSw = 'n',
+        string $label = 'xxx',
+        ?string $value = null,
+        string $printIt = "e",
+        array $options = array()
+    ): void {
         if (self::$debugLine === 'off') {
             return;
         }
@@ -1300,8 +1349,13 @@ class DebugRt
      * @param string $printIt ffff to "e"
      * @param array $options ...
      */
-    public static function priLn(string $exitSw = 'n', string $label = 'xxx', ?string $value = null, string $printIt = "e", array $options = array()): void
-    {
+    public static function priLn(
+        string $exitSw = 'n',
+        string $label = 'xxx',
+        ?string $value = null,
+        string $printIt = "e",
+        array $options = array()
+    ): void {
         $first = substr($label, 0, 1);
         if ($first === '$') {
             $label = 'xxx ' . substr($label, 1);
@@ -1329,15 +1383,21 @@ class DebugRt
             $file = $trace[$i]["file"];
             $line = $trace[$i]["line"];
 
-            print  "<span style='font-weight:bold; color:red;'><br />LLINE : " . subStr($file, 24) . " : " . $line . " $label  : $value</span>";//($x)
+            print  "<span style='font-weight:bold; color:red;'><br />LLINE : " . subStr($file, 24) . " : "
+                                            . $line . " $label  : $value</span>";//($x)
             if ($exitSw == 'y') {
                 exit();
             }
         }
     }
 
-    public static function x(string $exitSw = 'n', string $label = 'xxx', $value = null, string $printIt = "e", array $options = array()): string
-    {
+    public static function x(
+        string $exitSw = 'n',
+        string $label = 'xxx',
+        $value = null,
+        string $printIt = "e",
+        array $options = array()
+    ): string {
         ## comment this out to print everything
         //$printIt = "everything";
 
@@ -1369,9 +1429,12 @@ class DebugRt
             $file = $trace[$i]["file"];
             $line = $trace[$i]["line"];
 
-            //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[0]["file"],23)." : ".$trace[0]["line"] . " $textDisp : $value</span>";
-            //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[2]["file"],23)." : ".$trace[2]["line"] . " $textDisp : $value</span>";
-            return  "<span style='font-weight:bold; color:red;'>" . subStr($file, 23) . " : " . $line . " $label : $value</span>";
+            //print  "<span style='font-weight:bold; color:red;'><br /> ".subStr($trace[0]["file"],23)." : "
+            // 1.$trace[0]["line"] . " $textDisp : $value</span>";
+            //print  "<span style='font-weight:bold; color:red;'><br /> "
+            // .subStr($trace[2]["file"],23)." : ".$trace[2]["line"] . " $textDisp : $value</span>";
+            return  "<span style='font-weight:bold; color:red;'>" . subStr($file, 23)
+                    . " : " . $line . " $label : $value</span>";
             //if ($exitSw == 'y')
             //    exit();
         }
@@ -1427,7 +1490,7 @@ class DebugRt
 
 
         if (is_bool($arr)) {
-            $b = $arr ? '0 (false)' : '1 (true)';
+            $b = $arr ? '1 (true)' : '0 (false)';
             print "<br />$label $b" . $rr;
         } elseif (is_null($arr)) {
             print "<br />$label NULL" . $rr;
@@ -1441,7 +1504,7 @@ class DebugRt
             print_r($arr);
             echo '</pre><hr />';
         }
-        if ($exit === 1) {
+        if ($exit === "1") {
              exit();
         }
     }
@@ -1455,9 +1518,11 @@ class DebugRt
         } elseif (is_null($arr)) {
             print "<br />$label NULL --Trace--" . self::$traceLine;
         } elseif (is_string($arr)) {
-            print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--" . self::$traceLine;
+            print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--"
+            . self::$traceLine;
         } elseif (is_numeric($arr)) {
-            print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--" . self::$traceLine;
+            print "<br />$label $arr &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp&nbsp&nbsp&nbsp --Trace--"
+            . self::$traceLine;
         } else {
             print "<hr />$label --Trace--" . self::$traceLine;
             print "<pre>";
@@ -1510,9 +1575,11 @@ class DebugRt
             $line = $trace[$i]["line"];
 
             $lineLoc = $trace[0]["file"] . $trace[0]["line"];
-            $lineLoc =  subStr($lineLoc, 45) . "||||}}"; ## this is the physical location line of "DebugHelpRt::printLineWarning(" statement.
+             ## this is the physical location line of "DebugHelpRt::printLineWarning(" statement.
+            $lineLoc =  subStr($lineLoc, 45) . "||||}}";
 
-            print "<span style='display:block; margin-bottom:2px; padding:0; border:2px solid black; color:red;'>$lineLoc " . subStr($file, 23) . " : " . $line . " $msg</span>";
+            print "<span style='display:block; margin-bottom:2px; padding:0; border:2px solid black;
+                            color:red;'>$lineLoc " . subStr($file, 23) . " : " . $line . " $msg</span>";
             if ($exitSw == 'x') {
                 exit();
             }
@@ -1528,7 +1595,7 @@ class DebugRt
     public static function setFileName(string $var): void
     {
         self::$fileName = $var;
-        //print "<br />".__FUNCTION__." | ".subStr(__FILE__,23).": ".__LINE__." setCollFileName : " . $this->collFileName;
+        //print "<br />".__FUNCTION__."|".subStr(__FILE__,23).": ".__LINE__." setCollFileName : " . $this->collFileName;
         //exit();
     }
 

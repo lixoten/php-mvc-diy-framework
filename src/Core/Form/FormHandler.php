@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Event\FormEvent;
 use Core\Form\Event\FormEvents;
@@ -51,6 +51,24 @@ class FormHandler implements FormHandlerInterface
         // Parse form data from the request
         $data = $this->parseRequestData($request);
 
+        // Handle special fields like reCAPTCHA
+        // Add explicit CAPTCHA validation before general form validation
+        if ($form->hasField('captcha')) {
+            $captchaResponse = $request->getParsedBody()['g-recaptcha-response'] ?? '';
+            // DebugRt::j('captcha-response-check', '', $captchaResponse);
+
+            // If CAPTCHA response is empty, mark form as invalid
+            if (empty($captchaResponse)) {
+                $form->addError('captcha', 'Please complete the security check.');
+                $isValid = false;
+
+                // Don't need to continue with validation if CAPTCHA failed
+                $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+                return $isValid;
+            }
+        }
+
+
         // Extract and validate CSRF token
         $token = $data['csrf_token'] ?? '';
         unset($data['csrf_token']);
@@ -72,7 +90,10 @@ class FormHandler implements FormHandlerInterface
         $this->dispatchEvent(FormEvents::PRE_VALIDATE, $form, $data);
 
         // Validate form
-        $isValid = $form->validate();
+        //$isValid = $form->validate();
+        $isValid = $form->validate(['request' => $request]); // line 86
+        // DebugRt::j('0', 'isValid', $isValid);
+        ///exit();
 
         // Dispatch POST_VALIDATE event
         $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);

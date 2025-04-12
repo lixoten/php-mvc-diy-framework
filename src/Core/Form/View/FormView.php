@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Core\Form\View;
 
 use Core\Form\FormInterface;
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
+use Core\Form\Field\FieldInterface;
 
 /**
  * Form view helper for flexible form rendering in templates
@@ -61,20 +62,26 @@ class FormView
         return $renderer->renderErrors($this->form, $mergedOptions);
     }
 
-    /**
-     * Render a single form row (label + field + error)
-     */
     public function row(string $fieldName, array $options = []): string
     {
         if (!$this->form->hasField($fieldName)) {
             return '';
         }
 
-        // Merge form options with field-specific options
-        $mergedOptions = array_merge($this->options, $options);
+        $field = $this->form->getField($fieldName);
+
+        // Merge field-specific options with global options
+        $mergedOptions = array_merge($this->options, $field->getOptions(), $options);
 
         $renderer = $this->form->getRenderer();
-        return $renderer->renderField($this->form->getField($fieldName), $mergedOptions);
+        $fieldHtml = $renderer->renderField($field, $mergedOptions);
+
+        // Add inline error handling
+        $errorHtml = $this->error($fieldName)
+            ? '<div class="invalid-feedback d-block">' . htmlspecialchars($this->error($fieldName)) . '</div>'
+            : '';
+
+        return $fieldHtml . $errorHtml;
     }
 
     /**
@@ -106,13 +113,27 @@ class FormView
     }
 
     /**
-     * Display form errors
+     * Render a reset button
      */
-    public function errors(array $options = []): string
+    public function reset(string $label = 'Reset', $options = 'btn btn-secondary'): string
     {
-        $renderer = $this->form->getRenderer();
-        return $renderer->renderErrors($this->form, $options);
+        // Handle options as string (class) or array (attributes)
+        if (is_array($options)) {
+            $class = $options['class'] ?? 'btn btn-secondary';
+        } else {
+            $class = $options;
+        }
+
+        return sprintf(
+            '<div class="mb-3"><button type="reset" class="%s">%s</button></div>',
+            htmlspecialchars($class),
+            htmlspecialchars($label)
+        );
     }
+
+
+
+
 
     /**
      * Get access to the underlying form object
@@ -142,5 +163,100 @@ class FormView
     public function getOptions(): array
     {
         return $this->options;
+    }
+
+    /**
+     * Check if a field exists in the form
+     *
+     * @param string $fieldName The field name to check
+     * @return bool True if the field exists
+     */
+    public function has(string $fieldName): bool
+    {
+        return $this->form->hasField($fieldName);
+    }
+
+    /**
+     * Get error message for a field
+     *
+     * @param string $fieldName Field name
+     * @return string|null Error message or null
+     */
+    public function error(string $fieldName): ?string
+    {
+        // Use the form's getErrors() method to retrieve field errors
+        $errors = $this->form->getErrors($fieldName);
+
+        // Return the first error as a string (if multiple errors exist)
+        return !empty($errors) ? reset($errors) : null;
+    }
+
+    /**
+     * Display form errors
+     */
+    public function errors(array $options = []): string
+    {
+        $renderer = $this->form->getRenderer();
+        return $renderer->renderErrors($this->form, $options);
+    }
+
+
+
+    /**
+     * Get a field from the form
+     *
+     * @param string $fieldName The field name to get
+     * @return mixed The field object or null if not found
+     */
+    public function getField(string $fieldName): ?FieldInterface
+    {
+        return $this->form->hasField($fieldName) ? $this->form->getField($fieldName) : null;
+    }
+
+    /**
+     * Render a CAPTCHA field.
+     *
+     * @param string $fieldName The name of the CAPTCHA field
+     * @param array $options Additional options for rendering
+     * @return string The rendered CAPTCHA HTML
+     */
+    public function captcha(string $fieldName, array $options = []): string
+    {
+        if (!$this->form->hasField($fieldName)) {
+            return '';
+        }
+
+        $field = $this->form->getField($fieldName);
+
+        // Get the CAPTCHA service from the field options
+        $fieldOptions = $field->getOptions();
+        $captchaService = $fieldOptions['captcha_service'] ?? null;
+
+        if (!$captchaService instanceof \Core\Security\Captcha\CaptchaServiceInterface) {
+            return $this->row($fieldName, $options);
+        }
+        //public function row(string $fieldName, array $options = []): string
+
+        // Get theme and size options from field options and override with any passed options
+        $theme = $options['theme'] ?? $fieldOptions['theme'] ?? 'light';
+        $size = $options['size'] ?? $fieldOptions['size'] ?? 'normal';
+
+        // Render label
+        $label = htmlspecialchars($field->getLabel());
+        $output = '<div class="mb-3">';
+        $output .= '<label class="form-label" for="' . $fieldName . '">' . $label . '</label>';
+
+        // Render the CAPTCHA HTML using the service
+        $output .= $captchaService->render($fieldName, ['theme' => $theme, 'size' => $size]);
+
+        // Add error handling
+        $errorMessage = $this->error($fieldName);
+        if ($errorMessage) {
+            $output .= '<div class="invalid-feedback d-block">' . htmlspecialchars($errorMessage) . '</div>';
+        }
+
+        $output .= '</div>';
+
+        return $output;
     }
 }

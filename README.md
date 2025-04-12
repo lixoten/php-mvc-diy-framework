@@ -17,16 +17,32 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - Request execution timing and performance monitoring
 - View helpers for common UI components
 - Clean separation of core framework and application code
-- **Middleware Protection**: Route protection via middleware
+- **Application Middleware**
+    - TimingMiddleware 
+    - ErrorHandlerMiddleware 
+    - Session Middleware
+    - CSRF Protection Middleware
+    - RateLimitMiddleware
+    - RateLimitMiddleware
+    - RoutePatternMiddleware - Route protection via middleware
+    - Authentication Middleware Group
+        - RequireAuthMiddleware
+        - RequireRoleMiddleware
+        - GuestOnlyMiddleware
+
 - **Database Layer**: Full database abstraction with migrations, seeding, and query building
-- **Form System**: Advanced form handling with validation and CSRF protection
+- **Form System**
+    - Advanced form handling with validation 
+    - CSRF protection
+    -  CAPTCHA integration with Google reCAPTCHA
 - **Role-Based Access Control**: User roles and permissions
 - **Authentication System**: Login, logout, remember me, and session management
     - Login Remember Me
     - Rate Limiting
+    - CAPTCHA protection for login and registration
 
 ## Key Features Missing and upcoming
-- CAPTCHA.
+- apply captcha to other features like registration.
 
 ## PSR Standards Implemented
 - **PSR-3**: Logger Interface - Standardized logger implementation

@@ -106,4 +106,12 @@ interface FieldInterface
     public function isRequired(): bool;
 
     public function setOptions(array $options): self;
+
+
+    /**
+     * Render the field as HTML
+     *
+     * @return string
+     */
+    public function render(): string;
 }

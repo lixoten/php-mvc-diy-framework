@@ -237,7 +237,7 @@ return [
             ],
             // Make login much stricter
             'login' => [
-                'max_attempts' => 2,       // More strict than default (5)
+                'max_attempts' => 16,       // More strict than default (5)
                 'lockout_time' => 60     // Longer lockout (30 minutes)
             ]
         ]),
@@ -294,6 +294,34 @@ return [
                 '/verify-email/verify' => 'email_verification'
             ]
         ]),
+
+    'Core\Security\Captcha\CaptchaServiceInterface' => \DI\factory(function (ContainerInterface $c) {
+        $config = $c->get('config');
+        $captchaConfig = $config->get('security.captcha', []);
+        $bruteForceService = $c->get('Core\Security\BruteForceProtectionService');
+
+        $siteKey = $captchaConfig['site_key'] ?? $_ENV['RECAPTCHA_SITE_KEY'] ?? '';
+        $secretKey = $captchaConfig['secret_key'] ?? $_ENV['RECAPTCHA_SECRET_KEY'] ?? '';
+
+        return new \Core\Security\Captcha\GoogleReCaptchaService(
+            $siteKey,
+            $secretKey,
+            $bruteForceService,
+            $captchaConfig
+        );
+    }),
+
+    // Add this to the Field Types section in dependencies.php
+    'field.type.captcha' => function (ContainerInterface $c) {
+        return new \Core\Form\Field\Type\CaptchaFieldType(
+            $c->get('Core\Security\Captcha\CaptchaServiceInterface')
+        );
+    },
+
+
+
+
+
 
 
     // UserService
@@ -485,7 +513,8 @@ return [
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
         //->constructorParameter('loginService', \DI\get('App\Services\LoginService'))
         ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-        ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
+        ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType'))
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
     'App\Features\Admin\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -595,7 +624,8 @@ return [
             $c->get('field.type.email'),
             $c->get('field.type.textarea'),
             $c->get('field.type.password'),
-            $c->get('field.type.checkbox')
+            $c->get('field.type.checkbox'),
+            $c->get('field.type.captcha')
         ]);
         return $registry;
     }),
@@ -630,6 +660,14 @@ return [
         );
     },
 
+    // Add this with your other validators
+    'validator.captcha' => function (ContainerInterface $c) {
+        return new \Core\Form\Validation\Rules\CaptchaValidator(
+            $c->get('Core\Security\Captcha\CaptchaServiceInterface')
+        );
+    },
+
+
     // Register the ValidatorRegistry
     \Core\Form\Validation\ValidatorRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Validation\ValidatorRegistry([
@@ -639,6 +677,7 @@ return [
             $c->get('validator.regex'),
             $c->get('validator.unique_username'),
             $c->get('validator.unique_email'),
+            $c->get('validator.captcha'),
         ]);
         return $registry;
     }),

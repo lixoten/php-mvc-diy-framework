@@ -39,5 +39,19 @@ return [
             ],
             // Other settings would be copied here...
         ]
-    ]
+    ],
+    'captcha' => [
+        'provider' => 'google',
+        'site_key' => $_ENV['RECAPTCHA_SITE_KEY'] ?? '',
+        'secret_key' => $_ENV['RECAPTCHA_SECRET_KEY'] ?? '',
+        'version' => 'v2',  // 'v2' or 'v3'
+        'score_threshold' => 0.5,  // For v3 only
+        'thresholds' => [
+            'login' => 3,  // Show CAPTCHA after 3 failed attempts
+            'registration' => 2,
+            'password_reset' => 2,
+            'activation_resend' => 3,
+            'email_verification' => 3
+        ]
+    ],
 ];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Features\Auth;
 
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use App\Enums\FlashMessageType;
 use App\Features\Auth\Form\LoginFormType;
 use Core\Auth\AuthenticationServiceInterface;
@@ -19,6 +19,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Auth\Exception\AuthenticationException;
+use Core\Security\Captcha\CaptchaServiceInterface;
 
 /**
  * Login controller
@@ -29,6 +30,7 @@ class LoginController extends Controller
     private FormHandlerInterface $formHandler;
     private AuthenticationServiceInterface $authService;
     private LoginFormType $loginFormType;
+    private CaptchaServiceInterface $captchaService;
 
     /**
      * Constructor with dependencies
@@ -42,7 +44,8 @@ class LoginController extends Controller
         FormFactoryInterface $formFactory,
         FormHandlerInterface $formHandler,
         AuthenticationServiceInterface $authService,
-        LoginFormType $loginFormType
+        LoginFormType $loginFormType,
+        CaptchaServiceInterface $captchaService
     ) {
         parent::__construct(
             $route_params,
@@ -55,6 +58,7 @@ class LoginController extends Controller
         $this->formHandler = $formHandler;
         $this->authService = $authService;
         $this->loginFormType = $loginFormType;
+        $this->captchaService = $captchaService;
     }
 
     /**
@@ -62,11 +66,23 @@ class LoginController extends Controller
      */
     public function indexAction(ServerRequestInterface $request): ResponseInterface
     {
+        // Get IP address for CAPTCHA requirement check
+        $ipAddress = $request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // // Check if CAPTCHA is needed based on failed attempts
+        // $captchaRequired = $this->captchaService->isRequired('login', $ipAddress);
+        $forceCaptcha = $request->getQueryParams()['show_captcha'] ?? false;
+
+        // Check if CAPTCHA is needed based on failed attempts OR test parameter
+        $captchaRequired = $forceCaptcha ||
+        $this->captchaService->isRequired('login', $ipAddress);
+
         // Create login form
         $form = $this->formFactory->create(
             $this->loginFormType,
             ['remember' => false], // Default value for "remember me"
             [
+                'captcha_required' => $captchaRequired,
                 'layout_type' => 'none',
                 'error_display' => 'summary',
                 'renderer' => 'bootstrap'
@@ -77,8 +93,8 @@ class LoginController extends Controller
         $formHandled = $this->formHandler->handle($form, $request);
         if ($formHandled && $form->isValid()) {
             $data = $form->getData();
+
             try {
-                // Use SessionAuthenticationService for credential validation
                 $remember = isset($data['remember']) ? (bool)$data['remember'] : false;
                 $this->authService->login($data['username'], $data['password'], $remember);
 
@@ -99,11 +115,22 @@ class LoginController extends Controller
         // Create FormView for rendering
         $formView = new FormView($form, ['error_display' => 'summary']);
 
-        // Create response with appropriate status code
-        $response = $this->view(AuthConst::VIEW_AUTH_LOGIN, [
+        // Prepare view data
+        $viewData = [
             'title' => 'Log In',
-            'form' => $formView
-        ]);
+            'form' => $formView,
+        ];
+
+        // Add CAPTCHA scripts if needed
+        if ($captchaRequired) {
+            $viewData['captcha_scripts'] = $this->captchaService->getScripts();
+
+            // ALSO PASS THE SERVICE TO THE VIEW
+            $viewData['captchaService'] = $this->captchaService;
+        }
+
+        // Create response with appropriate status code
+        $response = $this->view(AuthConst::VIEW_AUTH_LOGIN, $viewData);
 
         // Set 422 Unprocessable Entity status for login failures
         if ($form->hasErrors()) {
@@ -112,6 +139,7 @@ class LoginController extends Controller
 
         return $response;
     }
+
 
     /**
      * Logout action

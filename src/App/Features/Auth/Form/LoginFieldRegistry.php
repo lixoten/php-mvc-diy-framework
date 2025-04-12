@@ -61,6 +61,33 @@ class LoginFieldRegistry implements FieldRegistryInterface
         ];
     }
 
+
+    /**
+     * Get the CAPTCHA field definition
+     */
+    public function getCaptcha(): array
+    {
+        return [
+            'type' => 'captcha',
+            'label' => 'xxxSecurity Verification',
+            'required' => true,
+            'help_text' => 'Please complete the security check',
+            'attributes' => [
+                'class' => 'g-recaptcha'
+            ],
+            'options' => [
+                'theme' => 'light',
+                'size' => 'normal'
+            ],
+            'validators' => [
+                'captcha' => [
+                    'message' => 'xxxFailed security verification. Please try again.'
+                ]
+            ]
+        ];
+    }
+
+
     /**
      * Get the remember me field definition
      */

@@ -202,4 +202,52 @@ class Field implements FieldInterface
         $this->options = $options;
         return $this;
     }
+
+    /**
+     * Render the field as HTML
+     *
+     * @return string
+     */
+    public function render(): string
+    {
+        $attributes = $this->getAttributesString();
+        $label = htmlspecialchars($this->getLabel());
+        $value = htmlspecialchars((string)$this->getValue());
+
+        // Render the field based on its type
+        switch ($this->getType()) {
+            case 'textarea':
+                return sprintf(
+                    '<label for="%s">%s</label><textarea name="%s" id="%s"%s>%s</textarea>',
+                    $this->getName(),
+                    $label,
+                    $this->getName(),
+                    $this->getName(),
+                    $attributes,
+                    $value
+                );
+
+            case 'checkbox':
+                return sprintf(
+                    '<label><input type="checkbox" name="%s" id="%s"%s %s> %s</label>',
+                    $this->getName(),
+                    $this->getName(),
+                    $attributes,
+                    $value ? 'checked' : '',
+                    $label
+                );
+
+            default:
+                return sprintf(
+                    '<label for="%s">%s</label><input type="%s" name="%s" id="%s" value="%s"%s>',
+                    $this->getName(),
+                    $label,
+                    $this->getType(),
+                    $this->getName(),
+                    $this->getName(),
+                    $value,
+                    $attributes
+                );
+        }
+    }
 }
