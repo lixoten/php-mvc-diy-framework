@@ -74,8 +74,13 @@ class LoginController extends Controller
         $forceCaptcha = $request->getQueryParams()['show_captcha'] ?? false;
 
         // Check if CAPTCHA is needed based on failed attempts OR test parameter
-        $captchaRequired = $forceCaptcha ||
-        $this->captchaService->isRequired('login', $ipAddress);
+        // $captchaRequired = $forceCaptcha ||
+        // $this->captchaService->isRequired('login', $ipAddress);
+        // Only check if CAPTCHA is required if CAPTCHA is enabled globally
+        //DebugRt::j('0', '', "111-5  "); // bingbing
+
+        $captchaRequired = $this->captchaService->isEnabled() &&
+            ($forceCaptcha || $this->captchaService->isRequired('login', $ipAddress));
 
         // Create login form
         $form = $this->formFactory->create(

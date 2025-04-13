@@ -9,6 +9,7 @@ use Core\Form\CSRF\CSRFToken;
 use Core\Form\Event\FormEvent;
 use Core\Form\Event\FormEvents;
 use Core\Form\Validation\ValidatorRegistry;
+use Core\Security\Captcha\CaptchaServiceInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -19,6 +20,7 @@ class FormHandler implements FormHandlerInterface
 {
     private CSRFToken $csrf; // TODO-do we need
     private ?EventDispatcherInterface $eventDispatcher;
+    private ?CaptchaServiceInterface $captchaService;
     private ValidatorRegistry $validatorRegistry; // TODO-do we need
 
     /**
@@ -31,10 +33,12 @@ class FormHandler implements FormHandlerInterface
     public function __construct(
         CSRFToken $csrf,
         ValidatorRegistry $validatorRegistry,
+        ?CaptchaServiceInterface $captchaService = null,
         ?EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->csrf = $csrf;
         $this->validatorRegistry = $validatorRegistry;
+        $this->captchaService = $captchaService;
         $this->eventDispatcher = $eventDispatcher;
     }
 
@@ -51,20 +55,26 @@ class FormHandler implements FormHandlerInterface
         // Parse form data from the request
         $data = $this->parseRequestData($request);
 
-        // Handle special fields like reCAPTCHA
-        // Add explicit CAPTCHA validation before general form validation
-        if ($form->hasField('captcha')) {
-            $captchaResponse = $request->getParsedBody()['g-recaptcha-response'] ?? '';
-            // DebugRt::j('captcha-response-check', '', $captchaResponse);
+        //DebugRt::j('1', '', "111-1"); // bingbing
+        // If CAPTCHA is disabled globally, skip validation
+        if (!($this->captchaService->isEnabled())) {
+            // CAPTCHA validation skipped
+        } else {
+            // Handle special fields like reCAPTCHA
+            // explicit CAPTCHA validation before general form validation
+            if ($form->hasField('captcha')) {
+                $captchaResponse = $request->getParsedBody()['g-recaptcha-response'] ?? '';
+                // DebugRt::j('captcha-response-check', '', $captchaResponse);
 
-            // If CAPTCHA response is empty, mark form as invalid
-            if (empty($captchaResponse)) {
-                $form->addError('captcha', 'Please complete the security check.');
-                $isValid = false;
+                // If CAPTCHA response is empty, mark form as invalid
+                if (empty($captchaResponse)) {
+                    $form->addError('captcha', 'Please complete the security check.');
+                    $isValid = false;
 
-                // Don't need to continue with validation if CAPTCHA failed
-                $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
-                return $isValid;
+                    // Don't need to continue with validation if CAPTCHA failed
+                    $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+                    return $isValid;
+                }
             }
         }
 

@@ -306,7 +306,8 @@ return [
     'Core\Security\Captcha\CaptchaServiceInterface' => \DI\factory(function (ContainerInterface $c) {
         $config = $c->get('config');
         $captchaConfig = $config->get('security.captcha', []);
-        $bruteForceService = $c->get('Core\Security\BruteForceProtectionService');
+        // DebugRt::j('1', '', $captchaConfig);
+        $bruteForceService = null; // $c->get('Core\Security\BruteForceProtectionService'); // foofee
 
         $siteKey = $captchaConfig['site_key'] ?? $_ENV['RECAPTCHA_SITE_KEY'] ?? '';
         $secretKey = $captchaConfig['secret_key'] ?? $_ENV['RECAPTCHA_SECRET_KEY'] ?? '';
@@ -318,7 +319,6 @@ return [
             $captchaConfig
         );
     }),
-
     // Add this to the Field Types section in dependencies.php
     'field.type.captcha' => function (ContainerInterface $c) {
         return new \Core\Form\Field\Type\CaptchaFieldType(
@@ -768,13 +768,24 @@ return [
             $c->get(\Core\Form\Renderer\RendererRegistry::class)
         );
     }),
-    FormHandlerInterface::class => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\Form\FormHandler(
-            $c->get(CSRFToken::class),
-            $c->get(ValidatorRegistry::class),
-            $c->get(Psr\EventDispatcher\EventDispatcherInterface::class)
-        );
-    }),
+
+
+
+
+    // FormHandlerInterface::class => \DI\factory(function (ContainerInterface $c) {
+    //     return new \Core\Form\FormHandler(
+    //         $c->get(CSRFToken::class),
+    //         $c->get(ValidatorRegistry::class),
+    //         $c->get(Psr\EventDispatcher\EventDispatcherInterface::class)
+    //     );
+    // }),
+    'Core\Form\FormHandlerInterface' => DI\autowire(Core\Form\FormHandler::class)
+        ->constructorParameter('csrf', DI\get('Core\Form\CSRF\CSRFToken'))
+        ->constructorParameter('validatorRegistry', DI\get('Core\Form\Validation\ValidatorRegistry'))
+        ->constructorParameter('captchaService', DI\get('Core\Security\Captcha\CaptchaServiceInterface'))
+        ->constructorParameter('eventDispatcher', DI\get('Psr\EventDispatcher\EventDispatcherInterface')),
+
+
 
 
 

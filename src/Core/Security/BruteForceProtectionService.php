@@ -70,6 +70,16 @@ class BruteForceProtectionService
         );
     }
 
+
+    /**
+     * Check if brute force protection is globally enabled
+     */
+    public function isEnabled(): bool
+    {
+        return $this->config['enabled'] ?? true;
+    }
+
+
     /**
      * Check if the request is blocked due to too many attempts
      *
@@ -121,7 +131,7 @@ class BruteForceProtectionService
     ): void {
         $this->ensureActionTypeExists($actionType);
 
-        $this->repository->record([
+        $this->repository->recordAttempt([
             'identifier' => $identifier,
             'action_type' => $actionType,
             'ip_address' => $ipAddress,
@@ -255,6 +265,11 @@ class BruteForceProtectionService
      */
     public function isCaptchaRequired(string $actionType, string $identifier): bool
     {
+        // First check if CAPTCHA is globally enabled via the service
+        if (!$this->captchaService->isEnabled()) {
+            return false;
+        }
+
         $threshold = $this->config[$actionType]['captcha_threshold'] ?? 0;
 
         if ($threshold <= 0) {

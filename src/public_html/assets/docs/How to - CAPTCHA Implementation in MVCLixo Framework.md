@@ -1,5 +1,5 @@
 # CAPTCHA Implementation in MVCLixo Framework
-
+# Important!!! This document might be obsolte and out of date
 ## Notes
 - @workspace src\App\Features\Auth\LoginController.php
 - src\Config\security.php
@@ -14,6 +14,16 @@
 - src\Core\Security\Captcha\CaptchaServiceInterface.php
 - src\Core\Security\Captcha\GoogleReCaptchaService.php
 - src\Core\Security\BruteForceProtectionService.php
+- src\dependencies.php
+
+RateLimiting Files
+- src\Core\Security\RateLimitService.php
+- src\Core\Security\RateLimitServiceInterface.php
+- src\Core\Middleware\RateLimitMiddleware.php
+- src\Config\security.php
+- src\Core\Auth\SessionAuthenticationService.php
+- src\App\Repository\RateLimitRepository.php
+- src\App\Repository\RateLimitRepositoryInterface.php
 - src\dependencies.php
 
 Tell me how captcha works in my Application. make sure you are explain our system not concepts,

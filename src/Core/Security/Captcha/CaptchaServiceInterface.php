@@ -7,6 +7,13 @@ namespace Core\Security\Captcha;
 interface CaptchaServiceInterface
 {
     /**
+     * Check if CAPTCHA functionality is globally enabled
+     *
+     * @return bool True if CAPTCHA is enabled
+     */
+    public function isEnabled(): bool;
+
+    /**
      * Check if CAPTCHA should be displayed for a specific action type and identifier
      *
      * @param string $actionType The action being performed (login, registration, etc.)

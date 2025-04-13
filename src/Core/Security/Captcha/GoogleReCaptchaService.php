@@ -11,7 +11,7 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
 {
     private string $siteKey;
     private string $secretKey;
-    private BruteForceProtectionService $bruteForceService;
+    private ?BruteForceProtectionService $bruteForceService; // foofee
     private array $config;
 
     /**
@@ -25,7 +25,7 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
     public function __construct(
         string $siteKey,
         string $secretKey,
-        BruteForceProtectionService $bruteForceService,
+        ?BruteForceProtectionService $bruteForceService = null,  // Make optional // foofee
         array $config = []
     ) {
         $this->siteKey = $siteKey;
@@ -37,11 +37,36 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
     /**
      * {@inheritdoc}
      */
+    public function isEnabled(): bool
+    {
+        //DebugRt::j('0', '', "111-4"); // bingbing
+        return $this->config['enabled'] ?? true;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
     public function isRequired(string $actionType, ?string $identifier = null): bool
     {
+        // First check if CAPTCHA is globally enabled
+        //DebugRt::j('0', '', "111-2"); // bingbing
+        if (!($this->config['enabled'] ?? true)) {
+            return false;
+        }
+        //DebugRt::j('0', 'Captcha Config', $this->config['enabled']); // bingbing
+
         if (empty($identifier)) {
             $identifier = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
         }
+
+        // TEMPORARY FIX: During BruteForce service transition
+        // Check if bruteForceService property is null or not set
+        if (!isset($this->bruteForceService)) {
+            DebugRt::j('0', '', 555);
+            return in_array($actionType, ['login', 'registration', 'password_reset']);
+        }
+        DebugRt::j('1', '', 777);
 
         $threshold = $this->config['thresholds'][$actionType] ?? 3;
 
@@ -102,10 +127,14 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
      */
     public function verify(string $response): bool
     {
-
         // Add debugging to see what's happening
         //DebugRt::j('1', 'captcha-response', $response);
 
+        // If CAPTCHA is disabled, always return true (consider verification successful)
+        //DebugRt::j('1', '', "111-3"); // bingbing
+        if (!($this->config['enabled'] ?? true)) {
+            return true;
+        }
 
         if (empty($response)) {
             return false;

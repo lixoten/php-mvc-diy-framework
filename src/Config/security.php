@@ -9,6 +9,29 @@ return [
             'email_verification' => ['limit' => 5, 'window' => 900], // 5 attempts per 15 minutes
             'activation_resend' => ['limit' => 3, 'window' => 1800], // 3 attempts per 30 minutes
         ],
+        'brute_force_protection' => [
+            'enabled' => true,  // Global toggle
+            'login' => [
+                'max_attempts' => 5,
+                'ip_max_attempts' => 15,
+                'lockout_time' => 900
+            ],
+        ],
+        'captcha' => [
+            'enabled' => false,  // Master toggle for CAPTCHA functionality
+            'provider' => 'google',
+            'site_key' => $_ENV['RECAPTCHA_SITE_KEY'] ?? '',
+            'secret_key' => $_ENV['RECAPTCHA_SECRET_KEY'] ?? '',
+            'version' => 'v2',  // 'v2' or 'v3'
+            'score_threshold' => 0.5,  // For v3 only
+            'thresholds' => [
+                'login' => 3,  // Show CAPTCHA after 3 failed attempts
+                'registration' => 2,
+                'password_reset' => 2,
+                'activation_resend' => 3,
+                'email_verification' => 3
+            ]
+        ],
         // foofee
         //     'rate_limits' => [
         //         'login' => [
@@ -54,19 +77,5 @@ return [
         //     ],
         //     // Other settings would be copied here...
         // ]
-    ],
-    'captcha' => [
-        'provider' => 'google',
-        'site_key' => $_ENV['RECAPTCHA_SITE_KEY'] ?? '',
-        'secret_key' => $_ENV['RECAPTCHA_SECRET_KEY'] ?? '',
-        'version' => 'v2',  // 'v2' or 'v3'
-        'score_threshold' => 0.5,  // For v3 only
-        'thresholds' => [
-            'login' => 3,  // Show CAPTCHA after 3 failed attempts
-            'registration' => 2,
-            'password_reset' => 2,
-            'activation_resend' => 3,
-            'email_verification' => 3
-        ]
     ],
 ];
