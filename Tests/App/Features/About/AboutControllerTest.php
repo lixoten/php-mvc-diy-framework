@@ -5,40 +5,40 @@ namespace Tests\App\Features\About;
 use PHPUnit\Framework\TestCase;
 use App\Features\About\AboutController;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Http\HttpFactory;
 use Core\View;
+use Psr\Container\ContainerInterface;
 
 class AboutControllerTest extends TestCase
 {
-    public function testIndexActionOutputsHello(): void
+    public function testIndexActionReturnsResponse(): void
     {
-        // Create a mock for the flash service
+        // Keep the setup code the same
         $flashMock = $this->createMock(FlashMessageServiceInterface::class);
         $viewMock = $this->createMock(View::class);
+        $httpFactoryMock = $this->createMock(HttpFactory::class);
+        $containerMock = $this->createMock(ContainerInterface::class);
 
-        // Create a partial mock that overrides the view method
         $controller = $this->getMockBuilder(AboutController::class)
             ->setConstructorArgs([
                 ['controller' => 'about', 'action' => 'index'],
                 $flashMock,
-                $viewMock
+                $viewMock,
+                $httpFactoryMock,
+                $containerMock
             ])
-            ->onlyMethods(['view']) // Only mock the view method
+            ->onlyMethods(['view'])
             ->getMock();
 
-        // Set up the view method to do nothing (we're testing the echo, not the view)
-        // For void methods, use willReturnCallback with an empty function
-        /** @var AboutController&\PHPUnit\Framework\MockObject\MockObject $controller */
-        $controller->method('view')->willReturnCallback(function () {
-            // Do nothing
-        });
+        $mockResponse = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
+        $controller->method('view')->willReturn($mockResponse);
 
-        // Capture the output
-        ob_start();
-        $controller->indexAction();
-        $output = ob_get_clean();
+        // NEW: Test the return value instead of output
+        /** @var AboutController $controller */
+        $result = $controller->indexAction();
 
-        // Assert that it outputs "hello"
-        $this->assertStringContainsString('hello', $output);
+        // Assert we got the response we expected
+        $this->assertSame($mockResponse, $result);
     }
 
     public function testIndexActionCallsViewWithCorrectParameters(): void
@@ -46,23 +46,34 @@ class AboutControllerTest extends TestCase
         // Arrange
         $flashMock = $this->createMock(FlashMessageServiceInterface::class);
         $viewMock = $this->createMock(View::class);
+        $httpFactoryMock = $this->createMock(HttpFactory::class);
+        $containerMock = $this->createMock(ContainerInterface::class);
 
         $controller = $this->getMockBuilder(AboutController::class)
             ->setConstructorArgs([
                 ['controller' => 'about', 'action' => 'index'],
                 $flashMock,
-                $viewMock
+                $viewMock,
+                $httpFactoryMock,
+                $containerMock
             ])
             ->onlyMethods(['view'])
             ->getMock();
+
+        // Create the mock response object
+        $mockResponse = $this->createMock(\Psr\Http\Message\ResponseInterface::class);
 
         // Expect the view method to be called with specific arguments
         $controller->expects($this->once())
             ->method('view')
             ->with(
                 $this->equalTo('about/index'),
-                $this->equalTo(['title' => 'Welcome About'])
-            );
+                $this->callback(function ($params) {
+                    return $params['title'] === 'About Index Action'
+                        && isset($params['actionLinks']);
+                })
+            )
+            ->willReturn($mockResponse); // Add this line to the chain
 
         /** @var AboutController $controller */
         $controller->indexAction();

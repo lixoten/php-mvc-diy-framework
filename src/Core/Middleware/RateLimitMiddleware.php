@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Core\Middleware;
 
-use Core\Security\BruteForceProtectionService;
 use Core\Auth\Exception\AuthenticationException;
 use Core\Http\HttpFactory;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Enums\FlashMessageType;
 use App\Helpers\DebugRt;
+use Core\Security\RateLimitServiceInterface;
+use Core\Security\BruteForceProtectionService;
 // use App\Helpers\DebugRt as Debug;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -18,18 +19,21 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class RateLimitMiddleware implements MiddlewareInterface
 {
-    private BruteForceProtectionService $protectionService;
+    private RateLimitServiceInterface $rateLimitService;
+    // private BruteForceProtectionService $protectionService; // foofee
     private HttpFactory $httpFactory;
     private FlashMessageServiceInterface $flash;
     private array $configPath;
 
     public function __construct(
-        BruteForceProtectionService $protectionService,
+        RateLimitServiceInterface $rateLimitService,
+        // BruteForceProtectionService $protectionService, // foofee
         HttpFactory $httpFactory,
         FlashMessageServiceInterface $flash,
         array $configPath = []
     ) {
-        $this->protectionService = $protectionService;
+        $this->rateLimitService = $rateLimitService;
+        // $this->protectionService = $protectionService;  // foofee
         $this->httpFactory = $httpFactory;
         $this->flash = $flash;
         $this->configPath = $configPath;
@@ -55,7 +59,7 @@ class RateLimitMiddleware implements MiddlewareInterface
 
             try {
                 // Check rate limit
-                $this->protectionService->checkRateLimit(
+                $this->rateLimitService->checkRateLimit(
                     $identifier,
                     $actionType,
                     $ipAddress
@@ -65,7 +69,7 @@ class RateLimitMiddleware implements MiddlewareInterface
                 // if ($method === 'POST') {
                 if ($method === 'POST' || ($method === 'GET' && $actionType === 'email_verification')) {
                     // Record both POST and verification GET requests
-                    $this->protectionService->recordAttempt(
+                    $this->rateLimitService->recordAttempt(
                         $identifier,
                         $actionType,
                         $ipAddress,
@@ -83,7 +87,7 @@ class RateLimitMiddleware implements MiddlewareInterface
                     $response->getStatusCode() < 400
                 ) {
                     // Update the existing record instead of creating a duplicate
-                    $this->protectionService->updateLastAttemptStatus(
+                    $this->rateLimitService->updateLastAttemptStatus(
                         $identifier,
                         $actionType,
                         true // Success

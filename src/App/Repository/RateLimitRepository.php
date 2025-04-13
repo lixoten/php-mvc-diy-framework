@@ -18,7 +18,7 @@ class RateLimitRepository implements RateLimitRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function record(array $data): bool
+    public function recordAttempt(array $data): bool
     {
         $sql = "INSERT INTO rate_limit_attempts (
                 identifier,
@@ -63,8 +63,8 @@ class RateLimitRepository implements RateLimitRepositoryInterface
                 FROM rate_limit_attempts
                 WHERE identifier = :identifier
                 AND action_type = :action_type
-                AND attempted_at >= :since
-                AND success = 0";
+                AND attempted_at >= :since";
+                // AND success = 0";
 
         $stmt = $this->connection->prepare($sql);
         $stmt->bindValue(':identifier', $identifier);
@@ -94,8 +94,8 @@ class RateLimitRepository implements RateLimitRepositoryInterface
                     FROM rate_limit_attempts
                     WHERE ip_address = :ip_address
                     AND action_type = :action_type
-                    AND attempted_at >= :since
-                    AND success = 0";
+                    AND attempted_at >= :since";
+                    // AND success = 0";
         }
 
         $stmt = $this->connection->prepare($sql);
@@ -128,17 +128,27 @@ class RateLimitRepository implements RateLimitRepositoryInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteExpired(int $olderThan): int
+    public function deleteExpired(int $olderThan, ?string $actionType = null): int
     {
-        $sql = "DELETE FROM rate_limit_attempts
-                WHERE attempted_at < :cutoff";
+        $cutoffDate = date('Y-m-d H:i:s', $olderThan);
 
-        $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':cutoff', date('Y-m-d H:i:s', $olderThan));
+        if ($actionType === null) {
+            // Delete all expired records
+            $sql = "DELETE FROM rate_limit_attempts WHERE attempted_at < :cutoff";
+            $stmt = $this->connection->prepare($sql);
+            $stmt->bindValue(':cutoff', $cutoffDate);
+        } else {
+            // Delete only records for specific action type
+            $sql = "DELETE FROM rate_limit_attempts WHERE action_type = :action_type AND attempted_at < :cutoff";
+            $stmt = $this->connection->prepare($sql);
+            $stmt->bindValue(':action_type', $actionType);
+            $stmt->bindValue(':cutoff', $cutoffDate);
+        }
+
         $stmt->execute();
-
         return $stmt->rowCount();
     }
+
 
     /**
      * {@inheritdoc}

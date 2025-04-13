@@ -9,7 +9,7 @@ use App\Enums\UserStatus;
 use App\Repository\RememberTokenRepository;
 use App\Repository\UserRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
-use Core\Security\BruteForceProtectionService;
+// use Core\Security\BruteForceProtectionService; // foofee
 use Core\Session\SessionManagerInterface;
 
 class SessionAuthenticationService implements AuthenticationServiceInterface
@@ -55,7 +55,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         UserRepositoryInterface $userRepository,
         SessionManagerInterface $session,
         protected RememberTokenRepository $rememberTokenRepository,
-        protected BruteForceProtectionService $bruteForceProtection,
+        // protected BruteForceProtectionService $bruteForceProtection, // foofee
         array $config = []
     ) {
         $this->userRepository = $userRepository;

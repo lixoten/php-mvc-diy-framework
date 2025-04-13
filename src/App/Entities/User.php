@@ -18,7 +18,7 @@ class User
     private ?string $activationToken = null;
     private ?int $activationTokenExpiry = null;
     private ?string $resetToken = null;
-    private ?string $resetTokenExpiry = null;
+    private ?int $resetTokenExpiry = null;
     private ?string $createdAt = null;
     private ?string $updatedAt = null;
 
@@ -245,7 +245,7 @@ class User
     /**
      * Get activation token expiry
      */
-    public function getActivationTokenExpiry(): ?string
+    public function getActivationTokenExpiry(): ?int
     {
         return $this->activationTokenExpiry;
     }
@@ -296,7 +296,7 @@ class User
     /**
      * Get reset token expiry
      */
-    public function getResetTokenExpiry(): ?string
+    public function getResetTokenExpiry(): ?int
     {
         return $this->resetTokenExpiry;
     }
@@ -304,7 +304,7 @@ class User
     /**
      * Set reset token expiry
      */
-    public function setResetTokenExpiry(?string $resetTokenExpiry): self
+    public function setResetTokenExpiry(?int $resetTokenExpiry): self
     {
         $this->resetTokenExpiry = $resetTokenExpiry;
         return $this;
@@ -375,7 +375,7 @@ class User
         // Set expiry time
         $expiry = new \DateTime();
         $expiry->modify("+{$expireMinutes} minutes");
-        $this->resetTokenExpiry = $expiry->format('Y-m-d H:i:s');
+        $this->resetTokenExpiry = $expiry->getTimestamp(); // Use getTimestamp() instead of format()
 
         return $token;
     }
@@ -389,10 +389,7 @@ class User
             return false;
         }
 
-        $expiry = new \DateTime($this->resetTokenExpiry);
-        $now = new \DateTime();
-
-        return $expiry > $now;
+        return time() < $this->resetTokenExpiry;
     }
 
     /**

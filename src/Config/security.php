@@ -3,42 +3,57 @@
 return [
     'development' => [
         'rate_limits' => [
-            'login' => [
-                'max_attempts' => 5,
-                'ip_max_attempts' => 15,
-                'lockout_time' => 900 // 15 minutes
-            ],
-            'password_reset' => [
-                'max_attempts' => 3,
-                'ip_max_attempts' => 10,
-                'lockout_time' => 1800 // 30 minutes
-            ],
-            'registration' => [
-                'max_attempts' => 3,
-                'ip_max_attempts' => 10,
-                'lockout_time' => 3600 // 60 minutes
-            ],
-            'activation_resend' => [
-                'max_attempts' => 3,
-                'ip_max_attempts' => 9,
-                'lockout_time' => 3600 // 60 minutes
-            ],
-            'email_verification' => [
-                'max_attempts' => 5,
-                'ip_max_attempts' => 15,
-                'lockout_time' => 900 // 15 minutes
-            ]
-        ]
+            'login' => ['limit' => 5, 'window' => 300],          // 5 attempts per 5 minutes
+            'registration' => ['limit' => 3, 'window' => 1800],   // 3 attempts per 30 minutes
+            'password_reset' => ['limit' => 3, 'window' => 900],  // 3 attempts per 15 minutes
+            'email_verification' => ['limit' => 5, 'window' => 900], // 5 attempts per 15 minutes
+            'activation_resend' => ['limit' => 3, 'window' => 1800], // 3 attempts per 30 minutes
+        ],
+        // foofee
+        //     'rate_limits' => [
+        //         'login' => [
+        //             'max_attempts' => 5,
+        //             'ip_max_attempts' => 15,
+        //             'lockout_time' => 900 // 15 minutes
+        //         ],
+        //         'password_reset' => [
+        //             'max_attempts' => 3,
+        //             'ip_max_attempts' => 10,
+        //             'lockout_time' => 1800 // 30 minutes
+        //         ],
+        //         'registration' => [
+        //             'max_attempts' => 3,
+        //             'ip_max_attempts' => 10,
+        //             'lockout_time' => 3600 // 60 minutes
+        //         ],
+        //         'activation_resend' => [
+        //             'max_attempts' => 3,
+        //             'ip_max_attempts' => 9,
+        //             'lockout_time' => 3600 // 60 minutes
+        //         ],
+        //         'email_verification' => [
+        //             'max_attempts' => 5,
+        //             'ip_max_attempts' => 15,
+        //             'lockout_time' => 900 // 15 minutes
+        //         ]
+        //     ]
     ],
     'production' => [
         'rate_limits' => [
-            'login' => [
-                'max_attempts' => 5,
-                'ip_max_attempts' => 15,
-                'lockout_time' => 1800 // 30 minutes (stricter in production)
-            ],
-            // Other settings would be copied here...
-        ]
+            'login' => ['limit' => 10, 'window' => 600],
+            'registration' => ['limit' => 6, 'window' => 3200],
+            'password_reset' => ['limit' => 3, 'window' => 900],
+            'email_verification' => ['limit' => 5, 'window' => 900],
+            'activation_resend' => ['limit' => 3, 'window' => 1800],
+        ],
+        // 'rate_limits' => [
+        //     'login' => [
+        //         'max_attempts' => 5,
+        //         'ip_max_attempts' => 15,
+        //         'lockout_time' => 1800 // 30 minutes (stricter in production)
+        //     ],
+        //     // Other settings would be copied here...
+        // ]
     ],
     'captcha' => [
         'provider' => 'google',

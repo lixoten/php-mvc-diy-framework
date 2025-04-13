@@ -70,3 +70,6 @@ src/public_html/assets/docs/xampp - database corruption.md
 src/public_html/assets/docs/Captcha Plan.md
 src/public_html/assets/docs/catchcha.md
 .gitattributes
+src/public_html/assets/docs/HowToWhatever.md
+mid.md
+src/public_html/assets/docs/_.md

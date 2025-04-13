@@ -158,6 +158,8 @@ class TokenServiceTest extends TestCase
     {
         $data = 'user:123';
         $token = $this->tokenService->generateSigned($data);
+        sleep(3); // Wait 2 seconds
+
 
         // The token should fail verification if maxAge is very small
         $this->assertFalse($this->tokenService->verifySigned($token, null, 1));

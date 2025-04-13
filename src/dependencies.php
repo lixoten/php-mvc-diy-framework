@@ -222,8 +222,25 @@ return [
     //     )
     //     ->constructorParameter('config', DI\get('auth.config')),
 
+    // Rate limiting service
+    // Repository binding (keep only one)
     'App\Repository\RateLimitRepositoryInterface' => DI\autowire(App\Repository\RateLimitRepository::class)
         ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
+
+    // Rate limiting service - fixed parameters to match constructor
+    'Core\Security\RateLimitServiceInterface' => DI\autowire(Core\Security\RateLimitService::class)
+        ->constructorParameter('repository', DI\get('App\Repository\RateLimitRepositoryInterface'))
+        ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('customConfig', DI\get('config.rate_limits')),
+
+    // Configuration values
+    'config.rate_limits' => [
+        'login' => ['limit' => 5, 'window' => 300],          // 5 attempts per 5 minutes
+        'registration' => ['limit' => 3, 'window' => 1800],   // 3 attempts per 30 minutes
+        'password_reset' => ['limit' => 3, 'window' => 900],  // 3 attempts per 15 minutes
+        'email_verification' => ['limit' => 5, 'window' => 900], // 5 attempts per 15 minutes
+        'activation_resend' => ['limit' => 3, 'window' => 1800], // 3 attempts per 30 minutes
+    ],
 
     'Core\Security\BruteForceProtectionService' => DI\autowire()
         ->constructorParameter('repository', DI\get('App\Repository\RateLimitRepositoryInterface'))
@@ -248,20 +265,9 @@ return [
         ->constructorParameter(
             'rememberTokenRepository',
             DI\get(App\Repository\RememberTokenRepositoryInterface::class)
-        )
-        // ->constructorParameter('loginAttemptsRepository',
-        // DI\get(App\Repository\LoginAttemptsRepositoryInterface::class))
-        ->constructorParameter('bruteForceProtection', DI\get('Core\Security\BruteForceProtectionService')),
-
-    // // Add this to your dependencies.php file
-    // 'auth.config' => [
-    //     'session_lifetime' => 7200, // 2 hours
-    //     'secure_cookie' => function (ContainerInterface $c) {
-    //         return $c->get('environment') === 'production';
-    //     },
-    //     'cookie_path' => '/',
-    //     'cookie_domain' => '',
-    // ],
+        ),
+        // foofee
+        // ->constructorParameter('bruteForceProtection', DI\get('Core\Security\BruteForceProtectionService')),
 
     // Add this after the RememberTokenRepository registration
     // 'App\Repository\LoginAttemptsRepositoryInterface' => DI\autowire(App\Repository\LoginAttemptsRepository::class)
@@ -282,7 +288,9 @@ return [
 
     // Rate limiting middleware
     'Core\Middleware\RateLimitMiddleware' => \DI\autowire()
-        ->constructorParameter('protectionService', \DI\get('Core\Security\BruteForceProtectionService'))
+        // foofee
+        // ->constructorParameter('protectionService', \DI\get('Core\Security\BruteForceProtectionService'))
+        ->constructorParameter('rateLimitService', \DI\get('Core\Security\RateLimitServiceInterface'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('configPath', [

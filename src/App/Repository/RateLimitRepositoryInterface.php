@@ -12,7 +12,7 @@ interface RateLimitRepositoryInterface
      * @param array $data Attempt data (identifier, action_type, ip_address, success, etc.)
      * @return bool True if recorded successfully
      */
-    public function record(array $data): bool;
+    public function recordAttempt(array $data): bool;
 
     /**
      * Count recent attempts for a specific identifier and action
@@ -44,12 +44,13 @@ interface RateLimitRepositoryInterface
     public function clearForIdentifier(string $identifier, string $actionType): bool;
 
     /**
-     * Delete expired attempts
+     * Delete expired attempt records
      *
-     * @param int $olderThan Delete attempts older than this timestamp
-     * @return int Number of deleted records
+     * @param int $olderThan Timestamp to delete records older than
+     * @param string|null $actionType Optional action type to limit deletion to
+     * @return int Number of records deleted
      */
-    public function deleteExpired(int $olderThan): int;
+    public function deleteExpired(int $olderThan, ?string $actionType = null): int;
 
     /**
      * Update the status of the last attempt for a specific identifier and action
