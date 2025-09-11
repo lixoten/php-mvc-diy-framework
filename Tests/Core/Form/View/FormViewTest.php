@@ -25,7 +25,7 @@ class FormViewTest extends TestCase
         // Configure form mock
         $form->method('getRenderer')->willReturn($renderer);
         $form->method('getRenderOptions')->willReturn([
-            'css_theme_class' => 'form-theme-dotted'
+            'css_form_theme_class' => 'form-theme-dotted'
         ]);
 
         // Configure renderer expectations
@@ -35,8 +35,8 @@ class FormViewTest extends TestCase
                 $this->equalTo($form),
                 $this->callback(function (array $options): bool {
                     // Verify that options contain the theme class
-                    return isset($options['css_theme_class']) &&
-                           $options['css_theme_class'] === 'form-theme-dotted';
+                    return isset($options['css_form_theme_class']) &&
+                           $options['css_form_theme_class'] === 'form-theme-dotted';
                 })
             )
             ->willReturn('<form method="post" class="form-theme-dotted needs-validation" novalidate>');

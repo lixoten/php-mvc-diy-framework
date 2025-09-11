@@ -22,4 +22,43 @@ class UiHelper
 
         return "<ul{$ulClassAttr}>{$liContent}</ul>";
     }
+
+    public static function tableLinks(array $links, int $columns = 4): string
+    {
+        if (empty($links)) {
+            return '';
+        }
+
+        $html = '<table class="table table-bordered"><tbody>';
+        $total = count($links);
+        $index = 0;
+
+        while ($index < $total) {
+            $html .= '<tr>';
+            for ($col = 0; $col < $columns; $col++) {
+                if ($index < $total) {
+
+                    $link = $links[$index];
+                    if (
+                        isset($link['url']) &&
+                        $link['url'] instanceof \App\Enums\Url &&
+                        $link['url']->name === 'CORE_TESTY_EDIT'
+                    ) {
+                        $rrr = 1;
+                        // This is the CORE_TESTY link
+                        $html .= '<td>' . \App\Helpers\LinkBuilder::generateTextLink($link['url'], ['id' => 22], $link['text']) . '</td>';
+                    } else {
+                        $html .= '<td>' . \App\Helpers\LinkBuilder::generateTextLink($link['url'], [], $link['text']) . '</td>';
+                    }
+                    $index++;
+                } else {
+                    $html .= '<td></td>';
+                }
+            }
+            $html .= '</tr>';
+        }
+
+        $html .= '</tbody></table>';
+        return $html;
+    }
 }

@@ -186,4 +186,53 @@ interface FormInterface
      * @return array
      */
     public function getRenderOptions(): array;
+
+    /**
+     * Set the form rendering options
+     *
+     * @return void
+     */
+    public function setRenderOptions(array $options): void;
+
+    /**
+     * Get the security level of this form
+     *
+     * @return string 'high', 'medium', or 'low'
+     */
+    public function getSecurityLevel(): string;
+
+    /**
+     * Check if the form has CAPTCHA scripts
+     *
+     * @return bool
+     */
+    public function hasCaptchaScripts(): bool;
+
+    /**
+     * Get CAPTCHA scripts HTML
+     *
+     * @return string
+     */
+    public function getCaptchaScripts(): string;
+
+    /**
+     * Check if form requires CAPTCHA
+     *
+     * @return bool
+     */
+    public function isCaptchaRequired(): bool;
+
+    /**
+     * Check if the form has CSS theme file
+     *
+     * @return bool
+     */
+    public function hasCssFormThemeFile(): bool;
+
+    /**
+     * Get CSS theme file name
+     *
+     * @return string
+     */
+    public function getCssFormThemeFile(): string;
 }

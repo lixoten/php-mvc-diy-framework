@@ -1,0 +1,185 @@
+{
+  "main": {
+    "id": "06ed9b00bd49c71e",
+    "type": "split",
+    "children": [
+      {
+        "id": "f83ed507ba294286",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "061f832b0ff2022b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "HowToWhatever.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "HowToWhatever"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "14c0754b00bbfec0",
+    "type": "split",
+    "children": [
+      {
+        "id": "2676b07471ec527b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e8c76d46aafb8581",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "aff4660ccbb566ff",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "0b624be5312bb619",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "3c2fe727a4fab830",
+    "type": "split",
+    "children": [
+      {
+        "id": "1d190300b42c400e",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "2733db0982db43a0",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "MVC Migrations - Complete Reference Guide.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for MVC Migrations - Complete Reference Guide"
+            }
+          },
+          {
+            "id": "a7ee79ef7dd66d56",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "MVC Migrations - Complete Reference Guide.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from MVC Migrations - Complete Reference Guide"
+            }
+          },
+          {
+            "id": "a2db35fe302c6171",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "7b7d53d0618c3e46",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "MVC Migrations - Complete Reference Guide.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of MVC Migrations - Complete Reference Guide"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "061f832b0ff2022b",
+  "lastOpenFiles": [
+    "MVC Migrations - Complete Reference Guide.md",
+    "HowToWhatever.md",
+    "How-to - Recover from database corruption.md",
+    "App Flow.md",
+    "How-to-set-up-HTTPS-on-your-local-Apache-server-using-XAMPP.md",
+    "How-to-bring-in-favorites-json-to-new-project.md",
+    "how-to-unit-test-notes.md",
+    "How-to-use-vscode-snippets.md",
+    "aaa.php",
+    "Untitled.canvas",
+    "catchcha.md"
+  ]
+}

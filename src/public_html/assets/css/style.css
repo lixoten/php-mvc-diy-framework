@@ -1,3 +1,25 @@
+/*
+ * CORE LAYOUT STYLESHEET
+ * Contains only structural/layout CSS
+ * NO colors or decorative styling should be added here
+ * Visual styling belongs in theme files
+ */
+:root {
+    --container-padding: 1rem;
+    --sidebar-max-width: 400px;
+}
+
+.containerLayout > * {
+    padding: var(--container-padding);
+}
+
+.containerLayout > .left-sidebar {
+    grid-area: left-sidebar;
+    max-width: var(--sidebar-max-width);
+}
+
+
+
 body {
     margin:0;
     padding:0;
@@ -14,7 +36,7 @@ body {
         'main-content'
         'left-sidebar'
         'footer';
-        
+
     /* fallback height */
     min-height:100vh;
 
@@ -31,32 +53,27 @@ body {
 /* assign columns to grid areas */
 .containerLayout > .header {
     grid-area:header;
-    background:#f97171;
+    /* background:#f97171; */
 }
 .containerLayout > .main-content {
     grid-area:main-content;
-    background:#fff;
+    /* background:#fff; */
 }
 .containerLayout > .left-sidebar {
     grid-area:left-sidebar;
-    background:#f5d55f;
+    /* background:#f5d55f; */
     max-width: 400px;
-    
 
-    
-    
-    
-    
-    
-    
+
+
 }
 .containerLayout > .right-sidebar {
     grid-area:right-sidebar;
-    background:#c5ed77;
+    /* background:#c5ed77; */
 }
 .containerLayout > .footer {
     grid-area:footer;
-    background:#72c2f1;
+    /* background:#72c2f1; */
 }
 
 /* tablet breakpoint */

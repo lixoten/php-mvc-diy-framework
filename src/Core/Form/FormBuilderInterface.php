@@ -12,6 +12,11 @@ use Core\Form\Field\FieldInterface;
 interface FormBuilderInterface
 {
     /**
+     * Set RenderOptions
+     */
+    public function setRenderOptions(array $renderOptions): void;
+
+    /**
      * Add a field to the form
      *
      * @param string $name Field name
@@ -50,7 +55,6 @@ interface FormBuilderInterface
      * @return self
      */
     public function setMethod(string $method): self;
-
 
     /**
      * Set form layout configuration

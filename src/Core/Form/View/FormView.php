@@ -15,6 +15,7 @@ class FormView
 {
     private FormInterface $form;
     private array $options = [];
+    private bool $isErrorDisplaySummary = false; // Add this property
 
     /**
      * @param FormInterface $form The form to wrap
@@ -24,13 +25,30 @@ class FormView
     {
         $this->form = $form;
 
-        // CRUCIAL FIX: Explicitly set hide_inline_errors when using summary display
-        if (isset($options['error_display']) && $options['error_display'] === 'summary') {
-            $options['hide_inline_errors'] = true;
+        // Get the form's render options first
+        $formOptions = $form->getRenderOptions();
+
+
+        // If layout has error_display, add it to form options with priority
+        if ($layoutErrorDisplay) {
+            $formOptions['error_display'] = $layoutErrorDisplay;
         }
 
 
-        $this->options = $options;
+        // Merge options (passed options override form options)
+        $this->options = array_merge($formOptions, $options);
+
+        // Check MERGED options
+        $this->isErrorDisplaySummary = isset($this->options['error_display']) &&
+                                      $this->options['error_display'] === 'summary';
+
+        // Modify MERGED options
+        if ($this->isErrorDisplaySummary) {
+            $this->options['hide_inline_errors'] = true;
+        }
+
+
+        //$this->options = $options;
     }
 
     /**
@@ -39,11 +57,18 @@ class FormView
     public function start(array $options = []): string
     {
         $renderer = $this->form->getRenderer();
+
+        // First merge options to create $mergedOptions
         $formOptions = $this->form->getRenderOptions(); // Get original form options
         $mergedOptions = array_merge($formOptions, $this->options, $options); // Merge in correct order
+
+        // THEN check/modify $mergedOptions
+        if ($this->form->hasField('captcha') && empty($mergedOptions['onsubmit'])) {
+            $mergedOptions['onsubmit'] = 'return validateCaptcha()';
+        }
+
         return $renderer->renderStart($this->form, $mergedOptions);
     }
-
 
     /**
      * Display error summary explicitly
@@ -51,7 +76,7 @@ class FormView
     public function errorSummary(array $options = []): string
     {
         // Only proceed if we're in summary mode
-        if ($this->options['error_display'] !== 'summary') {
+        if (!$this->isErrorDisplaySummary) {
             return '';
         }
 
@@ -76,10 +101,18 @@ class FormView
         $renderer = $this->form->getRenderer();
         $fieldHtml = $renderer->renderField($field, $mergedOptions);
 
-        // Add inline error handling
-        $errorHtml = $this->error($fieldName)
-            ? '<div class="invalid-feedback d-block">' . htmlspecialchars($this->error($fieldName)) . '</div>'
-            : '';
+        // ONLY add error HTML if the renderer isn't already handling it
+        $errorHtml = '';
+        if (
+            !($mergedOptions['hide_inline_errors'] ?? false) &&
+            !($mergedOptions['renderer'] ?? '' === 'bootstrap')
+        ) {
+            // Only add our own error HTML for non-Bootstrap renderers
+            $errorMessage = $this->error($fieldName);
+            if ($errorMessage) {
+                $errorHtml = '<div class="invalid-feedback d-block">' . htmlspecialchars($errorMessage) . '</div>';
+            }
+        }
 
         return $fieldHtml . $errorHtml;
     }

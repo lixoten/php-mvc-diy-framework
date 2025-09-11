@@ -50,11 +50,20 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
     public function isRequired(string $actionType, ?string $identifier = null): bool
     {
         // First check if CAPTCHA is globally enabled
-        //DebugRt::j('0', '', "111-2"); // bingbing
+        // DebugRt::j('0', 'actionType', $actionType);
+        // DebugRt::j('0', '111', $this->config); // bingbing
         if (!($this->config['enabled'] ?? true)) {
             return false;
         }
         //DebugRt::j('0', 'Captcha Config', $this->config['enabled']); // bingbing
+
+        //DebugRt::j('1', '', 111);
+
+        // Force CAPTCHA check - if enabled, CAPTCHA is always required
+        if ($this->config['force_captcha'] ?? false) { // fix-force-captcha '2';
+            return true;
+        }
+        //DebugRt::j('1', '', $identifier);
 
         if (empty($identifier)) {
             $identifier = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
@@ -63,12 +72,14 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
         // TEMPORARY FIX: During BruteForce service transition
         // Check if bruteForceService property is null or not set
         if (!isset($this->bruteForceService)) {
-            DebugRt::j('0', '', 555);
+            //DebugRt::j('1', '', $actionType);
             return in_array($actionType, ['login', 'registration', 'password_reset']);
         }
-        DebugRt::j('1', '', 777);
+        // DebugRt::j('1', '', 777);
+        //DebugRt::j('1', '', $this->config);
 
         $threshold = $this->config['thresholds'][$actionType] ?? 3;
+        //DebugRt::j('1', 'aa', $threshold);
 
         // If threshold is 0, CAPTCHA is never required
         if ($threshold <= 0) {
@@ -86,7 +97,9 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
         $attempts = $this->bruteForceService->getAttemptCount($identifier, $actionType, $cutoffTime);
 
         // Return true if attempts exceed threshold
-        return $attempts >= $threshold;
+        $req = $attempts >= $threshold;
+        // DebugRt::j('1', 'req', $req);
+        return $req;
     }
 
     /**
@@ -94,6 +107,11 @@ class GoogleReCaptchaService implements CaptchaServiceInterface
      */
     public function render(string $formId = null, array $options = []): string
     {
+        // Add this check to be consistent with other methods
+        if (!($this->config['enabled'] ?? true)) {
+            return '';
+        }
+
         $version = $this->config['version'] ?? 'v2';
 
         if ($version === 'v3') {

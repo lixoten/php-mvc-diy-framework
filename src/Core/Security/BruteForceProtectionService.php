@@ -57,7 +57,7 @@ class BruteForceProtectionService
         // Try to load config from config service
         $serviceConfig = [];
         try {
-            $serviceConfig = $configService->get('security.rate_limits', []);
+            $serviceConfig = $configService->get('security.rate_limits.endpoints', []);
         } catch (\Exception $e) {
             // If config not found, use defaults
         }

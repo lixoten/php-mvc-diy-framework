@@ -34,24 +34,76 @@ return [
         ],
     ],
 
+    'list' => [
+        'options' => [
+            'default_sort_key' => 'created_at def',
+            'default_sort_direction' => 'DESC def'
+        ],
+        'pagination' => [
+            'per_page' => 10
+        ],
+        'render_options' => [
+            'css_framework' => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
+            'title'                 =>  'list.posts.title default',
+            'show_actions'          => true,
+            'show_action_add'       => false,
+            'show_action_edit'      => false,
+            'show_action_del'       => false,
+            'show_action_status'    => false,
+        ],
+        'list_fields' => [
+            'id'
+        ],
+    ],
+
     // Form display settings
     'form' => [
-        'css_framework' => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
-        'layout_type' => $_ENV['FORM_LAYOUT_TYPE'] ?? 'none',
-        'error_display' => $_ENV['FORM_ERROR_DISPLAY'] ?? 'inline',
-        'themes' => [
-            'default' => [
-                'css' => ''
+        'render_options' => [
+            'force_captcha' => false,
+            'security_level' => 'low',      // HIGH / MEDIUM / LOW
+            'css_form_theme_class' => "form-theme-christmas",
+            'css_form_theme_file' => "christmas",
+            'form_heading' => "Create Record",
+            'submit_text' => "Add Record", // 'Submit'
+            'css_framework' => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
+            'layout_type' => $_ENV['FORM_LAYOUT_TYPE'] ?? 'sequential',
+            'error_display' => $_ENV['FORM_ERROR_DISPLAY'] ?? 'summary',
+            // 'submit_text' => 'SSSSubmit',
+            // 'form_heading' => 'Edit Content 123',
+            'submit_class' => 'btn btn-primary',
+            'html5_validation' => false,
+            'show_error_container' => false,
+            'default_form_theme' => 'christmas' ?? 'default',
+            'themes' => [
+                'default' => [
+                    'css' => ''
+                ],
+                'dotted' => [
+                    'css' => '/assets/css/themes/forms/dotted.css',
+                    'class' => 'form-theme-dotted'  // Class applied to form container
+                ],
+                'neon' => [
+                    'css' => '/assets/css/themes/forms/neon.css',
+                    'class' => 'form-theme-neon'  // Class applied to form container
+                ],
+                'christmas' => [
+                    'css' => '/assets/css/themes/forms/christmas.css',
+                    'class' => 'form-theme-christmas'
+                ],
+                'rounded' => [
+                    'css' => '/assets/css/themes/forms/rounded.css',
+                    'class' => 'form-theme-rounded'
+                ]
             ],
-            'dotted' => [
-                'css' => '/assets/css/themes/forms/dotted.css',
-                'class' => 'form-theme-dotted'  // Class applied to form container
-            ],
-            'rounded' => [
-                'css' => '/assets/css/themes/forms/rounded.css',
-                'class' => 'form-theme-rounded'
-            ]
-        ]
+            // 'submit_text' => 'Submit',
+            // 'submit_class' => 'btn btn-primary',
+            // 'html5_validation' => false,
+            // 'show_error_container' => false
+        ],
+        'form_fields' => [
+            //'title', 'boo abstract'
+        ],
+
     ],
 
 

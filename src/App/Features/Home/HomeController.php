@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Features\Home;
 
 use App\Enums\FlashMessageType;
+use App\Enums\Url;
 use Core\Controller;
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use App\Helpers\FlashMessages;
 use App\Helpers\Redirector;
 use App\Helpers\ReturnPageManager;
@@ -14,6 +15,7 @@ use App\Scrap;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\PageInfoService;
 use App\Services\ViewService;
+use Core\Context\CurrentContext;
 use Core\Database;
 use Core\Exceptions\BadRequestException;
 use Core\Exceptions\UnauthorizedException;
@@ -26,6 +28,7 @@ use Core\Exceptions\ServiceUnavailableException;
 use Core\Exceptions\UnauthenticatedException;
 use Core\Exceptions\ValidationException;
 use Core\Http\HttpFactory;
+use Core\Services\UrlServiceInterface;
 use Core\View;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Container\ContainerInterface;
@@ -41,15 +44,17 @@ class HomeController extends Controller
         FlashMessageServiceInterface $flash,
         View $view,
         HttpFactory $httpFactory,
-        ContainerInterface $container
+        ContainerInterface $container,
+        CurrentContext $scrap,
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
             $httpFactory,
-            $container
-        );
+            $container,
+            $scrap,
+    );
     }
 
     /**
@@ -61,11 +66,27 @@ class HomeController extends Controller
     {
         $this->flash->add('Welcome to the Home Page.');
 
-        return $this->view(HomeConst::VIEW_HOME_INDEX, [
+        // Just a simple test.
+        /** @xxxvar \Core\Services\UrlService */
+        // $urlService = $this->container->get(UrlServiceInterface::class); // Creates new instance
+        // $test = $urlService->url('stores.posts');
+        // $test2 = $urlService->view('stores.posts');
+        // $test3 = $urlService->label('stores.posts');
+        // $test4 = $urlService->url('stores.posts.create');
+        // $test5 = Url::ACCOUNT_PROFILE;
+        // $test6 = Url::ACCOUNT_PROFILE->url();
+        // $test62 = Url::ACCOUNT_PROFILE->label();
+        // $test6a = Url::ACCOUNT_PROFILE->view();
+        $viewData = [
             'title' => 'Index Action',
-            'actionLinks' => $this->getActionLinks('home', ['index', 'test']),
-            // 'content' => $this->getActionLinks(['index','test']),
-        ]);
+            'actionLinks' => $this->getActionLinks(
+                Url::CORE_HOME,
+                Url::CORE_HOME_ROOT,
+                Url::CORE_HOME_INDEX,
+                Url::CORE_HOME_TEST
+            ),
+        ];
+        return $this->view(Url::CORE_HOME->view(), $viewData);
     }
 
     /**
@@ -75,15 +96,43 @@ class HomeController extends Controller
      */
     public function testAction(): ResponseInterface
     {
+
         if (isset($this->route_params['textid'])) {
+            // DebugRt::j('1', '', 'Where should textid validated?');
+            // Todo - Where should 'textid' validated?, in this cause the textid is badrequest, notfound...etc...
+            // Todo - FAIL example: http://mvclixo.tv/home/test/badrequestxxx
             return $this->errorPage($this->route_params['textid']);
         }
 
-        return $this->view(HomeConst::VIEW_HOME_TEST, [
+        // $viewData = [
+        //     'title' => 'Test Action',
+        //     'errorLinks' => "",//$this->getErrorLinks(),
+        //     'actionLinks' => $this->getActionLinks(
+        //         Url::CORE_HOME,
+        //         // Url::CORE_HOME_ROOT,
+        //         // Url::CORE_HOME_INDEX,
+        //         Url::CORE_HOME_TEST
+        //     ),
+        // ];
+        // // return $this->view(HomeConst::VIEW_HOME_TEST, [
+        // return $this->view(Url::CORE_HOME_TEST->view(), $viewData);
+        // // return $this->view(Url::CORE_HOME_TEST->view(), [
+        // //     'title' => 'Test Action',
+        // //     'errorLinks' => $this->getErrorLinks(),
+        // //     'actionLinks' => $this->getActionLinks(Url::CORE_HOME, Url::CORE_HOME_TEST),
+        // // ]);
+
+        $viewData = [
             'title' => 'Test Action',
             'errorLinks' => $this->getErrorLinks(),
-            'actionLinks' => $this->getActionLinks('home', ['index', 'test']),
-        ]);
+            'actionLinks' => $this->getActionLinks(
+                Url::CORE_HOME,
+                // Url::CORE_HOME_ROOT,
+                // Url::CORE_HOME_INDEX,
+                Url::CORE_HOME_TEST
+            ),
+        ];
+        return $this->view(Url::CORE_HOME_TEST->view(), $viewData);
     }
 
 
@@ -105,7 +154,12 @@ class HomeController extends Controller
             <li><a href=\"/home/test/unauthenticated\">401 - unauthenticated</a></li>
             <li><a href=\"/home/test/forbidden\">403 - forbidden</a></li>
             <li><a href=\"/home/test/pagenotfound\">404 - pagenotfound</a></li>
-            <li><a href=\"/home/test/recordnotfound\">404 - recordnotfound</a></li>
+            <li>
+                <a href=\"/home/test/recordnotfound\">404 - recordnotfound</a>
+                <ul>
+            <li><a href=\"/home/test/unauthenticated\">401 - unauthenticated</a></li>
+            </ul>
+            </li>
             <li><a href=\"/home/test/badrequest\">400 - badrequest</a></li>
             <li><a href=\"/home/test/validation\">422 - validation</a></li>
             <li><a href=\"/home/test/servererror\">500 - servererror</a></li>
@@ -255,7 +309,8 @@ class HomeController extends Controller
 
 
         //$this->view(HomeConst::VIEW_HOME_INDEX, [
-        return $this->view('home/index', [
+        // return $this->view('home/index', [
+        return $this->view(Url::CORE_HOME->view(), [
             'title' => 'Welcome Home'
         ]);
     }

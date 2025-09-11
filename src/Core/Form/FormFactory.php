@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
+use Core\Form\Renderer\FormRendererRegistry;
 use Core\Form\Validation\Validator;
-use Core\Form\FormTypeInterface;
-use Core\Form\FormInterface;
-use App\Helpers\DebugRt as Debug;
-use Core\Form\Renderer\RendererRegistry;
+
 
 /**
  * Form factory implementation
@@ -19,55 +18,75 @@ class FormFactory implements FormFactoryInterface
 {
     private CSRFToken $csrf;
     private FieldTypeRegistry $fieldTypeRegistry;
+    private ?FormRendererRegistry $formRendererRegistry = null;
     private ?Validator $validator;
-    private ?RendererRegistry $rendererRegistry = null;
 
     /**
      * Constructor
      *
      * @param CSRFToken $csrf
      * @param FieldTypeRegistry $fieldTypeRegistry
+     * @param FormRendererRegistry|null $formRendererRegistry
      * @param Validator|null $validator
-     * @param RendererRegistry|null $rendererRegistry
      */
     public function __construct(
         CSRFToken $csrf,
         FieldTypeRegistry $fieldTypeRegistry,
+        ?FormRendererRegistry $formRendererRegistry = null,
         ?Validator $validator = null,
-        ?RendererRegistry $rendererRegistry = null
     ) {
         $this->csrf = $csrf;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
+        $this->formRendererRegistry = $formRendererRegistry;
         $this->validator = $validator;
-        $this->rendererRegistry = $rendererRegistry;
     }
+
 
     /**
      * {@inheritdoc}
      */
-    public function create(FormTypeInterface $formType, array $data = [], array $options = []): FormInterface
-    {
+    public function create(
+        FormTypeInterface $formType,
+        array $data = [],
+        array $options = []
+    ): FormInterface {
+        // Merge Options - List options and options set in controller
+        // We should have everything we need,
+        // but in case the Controller wants to override anything we check here
+        $finalRenderOptions     = array_merge($formType->getRenderOptions(), $options['render_options'] ?? []);
+        $fields =  $options['list_fields'] ?? [];
+        if (!isset($fields) || !is_array($fields) || empty($fields)) {
+            $finalFormFields    = $formType->getFormFields();
+        } else {
+            $finalFormFields    =  $options['list_fields'];
+        }
+        $formType->setRenderOptions($finalRenderOptions);
+        $formType->setFormFields($finalFormFields);
+
+        ///////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////////
+
         // Create form instance
-        $form = new Form($formType->getName(), $this->csrf);
+        $form = new Form($formType->viewName, $this->csrf);
+
+        // Create form builder
+        $builderForm = new FormBuilder($form, $this->fieldTypeRegistry);
+
+        // Built it
+        $formType->buildForm($builderForm);
 
         // Set validator if available
         if ($this->validator) {
             $form->setValidator($this->validator);
         }
 
-        // Create form builder
-        $builder = new FormBuilder($form, $this->fieldTypeRegistry);
-
-        // Build form using type
-        $formType->buildForm($builder, $options);
-
         // Set form renderer if available
-        if ($this->rendererRegistry) {
-            // Get renderer name from options, fall back to css_framework from config
-            $rendererName = $options['renderer'] ?? 'bootstrap';
-
-            // Get the renderer
-            $renderer = $this->rendererRegistry->getRenderer($rendererName);
+        if ($this->formRendererRegistry) {
+            $rendererName = $finalOptions['renderer'] ?? 'bootstrap';
+            $renderer = $this->formRendererRegistry->getRenderer($rendererName);
             $form->setRenderer($renderer);
         }
 
@@ -75,9 +94,6 @@ class FormFactory implements FormFactoryInterface
         if (!empty($data)) {
             $form->setData($data);
         }
-
-        // Add before returning the form
-        $form->setRenderOptions($options);
 
         return $form;
     }

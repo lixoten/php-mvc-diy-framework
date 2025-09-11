@@ -1,4 +1,4 @@
-# MVC LIXO Framework
+# MVC LIXO Framework V0.1
 
 A lightweight, feature-based PHP MVC framework focused on clean architecture and SOLID principles.
 
@@ -18,8 +18,8 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 - View helpers for common UI components
 - Clean separation of core framework and application code
 - **Application Middleware**
-    - TimingMiddleware 
-    - ErrorHandlerMiddleware 
+    - TimingMiddleware
+    - ErrorHandlerMiddleware
     - Session Middleware
     - CSRF Protection Middleware
     - RateLimitMiddleware
@@ -32,7 +32,7 @@ A lightweight, feature-based PHP MVC framework focused on clean architecture and
 
 - **Database Layer**: Full database abstraction with migrations, seeding, and query building
 - **Form System**
-    - Advanced form handling with validation 
+    - Advanced form handling with validation
     - CSRF protection
     -  CAPTCHA integration with Google reCAPTCHA
 - **Role-Based Access Control**: User roles and permissions
@@ -81,7 +81,7 @@ mvclixo/
 
 
 ## Notes
-I am learning php, so I figure I would work on a php mvc application. That takes into account OOP PHP, and I will try to follow SOLID Princicles.  
+I am learning php, so I figure I would work on a php mvc application. That takes into account OOP PHP, and I will try to follow SOLID Princicles.
 Another thing, I plan to use and follow PSR's
 
 

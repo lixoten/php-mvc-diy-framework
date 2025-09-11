@@ -372,4 +372,106 @@ class Connection implements ConnectionInterface
 
         return $sanitized;
     }
+
+
+    /**
+     * Insert a record and return the last insert ID
+     *
+     * @param string $table Table name
+     * @param array $data Associative array of column => value
+     * @return string|int Last insert ID
+     */
+    public function insert(string $table, array $data): string
+    {
+        $columns = array_keys($data);
+        $placeholders = array_map(function ($col) {
+            return ":{$col}";
+        }, $columns);
+
+        $sql = "INSERT INTO {$table} (" . implode(', ', $columns) . ") " .
+            "VALUES (" . implode(', ', $placeholders) . ")";
+
+        $this->execute($sql, $data);
+        return $this->lastInsertId();
+    }
+
+    public function update(string $table, array $data, array $conditions): int
+    {
+        $setClauses = [];
+        foreach (array_keys($data) as $column) {
+            $setClauses[] = "{$column} = :{$column}";
+        }
+
+        $whereClauses = [];
+        foreach (array_keys($conditions) as $column) {
+            $whereClauses[] = "{$column} = :where_{$column}";
+        }
+
+        $sql = "UPDATE {$table} SET " . implode(', ', $setClauses);
+        if (!empty($whereClauses)) {
+            $sql .= " WHERE " . implode(' AND ', $whereClauses);
+        }
+
+        $params = $data;
+        foreach ($conditions as $key => $value) {
+            $params["where_{$key}"] = $value;
+        }
+
+        return $this->execute($sql, $params);
+    }
+
+    public function delete(string $table, array $conditions): int
+    {
+        $whereClauses = [];
+        foreach (array_keys($conditions) as $column) {
+            $whereClauses[] = "{$column} = :{$column}";
+        }
+
+        $sql = "DELETE FROM {$table}";
+        if (!empty($whereClauses)) {
+            $sql .= " WHERE " . implode(' AND ', $whereClauses);
+        }
+
+        return $this->execute($sql, $conditions);
+    }
+
+    public function insertBatch(string $table, array $records): int
+    {
+        if (empty($records)) {
+            return 0;
+        }
+
+        // Get column names from first record
+        $columns = array_keys($records[0]);
+
+        // Build placeholders for all records
+        $allPlaceholders = [];
+        $params = [];
+
+        foreach ($records as $index => $record) {
+            $recordPlaceholders = [];
+            foreach ($columns as $column) {
+                $param = ":{$column}_{$index}";
+                $recordPlaceholders[] = $param;
+                $params[$param] = $record[$column];
+            }
+            $allPlaceholders[] = '(' . implode(', ', $recordPlaceholders) . ')';
+        }
+
+        $sql = "INSERT INTO {$table} (" . implode(', ', $columns) . ") VALUES " .
+               implode(', ', $allPlaceholders);
+
+        return $this->execute($sql, $params);
+    }
+
+    public function fetch(string $sql, array $params = [], int $fetchMode = \PDO::FETCH_ASSOC)
+    {
+        return $this->fetchOne($sql, $params, $fetchMode);
+    }
+
+    public function fetchAll(string $sql, array $params = [], int $fetchMode = \PDO::FETCH_ASSOC): array
+    {
+        $stmt = $this->executeLogged($sql, $params);
+        return $stmt->fetchAll($fetchMode);
+    }
 }

@@ -6,7 +6,9 @@ namespace App\Features\Auth;
 
 use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
+use App\Enums\Url;
 use App\Features\Auth\Form\RegistrationFormType;
+use App\Helpers\DebugRt;
 use App\Services\RegistrationService;
 use Core\Controller;
 use Core\Form\FormFactoryInterface;
@@ -19,6 +21,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\UserValidationService;
+use Core\Context\CurrentContext;
+
+// use Core\Security\Captcha\CaptchaServiceInterface;
 
 /**
  * Registration controller
@@ -30,6 +35,7 @@ class RegistrationController extends Controller
     private RegistrationFormType $registrationFormType;
     private RegistrationService $registrationService;
     private UserValidationService $userValidationService;
+    // private CaptchaServiceInterface $captchaService;
 
     /**
      * Constructor with dependencies
@@ -40,24 +46,28 @@ class RegistrationController extends Controller
         View $view,
         HttpFactory $httpFactory,
         ContainerInterface $container,
+        CurrentContext $scrap,
         FormFactoryInterface $formFactory,
         FormHandlerInterface $formHandler,
         RegistrationFormType $registrationFormType,
         RegistrationService $registrationService,
-        UserValidationService $userValidationService
+        UserValidationService $userValidationService,
+        // CaptchaServiceInterface $captchaService
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
             $httpFactory,
-            $container
+            $container,
+            $scrap
         );
         $this->formFactory = $formFactory;
         $this->formHandler = $formHandler;
         $this->registrationFormType = $registrationFormType;
         $this->registrationService = $registrationService;
         $this->userValidationService = $userValidationService;
+        // $this->captchaService = $captchaService;
     }
 
     /**
@@ -70,11 +80,16 @@ class RegistrationController extends Controller
             $this->registrationFormType,
             [],
             [
-                'layout_type' => 'none',
-                'error_display' => 'summary',
-                'renderer' => 'bootstrap'
+                'force_captcha' => $this->isForcedCaptcha(),
+                'ip_address' => $this->getIpAddress(),
+                // 'captcha_required' => $captchaRequired,
+                // 'layout_type' => 'none',
+                // 'error_display' => 'summary',
+                // 'renderer' => 'bootstrap',
+                // 'html5_validation' => true, // Enable HTML5 validation (override novalidate)
             ]
         );
+        $formTheme = $form->getCssFormThemeFile();
 
 
         // Process form submission
@@ -103,7 +118,9 @@ class RegistrationController extends Controller
                         'Your account has been created. Please check your email to verify your account.',
                         FlashMessageType::Success
                     );
-                    return $this->redirect('/verify-email/pending');
+                    //DebugRt::j('1', '', 111);
+                    //return $this->redirect('/verify-email/pending');
+                    return $this->redirect(Url::EMAIL_VERIFICATION->url());
                 } else {
                     // Add validation errors from the registration service to the form
                     foreach ($result['errors'] as $field => $error) {
@@ -114,9 +131,29 @@ class RegistrationController extends Controller
         }
 
         // Create FormView for rendering
-        $formView = new FormView($form, [
-            'error_display' => 'summary'
-        ]);
+        //$formView = new FormView($form);
+
+
+        // Prepare view data
+        $viewData = [
+            'title' => 'Create Account',
+            // 'form' => $formView,
+            'form' => $form,
+            'formTheme' => $formTheme // if $formTheme isset/used
+        ];
+
+        // // Add CAPTCHA scripts if needed
+        // if ($captchaRequired) {
+        //     $viewData['captcha_scripts'] = $this->captchaService->getScripts();
+
+        //     // ALSO PASS THE SERVICE TO THE VIEW
+        //     $viewData['captchaService'] = $this->captchaService;
+        // }
+
+
+        // Create response with appropriate status code
+        // $response = $this->view(AuthConst::VIEW_AUTH_REGISTRATION, $viewData);
+        $response = $this->view(Url::AUTH_REGISTRATION->view(), $viewData);
 
         // // Render the registration form
         // return $this->view(AuthConst::VIEW_AUTH_REGISTRATION, [
@@ -124,10 +161,10 @@ class RegistrationController extends Controller
         //     'form' => $formView
         // ]);
         // Create response with appropriate status code
-        $response = $this->view(AuthConst::VIEW_AUTH_REGISTRATION, [
-            'title' => 'Create Account',
-            'form' => $formView
-        ]);
+        // $response = $this->view(AuthConst::VIEW_AUTH_REGISTRATION, [
+        //     'title' => 'Create Account',
+        //     'form' => $formView
+        // ]);
 
         // Set 422 Unprocessable Entity status for form errors
         if ($form->hasErrors()) {
@@ -142,7 +179,8 @@ class RegistrationController extends Controller
      */
     public function successAction(): ResponseInterface
     {
-        return $this->view(AuthConst::VIEW_AUTH_REGISTRATION_SUCCESS, [
+        // return $this->view(AuthConst::VIEW_AUTH_REGISTRATION_SUCCESS, [
+        return $this->view(Url::AUTH_REGISTRATION_SUCCESS->view(), [
             'title' => 'Registration Successful'
         ]);
     }

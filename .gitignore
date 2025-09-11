@@ -11,6 +11,7 @@ composer.phar
 .env
 .env.local
 .env.*.local
+.venv
 
 # IDE files
 /.idea/
@@ -31,13 +32,22 @@ composer.phar
 *copy.php
 *copy.md
 * copy.*
+* old.*
+*old.php
+
 
 # Development notes and scratch files
 **/scratchfile.php
+**/_external_scrap
+_external_scrap/*.*
 **/__*.md
 **/The LIES.md
 **/notes.md
-
+# Scrap folder
+_scrap/
+_sxxcrap/
+scratch*.*
+aaa.txt
 
 # Multiple versions of files (if needed)
 src/Core/Constants/Consts2.php
@@ -50,8 +60,9 @@ Thumbs.db
 # Cache and logs
 /var/cache/*
 /var/logs/*
-/logs/*
 /temp/*
+logs
+/_external_scrap/*
 
 # User uploaded content (if applicable)
 /public/uploads/*
@@ -73,3 +84,12 @@ src/public_html/assets/docs/catchcha.md
 src/public_html/assets/docs/HowToWhatever.md
 mid.md
 src/public_html/assets/docs/_.md
+src/App/Features/Contact/Views/index old.php
+src/App/Features/Account/xxx.md
+src/Core/Constants/notes.md
+:/xampp/htdocs/my_projects/_sxxcrap
+_scrap
+:/xampp/htdocs/my_projects/_external_scrap
+# ols shit, saving just incase
+old_shit
+temp

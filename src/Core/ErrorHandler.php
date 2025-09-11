@@ -4,18 +4,23 @@ declare(strict_types=1);
 
 namespace Core;
 
+use App\Enums\AttentionType;
+use App\Enums\FlashMessageType;
 use Core\Errors\ErrorsController;
 use App\Helpers\FlashMessages;
 use App\Helpers\Redirector;
 use App\Helpers\ReturnPageManager;
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use App\Services\ActivationTokenGenerationException;
 use Core\Exceptions\BadRequestException;
+use Core\Exceptions\ConnectionException;
 use Core\Exceptions\DatabaseException;
 use Core\Exceptions\ForbiddenException;
 use Core\Exceptions\HttpException;
 use Core\Exceptions\PageNotFoundException;
+use Core\Exceptions\QueryException;
 use Core\Exceptions\RecordNotFoundException;
+use Core\Exceptions\ServerErrorException;
 use Core\Exceptions\UnauthenticatedException;
 use Exception;
 use InvalidArgumentException;
@@ -39,12 +44,13 @@ class ErrorHandler
         ?HttpFactory $httpFactory = null
     ) {
         $this->developmentMode = $developmentMode;
+        // DebugRt::j('1', '', $developmentMode);
         $this->logger = $logger;
         $this->container = $container;
         $this->httpFactory = $httpFactory;
     }
 
-    //TODO
+    // TODO
     //To complete your HTTP exception family, you might also consider adding:
     // BadRequestException (400)
     // MethodNotAllowedException (405)
@@ -63,55 +69,119 @@ class ErrorHandler
     {
         // Important!!!// SEE NOTES BELLOW for list of all Exception (base class)
 
-        // Log the exception regardless of type
-        $this->logger?->error(get_class($e) . ": " . $e->getMessage(), [
+        // Determine status code based on exception type
+        $statusCode = 500; // Default
+        $additionalContext = [
             'file' => $e->getFile(),
             'line' => $e->getLine(),
             'code' => $e->getCode(),
             'trace' => $e->getTraceAsString()
-        ]);
-
-        // Determine status code based on exception type
-        $statusCode = 500; // Default
-        $additionalContext = [];
+        ];
 
         // Handle specific exception types
         if ($e instanceof UnauthenticatedException) {
             $statusCode = 401;
-            $additionalContext = [
-                'attempted_resource' => $e->getAttemptedResource(),
-                'auth_method' => $e->getAuthMethod(),
-                'reason_code' => $e->getReasonCode()
-            ];
+            $additionalContext['attempted_resource'] = $e->getAttemptedResource();
+            $additionalContext['auth_method'] = $e->getAuthMethod();
+            $additionalContext['reason_code'] = $e->getReasonCode();
+
+            // // Add flash message
+            //$this->flash->add('Please log in to continue', FlashMessageType::Warning);
+
+            // THIS IS THE REDIRECTION PART
+            // return $this->httpFactory->createRedirectResponse('/login');
+            $rrr = $this->httpFactory->createRedirectResponse('/login');
+            return $rrr;
         } elseif ($e instanceof ForbiddenException) {
             $statusCode = 403;
-            $additionalContext = [
-                'user_id' => $e->getUserId(),
-                'required_permission' => $e->getRequiredPermission(),
-                'user_roles' => $e->getUserRoles() ? implode(', ', $e->getUserRoles()) : null
-            ];
+            $additionalContext['user_id'] = $e->getUserId();
+            $additionalContext['required_permission'] = $e->getRequiredPermission();
+            $additionalContext['user_roles'] = $e->getUserRoles() ? implode(', ', $e->getUserRoles()) : null;
         } elseif ($e instanceof RecordNotFoundException) {
             $statusCode = 404;
-            $additionalContext = [
-                'entity_type' => $e->getEntityType(),
-                'entity_id' => $e->getEntityId()
-            ];
+            $additionalContext['entity_type'] = $e->getEntityType();
+            $additionalContext['entity_id'] = $e->getEntityId();
         } elseif ($e instanceof PageNotFoundException) {
             $statusCode = 404;
-            $additionalContext = [
-                'requestedRoute' => $e->getRequestedRoute(),
-            ];
+            $additionalContext['requestedRoute'] = $e->getRequestedRoute();
         } elseif ($e instanceof BadRequestException) {
+            ## Notes-: 400 Bad Request: Client error, requires the client to fix their
+            ## request (e.g., incorrect data, missing parameters).
             $statusCode = 400;
         } elseif ($e instanceof InvalidArgumentException) {
             ## InvalidArgumentException is not HTTP exception
             ## it is a logic exception
             $statusCode = 400;
+        } elseif ($e instanceof DatabaseException) {
+            ## Notes-: 500 Internal Server Error: Server error, requires the server-side developers or
+            ## administrators to fix the problem
+            $statusCode = 500;
+
+            // Add database-specific context for logging and debugging
+            $additionalContext['sql_state'] = $e->getSqlState();
+
+            // Add query information if available
+            if ($e->getQuery()) {
+                $additionalContext['query'] = $e->getQuery();
+            }
+
+            // Add driver and configuration info for connection exceptions
+            if ($e instanceof ConnectionException) {
+                $additionalContext['driver'] = $e->getDriver();
+                $additionalContext['config'] = $e->getConfig();
+            }
+
+            // Add bindings for query exceptions
+            if ($e instanceof QueryException) {
+                $additionalContext['bindings'] = $e->getBindings();
+            }
+
+            // Log with enhanced details
+            //$this->logger?->error("Database error: " . $e->getMessage(), $additionalContext);
+
+            // Create user-friendly message for production
+            if (!$this->developmentMode) {
+                // Replace the original exception message with something user-friendly
+                $e = new ServerErrorException(
+                    "We encountered a database error. Our team has been notified.",
+                    500,
+                    $e // Keep original exception as the "previous" one
+                );
+            }
+        } elseif ($e instanceof \Core\Exceptions\ConfigurationException) {
+            $statusCode = 500;
+            $additionalContext['config_file'] = $e->getConfigFile();
+            $additionalContext['entity_type'] = $e->getEntityType();
+            $additionalContext['suggestion'] = $e->getSuggestion();
+
+            // In development mode, add the suggestion to the message
+            if ($this->developmentMode) {
+                $e = new \Core\Exceptions\ConfigurationException(
+                    $e->getMessage() . "\n\nSuggestion: " . $e->getSuggestion() .
+                    "\n\nCheck configuration in: " . $e->getConfigFile(),
+                    $e->getConfigFile(),
+                    $e->getEntityType(),
+                    $e->getSuggestion(),
+                    $e->getCode(),
+                    $e->getPrevious()
+                );
+            }
         } else {
-            //Debug::p($e);
+            // DebugRt::p($e);
+            // DebugRt::j('1', '', $e);
             // For unspecified exceptions, use the exception code if it's a valid HTTP status
             $statusCode = ($e->getCode() >= 100 && $e->getCode() < 600) ? $e->getCode() : 500;
         }
+
+        $logLevel = 'error'; // Default
+        if ($statusCode < 400) {
+            $logLevel = 'info';
+        } elseif ($statusCode < 500) {
+            $logLevel = 'warning';
+        }
+
+        // Single comprehensive log with all context
+        $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
 
         // If httpFactory is not available, create a simple response
         if (!$this->httpFactory) {
@@ -122,7 +192,6 @@ class ErrorHandler
                 $this->generateProductionErrorPage($statusCode);
             exit;
         }
-
         // Create a PSR-7 response
         $response = $this->httpFactory->createResponse($statusCode);
 
@@ -131,9 +200,11 @@ class ErrorHandler
         if ($request) {
             $sessionManager = $request->getAttribute('session');
         }
+        $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
 
         // If no session in request, create a fallback one
         if (!$sessionManager) {
+            $this->logger?->notice(AttentionType::FALLBACK->errorMessage('for $sessionManager'));
             $sessionManager = new \Core\Session\SessionManager([
                 'name' => 'mvc3_session',
                 'secure' => false,
@@ -148,6 +219,8 @@ class ErrorHandler
                 $errorController = $this->container->get('Core\Errors\ErrorsController');
 
                 // Use the response object directly instead of output buffering
+                $debugHelp = $this->generateDevelopmentErrorPage($e, $request);
+
                 $errorResponse = $errorController->showError(
                     $statusCode,
                     $e->getMessage(),
@@ -155,7 +228,8 @@ class ErrorHandler
                         'exception' => $e,
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
-                        'additionalContext' => $additionalContext
+                        'additionalContext' => $additionalContext,
+                        'debugHelp' => $debugHelp
                     ]
                 );
 
@@ -163,7 +237,7 @@ class ErrorHandler
                 if (!$errorResponse->hasHeader('Content-Type')) {
                     $errorResponse = $errorResponse->withHeader('Content-Type', 'text/html');
                 }
-
+                //DebugRt::j('a1', '', $errorResponse);
                 return $errorResponse;
             } catch (\Throwable $innerException) {
                 // If ErrorsController fails, fall back to simple error page
@@ -226,10 +300,30 @@ class ErrorHandler
      */
     private function generateDevelopmentErrorPage(Throwable $exception, ?ServerRequestInterface $request): string
     {
-        $content = '<h1>Error: ' . htmlspecialchars($exception->getMessage()) . '</h1>';
-        $content .= '<p>Uncaught exception: ' . get_class($exception) . '</p>';
+        //$content = '<h1>Error: ' . htmlspecialchars($exception->getMessage()) . '</h1>';
+        //$content .= '<p>Uncaught exception: ' . get_class($exception) . '</p>';
+        $content = '';
+
+        // Special handling for configuration exceptions
+        if ($exception instanceof \Core\Exceptions\ConfigurationException) {
+            $content .= '<div style="background-color: #fff3cd; padding: 15px; ';
+            $content .= 'border: 1px solid #ffeeba; margin: 10px 0;">';
+            $content .= '<h3>Configuration Issue</h3>';
+            $content .= '<p><strong>Config File:</strong> ' . htmlspecialchars($exception->getConfigFile()
+            ?? 'Unknown') . '</p>';
+            $content .= '<p><strong>Entity Type:</strong> ' . htmlspecialchars($exception->getEntityType()
+            ?? 'Unknown') . '</p>';
+            if ($exception->getSuggestion()) {
+                $content .= '<h4>How to Fix:</h4>';
+                $content .= '<p>' . htmlspecialchars($exception->getSuggestion()) . '</p>';
+            }
+            $content .= '</div>';
+        }
+
+
         $content .= '<p>Code: ' . $exception->getCode() . '</p>';
         $content .= '<p>File: ' . $exception->getFile() . ' (line ' . $exception->getLine() . ')</p>';
+
         $content .= '<h2>Stack Trace</h2>';
         $content .= '<pre>' . htmlspecialchars($exception->getTraceAsString()) . '</pre>';
 

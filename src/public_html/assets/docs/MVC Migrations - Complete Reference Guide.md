@@ -1,3 +1,20 @@
+- [[#Introduction|Introduction]]
+- [[#Core Components|Core Components]]
+- [[#Available Commands|Available Commands]]
+	- [[#Available Commands#Run Migrations|Run Migrations]]
+	- [[#Available Commands#Run Migrations SEEDER|Run Migrations SEEDER]]
+	- [[#Available Commands#Run check the foreign key constraints for the xxxx table|Run check the foreign key constraints for the xxxx table]]
+	- [[#Available Commands#Roll Back Migrations|Roll Back Migrations]]
+- [[#Creating New Migrations|Creating New Migrations]]
+- [[#Available Column Types|Available Column Types]]
+- [[#Column Modifiers|Column Modifiers]]
+- [[#Foreign Key Constraints|Foreign Key Constraints]]
+- [[#Rollback Behavior|Rollback Behavior]]
+- [[#System Requirements|System Requirements]]
+- [[#Cleanup Recommendations|Cleanup Recommendations]]
+- [[#Quick Cheat Run Migrations|Quick Cheat Run Migrations]]
+
+
 # Migration System Documentation
 
 ## Introduction
@@ -14,13 +31,39 @@ The migration system provides a way to version-control your database schema. It 
 
 ### Run Migrations
 ```bash
+# XDEBUG-Run console.php migrate in XDEBUG
+# Steps
+# -- Open in tab, Then `menu > Run > Start Debugging
+# -- Run command below in terminal.
+php -dxdebug.mode=debug -dxdebug.start_with_request=yes bin/console.php migrate
+
 # Run all pending migrations
 php bin/console.php migrate
 
-# Run migrations forcefully (even if already executed)
+
+# Force re-run all migrations
 php bin/console.php migrate --force
 ```
+### Run Migrations SEEDER
+```bash
+# Show all available seeders
+php bin/console.php seed
 
+# Run specific seeder  
+php bin/console.php seed UsersSeeder
+
+# Run ALL seeders at once
+php bin/console.php seed --all
+```
+### Run check the foreign key constraints for a specific table
+```bash
+# constraints for the xxxx table. Specific table
+php bin/console.php show:fk posts
+php bin/console.php show:fk users
+
+# constraints for all tables.
+php bin/console.php show:fk
+```
 ### Roll Back Migrations
 ```bash
 # Roll back the most recent batch
@@ -28,6 +71,10 @@ php bin/console.php rollback
 
 # Roll back multiple batches
 php bin/console.php rollback 3
+
+# So to rollback and rerun
+php bin/console.php rollback
+php bin/console.php migrate
 ```
 
 ## Creating New Migrations
@@ -101,6 +148,24 @@ $table->string('address')->nullable();     // Allow NULL values
 $table->text('notes')->comment('User notes'); // Add comment
 ```
 
+## Foreign Key Constraints
+
+Add foreign key relationships between tables:
+
+```php
+// Basic foreign key
+$table->foreign('user_id')->references('id')->on('users');
+
+// With custom name and delete behavior
+$table->foreign('post_user_id', 'users', 'user_id', 'fk_posts_users')
+      ->onDelete('CASCADE');
+
+// Available referential actions
+->onDelete('CASCADE')    // Delete related records when parent is deleted
+->onDelete('SET NULL')   // Set foreign key to NULL when parent is deleted
+->onDelete('RESTRICT')   // Prevent deletion of parent if child records exist
+->onDelete('NO ACTION')  // Similar to RESTRICT
+
 ## Understanding the --force Flag
 
 The `--force` flag allows you to re-run migrations even if they're already marked as executed in the database:
@@ -147,3 +212,25 @@ For future maintenance:
 The migration system follows industry best practices while maintaining a clean architecture specific to your MVCLIXO framework.
 
 Similar code found with 1 license type
+
+
+## Quick Cheat Run Migrations
+```bash
+# XDEBUG-Run console.php migrate in XDEBUG
+# Steps
+# -- Open in tab, Then `menu > Run > Start Debugging
+# -- Run command below in terminal.
+php -dxdebug.mode=debug -dxdebug.start_with_request=yes bin/console.php migrate
+
+# Migration Commands:
+php bin/console.php migrate                # Run all pending migrations
+php bin/console.php migrate --force        # Force run migrations (even if they might have been run before)
+php bin/console.php rollback               # Roll back the most recent batch of migrations
+php bin/console.php rollback 3             # Roll back the 3 most recent batches
+php bin/console.php seed AlbumsSeeder      # Run the AlbumsSeeder
+php bin/console.php show:fk albums         # Show foreign keys for the albums table
+php bin/console.php help                   # Display help information
+
+# Table Data Seeder
+php bin/console.php seed PostsSeeder
+```

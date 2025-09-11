@@ -49,10 +49,10 @@ class TailwindRenderer implements FormRendererInterface
         $output .= $this->renderErrors($form, $options);
         $output .= $this->renderFields($form, $options);
         $output .= $this->renderEnd($form, $options);
-        
+
         return $output;
     }
-    
+
     /**
      * Render form start tag
      */
@@ -60,22 +60,22 @@ class TailwindRenderer implements FormRendererInterface
     {
         // Get form attributes
         $attributes = $form->getAttributes();
-        
+
         // Add custom class if provided
-        if (!empty($options['css_theme_class'])) {
-            $attributes['class'] = ($attributes['class'] ?? '') . ' ' . $options['css_theme_class'];
+        if (!empty($options['css_form_theme_class'])) {
+            $attributes['class'] = ($attributes['class'] ?? '') . ' ' . $options['css_form_theme_class'];
         }
-        
+
         // Add Tailwind validation class
         $attributes['class'] = ($attributes['class'] ?? '') . ' tailwind-form';
         $attributes['novalidate'] = '';
-        
+
         // Build HTML attributes
         $attrString = $this->buildAttributeString($attributes);
-        
+
         return "<form{$attrString}>";
     }
-    
+
     /**
      * Render form errors section
      */
@@ -85,7 +85,7 @@ class TailwindRenderer implements FormRendererInterface
         if (($options['error_display'] ?? 'inline') !== 'summary') {
             return '';
         }
-        
+
         $errors = [];
         foreach ($form->getFields() as $field) {
             $fieldErrors = $field->getErrors();
@@ -97,17 +97,17 @@ class TailwindRenderer implements FormRendererInterface
                 }
             }
         }
-        
+
         if (empty($errors)) {
             return '';
         }
-        
+
         return "<div class=\"bg-red-50 border border-red-400 text-red-700 px-4 py-3 mb-6 rounded\">
             <p class=\"font-semibold mb-2\">Please correct the following errors:</p>
             <ul class=\"ml-5 list-disc\">" . implode('', $errors) . "</ul>
         </div>";
     }
-    
+
     /**
      * Render a single field
      */
@@ -121,79 +121,79 @@ class TailwindRenderer implements FormRendererInterface
         $errors = $field->getErrors();
         $required = $field->isRequired();
         $attributes = $field->getAttributes();
-        
+
         // Add Tailwind CSS classes
         $attributes['class'] = ($attributes['class'] ?? '') . ' mt-1 block w-full rounded-md';
-        
+
         // Add error classes
         if (!empty($errors) && empty($options['hide_inline_errors'])) {
             $attributes['class'] .= ' border-red-500';
         } else {
             $attributes['class'] .= ' border-gray-300';
         }
-        
+
         // Required attribute
         if ($required) {
             $attributes['required'] = '';
         }
-        
+
         // Generate input field
         $input = $this->renderInput($type, $name, $value, $attributes);
-        
+
         // Assemble complete field markup
         $output = "<div class=\"mb-4\">";
         $output .= "<label class=\"block text-gray-700 text-sm font-bold mb-2\" for=\"$name\">";
         $output .= htmlspecialchars($label) . ($required ? ' <span class="text-red-500">*</span>' : '');
         $output .= "</label>";
         $output .= $input;
-        
+
         // Add error message if any (and not hidden)
         if (!empty($errors) && empty($options['hide_inline_errors'])) {
             $output .= "<p class=\"text-red-500 text-xs italic mt-1\">" . htmlspecialchars($errors[0]) . "</p>";
         }
-        
+
         // Add help text if provided
         if (!empty($attributes['help'])) {
             $output .= "<p class=\"text-gray-500 text-xs mt-1\">" . htmlspecialchars($attributes['help']) . "</p>";
         }
-        
+
         $output .= "</div>";
-        
+
         return $output;
     }
-    
+
     /**
      * Render form end tag
      */
     public function renderEnd(FormInterface $form, array $options = []): string
     {
         $output = '';
-        
+
         // Add submit button unless disabled
         if (empty($options['no_submit_button'])) {
             $submitText = $options['submit_text'] ?? 'Submit';
             $submitClass = $options['submit_class'] ?? 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded';
-            
+
             $output .= "<div class=\"mt-6\">
                 <button type=\"submit\" class=\"{$submitClass}\">{$submitText}</button>
             </div>";
         }
-        
+
         $output .= "</form>";
-        
+
         return $output;
     }
-    
+
     /**
      * Helper to render fields
      */
     protected function renderFields(FormInterface $form, array $options = []): string
     {
         $output = '';
-        
+
         // Get layout type and structure
         $layoutType = $options['layout_type'] ?? 'none';
-        
+
         switch ($layoutType) {
             case 'fieldsets':
                 $output .= $this->renderFieldsetLayout($form, $options);
@@ -207,10 +207,10 @@ class TailwindRenderer implements FormRendererInterface
                     $output .= $this->renderField($field, $options);
                 }
         }
-        
+
         return $output;
     }
-    
+
     /**
      * Helper to render fieldset layout
      */
@@ -219,30 +219,30 @@ class TailwindRenderer implements FormRendererInterface
         $output = '';
         $layout = $options['layout'] ?? [];
         $fieldsets = $layout['fieldsets'] ?? [];
-        
+
         foreach ($fieldsets as $id => $fieldset) {
             $legend = $fieldset['legend'] ?? '';
             $fields = $fieldset['fields'] ?? [];
-            
+
             $output .= "<fieldset class=\"border border-gray-300 p-4 rounded mb-6\">";
-            
+
             if (!empty($legend)) {
                 $output .= "<legend class=\"text-lg font-medium px-2\">" . htmlspecialchars($legend) . "</legend>";
             }
-            
+
             // Render fields in this fieldset
             foreach ($fields as $fieldName) {
                 if ($form->hasField($fieldName)) {
                     $output .= $this->renderField($form->getField($fieldName), $options);
                 }
             }
-            
+
             $output .= "</fieldset>";
         }
-        
+
         return $output;
     }
-    
+
     /**
      * Helper to render section layout
      */
@@ -251,20 +251,20 @@ class TailwindRenderer implements FormRendererInterface
         $output = '';
         $layout = $options['layout'] ?? [];
         $sections = $layout['sections'] ?? [];
-        
+
         foreach ($sections as $section) {
             $type = $section['type'] ?? 'fields';
-            
+
             switch ($type) {
                 case 'header':
                     $title = $section['title'] ?? '';
                     $output .= "<h3 class=\"text-lg font-medium mb-3\">" . htmlspecialchars($title) . "</h3>";
                     break;
-                    
+
                 case 'divider':
                     $output .= "<hr class=\"my-4 border-t border-gray-300\">";
                     break;
-                    
+
                 case 'fields':
                     $fields = $section['fields'] ?? [];
                     foreach ($fields as $fieldName) {
@@ -275,10 +275,10 @@ class TailwindRenderer implements FormRendererInterface
                     break;
             }
         }
-        
+
         return $output;
     }
-    
+
     /**
      * Helper to render input field based on type
      */
@@ -286,71 +286,71 @@ class TailwindRenderer implements FormRendererInterface
     {
         $attrString = $this->buildAttributeString($attributes);
         $value = htmlspecialchars((string)$value);
-        
+
         switch ($type) {
             case 'textarea':
                 return "<textarea name=\"{$name}\"{$attrString}>{$value}</textarea>";
-                
+
             case 'select':
                 $output = "<select name=\"{$name}\"{$attrString}>";
                 $choices = $attributes['choices'] ?? [];
-                
+
                 // Add placeholder option if specified
                 if (!empty($attributes['placeholder'])) {
                     $output .= "<option value=\"\">" . htmlspecialchars($attributes['placeholder']) . "</option>";
                 }
-                
+
                 // Add options
                 foreach ($choices as $optValue => $label) {
                     $selected = ((string)$optValue === (string)$value) ? ' selected' : '';
-                    $output .= "<option value=\"" . htmlspecialchars((string)$optValue) . "\"{$selected}>" . 
+                    $output .= "<option value=\"" . htmlspecialchars((string)$optValue) . "\"{$selected}>" .
                                htmlspecialchars($label) . "</option>";
                 }
-                
+
                 $output .= "</select>";
                 return $output;
-                
+
             case 'checkbox':
                 $checked = $value ? ' checked' : '';
                 return "<input type=\"checkbox\" name=\"{$name}\" value=\"1\"{$attrString}{$checked}>";
-                
+
             case 'radio':
                 // Radio groups are handled specially
                 $output = "<div class=\"mt-2\">";
                 $choices = $attributes['choices'] ?? [];
-                
+
                 foreach ($choices as $optValue => $label) {
                     $checked = ((string)$optValue === (string)$value) ? ' checked' : '';
                     $id = "{$name}_{$optValue}";
                     $output .= "<div class=\"flex items-center mb-1\">";
-                    $output .= "<input type=\"radio\" id=\"{$id}\" name=\"{$name}\" value=\"" . 
+                    $output .= "<input type=\"radio\" id=\"{$id}\" name=\"{$name}\" value=\"" .
                                htmlspecialchars((string)$optValue) . "\"{$checked} class=\"mr-2\">";
                     $output .= "<label for=\"{$id}\">" . htmlspecialchars($label) . "</label>";
                     $output .= "</div>";
                 }
-                
+
                 $output .= "</div>";
                 return $output;
-                
+
             default:
                 // Default is a text input
                 return "<input type=\"{$type}\" name=\"{$name}\" value=\"{$value}\"{$attrString}>";
         }
     }
-    
+
     /**
      * Helper to build HTML attributes string
      */
     protected function buildAttributeString(array $attributes): string
     {
         $result = '';
-        
+
         foreach ($attributes as $name => $value) {
             // Skip special attributes used internally
             if ($name === 'choices' || $name === 'help') {
                 continue;
             }
-            
+
             // Boolean attribute
             if ($value === true || $value === '') {
                 $result .= " {$name}";
@@ -358,7 +358,7 @@ class TailwindRenderer implements FormRendererInterface
                 $result .= " {$name}=\"" . htmlspecialchars((string)$value) . "\"";
             }
         }
-        
+
         return $result;
     }
 }
@@ -370,8 +370,8 @@ You need to register your renderer with the renderer registry:
 
 ```php
 // In your application bootstrap or service configuration
-$rendererRegistry = new RendererRegistry();
-$rendererRegistry->addRenderer('tailwind', new TailwindRenderer());
+$formRendererRegistry = new FormRendererRegistry();
+$formRendererRegistry->addRenderer('tailwind', new TailwindRenderer());
 ```
 
 ### Step 3: Use Your Custom Renderer
@@ -393,19 +393,19 @@ $form = $this->formFactory->create(
 Instead of creating a renderer from scratch, you can extend an existing one:
 
 ```php
-// src/Core/Form/Renderer/CustomBootstrapRenderer.php
-class CustomBootstrapRenderer extends BootstrapRenderer
+// src/Core/Form/Renderer/CustomBootstrapFormRenderer.php
+class CustomBootstrapRenderer extends BootstrapFormRenderer
 {
     public function renderField(FieldInterface $field, array $options = []): string
     {
         // Add custom logic before or after calling parent
         $output = parent::renderField($field, $options);
-        
+
         // Add extra HTML
         if ($field->getName() === 'email') {
             $output .= '<div class="text-muted">We will never share your email</div>';
         }
-        
+
         return $output;
     }
 }
@@ -424,7 +424,7 @@ class CustomBootstrapRenderer extends BootstrapRenderer
 
 | Option | Description | Used In |
 |--------|-------------|---------|
-| `css_theme_class` | Extra CSS class for theming | renderStart() |
+| `css_form_theme_class` | Extra CSS class for theming | renderStart() |
 | `error_display` | 'inline' or 'summary' | renderErrors(), renderField() |
 | `hide_inline_errors` | Whether to hide inline errors | renderField() |
 | `layout_type` | 'none', 'fieldsets', or 'sections' | renderFields() |

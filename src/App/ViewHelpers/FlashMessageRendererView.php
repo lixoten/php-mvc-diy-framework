@@ -6,6 +6,7 @@ namespace App\ViewHelpers;
 
 use App\Helpers\DebugRt as Debug;
 use App\Enums\FlashMessageType;
+use App\Helpers\MyLinkHelper as LinkHelper;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 
 /**
@@ -48,15 +49,24 @@ class FlashMessageRendererView
     protected function formatMessage(array $msgData, string $type): string
     {
         $cssClass = "alert alert-$type";
+
+        $messageHtml = $msgData['message'];
+
+        // Add link if link data exists
+        if (isset($msgData['linkData']) && !empty($msgData['linkData'])) {
+            $messageHtml .= ' --- ' . LinkHelper::render($msgData['linkData']);
+        }
+
+
         if ($msgData['sticky']) {
             $cssClass .= ' sticky';  # not really needed.
         } else {
-            $msgData['message'] = '<button type="button" class="close" data-dismiss="alert">&times;</button>'
-             . $msgData['message'];
+            $messageHtml = '<button type="button" class="close" data-dismiss="alert">&times;</button>'
+             . $messageHtml;
         }
 
         return "<div class=\"$cssClass\">
-        {$msgData['message']}
+        {$messageHtml}
         </div>\n";
     }
 }

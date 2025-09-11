@@ -1,60 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
-use App\Helpers\DebugRt;
-
 /**
- * @var array $data
+ * Direct form rendering example
  */
-// DebugRt::p($data);
+
 ?>
 <h1><?= $title ?></h1>
+
 <?php if (isset($captcha_scripts)) : ?>
-    <?= $captcha_scripts ?>
-    <script>
-    function validateCaptcha() {
-        var response = grecaptcha.getResponse();
-        if (response.length === 0) {
-            alert("Please complete the CAPTCHA before submitting.");
-            return false; // Prevent form submission
-        }
-        return true; // Allow form submission
-    }
-</script>
+    <?= $form->getCaptchaScripts() ?>
 <?php endif; ?>
-<div class="card-body">
-    <?= $form->errorSummary() ?>
 
-    <!-- <form method="post"> -->
-        <?= $form->start(['onsubmit' => 'return validateCaptcha()']) ?>
+<div class="card">
+    <div class="card-body">
+        <!-- Auto-rendering the entire form -->
+        <?= $form->render() ?>
 
-        <?= $form->row('username') ?>
-        <?= $form->row('password') ?>
 
-        <div class="mb-3 form-check">
-            <?= $form->row('remember') ?>
+        <div class="mt-4 mb-3">
+            <p>should be "don't have an account....Already have an account? <a href="/login">Log in</a></p>
         </div>
-
-
-        <?php if ($form->has('captcha')) : ?>
-            <div class="mb-3">
-                <?= $form->captcha('captcha', ['theme' => 'dark']) ?>
-            </div>
-        <?php endif; ?>
 
         <div class="d-grid gap-2">
-            <?= $form->submit('Login', ['class' => 'btn btn-primary']) ?>
+             <!-- $form->submit('Register', ['class' => 'btn btn-primary']) -->
         </div>
-
-        <?= $form->end() ?>
-
-        <div class="mt-3 text-center">
-            <p>Don't have an account? <a href="/registration">Create one</a></p>
-
-            <p class="mt-2"><small>
-                <a href="/verify-email/resend" class="text-muted">Need to verify your email?</a></small>
-            </p>
-        </div>
-    </form>
+    </div>
 </div>

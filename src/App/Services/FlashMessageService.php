@@ -42,7 +42,8 @@ class FlashMessageService implements FlashMessageServiceInterface
     public function add(
         string $message,
         FlashMessageType $type = FlashMessageType::Info,
-        bool $sticky = false
+        bool $sticky = false,
+        ?array $linkData = null
     ): FlashMessageServiceInterface {
         // Get current messages
         $messages = $this->sessionManager->get(self::SESSION_KEY, []);
@@ -50,7 +51,8 @@ class FlashMessageService implements FlashMessageServiceInterface
         // Add new message
         $messages[$type->value][] = [
             'message' => $message,
-            'sticky' => $sticky
+            'sticky' => $sticky,
+            'linkData' => $linkData
         ];
 
         // Store updated messages

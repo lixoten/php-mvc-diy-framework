@@ -37,6 +37,7 @@ class ErrorHandlerMiddleware implements MiddlewareInterface
             return $handler->handle($request);
         } catch (\Throwable $e) {
             // Delegate to the application's error handler
+            //
             return $this->errorHandler->handleException($e);
         }
     }

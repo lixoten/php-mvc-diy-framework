@@ -1,17 +1,35 @@
 <?php
 
+/* //TODO - revisit
+Suggestions (Optional Enhancements)
+--Type Declarations:
+You could add type hints for return values (e.g., : mixed for get() in PHP 8+).
+
+Error Logging:
+--If a config file is missing, consider logging a warning (if you have a logger).
+
+Config File Validation:
+--Optionally, validate config file structure on load for early error detection.
+
+PSR-11 Compliance:
+--If you ever want to use this as a container, consider implementing Psr\Container\ContainerInterface (not required, just a thought).
+
+Thread Safety:
+--If you ever use this in a threaded environment (rare in PHP), be aware of the static cache.
+*/
 declare(strict_types=1);
 
 namespace Core\Services;
 
 use Core\Interfaces\ConfigInterface;
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 
 class ConfigService implements ConfigInterface
 {
     private $configs = [];
     private $configPath;
     private $environment;
+    private $testOverrides = [];
 
     /**
      * Constructor
@@ -23,39 +41,37 @@ class ConfigService implements ConfigInterface
     {
         $this->configPath = $configPath;
         $this->environment = $environment;
+        // DebugRt::j('1', '', $environment);
     }
 
-    /**
-     * Get a configuration value
-     *
-     * @param string $key Config key (file or file.key format)
-     * @param mixed $default Default value if config doesn't exist
-     * @return mixed The config value
-     */
-    public function get(string $key, $default = null)
+
+    /** {@inheritdoc} */
+    public function get(string $key, $default = null): mixed
     {
-        //Debug::p($key);
+        // Check for test override first
+        if (isset($this->testOverrides[$key])) {
+            return $this->testOverrides[$key];
+        }
+
+        // DebugRt::p($key);
 
         // If it's a config group (like "logger"), return the environment-specific config
         if (!str_contains($key, '.')) {
             return $this->getEnvironmentConfig($key);
         }
-        //Debug::p($key);
+        // DebugRt::p($key);
 
         // Handle dot notation keys
         $parts = explode('.', $key);
-        $file = $parts[0];
-        $configKey = $parts[1];
+        $file = array_shift($parts);
+        $configKey = implode('.', $parts);
 
-        $config = $this->getEnvironmentConfig($file);
-        return $config[$configKey] ?? $default;
+        $value = $this->getConfigValue($file, $configKey, $default);
+        return $value;
     }
 
-    /**
-     * Get the current environment
-     *
-     * @return string
-     */
+
+    /** {@inheritdoc} */
     public function getEnvironment(): string
     {
         return $this->environment;
@@ -67,7 +83,7 @@ class ConfigService implements ConfigInterface
      * @param string $file Config file name without extension
      * @return array Configuration array
      */
-    private function getEnvironmentConfig(string $file): array
+    private function getEnvironmentConfig(string $file): ?array
     {
         // Cache key includes the environment
         $cacheKey = $this->configPath . "/{$file}_{$this->environment}";
@@ -88,16 +104,15 @@ class ConfigService implements ConfigInterface
                     $this->configs[$cacheKey] = $allConfigs;
                 }
             } else {
-                $this->configs[$cacheKey] = [];
+                $this->configs[$cacheKey] = null;
             }
         }
 
         return $this->configs[$cacheKey];
     }
 
-        /**
-     * Get nested config value with fallback and logging
-     */
+
+    /** {@inheritdoc} */
     public function getConfigValue(string $file, string $path, $default = null)
     {
         $config = $this->get($file);
@@ -116,5 +131,29 @@ class ConfigService implements ConfigInterface
         }
 
         return $current;
+    }
+
+
+    ################## For phpunit Testing ########################################
+    /**
+     * Set test configuration overrides
+     *
+     * @param string $key Config key in dot notation (e.g., 'security.rate_limits.endpoints')
+     * @param mixed $value Value to use during tests
+     * @return void
+     */
+    public function setTestOverride(string $key, $value): void
+    {
+        $this->testOverrides[$key] = $value;
+    }
+
+    /**
+     * Clear all test overrides
+     *
+     * @return void
+     */
+    public function clearTestOverrides(): void
+    {
+        $this->testOverrides = [];
     }
 }

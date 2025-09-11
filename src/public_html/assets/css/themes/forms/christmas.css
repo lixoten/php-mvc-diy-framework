@@ -1,0 +1,372 @@
+/* Christmas Form Theme - Festive styling that complements the Winter Wonderland theme */
+
+/* Form container */
+.form-theme-christmas {
+    background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.8));
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 10px 25px rgba(179, 60, 60, 0.2);
+    position: relative;
+    border: 1px solid rgba(44, 106, 160, 0.15);
+    backdrop-filter: blur(5px);
+  }
+
+  /* Add decorative elements */
+  .form-theme-christmas::before {
+    content: "🎄";
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    font-size: 30px;
+    z-index: 1;
+  }
+
+  .form-theme-christmas::after {
+    content: "🎁";
+    position: absolute;
+    bottom: -15px;
+    right: 20px;
+    font-size: 30px;
+    z-index: 1;
+  }
+
+  /* Form labels */
+  .form-theme-christmas .form-label {
+    color: var(--winter-dark);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    position: relative;
+    padding-left: 20px;
+  }
+
+  /* Add holly icon to labels */
+  .form-theme-christmas .form-label::before {
+    content: "❄️";
+    position: absolute;
+    left: 0;
+    font-size: 14px;
+    color: var(--winter-primary);
+  }
+
+  /* Form controls */
+  .form-theme-christmas .form-control {
+    background-color: white;
+    border: 2px solid rgba(44, 106, 160, 0.2);
+    border-radius: 8px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+    color: var(--winter-dark);
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.2rem;
+  }
+
+  .form-theme-christmas .form-control:focus {
+    border-color: var(--winter-primary);
+    box-shadow: 0 0 0 4px rgba(44, 106, 160, 0.15);
+    outline: none;
+  }
+
+  .form-theme-christmas .form-control::placeholder {
+    color: rgba(35, 50, 64, 0.5);
+  }
+
+  /* Textarea styling */
+  .form-theme-christmas textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+    background-image:
+      linear-gradient(to right, rgba(230, 199, 121, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(230, 199, 121, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* Submit button */
+  .form-theme-christmas .btn-primary {
+    background: linear-gradient(45deg, var(--winter-secondary), #d85959);
+    border: none;
+    padding: 12px 30px;
+    color: white;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 30px;
+    box-shadow: 0 5px 15px rgba(179, 60, 60, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-theme-christmas .btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(179, 60, 60, 0.4);
+  }
+
+  .form-theme-christmas .btn-primary:active {
+    transform: translateY(-1px);
+  }
+
+  /* Snow effect on button */
+  .form-theme-christmas .btn-primary::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10%),
+                radial-gradient(circle, rgba(255,255,255,0.3) 10%, transparent 10%);
+    background-position: 0 0, 10px 10px;
+    background-size: 20px 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+  }
+
+  .form-theme-christmas .btn-primary:hover::before {
+    opacity: 1;
+    animation: snowfall 2s linear infinite;
+  }
+
+  /* Error states */
+  .form-theme-christmas .form-control.is-invalid {
+    border-color: var(--winter-secondary);
+    background-image: none;
+  }
+
+  .form-theme-christmas .invalid-feedback {
+    color: var(--winter-secondary);
+    font-size: 0.85rem;
+    margin-top: -0.8rem;
+    margin-bottom: 1rem;
+    background-color: rgba(179, 60, 60, 0.1);
+    padding: 5px 10px;
+    border-radius: 4px;
+    border-left: 3px solid var(--winter-secondary);
+  }
+
+  /* Section styling - NEW */
+  .form-theme-christmas .form-section-header {
+    color: var(--winter-primary);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    margin: 1.5rem 0 1.2rem;
+    padding-bottom: 0.7rem;
+    position: relative;
+    text-align: center;
+    border-bottom: 1px dashed rgba(44, 106, 160, 0.3);
+  }
+
+  /* Add decorative elements to section headers */
+  .form-theme-christmas .form-section-header::before,
+  .form-theme-christmas .form-section-header::after {
+    content: "❄";
+    position: absolute;
+    top: 0;
+    color: var(--winter-accent);
+    font-size: 18px;
+  }
+
+  .form-theme-christmas .form-section-header::before {
+    left: 0;
+  }
+
+  .form-theme-christmas .form-section-header::after {
+    right: 0;
+  }
+
+  /* Divider styling - NEW */
+  .form-theme-christmas hr.form-divider {
+    border: 0;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(44, 106, 160, 0.1), rgba(44, 106, 160, 0.4), rgba(44, 106, 160, 0.1));
+    position: relative;
+    margin: 2rem 0;
+  }
+
+  /* Add decorative snowflake to dividers */
+  .form-theme-christmas hr.form-divider::after {
+    content: "❆";
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(to bottom right, rgba(255, 255, 255, 0.9), rgba(240, 248, 255, 0.8));
+    padding: 0 10px;
+    color: var(--winter-secondary);
+    font-size: 20px;
+  }
+
+  /* Fieldset styling - NEW */
+  .form-theme-christmas fieldset {
+    border: 1px solid rgba(44, 106, 160, 0.2);
+    border-radius: 8px;
+    padding: 15px 20px 5px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    background-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .form-theme-christmas fieldset legend {
+    color: var(--winter-primary);
+    font-weight: 500;
+    padding: 0 10px;
+    font-size: 1.1rem;
+  }
+
+  /* Animated snowfall for form sections */
+  .form-theme-christmas .form-section-header + .mb-3 {
+    position: relative;
+  }
+
+  .form-theme-christmas .form-section-header + .mb-3::before {
+    content: "❅";
+    position: absolute;
+    color: var(--winter-primary);
+    opacity: 0.3;
+    font-size: 16px;
+    animation: section-snow 8s ease-in-out infinite;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  @keyframes section-snow {
+    0% { top: 0; left: 5%; opacity: 0; }
+    50% { opacity: 0.3; }
+    100% { top: 100%; left: 15%; opacity: 0; }
+  }
+
+  /* Animation */
+  @keyframes snowfall {
+    0% {
+      background-position: 0 0, 10px 10px;
+    }
+    100% {
+      background-position: 20px 20px, 30px 30px;
+    }
+  }
+
+  /* Additional decorative elements */
+  .form-theme-christmas .mb-3:nth-child(3n+1)::after {
+    content: "✧";
+    position: absolute;
+    right: 10px;
+    top: 10%;
+    color: var(--winter-accent);
+    opacity: 0.3;
+    font-size: 12px;
+  }
+
+  .form-theme-christmas .mb-3:nth-child(3n+2)::after {
+    content: "❅";
+    position: absolute;
+    right: 20px;
+    top: 20%;
+    color: var(--winter-primary);
+    opacity: 0.3;
+    font-size: 12px;
+  }
+
+  .form-theme-christmas .mb-3:nth-child(3n)::after {
+    content: "❆";
+    position: absolute;
+    right: 30px;
+    top: 30%;
+    color: var(--winter-secondary);
+    opacity: 0.3;
+    font-size: 12px;
+  }
+
+  /* Form element focus animations */
+  .form-theme-christmas .form-control:focus {
+    animation: border-glow 1.5s infinite alternate;
+  }
+
+  @keyframes border-glow {
+    0% {
+      border-color: var(--winter-primary);
+      box-shadow: 0 0 5px rgba(44, 106, 160, 0.3);
+    }
+    100% {
+      border-color: var(--winter-secondary);
+      box-shadow: 0 0 8px rgba(179, 60, 60, 0.3);
+    }
+  }
+
+  /* First section header special styling */
+  .form-theme-christmas .form-section-header:first-of-type {
+    margin-top: 0;
+  }
+
+  /* Make sure form sections have proper spacing */
+  .form-theme-christmas .form-section-header + div {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Form heading styling */
+.form-theme-christmas .form-heading {
+    color: var(--winter-primary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding-bottom: 1rem;
+    border-bottom: 2px dashed rgba(44, 106, 160, 0.3);
+  }
+
+  /* Add decorative snowflakes to form heading */
+  .form-theme-christmas .form-heading::before,
+  .form-theme-christmas .form-heading::after {
+    content: "❅";
+    position: absolute;
+    bottom: -8px;
+    font-size: 24px;
+    color: var(--winter-accent);
+  }
+
+  .form-theme-christmas .form-heading::before {
+    left: 20%;
+  }
+
+  .form-theme-christmas .form-heading::after {
+    right: 20%;
+  }
+
+  /* Special styling for h1 headings */
+  .form-theme-christmas h1.form-heading {
+    font-size: 1.8rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Special styling for h2 headings */
+  .form-theme-christmas h2.form-heading {
+    font-size: 2rem;
+    margin-bottom: 1.8rem;
+    font-weight: 800;  /* Make it a bit bolder */
+    letter-spacing: 0.8px;  /* Slightly increased letter spacing */
+  }
+
+  /* Add a subtle shimmer animation to the heading */
+.form-theme-christmas .form-heading {
+    background: linear-gradient(
+      to right,
+      var(--winter-primary) 20%,
+      var(--winter-secondary) 40%,
+      var(--winter-secondary) 60%,
+      var(--winter-primary) 80%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    animation: heading-shine 4s linear infinite;
+  }
+
+  @keyframes heading-shine {
+    to {
+      background-position: 200% center;
+    }
+  }

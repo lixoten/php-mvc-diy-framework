@@ -14,6 +14,7 @@ interface FormFactoryInterface
      *
      * @param FormTypeInterface $formType The form type defining the fields
      * @param array $data Initial data to populate the form
+     * @param array $options Options for the form
      * @return FormInterface The created form
      */
     public function create(FormTypeInterface $formType, array $data = [], array $options = []): FormInterface;

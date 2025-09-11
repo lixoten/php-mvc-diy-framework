@@ -39,6 +39,13 @@ class MigrationRunner
      */
     public function run(bool $force = false): array
     {
+        // Ensure migrations table exists BEFORE querying it
+        $this->repository->createRepository();
+
+        // Now it's safe to get migrated files
+       
+
+
         $files = $this->getMigrationFiles();
         $executedFiles = $this->repository->getMigratedFiles();
 

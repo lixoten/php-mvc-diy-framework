@@ -47,7 +47,7 @@ class DebugRt
 
     public function __construct()
     {
-        //$this->pageKey = $pageKey;
+        //$this->$pageName = $pageName;
     }
 
 
@@ -1498,6 +1498,11 @@ class DebugRt
             print "<br />$label $arr" . $rr;
         } elseif (is_numeric($arr)) {
             print "<br />$label $arr" . $rr;
+        } elseif (is_object($arr)) {
+            print "<hr />$label" . $rr;
+                print "<pre>";
+                print_r($arr);
+                echo '</pre><hr />';
         } else {
             print "<hr />$label" . $rr;
             print "<pre>";

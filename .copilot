@@ -1,0 +1,82 @@
+{
+  "rules": {
+    "coding_conventions": {
+      "naming": {
+        "classes": "PascalCase",
+        "interfaces": "IPrefix",
+        "variables": "camelCase",
+        "constants": "UPPER_SNAKE_CASE",
+        "functions": "camelCase",
+        "methods": "camelCase"
+      },
+      "spacing": {
+        "indentation": "4_spaces",
+        "use_tabs": false
+      },
+      "line_length": 120,
+      "docblocks": "require_phpdoc_for_public_methods",
+        "control_structures": {
+            "allow_inline": false
+        }
+    },
+    "project_guidelines": {
+      "framework_structure": {
+        "app_namespace": "App\\",
+        "core_namespace": "Core\\",
+        "database_namespace": "Database\\",
+        "helpers_file": "src/helpers.php"
+      },
+      "solid_principles": {
+        "single_responsibility": "Each class should have one responsibility only.",
+        "open_closed": "Classes should be open for extension but closed for modification.",
+        "liskov_substitution": "Child classes should be substitutable for their parent classes.",
+        "interface_segregation": "Use specific interfaces rather than a general-purpose one.",
+        "dependency_inversion": "Depend on abstractions, not concrete implementations."
+      },
+      "php_version": "^8.2.12",
+      "psr_standards": {
+        "psr_4": true,
+        "psr_7": true,
+        "psr_11": true,
+        "psr_12": true
+      }
+    },
+    "libraries_preference": {
+      "prefer": [
+        "php-di/php-di",
+        "psr/http-message",
+        "phpmailer/phpmailer",
+        "nyholm/psr7"
+      ],
+      "avoid": [
+        "global variables",
+        "deprecated PHP functions"
+      ]
+    },
+    "disallowed_suggestions": {
+      "patterns": [
+        "eval(",
+        "var_dump(",
+        "die(",
+        "print_r(",
+        "extract("
+      ]
+    }
+  },
+  "examples": {
+    "custom_code_patterns": [
+      {
+        "description": "Dependency injection using PHP-DI",
+        "code": "use DI\\ContainerBuilder;\n$containerBuilder = new ContainerBuilder();\n$containerBuilder->addDefinitions([\n    'App\\Contracts\\ServiceInterface' => DI\\create('App\\Services\\ServiceImplementation')\n]);\n$container = $containerBuilder->build();"
+      },
+      {
+        "description": "Controller method example",
+        "code": "namespace App\\Controllers;\n\nuse Psr\\Http\\Message\\ResponseInterface;\nuse Psr\\Http\\Message\\ServerRequestInterface;\n\nclass UserController {\n    public function index(ServerRequestInterface $request): ResponseInterface {\n        // Fetch and return user data\n    }\n}"
+      },
+      {
+        "description": "SOLID-compliant service class",
+        "code": "namespace App\\Services;\n\nuse App\\Contracts\\UserRepositoryInterface;\n\nclass UserService {\n    private UserRepositoryInterface $userRepository;\n\n    public function __construct(UserRepositoryInterface $userRepository) {\n        $this->userRepository = $userRepository;\n    }\n\n    public function getUserData(int $userId): array {\n        return $this->userRepository->findById($userId);\n    }\n}"
+      }
+    ]
+  }
+}

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Security;
 
+use App\Helpers\DebugRt;
 use App\Repository\RateLimitRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
 use Core\Interfaces\ConfigInterface;
@@ -14,6 +15,8 @@ class RateLimitService implements RateLimitServiceInterface
      * Default configuration for different action types
      */
     private array $defaultConfig = [
+        'contact_index' => ['limit' => 5, 'window' => 300],          // 5 attempts per 5 minutes
+        'contact_direct' => ['limit' => 5, 'window' => 300],          // 5 attempts per 5 minutes
         'login' => ['limit' => 5, 'window' => 300],          // 5 attempts per 5 minutes
         'registration' => ['limit' => 3, 'window' => 1800],   // 3 attempts per 30 minutes
         'password_reset' => ['limit' => 3, 'window' => 900],  // 3 attempts per 15 minutes
@@ -26,32 +29,35 @@ class RateLimitService implements RateLimitServiceInterface
      */
     private array $config;
 
+    // * @param array|null $customConfig Optional custom configuration
     /**
      * Constructor
      *
      * @param RateLimitRepositoryInterface $repository Repository for storing rate limit data
      * @param ConfigInterface $configService Configuration service
-     * @param array|null $customConfig Optional custom configuration
      */
     public function __construct(
         private RateLimitRepositoryInterface $repository,
         private ConfigInterface $configService,
-        ?array $customConfig = null
+        // ?array $customConfig = null
     ) {
         // Try to load config from config service
         $serviceConfig = [];
         try {
-            $serviceConfig = $configService->get('security.rate_limits', []);
+            $serviceConfig = $configService->getConfigValue('security', 'rate_limits.endpoints', []);
         } catch (\Exception $e) {
             // If config not found, use defaults
         }
 
         // Merge configs with precedence: defaults < service config < custom passed config
+        // DebugRt::j('0', '', $serviceConfig);
+        // DebugRt::j('0', '', $this->defaultConfig);
         $this->config = array_replace_recursive(
             $this->defaultConfig,
             $serviceConfig,
-            $customConfig ?? []
+            // $customConfig ?? []
         );
+        // DebugRt::j('1', '', $this->config);
     }
 
     /**

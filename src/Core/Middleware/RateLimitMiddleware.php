@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Core\Middleware;
 
+use App\Helpers\DebugRt;
 use Core\Auth\Exception\AuthenticationException;
 use Core\Http\HttpFactory;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Enums\FlashMessageType;
-use App\Helpers\DebugRt;
+use Core\Interfaces\ConfigInterface;
 use Core\Security\RateLimitServiceInterface;
 use Core\Security\BruteForceProtectionService;
-// use App\Helpers\DebugRt as Debug;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
@@ -23,20 +23,20 @@ class RateLimitMiddleware implements MiddlewareInterface
     // private BruteForceProtectionService $protectionService; // foofee
     private HttpFactory $httpFactory;
     private FlashMessageServiceInterface $flash;
-    private array $configPath;
+    private ConfigInterface $configService;
 
     public function __construct(
         RateLimitServiceInterface $rateLimitService,
         // BruteForceProtectionService $protectionService, // foofee
         HttpFactory $httpFactory,
         FlashMessageServiceInterface $flash,
-        array $configPath = []
+        ConfigInterface $configService,
     ) {
         $this->rateLimitService = $rateLimitService;
         // $this->protectionService = $protectionService;  // foofee
         $this->httpFactory = $httpFactory;
         $this->flash = $flash;
-        $this->configPath = $configPath;
+        $this->configService = $configService;
     }
 
     /**
@@ -46,6 +46,11 @@ class RateLimitMiddleware implements MiddlewareInterface
         ServerRequestInterface $request,
         RequestHandlerInterface $handler
     ): ResponseInterface {
+        // config-ok
+        if (!$this->configService->getConfigValue('security', 'rate_limits.enabled', true)) {
+            return $handler->handle($request);
+        }
+
         $path = $request->getUri()->getPath();
         $method = $request->getMethod();
         $ipAddress = $_SERVER['REMOTE_ADDR'];
@@ -119,20 +124,18 @@ class RateLimitMiddleware implements MiddlewareInterface
      */
     private function getActionTypeForPath(string $path, string $method): ?string
     {
-        // Default mapping if no specific configPath provided
-        $pathMappings = $this->configPath['path_mappings'] ?? [
-            '/registration' => 'registration',
-            '/login' => 'login',
-            '/forgot-password' => 'password_reset',
-            '/verify-email/resend' => 'activation_resend',
-            '/verify-email/verify' => 'email_verification',
-        ];
+        // Get security rate_limits path mappings
+        // config-ok
+        $pathMappings = $this->configService->getConfigValue('security', 'rate_limits.path_mappings', []);
+        //DebugRt::j('0', 'Path mappings', $pathMappings);
 
         // Clean up path for comparison
         $path = '/' . ltrim($path, '/');
-        //DebugRt::j("0", '', $pathMappings[$path]);
+        //DebugRt::j('0', 'Path to match', $path);
+
         // Check for exact matches
         if (isset($pathMappings[$path])) {
+            //DebugRt::j("1", 'sssss', $pathMappings[$path]);
             return $pathMappings[$path];
         }
         // http://mvclixo.tv/verify-email/resend
@@ -147,6 +150,7 @@ class RateLimitMiddleware implements MiddlewareInterface
                 }
             }
         }
+        //DebugRt::j('1', '123path', $path);
 
         return null;
     }

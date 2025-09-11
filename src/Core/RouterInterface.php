@@ -10,6 +10,14 @@ use Psr\Http\Message\ResponseInterface;
 interface RouterInterface
 {
     /**
+     * Match the request against the routing table.
+     *
+     * @param ServerRequestInterface $request The request object
+     * @return array|null The matched route parameters or null if no match
+     */
+    public function matchRequest(ServerRequestInterface $request): ?array; // <-- Add this method
+
+    /**
      * Dispatch the route for the given request
      *
      * @param ServerRequestInterface $request The request object

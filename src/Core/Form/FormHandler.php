@@ -55,25 +55,47 @@ class FormHandler implements FormHandlerInterface
         // Parse form data from the request
         $data = $this->parseRequestData($request);
 
+        // Determine if this is a security-critical form
+        $isSecurityCritical = $form->getSecurityLevel() === 'high';
+        //DebugRt::j('1', 'isSecurityCritical', $form->getSecurityLevel());
+        // DebugRt::j('1', 'form object', $form);
+
+        $captchaValid = true; // Initialize with a default value
+
         //DebugRt::j('1', '', "111-1"); // bingbing
         // If CAPTCHA is disabled globally, skip validation
-        if (!($this->captchaService->isEnabled())) {
-            // CAPTCHA validation skipped
-        } else {
-            // Handle special fields like reCAPTCHA
-            // explicit CAPTCHA validation before general form validation
-            if ($form->hasField('captcha')) {
+        // Handle special fields like reCAPTCHA
+        if ($form->hasField('captcha')) {
+            // Skip CAPTCHA validation if service doesn't exist or is disabled
+            if (!$this->captchaService || !$this->captchaService->isEnabled()) {
+                // CAPTCHA validation skipped - continue with form processing
+            } else {
+                // CAPTCHA is enabled and required - validate it
                 $captchaResponse = $request->getParsedBody()['g-recaptcha-response'] ?? '';
-                // DebugRt::j('captcha-response-check', '', $captchaResponse);
 
                 // If CAPTCHA response is empty, mark form as invalid
                 if (empty($captchaResponse)) {
                     $form->addError('captcha', 'Please complete the security check.');
-                    $isValid = false;
+                    //$form->setData($data);
+                    //$this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+                    //return false;
+                    $captchaValid = false;
+                } elseif (!$this->captchaService->verify($captchaResponse)) { // Verify CAPTCHA response
+                    $form->addError('captcha', 'CAPTCHA verification failed.');
+                    //#form->setData($data);
+                    //$this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+                    //return false;
+                    $captchaValid = false;
+                }
+                DebugRt::j('0', 'Security is: ', $form->getSecurityLevel());
 
-                    // Don't need to continue with validation if CAPTCHA failed
+                // For security-critical forms, return early if CAPTCHA fails
+                if (!$captchaValid && $isSecurityCritical) {
+                    $form->setData($data);
                     $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
-                    return $isValid;
+                    //DebugRt::j('1', '', $isSecurityCritical);
+                    DebugRt::j('0', 'Security is: ', $form->getSecurityLevel());
+                    return false;
                 }
             }
         }
@@ -108,7 +130,8 @@ class FormHandler implements FormHandlerInterface
         // Dispatch POST_VALIDATE event
         $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
 
-        return $isValid;
+        // return $isValid;
+        return $isValid && ($captchaValid ?? true);
     }
 
     /**

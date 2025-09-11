@@ -14,7 +14,7 @@ class ServiceUnavailableException extends HttpException
      * @param \Throwable|null $previous Previous exception
      */
     public function __construct(
-        string $message = "Service Unavailable Error: The server cannot process the request",
+        string $message = "Service Unavailable Error: Our service is temporarily unavailable.",
         int $code = 503,
         \Throwable $previous = null
     ) {

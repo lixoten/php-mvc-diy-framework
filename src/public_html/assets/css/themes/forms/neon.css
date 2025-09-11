@@ -1,0 +1,83 @@
+/* Neon form theme - with stronger specificity to override Christmas theme */
+
+/* Container styles with higher specificity */
+.card .card-body .form-theme-neon,
+.form-theme-neon {
+    background: #111;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    /* Reset any inherited variables */
+    --bs-primary: #00ccff;
+    --bs-form-invalid-border-color: #ff3547;
+    --bs-form-invalid-color: #ff3547;
+}
+
+/* Form elements */
+.form-theme-neon .form-label {
+    color: #fff !important;
+    font-weight: bold;
+    text-shadow: 0 0 10px rgba(0, 255, 255, 0.7);
+    letter-spacing: 1px;
+    margin-bottom: 0.5rem;
+}
+
+.form-theme-neon .form-control {
+    background-color: #222 !important;
+    color: #fff !important;
+    border: 2px solid transparent !important;
+    border-radius: 5px !important;
+    transition: all 0.3s ease !important;
+    padding: 12px !important;
+    margin-bottom: 1rem !important;
+}
+
+.form-theme-neon .form-control:focus {
+    box-shadow: 0 0 15px #0ff !important;
+    border-color: #0ff !important;
+    outline: none !important;
+}
+
+.form-theme-neon .btn-primary {
+    background: linear-gradient(45deg, #ff00cc, #3399ff) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+    padding: 12px 30px !important;
+    border-radius: 30px !important;
+    transition: all 0.3s ease !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    margin-top: 10px !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 0 10px rgba(255, 0, 204, 0.5) !important;
+}
+
+/* Error states - override Christmas theme with higher specificity */
+.form-theme-neon .is-invalid {
+    border-color: #ff3547 !important;
+    box-shadow: 0 0 10px rgba(255, 53, 71, 0.5) !important;
+}
+
+.form-theme-neon .invalid-feedback {
+    color: #ff3547 !important;
+    text-shadow: 0 0 5px rgba(255, 53, 71, 0.5) !important;
+    font-weight: bold !important;
+    margin-top: -0.5rem !important;
+    margin-bottom: 1rem !important;
+    background-color: transparent !important;
+    border-left: none !important;
+    padding: 0 !important;
+}
+
+/* Pulsing animation */
+@keyframes neon-pulse {
+    0% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+    100% { box-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+}
+
+.form-theme-neon .form-control:focus {
+    animation: neon-pulse 1.5s infinite !important;
+}

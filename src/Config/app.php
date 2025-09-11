@@ -46,5 +46,22 @@ return [
     'features' => [
         'cache' => filter_var($_ENV['FEATURE_CACHE'] ?? true, FILTER_VALIDATE_BOOLEAN),
         'api' => filter_var($_ENV['FEATURE_API'] ?? true, FILTER_VALIDATE_BOOLEAN),
+    ],
+
+    // Dynamic-me
+    'pages' => [
+        'about' => [
+            'title' => 'About Us',
+            'content' => '<p>Welcome to our company! We are dedicated to...</p>',
+            'meta_description' => 'Learn about our company and mission',
+            'last_updated' => '2023-06-15'
+        ],
+        'terms' => [
+            'title' => 'Terms of Service',
+            'content' => '<p>By using our service, you agree to the following terms...</p>',
+            'meta_description' => 'Our terms of service and legal information',
+            'last_updated' => '2023-04-22'
+        ],
+        // Add more pages as needed
     ]
 ];

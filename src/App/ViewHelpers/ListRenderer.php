@@ -83,6 +83,14 @@ class ListRenderer
                 <a href=\"/users/delete/{$record["user_id"]}?token={$pageToken}\">Delete</a></td>";
             foreach ($header as $key => $column) {
                 $value = (string)($record[$key] ?? ''); // Use null coalescing operator to handle missing keys
+
+                // THIS IS WHERE YOUR FORMATTER IS APPLIED
+                if (isset($columnDef['formatter']) && is_callable($columnDef['formatter'])) {
+                    $formattedValue = $columnDef['formatter']($value);
+                } else {
+                    $formattedValue = htmlspecialchars((string)$value);
+                }
+
                 $html .= '<td>' . HtmlHelper::escape($value) . '</td>';
             }
             $html .= '</tr>';

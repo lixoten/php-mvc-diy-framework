@@ -3,13 +3,19 @@
 declare(strict_types=1);
 
 use App\Helpers\DebugRt;
-use App\Helpers\UiHelper;
+use App\Helpers\LinkBuilder;
 
-$helperObj = new UiHelper();
-$linkList = $helperObj->ulLinks($actionLinks);
+$linkList = '<ul>';
+foreach ($actionLinks as $link) {
+    $linkList .= '<li>' . LinkBuilder::generateTextLink($link['url'], [], $link['text']) . '</li>';
+}
+$linkList .= '</ul>';
+
 
 /**
  * @var array $data
+ * @var string $title - Page title
+ * @var array $actionLinks - Array of action links with 'url' and 'text' keys
  */
 // DebugRt::p($data);
 ?>

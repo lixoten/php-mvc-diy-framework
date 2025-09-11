@@ -21,11 +21,23 @@ class FormBuilder implements FormBuilderInterface
      * @param FormInterface $form
      * @param FieldTypeRegistry $fieldTypeRegistry
      */
-    public function __construct(FormInterface $form, FieldTypeRegistry $fieldTypeRegistry)
-    {
+    public function __construct(
+        FormInterface $form,
+        FieldTypeRegistry $fieldTypeRegistry
+    ) {
         $this->form = $form;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
     }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setRenderOptions(array $renderOptions): void
+    {
+        $this->form->setRenderOptions($renderOptions);
+    }
+
 
     /**
      * {@inheritdoc}
@@ -44,6 +56,7 @@ class FormBuilder implements FormBuilderInterface
         return $this;
     }
 
+
     /**
      * Add an existing field to the form
      *
@@ -55,6 +68,7 @@ class FormBuilder implements FormBuilderInterface
         $this->form->addField($field);
         return $this;
     }
+
 
     /**
      * Set form action
@@ -68,6 +82,7 @@ class FormBuilder implements FormBuilderInterface
         return $this;
     }
 
+
     /**
      * Set form method
      *
@@ -80,6 +95,7 @@ class FormBuilder implements FormBuilderInterface
         return $this;
     }
 
+
     /**
      * {@inheritdoc}
      */
@@ -87,6 +103,7 @@ class FormBuilder implements FormBuilderInterface
     {
         return $this->form;
     }
+
 
     /**
      * Set form layout configuration

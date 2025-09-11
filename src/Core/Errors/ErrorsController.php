@@ -13,6 +13,7 @@ use App\Scrap;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\PageInfoService;
 use App\Services\ViewService;
+use Core\Context\CurrentContext;
 use Core\Database;
 use Core\Http\HttpFactory;
 use Core\View;
@@ -30,7 +31,8 @@ class ErrorsController extends Controller
         FlashMessageServiceInterface $flash,
         View $view,
         HttpFactory $httpFactory,
-        ContainerInterface $container
+        ContainerInterface $container,
+        CurrentContext $scrap,
         // Scrap $scrapObj,
         // Database $dbx,
         // FlashMessages $flashObj,
@@ -44,7 +46,8 @@ class ErrorsController extends Controller
             $flash,
             $view,
             $httpFactory,
-            $container
+            $container,
+            $scrap
             // $scrapObj,
             // $dbx,
             // $flashObj,
@@ -84,7 +87,7 @@ class ErrorsController extends Controller
         return $this->view("errors/{$code}", [
             'layout' => "error",
             'message' => $message,
-            'data' => $data,
+            'data' => $data
         ], (int)$code);
     }
 }

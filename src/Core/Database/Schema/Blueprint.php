@@ -271,6 +271,23 @@ class Blueprint
         return $column;
     }
 
+
+    // public function foreign(
+    //     string|array $columns,
+    //     string $table,
+    //     string|array $references = ['id'],
+    //     ?string $name = null
+    // ): void {
+    //     $columns = is_array($columns) ? $columns : [$columns];
+    //     $references = is_array($references) ? $references : [$references];
+    //     $name = $name ?? "fk_{$this->table}_" . implode('_', $columns);
+
+    //     $sql = "CONSTRAINT {$name} FOREIGN KEY (" . implode(', ', $columns) . ") " .
+    //         "REFERENCES {$table}(" . implode(', ', $references) . ")";
+
+    //     $this->indexes[] = new ForeignKey($name, $columns, $table, $references);
+    // }
+
     /**
      * Add a foreign key constraint
      *
@@ -285,16 +302,19 @@ class Blueprint
         string $table,
         string|array $references = ['id'],
         ?string $name = null
-    ): void {
+    ): ForeignKey {
         $columns = is_array($columns) ? $columns : [$columns];
         $references = is_array($references) ? $references : [$references];
         $name = $name ?? "fk_{$this->table}_" . implode('_', $columns);
 
-        $sql = "CONSTRAINT {$name} FOREIGN KEY (" . implode(', ', $columns) . ") " .
-            "REFERENCES {$table}(" . implode(', ', $references) . ")";
+        $foreignKey = new ForeignKey($name, $columns, $table, $references);
+        $this->indexes[] = $foreignKey;
 
-        $this->indexes[] = new ForeignKey($name, $columns, $table, $references);
+        return $foreignKey;
     }
+
+
+
 
     /**
      * Add an auto-incrementing ID column (shorthand for bigIncrements('id'))
@@ -303,6 +323,7 @@ class Blueprint
      */
     public function id(): Column
     {
-        return $this->bigIncrements('id');
+        //return $this->bigIncrements('id');
+        return $this->increments('id');
     }
 }

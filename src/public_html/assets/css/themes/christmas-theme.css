@@ -1,68 +1,278 @@
-/* christmas-theme.css - revised for Bootstrap */
+/* Winter Wonderland Theme - Elegant holiday styling */
+
+/* Theme Variables */
 :root {
-    --christmas-red: #c10e0e;
-    --christmas-green: #1a5d1a;
-    --christmas-gold: #ffd700;
-    --christmas-snow: #f8f9fa;
+    --winter-primary: #2c6aa0;      /* Deep blue */
+    --winter-secondary: #b33c3c;    /* Soft red */
+    --winter-accent: #e6c779;       /* Warm gold */
+    --winter-light: #f0f8ff;        /* Ice blue */
+    --winter-dark: #233240;         /* Deep navy */
+    --winter-shadow: rgba(68, 132, 182, 0.2);
+  }
 
-    /* Add error styling variables */
-    --christmas-error-border: var(--christmas-red);
-    --christmas-error-text: var(--christmas-green);
-    --christmas-error-bg: rgba(193, 14, 14, 0.1);
-}
+  /* Apply theme by overriding default variables */
+  body {
+    /* Base colors */
+    --primary-color: var(--winter-primary);
+    --secondary-color: var(--winter-secondary);
+    --border-color: var(--winter-primary);
 
-/* Override Bootstrap variables */
-:root {
-    --bs-primary: var(--christmas-red);
-    --bs-secondary: var(--christmas-green);
-    --bs-success: #2a8735;
-    --bs-info: #0dcaf0;
-    --bs-warning: var(--christmas-gold);
-    --bs-danger: #990000;
-    --bs-light: var(--christmas-snow);
-    --bs-dark: #343a40;
+    /* Layout elements */
+    --header-bg: var(--winter-primary);
+    --footer-bg: var(--winter-dark);
+    --sidebar-bg: var(--winter-dark);
 
-    /* Override Bootstrap validation styles */
-    --bs-form-invalid-border-color: var(--christmas-error-border);
-    --bs-form-invalid-color: var(--christmas-error-text);
-    --bs-form-invalid-bg: var(--christmas-error-bg);
-}
+    /* Navigation */
+    --nav-bg: linear-gradient(to right, var(--winter-primary), #5190c5);
+    --nav-border-radius: 8px;
+    --nav-padding: 5px;
+    --nav-link-color: white;
+    --nav-link-bg: rgba(255, 255, 255, 0.1);
+    --nav-link-border-radius: 6px;
+    --nav-link-hover-bg: rgba(255, 255, 255, 0.2);
+    --nav-link-hover-color: var(--winter-light);
+    --nav-link-active-bg: var(--winter-accent);
+    --nav-link-active-color: var(--winter-dark);
 
-  /* Custom header styling */
+    /* Set snowflake background */
+    background-color: #f8fbff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50' viewBox='0 0 50 50'%3E%3Cpath fill='%239cb3d1' fill-opacity='0.15' d='M25,0 L25,50 M0,25 L50,25 M10,10 L40,40 M10,40 L40,10 M16,0 L34,50 M0,16 L50,34 M0,34 L50,16 M34,0 L16,50'/%3E%3C/svg%3E");
+    color: var(--winter-dark);
+  }
+
+  /* Header styling */
   .header {
-    background-color: var(--christmas-green);
-    border-bottom: 3px solid var(--christmas-red);
+    background: var(--nav-bg);
+    box-shadow: 0 4px 12px var(--winter-shadow);
+    border-bottom: none;
+    position: relative;
+    /* overflow: hidden; */
   }
 
-  /* Bootstrap component overrides */
-  .btn-primary {
-    background-color: var(--christmas-red);
-    border-color: var(--christmas-red);
+  /* Create snow overlay effect */
+  .header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Cpath d='M20 0 L20 40 M0 20 L40 20 M10 10 L30 30 M10 30 L30 10'/%3E%3C/g%3E%3C/svg%3E");
+    pointer-events: none;
   }
 
-  .btn-secondary {
-    background-color: var(--christmas-green);
-    border-color: var(--christmas-green);
+  /* Main content */
+  .main-content {
+    background-color: var(--winter-light);
+    box-shadow: 0 5px 20px var(--winter-shadow);
+    border-radius: 10px;
+    border: none;
+    position: relative;
+    padding: 20px;
   }
 
-  .card {
-    border-color: var(--christmas-red);
+  .main-content h1 {
+    color: var(--winter-primary);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(44, 106, 160, 0.2);
+    padding-bottom: 10px;
   }
 
-  .card-header {
-    background-color: var(--christmas-green);
+  /* Navigation styling */
+  nav ul {
+    background: var(--nav-bg);
+    border-radius: var(--nav-border-radius);
+    box-shadow: 0 4px 8px var(--winter-shadow);
+    padding: var(--nav-padding);
+  }
+
+  nav li a {
+    background-color: var(--nav-link-bg);
+    color: var(--nav-link-color);
+    border-radius: var(--nav-link-border-radius);
+    font-weight: 500;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    letter-spacing: 0.5px;
+  }
+
+  nav li a:hover {
+    background-color: var(--nav-link-hover-bg);
+    color: var(--nav-link-hover-color);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  nav li.active a {
+    background-color: var(--nav-link-active-bg);
+    color: var(--nav-link-active-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    font-weight: 600;
+  }
+
+  /* Sidebar styling */
+  .left-sidebar {
+    background: linear-gradient(135deg, var(--winter-dark), #2d4258);
     color: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px var(--winter-shadow);
+    padding: 20px;
   }
 
-  /* Custom error styling */
-.invalid-feedback {
-    color: var(--christmas-error-text);
-    background-color: var(--christmas-error-bg);
-    padding: 0.5rem;
-    border-left: 3px solid var(--christmas-error-border);
-    margin-top: 0.25rem;
-}
+  .left-sidebar h2 {
+    color: var(--winter-accent);
+    text-align: center;
+    border-bottom: 1px solid rgba(230, 199, 121, 0.3);
+    padding-bottom: 10px;
+    font-weight: 300;
+    letter-spacing: 1px;
+  }
 
-.is-invalid {
-    border-color: var(--christmas-error-border) !important;
-}
+  /* Footer styling */
+  .footer {
+    background: linear-gradient(to right, var(--winter-dark), #334b61);
+    color: white;
+    border-top: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    box-shadow: 0 -5px 15px var(--winter-shadow);
+    text-align: center;
+    padding: 20px;
+  }
+
+  .footer h2 {
+    color: var(--winter-light);
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  /* Card styling */
+  .card:not(.form-theme-neon) {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 20px var(--winter-shadow);
+    background-color: white;
+  }
+
+  .card:not(.form-theme-neon) .card-header {
+    background: linear-gradient(to right, var(--winter-primary), #5190c5);
+    color: white;
+    border-bottom: none;
+    padding: 15px 20px;
+  }
+
+  .card:not(.form-theme-neon) .card-header h3 {
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    margin: 0;
+  }
+
+  .card:not(.form-theme-neon) .card-body {
+    padding: 20px;
+  }
+
+  /* Debug bar styling */
+  .debugbar {
+    background-color: rgba(255,255,255,0.8);
+    color: var(--winter-dark);
+    border: 1px solid rgba(44, 106, 160, 0.2);
+    border-radius: 4px;
+    padding: 5px 10px;
+    margin-top: 10px;
+    font-size: 0.85em;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+
+  /* Snowflake decorations */
+  .main-content::before,
+  .main-content::after {
+    content: "❄";
+    position: absolute;
+    color: var(--winter-primary);
+    opacity: 0.5;
+    pointer-events: none;
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .main-content::before {
+    top: 15px;
+    left: 15px;
+    font-size: 28px;
+  }
+
+  .main-content::after {
+    bottom: 15px;
+    right: 15px;
+    font-size: 28px;
+    animation-delay: 2s;
+  }
+
+  /* Links styling */
+  .main-content a:not(.form-theme-neon a) {
+    color: var(--winter-primary);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    border-bottom: 1px dotted rgba(44, 106, 160, 0.3);
+    padding-bottom: 2px;
+  }
+
+  .main-content a:not(.form-theme-neon a):hover {
+    color: var(--winter-secondary);
+    border-bottom: 1px solid var(--winter-secondary);
+  }
+
+  /* Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  /* Add more subtle snowflakes around the page */
+  body::before,
+  body::after {
+    content: "❄";
+    position: fixed;
+    color: var(--winter-primary);
+    opacity: 0.3;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  body::before {
+    top: 8%;
+    left: 10%;
+    font-size: 22px;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  body::after {
+    top: 15%;
+    right: 10%;
+    font-size: 18px;
+    animation: float 7s ease-in-out 1s infinite;
+  }
+
+  /* Button styling */
+  .btn:not(.form-theme-neon .btn) {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  .btn-primary:not(.form-theme-neon .btn-primary) {
+    background: linear-gradient(to right, var(--winter-primary), #5190c5);
+    border: none;
+  }
+
+  .btn-primary:not(.form-theme-neon .btn-primary):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
+  }

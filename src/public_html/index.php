@@ -15,7 +15,7 @@ date_default_timezone_set('America/Los_Angeles');
 // Composer autoloader
 require_once __DIR__ . '/../../vendor/autoload.php';
 
-use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 use Core\ErrorHandler;
 use Core\Router;
 use Core\FrontController;
@@ -97,8 +97,9 @@ set_exception_handler(function ($exception) use ($container) {
 
     if (!headers_sent()) {
         http_response_code(500);
-        echo "Server Error";
-        //Debug::p($exception);
+        echo "Server Error...";
+        DebugRt::p($exception);
+        // DebugRt::j('1', '', '111');
     }
 
     exit(1);
@@ -122,6 +123,8 @@ if ($environment === 'development') {
 
 // Force logger initialization to see debug output
 $container->get('logger');
+
+$container->get('urlServiceInitializer');
 
 /** @var \Core\FrontController $frontController */
 $frontController = $container->get('frontController');

@@ -62,7 +62,7 @@ public function contactAction(ServerRequestInterface $request): ResponseInterfac
             'renderer' => 'bootstrap',
             'layout_type' => 'fieldsets',
             'error_display' => 'inline',
-            'css_theme_class' => 'form-theme-dotted'
+            'css_form_theme_class' => 'form-theme-dotted'
         ]
     );
     
@@ -228,7 +228,7 @@ $form = $this->formFactory->create(
     $this->contactFormType,
     [],
     [
-        'css_theme_class' => $themeClass
+        'css_form_theme_class' => $themeClass
     ]
 );
 
@@ -248,7 +248,7 @@ $form = $this->formFactory->create(
 | `renderer` | CSS framework renderer to use | `'bootstrap'` |
 | `layout_type` | Form layout structure | `'none'` |
 | `error_display` | How errors are displayed | `'inline'` |
-| `css_theme_class` | CSS class for theming | `''` |
+| `css_form_theme_class` | CSS class for theming | `''` |
 | `fields` | Field-specific overrides | `[]` |
 | `layout` | Custom layout structure | `[]` |
 | `no_submit_button` | Disable auto submit button | `false` |

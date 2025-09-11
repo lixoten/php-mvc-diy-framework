@@ -1,0 +1,17 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @var array $data
+ */
+?>
+
+<h1><?= $title ?></h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <p class="lead">Create your Store!</p>
+        <p>Your ??????????????????????.</p>
+    </div>
+</div>

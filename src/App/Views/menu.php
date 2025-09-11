@@ -2,119 +2,98 @@
 
 declare(strict_types=1);
 
-use Core\Auth\AuthenticationServiceInterface;
-use DI\Container;
+use App\Enums\Url;
+use App\Helpers\MenuBuilder;
+use App\Services\NavigationService;
 
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Get container instance for dependency injection
-global $container; // This should be available since we're including this file after container setup
+// Get container instance
+global $container;
 
-// Get auth service from container
-$authService = $container->get(AuthenticationServiceInterface::class);
-
-// Define menu items by section
-$publicItems = [
-    ['url' => '/', 'label' => 'Home'],
-    ['url' => '/about', 'label' => 'About'],
-    ['url' => '/posts', 'label' => 'Posts'],
-    ['url' => '/test', 'label' => 'Test'],
-    ['url' => '/testy', 'label' => 'Testy'],
-];
-
-// General authenticated features
-$authItems = [
-];
-
-// Account-specific features
-$accountItems = [
-    ['url' => '/account/profile/index', 'label' => 'Profile'],
-    ['url' => '/account/mynotes', 'label' => 'My Notes']
-];
-
-$adminItems = [
-    ['url' => '/admin/dashboard', 'label' => 'Dashboard'],
-    ['url' => '/admin/usersmanager', 'label' => 'AdminUsers'],
-];
-
-$guestItems = [
-    //['url' => '/registration', 'label' => 'Register'],
-];
-
-// Current path for highlighting active item
+// Get navigation service and build navigation data
+$navigationService = $container->get(NavigationService::class);
 $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$navigation = $navigationService->buildNavigation($currentPath);
 
-// Start menu HTML
-echo '<nav><ul>';
+?>
 
-// Always show public items
-foreach ($publicItems as $item) {
-    $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
-    echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
-}
+<!-- Main Navigation -->
+<nav><ul>
+    <?= MenuBuilder::renderItems($navigation->getPublicItems(), $currentPath) ?>
 
-// Show items based on authentication status
-if ($authService->isAuthenticated()) {
-    // Show account items
-    echo '<li class="menu-category">My Account</li>';
-    foreach ($accountItems as $item) {
-        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
-        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
-    }
+    <?php if (!empty($navigation->getAccountItems())) : ?>
+        <?= MenuBuilder::renderCategory('My Account') ?>
+        <?= MenuBuilder::renderItems($navigation->getAccountItems(), $currentPath) ?>
+    <?php endif; ?>
 
-    // Show admin items if user has admin role
-    if ($authService->hasRole('admin')) {
-        echo '<li class="menu-category">Admin</li>';
-        foreach ($adminItems as $item) {
-            $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
-            echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
-        }
-    }
+    <?php if (!empty($navigation->getStoreItems())) : ?>
+        <?= MenuBuilder::renderCategory('My Store') ?>
+        <?= MenuBuilder::renderItems($navigation->getStoreItems(), $currentPath) ?>
+    <?php endif; ?>
 
-    // Add logout with container div
-    echo '<div class="last-items-container">';
+    <?php if (!empty($navigation->getAdminItems())) : ?>
+        <?= MenuBuilder::renderCategory('Admin') ?>
+        <?= MenuBuilder::renderItems($navigation->getAdminItems(), $currentPath) ?>
+    <?php endif; ?>
 
-    // Show auth items
-    foreach ($authItems as $item) {
-        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
-        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
-    }
+    <!-- Last items container -->
+    <div class="last-items-container">
+        <?php if ($storeInfo = $navigation->getStoreInfo()) : ?>
+            <li class="view-store">
+                <?= \App\Helpers\LinkBuilder::generateButtonLink(
+                    Url::STORE_VIEW_PUBLIC,
+                    ['slug' => $storeInfo['slug']],
+                    $storeInfo['name'],
+                    ['target' => '_blank']
+                ) ?>
+            </li>
+        <?php endif; ?>
 
-    echo '<li><a href="/logout">Logout</a></li>';
-    echo '</div>';
-} else {
-    // Show guest-only items
-    foreach ($guestItems as $item) {
-        $isActive = ($currentPath === $item['url']) ? ' class="active"' : '';
-        echo "<li{$isActive}><a href=\"{$item['url']}\">{$item['label']}</a></li>";
-    }
+        <?php if (!empty($navigation->getGuestItems())) : ?>
+            <?= MenuBuilder::renderItems($navigation->getGuestItems(), $currentPath) ?>
+        <?php else : ?>
+            <li><?= \App\Helpers\LinkBuilder::generateButtonLink(Url::LOGOUT) ?></li>
+        <?php endif; ?>
+    </div>
+</ul></nav>
 
-    // Add login with container div
-    echo '<div class="last-items-container">';
-        $registerActive = ($currentPath === '/registration') ? ' class="active"' : '';
-        echo "<li{$registerActive}><a href=\"/registration\">Register</a></li>";
+<!-- Sub Navigation -->
+<?php if ($navigation->shouldShowSubNav()) : ?>
+    <div class="store-subnav">
+        <nav class="<?= $navigation->getSubNavClass() ?>">
+            <ul>
+                <?= MenuBuilder::renderItems(
+                    $navigation->getSubNavItems(),
+                    $currentPath,
+                    ['show_icons' => true, 'match_prefix' => true]
+                ) ?>
+            </ul>
+        </nav>
+    </div>
+    <script>
+        document.querySelector(".main-content").style.marginLeft = "220px";
+    </script>
+<?php endif; ?>
 
-        $loginActive = ($currentPath === '/login') ? ' class="active"' : '';
-        echo "<li{$loginActive}><a href=\"/login\">Login</a></li>";
-    echo '</div>';
-}
-
-echo '</ul></nav>';
-echo '<div class="debugbar">Debug| ';
-
-// Get current role status
-echo 'Current Role: ';
-if ($authService->isAuthenticated()) {
-    echo $authService->hasRole('admin') ? 'admin' : 'user';
-
-    // Get current username
-    $currentUser = $authService->getCurrentUser();
-    echo ' | Current User: ' . ($currentUser ? htmlspecialchars($currentUser->getUsername()) : 'Unknown');
-} else {
-    echo 'guest | Current User: none';
-}
-
-echo '</div>';
+<!-- Debug Bar -->
+<div class="debugbar">
+    <?php $debug = $navigation->getDebugInfo(); ?>
+    Debug| Current Role: <?= $debug['role'] ?>
+    <?php if ($debug['user_id']) : ?>
+        | Current User: <?= $debug['user_id'] ?> - <?= htmlspecialchars($debug['username']) ?>
+        <?php if (isset($debug['active_store_id']) && $debug['active_store_id']) : ?>
+            | Active Store: <?= $debug['active_store_id'] ?> - <?= htmlspecialchars($debug['active_store_name']) ?>
+        <?php endif; ?>
+    <?php else : ?>
+        | Current User: none
+    <?php endif; ?>
+    <br />
+    Page: <?= $debug['namespace'] ?> -
+    <?= $debug['controller'] ?> -
+    <?= $debug['action'] ?> -
+    <?= $debug['route_id'] ?>
+</div>

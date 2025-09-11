@@ -7,6 +7,6 @@ namespace App\Features\Home;
 class HomeConst
 {
     // Application constants
-    public const VIEW_HOME_INDEX = 'home/index';
-    public const VIEW_HOME_TEST = 'home/test';
+    // public const VIEW_HOME_INDEX = 'home/index';
+    // public const VIEW_HOME_TEST = 'home/test';
 }

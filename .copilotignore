@@ -1,0 +1,8 @@
+logs/,
+**/assets/docs/**
+*.md
+*copy.md
+* copy.*
+* old.*
+*old.php
+*/assets/docs/*

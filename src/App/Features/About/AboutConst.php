@@ -7,5 +7,5 @@ namespace App\Features\About;
 class AboutConst
 {
     // Application constants
-    public const VIEW_ABOUT_INDEX = 'about/index';
+    // public const VIEW_ABOUT_INDEX = 'about/index';
 }

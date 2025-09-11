@@ -17,7 +17,7 @@ public function registrationStep1Action(ServerRequestInterface $request): Respon
         $this->accountDetailsFormType,
         $this->session->get('registration_data', []),
         [
-            'css_theme_class' => 'form-themed',
+            'css_form_theme_class' => 'form-themed',
             'error_display' => 'inline'
         ]
     );

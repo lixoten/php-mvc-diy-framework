@@ -2,8 +2,7 @@
 
 use Core\Database\Migrations\MigrationRepository;
 use Core\Database\Migrations\MigrationRunner;
-use App\Helpers\DebugRt as Debug;
-use Database\Seeders\UsersSeeder;
+use App\Helpers\DebugRt;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -45,21 +44,47 @@ $runner = new MigrationRunner(
     $logger
 );
 
+function getSeederFiles($seederPath) {
+    $files = scandir($seederPath);
+    $seeders = [];
+    foreach ($files as $file) {
+        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+            $filename = pathinfo($file, PATHINFO_FILENAME);
+
+            // Strip numeric prefix (001_, 002_, etc.)
+            $className = preg_replace('/^\d+_/', '', $filename);
+
+            $seeders[] = $className;
+        }
+    }
+    return $seeders;
+}
+
+
 echo "==== DEBUG INFO ====\n";
 
 // 1. Check if migrations table exists
 try {
-    $tableExists = $db->query("SHOW TABLES LIKE 'migrations'");
-    echo "Migrations table exists: " . (!empty($tableExists) ? "Yes" : "No") . "\n";
+    // Better check for migrations table existence
+    $tableExists = $db->query("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'migrations'");
+    $exists = $tableExists[0]['count'] > 0;
+    echo "Migrations table exists: " . ($exists ? "Yes" : "No") . "\n";
 
     // Create table if it doesn't exist
-    if (empty($tableExists)) {
+    if (!$exists) {
         echo "Creating migrations table...\n";
         $repository->createRepository();
         echo "Table created.\n";
     }
 } catch (\Exception $e) {
     echo "Error checking migrations table: " . $e->getMessage() . "\n";
+    echo "Attempting to create migrations table...\n";
+    try {
+        $repository->createRepository();
+        echo "Migrations table created successfully.\n";
+    } catch (\Exception $createException) {
+        echo "Failed to create migrations table: " . $createException->getMessage() . "\n";
+    }
 }
 
 // 2. Check available migration files
@@ -93,9 +118,7 @@ switch ($command) {
         // Check for --force flag
         $force = in_array('--force', $argv) || in_array('-f', $argv);
 
-        // Use the runner's built-in run method
-        //$migrations = $runner->run();
-        $migrations = $runner->run($force);  // Pass force parameter to run()
+        $migrations = $runner->run($force);
 
         if (empty($migrations)) {
             echo "No migrations were executed.\n";
@@ -103,6 +126,41 @@ switch ($command) {
             echo count($migrations) . " migrations executed:\n";
             foreach ($migrations as $migration) {
                 echo "- $migration\n";
+            }
+        }
+        break;
+
+    case 'show:fk':
+        $table = $arg ?? null;
+        if (!$table) {
+            echo "Please specify a table name\n";
+            exit(1);
+        }
+
+        $result = $db->query(
+            "SELECT
+                rc.CONSTRAINT_NAME,
+                kcu.TABLE_NAME,
+                kcu.COLUMN_NAME,
+                kcu.REFERENCED_TABLE_NAME,
+                kcu.REFERENCED_COLUMN_NAME,
+                rc.DELETE_RULE
+            FROM information_schema.REFERENTIAL_CONSTRAINTS rc
+            JOIN information_schema.KEY_COLUMN_USAGE kcu
+                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
+            WHERE kcu.TABLE_NAME = ?",
+            [$table]
+        );
+
+        if (empty($result)) {
+            echo "No foreign keys found for table '$table'\n";
+        } else {
+            foreach ($result as $row) {
+                echo "Constraint: {$row['CONSTRAINT_NAME']}\n";
+                echo "  Column: {$row['COLUMN_NAME']}\n";
+                echo "  References: {$row['REFERENCED_TABLE_NAME']}({$row['REFERENCED_COLUMN_NAME']})\n";
+                echo "  On Delete: {$row['DELETE_RULE']}\n";
+                echo "\n";
             }
         }
         break;
@@ -115,11 +173,59 @@ switch ($command) {
         break;
 
     case 'seed':
+        $seederPath = __DIR__ . '/../src/Database/Seeders';
+
+        // if (!$arg) {
+        //     echo "Error: Seeder name is required\n";
+        //     echo "Usage: php bin/console.php seed [seeder_name]\n";
+        //     break;
+        // }
+
+
         if (!$arg) {
-            echo "Error: Seeder name is required\n";
-            echo "Usage: php bin/console.php seed [seeder_name]\n";
+            // Show available seeders instead of requiring name
+            echo "Available seeders:\n";
+            $availableSeeders = getSeederFiles($seederPath);
+            foreach ($availableSeeders as $seeder) {
+                echo "- $seeder\n";
+            }
+            echo "\nUsage: php bin/console.php seed [seeder_name]\n";
+            echo "       php bin/console.php seed --all\n";
             break;
         }
+
+        if ($arg === '--all') {
+            echo "Running all seeders...\n";
+            $allSeeders = getSeederFiles($seederPath);
+            foreach ($allSeeders as $seederName) {
+                // Find the actual file (with prefix)
+                $files = scandir($seederPath);
+                $actualFile = null;
+                foreach ($files as $file) {
+                    if (strpos($file, $seederName . '.php') !== false) {
+                        $actualFile = $file;
+                        break;
+                    }
+                }
+
+                if ($actualFile) {
+                    // LOAD FILE DIRECTLY like migrations do
+                    require_once $seederPath . '/' . $actualFile;
+
+                    $seederClass = 'Database\\Seeders\\' . $seederName;
+                    echo "Running: $seederName\n";
+                    $seeder = new $seederClass($db);
+                    $seeder->run();
+                }
+            }
+        }
+
+
+
+
+
+
+
         // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {
         //     // Direct execution of UsersSeeder
         //     //D:\xampp\htdocs\my_projects\mvclixo\src\Database\Seeder\UsersSeeder.php
@@ -154,3 +260,5 @@ switch ($command) {
         echo "  seed [class]      Run database seeders\n";
         break;
 }
+
+

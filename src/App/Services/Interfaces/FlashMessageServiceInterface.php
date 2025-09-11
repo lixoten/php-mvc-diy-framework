@@ -11,7 +11,8 @@ interface FlashMessageServiceInterface
     public function add(
         string $message,
         FlashMessageType $type = FlashMessageType::Info,
-        bool $sticky = false
+        bool $sticky = false,
+        ?array $linkData = null
     ): FlashMessageServiceInterface;
     public function get(?FlashMessageType $type = null): array;
     public function has(?FlashMessageType $type = null): bool;

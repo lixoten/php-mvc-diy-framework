@@ -33,5 +33,6 @@ class Consts
     public const ERROR_INLINE = 'inline';
     public const ERROR_SUMMARY = 'summary';
 
+    public const REDIRECT_HOME = 'home';
 
 }

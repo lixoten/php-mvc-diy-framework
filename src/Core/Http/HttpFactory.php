@@ -69,4 +69,20 @@ class HttpFactory implements ResponseFactoryInterface
     {
         return $this->factory->createUri($uri);
     }
+
+
+    /**
+     * Create a redirect response
+     *
+     * @param string $url URL to redirect to
+     * @param int $status HTTP status code (default: 302 Found)
+     * @return ResponseInterface
+     */
+    public function createRedirectResponse(string $url, int $status = 302): ResponseInterface
+    {
+        $response = $this->createResponse($status)
+            ->withHeader('Location', $url);
+
+        return $response;
+    }
 }

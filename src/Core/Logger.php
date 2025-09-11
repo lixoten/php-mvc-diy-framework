@@ -116,6 +116,14 @@ class Logger implements LoggerInterface
             $level = $this->convertPsrLevelToInt($level);
         }
 
+        // Todo Enhance to allow me to log an error, that i can then use to look up more details.
+        // For Dev usage only maybe
+        // if (isset($context['error_id'])) {
+        //     $context['error_id'] = uniqid('ERR', true);
+        //     $message .= " [Error ID: {$context['error_id']}]";
+        // }
+
+
         // Skip if below minimum level
         if ($level < $this->minLevel) {
             return;

@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Core\Exceptions\PageNotFoundException;
+use Psr\Container\ContainerInterface;
 
 class Router implements RouterInterface
 {
@@ -23,7 +24,7 @@ class Router implements RouterInterface
     protected $httpFactory;
 
     // Manual DI // public function __construct(Container $container = null)
-    public function __construct(\Psr\Container\ContainerInterface $container = null, HttpFactory $httpFactory = null)
+    public function __construct(ContainerInterface $container = null, HttpFactory $httpFactory = null)
     {
         $this->container = $container;
         $this->httpFactory = $httpFactory;
@@ -35,10 +36,15 @@ class Router implements RouterInterface
         $route = preg_replace('/\//', '\\/', $route);
 
         // Convert variables e.g. {controller}
-        $route = preg_replace('/\{([a-z]+\/?)}/', '(?P<\1>[a-z-]+\/?)', $route);
+
+        // Dynamic-me
+        //>>>$route = preg_replace('/\{([a-z]+\/?)}/', '(?P<\1>[a-z-]+\/?)', $route);
+        $route = preg_replace('/\{([a-z]+)}/', '(?P<\1>[a-zA-Z]+)', $route); // NEW STRICTER LINE
 
         // Convert variables with custom regular expressions e.g. {id:\d+}
-        $route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
+        // Dynamic-me
+        //..$route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
+        $route = preg_replace('/\{([a-z_]+):([^\}]+)\}/', '(?P<\1>\2)', $route); // Allow underscore in name {content_type}
 
         // Add start and end delimiters, and case-insensitive flag
         //$route = '/^' . $route . '$/i';
@@ -68,11 +74,11 @@ class Router implements RouterInterface
         // if (isset($urlParts['query'])) {
             // parse_str($urlParts['query'], $queryParams);
         // }
-//Debug::p($url,0);
+        //Debug::p($url,0);
         foreach ($this->routes as $route => $params) {
             if (preg_match($route, $url, $matches)) {
                 // Get named capture group values
-                //Debug::p($matches, 0);
+                //Debug::p($matches, 0); '#^account\/(?P<controller>[a-zA-Z]+)$#i'
                 foreach ($matches as $key => $match) {
                     // Check if this is our special 'args' parameter for repetitive params
                     if ($key === 'args' && strpos($url, '/param/') !== false) {
@@ -109,101 +115,158 @@ class Router implements RouterInterface
     }
 
 
-    // Update dispatch method to work with PSR-7
-    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    /**
+     * Match the request against the routing table.
+     *
+     * @param ServerRequestInterface $request The request object
+     * @return array|null The matched route parameters or null if no match
+     */
+    public function matchRequest(ServerRequestInterface $request): ?array // <-- New method implementation
     {
         $url = ltrim($request->getUri()->getPath(), '/');
 
         // Default to root if URL is empty
         if ($url == '') {
-            $url = 'home/index';
+            $url = 'home/index'; // Or handle root route explicitly if needed
         }
 
         if ($this->match($url)) {
-            //Debug::p($this->params);
+            // Process matched parameters (namespace, case conversion)
             $this->params['controller'] = $this->toPascalCase($this->params['controller']);
 
-            $qualifiedNamespace = $this->getNamespace();
+            $qualifiedNamespace = $this->getNamespace(); // Uses $this->params
 
-            // For admin routes, add the controller name as a subfolder too
+            // Adjust namespace based on route definition
             if (array_key_exists('namespace', $this->params)) {
-                if ($this->params['namespace'] === 'Admin' || $this->params['namespace'] === 'Account') {
+                if (
+                    $this->params['controller'] === 'Dasxxxxxhboard' ||
+                    $this->params['namespace'] === 'Admin' ||
+                    $this->params['namespace'] === 'Account' ||
+                    $this->params['namespace'] === 'Stores'
+                ) {
                     $qualifiedNamespace .= $this->params['controller'] . '\\';
                 }
+                // Store the fully qualified namespace back into params for consistency
                 $this->params['namespace'] = $qualifiedNamespace;
             }
-            //Debug::p($this->params);
 
-            $controllerClass = $qualifiedNamespace
+            // Add fully qualified controller class name to params
+            $this->params['controller_class'] = $qualifiedNamespace
                 . $this->convertToStudlyCaps($this->params['controller'])
                 . 'Controller';
-             //Debug::p($controllerClass);
-            if (class_exists($controllerClass)) {
-                // Add route params to request attributes
-                foreach ($this->params as $key => $value) {
-                    if (is_string($key)) {
-                        $request = $request->withAttribute($key, $value);
-                    }
-                }
 
-                // Store updated request and route params in container
-                if ($this->container) {
-                    if ($this->container instanceof \DI\Container) {
-                        $this->container->set('route_params', $this->params);
-                        $this->container->set('current_request', $request);
-                    }
-                    //$this->container->set('route_params', $this->params);
-                    //$this->container->set('current_request', $request);
-                }
+            // Add camelCase action name to params
+            $this->params['action_method'] = $this->convertToCamelCase($this->params['action']);
 
-                // Create controller
-                if ($this->container instanceof \DI\Container) {
-               //Debug::p($this->params);
-
-                    $controllerObject = $this->container->make($controllerClass, [
-                        'route_params' => $this->params
-                    ]);
-                } else {
-                    $controllerObject = new $controllerClass($this->params);
-                }
-               // Debug::p($controllerClass);
-
-                // initialize controller with request if method exists
-                if (method_exists($controllerObject, 'initialize')) {
-                    $controllerObject->initialize($request);
-                }
-
-                $action = $this->convertToCamelCase($this->params['action']);
-
-                if (is_callable([$controllerObject, $action])) {
-                    // Call the action with the request
-                    $result = $controllerObject->$action($request);
-
-                    // Return result if it's already a ResponseInterface
-                    if ($result instanceof ResponseInterface) {
-                        return $result;
-                    }
-
-                    // Convert other return types to Response
-                    if ($this->httpFactory) {
-                        $response = $this->httpFactory->createResponse();
-                        if (is_string($result)) {
-                            $response->getBody()->write($result);
-                        }
-                        return $response;
-                    } else {
-                        throw new \RuntimeException("HttpFactory not available for response creation");
-                    }
-                } else {
-                    throw new InvalidArgumentException(
-                        "Method $action (in controller $controllerClass) not found",
-                        404
-                    );
-                }
-            }
+            return $this->params; // Return the processed parameters
         }
 
-        throw new PageNotFoundException('Page not found');
+        return null; // No match found
+    }
+
+    // Update dispatch method to work with PSR-7
+    public function dispatch(ServerRequestInterface $request): ResponseInterface
+    {
+        // $url = ltrim($request->getUri()->getPath(), '/');
+
+        // // Default to root if URL is empty
+        // if ($url == '') {
+        //     $url = 'home/index';
+        // }
+
+        // if ($this->match($url)) {
+        //     //Debug::p($this->params);
+        //     $this->params['controller'] = $this->toPascalCase($this->params['controller']);
+
+        //     $qualifiedNamespace = $this->getNamespace();
+
+        //     // For admin routes, add the controller name as a subfolder too
+        //     if (array_key_exists('namespace', $this->params)) {
+        //         if (
+        //             $this->params['namespace'] === 'Admin' ||
+        //             $this->params['namespace'] === 'Account' ||
+        //             $this->params['namespace'] === 'Stores'
+        //         ) {
+        //             $qualifiedNamespace .= $this->params['controller'] . '\\';
+        //         }
+        //         $this->params['namespace'] = $qualifiedNamespace;
+        //     }
+        //     //Debug::p($this->params);
+
+        //     $controllerClass = $qualifiedNamespace
+        //         . $this->convertToStudlyCaps($this->params['controller'])
+        //         . 'Controller';
+        //      //Debug::p($controllerClass);
+        //     // BREAKHERE
+        //     if (class_exists($controllerClass)) {
+        //         $request = $request->withAttribute('route_params', $this->params);
+
+        //         // Add route params to request attributes
+        //         foreach ($this->params as $key => $value) {
+        //             if (is_string($key)) {
+        //                 $request = $request->withAttribute($key, $value);
+        //             }
+        //         }
+
+        //         // Store updated request and route params in container
+        //         if ($this->container) {
+        //             if ($this->container instanceof \DI\Container) {
+        //                 $this->container->set('route_params', $this->params);
+        //                 $this->container->set('current_request', $request);
+        //             }
+        //             //$this->container->set('route_params', $this->params);
+        //             //$this->container->set('current_request', $request);
+        //         }
+
+        //         // Create controller
+        //         if ($this->container instanceof \DI\Container) {
+        //         //Debug::p($this->params);
+
+        //             $controllerObject = $this->container->make($controllerClass, [
+        //                 'route_params' => $this->params
+        //             ]);
+        //         } else {
+        //             $controllerObject = new $controllerClass($this->params);
+        //         }
+        //        // Debug::p($controllerClass);
+
+        //         // initialize controller with request if method exists
+        //         if (method_exists($controllerObject, 'initialize')) {
+        //             $controllerObject->initialize($request);
+        //         }
+
+        //         $action = $this->convertToCamelCase($this->params['action']);
+
+        //         if (is_callable([$controllerObject, $action])) {
+        //             // Call the action with the request
+        //             $result = $controllerObject->$action($request);
+
+        //             // Return result if it's already a ResponseInterface
+        //             if ($result instanceof ResponseInterface) {
+        //                 return $result;
+        //             }
+
+        //             // Convert other return types to Response
+        //             if ($this->httpFactory) {
+        //                 $response = $this->httpFactory->createResponse();
+        //                 if (is_string($result)) {
+        //                     $response->getBody()->write($result);
+        //                 }
+        //                 return $response;
+        //             } else {
+        //                 throw new \RuntimeException("HttpFactory not available for response creation");
+        //             }
+        //         } else {
+        //             throw new InvalidArgumentException(
+        //                 "Method $action (in controller $controllerClass) not found",
+        //                 404
+        //             );
+        //         }
+        //     }
+        // }
+
+        // throw new PageNotFoundException('Page not found');
+        throw new PageNotFoundException('Page not found (Dispatch Fallback)');
     }
 
 

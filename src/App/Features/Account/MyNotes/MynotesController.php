@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Features\Account\Mynotes;
+namespace App\Features\Account\MyNotes;
 
+use App\Enums\Url;
 use Core\Controller;
 use Core\View;
 use App\Services\Interfaces\FlashMessageServiceInterface;
+use Core\Context\CurrentContext;
 use Core\Http\HttpFactory;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -14,7 +16,7 @@ use Psr\Http\Message\ResponseInterface;
 /**
  * My Notes controller
  */
-class MynotesController extends Controller
+class MyNotesController extends Controller
 {
     /**
      * Constructor
@@ -24,14 +26,16 @@ class MynotesController extends Controller
         FlashMessageServiceInterface $flash,
         View $view,
         HttpFactory $httpFactory,
-        ContainerInterface $container
+        ContainerInterface $container,
+        CurrentContext $scrap,
     ) {
         parent::__construct(
             $route_params,
             $flash,
             $view,
             $httpFactory,
-            $container
+            $container,
+            $scrap
         );
     }
 
@@ -40,8 +44,8 @@ class MynotesController extends Controller
      */
     public function indexAction(): ResponseInterface
     {
-        //return $this->view('Account/mynotes', [
-        return $this->view('account/mynotes/index', [
+        // return $this->view('account/mynotes', [
+        return $this->view(Url::ACCOUNT_MYNOTES->view(), [
             'title' => 'My Notes'
         ]);
     }

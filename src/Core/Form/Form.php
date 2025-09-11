@@ -27,7 +27,7 @@ class Form implements FormInterface
         'enctype' => 'multipart/form-data',
     ];
     private ?FormRendererInterface $renderer = null;
-    private array $layout = [];
+    // private array $layout = [];
     private array $renderOptions = [];
 
     /**
@@ -116,7 +116,6 @@ class Form implements FormInterface
     /**
      * {@inheritdoc}
      */
-
     public function setData($data): self
     {
         $this->data = $data;
@@ -278,7 +277,6 @@ class Form implements FormInterface
      */
     public function getCSRFToken(): string
     {
-        //return $this->csrf->generate();
         return $this->csrf->getToken();
     }
 
@@ -406,7 +404,8 @@ class Form implements FormInterface
      */
     public function setLayout(array $layout): self
     {
-        $this->layout = $layout;
+        // $this->layout = $layout;
+        $this->renderOptions['layout'] = $layout;
         return $this;
     }
 
@@ -417,7 +416,8 @@ class Form implements FormInterface
      */
     public function getLayout(): array
     {
-        return $this->layout;
+        // return $this->layout;
+        return $this->renderOptions['layout'];
     }
 
 
@@ -452,5 +452,57 @@ class Form implements FormInterface
     public function getRenderOptions(): array
     {
         return $this->renderOptions;
+    }
+
+    ## HELPERS
+    ## HELPERS
+    ## HELPERS
+    ## HELPERS
+    ## HELPERS
+    ## HELPERS
+    ## HELPERS
+
+    /** {@inheritdoc} */
+    public function getSecurityLevel(): string
+    {
+        //DebugRt::j('0', '', 'in Form');
+        // First check render options
+        if (isset($this->renderOptions['security_level'])) {
+            return $this->renderOptions['security_level'];
+        }
+
+        // Default
+        return 'medium';
+    }
+
+
+    /** {@inheritdoc} */
+    public function hasCaptchaScripts(): bool
+    {
+        return !empty($this->renderOptions['captcha_scripts']);
+    }
+
+    /** {@inheritdoc} */
+    public function getCaptchaScripts(): string
+    {
+        return $this->renderOptions['captcha_scripts'] ?? '';
+    }
+
+    /** {@inheritdoc} */
+    public function isCaptchaRequired(): bool
+    {
+        return $this->renderOptions['captcha_required'] ?? false;
+    }
+
+    /** {@inheritdoc} */
+    public function hasCssFormThemeFile(): bool
+    {
+        return !empty($this->renderOptions['css_form_theme_file']);
+    }
+
+    /** {@inheritdoc} */
+    public function getCssFormThemeFile(): string
+    {
+        return $this->renderOptions['css_form_theme_file'] ?? '';
     }
 }

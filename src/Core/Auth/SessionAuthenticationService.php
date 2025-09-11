@@ -7,6 +7,7 @@ namespace Core\Auth;
 use App\Entities\User;
 use App\Enums\UserStatus;
 use App\Repository\RememberTokenRepository;
+use App\Repository\StoreRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
 // use Core\Security\BruteForceProtectionService; // foofee
@@ -55,6 +56,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         UserRepositoryInterface $userRepository,
         SessionManagerInterface $session,
         protected RememberTokenRepository $rememberTokenRepository,
+        protected ?StoreRepositoryInterface $storeRepository = null,
         // protected BruteForceProtectionService $bruteForceProtection, // foofee
         array $config = []
     ) {
@@ -111,6 +113,9 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // Store user data in session
         $this->storeUserInSession($user);
 
+        // Set up store context for store owners
+        $this->setupStoreContext($user);
+
         // Set remember me cookie if requested
         if ($remember) {
             $this->setRememberMeCookie($user);
@@ -142,6 +147,11 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         $this->session->remove(self::SESSION_AUTH_TIME);
         $this->session->remove(self::SESSION_LAST_ACTIVITY);
 
+        // Clear store context
+        $this->session->remove('active_store_id');
+        $this->session->remove('active_store_slug');
+        $this->session->remove('active_store_name');
+
         // Clear remember me cookie and any stored tokens for this user
         $this->clearRememberMeCookie();
         if ($userId) {
@@ -154,6 +164,32 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // Reset current user
         $this->currentUser = null;
     }
+
+    /**
+     * Set up store context for store owners
+     */
+    private function setupStoreContext(User $user): void
+    {
+        // Check if user has store_owner role
+        if (in_array('store_owner', $user->getRoles())) {
+            // Skip if no store repository was injected
+            if (!$this->storeRepository) {
+                return;
+            }
+
+            // Get user's store from repository
+            $store = $this->storeRepository->findByUserId($user->getUserId());
+
+            if ($store) {
+                // Store the active store information in session
+                $this->session->set('active_store_id', $store->getStoreId());
+                $this->session->set('active_store_slug', $store->getSlug());
+                $this->session->set('active_store_name', $store->getName());
+            }
+        }
+    }
+
+
 
     /**
      * {@inheritdoc}
@@ -399,6 +435,10 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
 
         // Set user session
         $this->storeUserInSession($user);
+
+        // Set up store context for remember-me login too
+        $this->setupStoreContext($user);
+
         $this->currentUser = $user;
 
         // Delete expired tokens periodically (1/100 chance to run this cleanup)

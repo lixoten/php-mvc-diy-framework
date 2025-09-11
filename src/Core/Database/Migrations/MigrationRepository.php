@@ -32,21 +32,46 @@ class MigrationRepository
 
     public function getMigrations(): array
     {
-        return $this->db->query("SELECT * FROM {$this->table} ORDER BY batch, id");
+        try {
+            return $this->db->query("SELECT * FROM {$this->table} ORDER BY batch, id");
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                $this->createRepository();
+                return [];
+            }
+            throw $e;
+        }
     }
 
     public function getMigrationsByBatch(int $batch): array
     {
-        return $this->db->query(
-            "SELECT * FROM {$this->table} WHERE batch = ? ORDER BY id",
-            [$batch]
-        );
+        try {
+            return $this->db->query(
+                "SELECT * FROM {$this->table} WHERE batch = ? ORDER BY id",
+                [$batch]
+            );
+        } catch (\Exception $e) {
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                $this->createRepository();
+                return [];
+            }
+            throw $e;
+        }
     }
 
     public function getLastBatchNumber(): int
     {
-        $result = $this->db->query("SELECT MAX(batch) as batch FROM {$this->table}");
-        return (int) ($result[0]['batch'] ?? 0);
+        try {
+            $result = $this->db->query("SELECT MAX(batch) as batch FROM {$this->table}");
+            return (int) ($result[0]['batch'] ?? 0);
+        } catch (\Exception $e) {
+            // If table doesn't exist, create it and return 0
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                $this->createRepository();
+                return 0;
+            }
+            throw $e;
+        }
     }
 
     public function log(string $migration, int $batch): void
@@ -65,9 +90,19 @@ class MigrationRepository
         );
     }
 
+    // Fix the getMigratedFiles() method (line 69-72) - keep it returning array:
     public function getMigratedFiles(): array
     {
-        $result = $this->db->query("SELECT migration FROM {$this->table}");
-        return array_column($result, 'migration');
+        try {
+            $result = $this->db->query("SELECT migration FROM {$this->table}");
+            return array_column($result, 'migration');
+        } catch (\Exception $e) {
+            // If table doesn't exist, create it and return empty array
+            if (strpos($e->getMessage(), "doesn't exist") !== false) {
+                $this->createRepository();
+                return []; // EMPTY ARRAY, not 0!
+            }
+            throw $e;
+        }
     }
 }

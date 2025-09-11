@@ -1,4 +1,4 @@
-Total Files: 
+Total Files:
 - PHP files: ~140 files
 - Documentation files: ~20 files
 - Configuration files: ~10 files
@@ -24,7 +24,7 @@ MVCLIXO/ (project-root)
 │   │   │
 │   │   ├── Enums/
 │   │   │   └── FlashMessageType.php
-│   │   │   
+│   │   │
 │   │   ├── Features/
 │   │   │   ├── About/
 │   │   │   │   ├── AboutConst.php
@@ -45,7 +45,7 @@ MVCLIXO/ (project-root)
 │   │   │   │   ├── EmailVerificationController.php
 │   │   │   │   └── Views/
 │   │   │   │       └── login.php
-│   │   │   │ 
+│   │   │   │
 │   │   │   ├── Home/
 │   │   │   │   ├── HomeConst.php
 │   │   │   │   ├── HomeController.php
@@ -61,7 +61,7 @@ MVCLIXO/ (project-root)
 │   │   │       └── Views/
 │   │   │           ├── index.php
 │   │   │           └── testlogger.php
-│   │   │   
+│   │   │
 │   │   ├── Helpers/
 │   │   │   ├── DebugRt.php
 │   │   │   ├── HtmlHelper.php
@@ -124,7 +124,7 @@ MVCLIXO/ (project-root)
 │   │   │   │   ├── ForeignKey.php         # Foreign key definition
 │   │   │   │   ├── Index.php              # Index definition
 │   │   │   │   └── SchemaBuilder.php      # Create/alter tables
-│   │   │   │ 
+│   │   │   │
 │   │   │   └── Seeder/                    # Database seeding
 │   │   │       ├── Seeder.php             # Base seeder class
 │   │   │       └── TableSeeder.php        # Table seeder
@@ -167,7 +167,7 @@ MVCLIXO/ (project-root)
 │   │   │   │   └── FieldInterface.php
 │   │   │   │
 │   │   │   ├── Renderer/
-│   │   │   │   └── BootstrapRenderer.php
+│   │   │   │   └── BootstrapFormRenderer.php
 │   │   │   │
 │   │   │   ├── Validation/                # Form validation
 │   │   │   │   ├── Rules/

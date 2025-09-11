@@ -1,5 +1,11 @@
 # CAPTCHA Implementation in MVCLixo Framework
 # Important!!! This document might be obsolte and out of date
+
+./vendor/bin/phpunit Tests/Core/Security/RateLimitServiceTest.php
+./vendor/bin/phpunit Tests/Core/Middleware/RateLimitMiddlewareTest.php 
+./vendor/bin/phpunit Tests/App/Repository/RateLimitRepositoryTest.php
+./vendor/bin/phpunit Tests/Integration/LoginRateLimitingIntegrationTest.php
+
 ## Notes
 - @workspace src\App\Features\Auth\LoginController.php
 - src\Config\security.php
@@ -26,6 +32,24 @@ RateLimiting Files
 - src\App\Repository\RateLimitRepositoryInterface.php
 - src\dependencies.php
 
+
+
+d:\xampp\htdocs\my_projects\mvclixo\src\Core\Security\Captcha\GoogleReCaptchaService.php
+# captcha
+./vendor/bin/phpunit Tests/Core/Security/Captcha/GoogleReCaptchaServiceTest.php
+./vendor/bin/phpunit Tests/Core/Form/FormHandlerCaptchaTest.php
+./vendor/bin/phpunit Tests/App/Features/Auth/LoginControllerCaptchaTest.php
+./vendor/bin/phpunit Tests/Integration/CaptchaIntegrationTest.php
+
+
+src\App\Features\Auth\LoginController.php
+- src\Config\security.php
+- src\Core\Form\FormHandler.php
+- src\Core\Security\Captcha\CaptchaServiceInterface.php
+- src\Core\Security\Captcha\GoogleReCaptchaService.php
+- src\dependencies.php
+
+
 Tell me how captcha works in my Application. make sure you are explain our system not concepts,
 
 
@@ -35,6 +59,7 @@ Tell me how captcha works in my Application. make sure you are explain our syste
 The MVCLixo framework implements a CAPTCHA system to prevent automated form submissions and enhance security, particularly for sensitive actions like login and registration. The implementation uses Google reCAPTCHA but is designed with interfaces to allow for alternative CAPTCHA providers.
 
 ## Core Components
+https://www.google.com/recaptcha/admin/site/722719784
 
 ### 1. Service Layer
 
