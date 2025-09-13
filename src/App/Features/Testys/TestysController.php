@@ -254,6 +254,8 @@ class TestysController extends Controller
      */
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
+
+
          // Get record ID from route parameters
         $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
 
@@ -331,13 +333,36 @@ class TestysController extends Controller
         // Process form submission
         $formHandled = $this->formHandler->handle($form, $request);
         if ($formHandled && $form->isValid()) {
-            $data = $form->getData();
 
-            $record->setTitle($data['title']);
-            $record->setTitle($data['title']);                  //fixme - make generic
-            $record->setContent($data['content']);              //fixme - make generic
-            $record->setFavoriteWord($data['favorite_word']);   //fixme - make generic
-            $record->setSlug($this->generateSlug($data['title'])); //fixme - make generic
+            ////////////////////////////////////////////////////////////////////////
+            // This getUpdatableData removes readonly and disabled data. prevents updates
+            // $data = $form->getData();
+            $data = $form->getUpdatableData();
+
+            // Since maybe it was unset, we get original data back on null
+            $record->setTitle($data['title'] ?? $record->getTitle());
+            $record->setContent($data['content'] ?? $record->getContent());
+            $record->setFavoriteWord($data['favorite_word'] ?? $record->getFavoriteWord());
+            $record->setSlug($this->generateSlug($data['title'] ?? $record->getTitle())); //fixme - make generic
+
+            // TODO - Future, make it more generic
+            // $fieldDefs = $form->getFields(); // Or get from config/registry
+
+            // foreach ($fieldDefs as $fieldName => $field) {
+            //     // Build setter name dynamically
+            //     $setter = 'set' . ucfirst($fieldName);
+
+            //     // Only update if the method exists and is not disabled/readonly
+            //     if (method_exists($record, $setter)) {
+            //         if (!$field->getAttribute('disabled') && !$field->getAttribute('readonly')) {
+            //             $value = $data[$fieldName] ?? $record->$getter(); // Use submitted or original value
+            //             $record->$setter($value);
+            //         }
+            //     }
+            // }
+            // TODO - Future, make it more generic
+            ////////////////////////////////////////////////////////////////////////
+
             // Don't update user_id as this would change ownership
 
             // Update the record in the database
@@ -354,6 +379,9 @@ class TestysController extends Controller
             }
         }
 
+        // $form->render(['js_enabled' => $jsEnabled]);
+        // $form->render(['js_enabled' => true]);
+        // $form->render()
         // Prepare view data
         $viewData = [
             'title' => 'Edit Record',

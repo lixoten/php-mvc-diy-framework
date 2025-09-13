@@ -16,6 +16,9 @@ use function PHPUnit\Framework\isNull;
  */
 class BootstrapFormRenderer implements FormRendererInterface
 {
+
+    private $fookJsEnabled = false;
+
     /**
      * {@inheritdoc}
      */
@@ -75,17 +78,6 @@ class BootstrapFormRenderer implements FormRendererInterface
         }
 
         $layout_type = $options['layout_type'] ?? 'sequential';
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -221,41 +213,107 @@ class BootstrapFormRenderer implements FormRendererInterface
         $id = $field->getAttribute('id') ?? $name;
         $label = $field->getLabel();
         $value = htmlspecialchars((string)$field->getValue());
-        $required = $field->isRequired() ? ' required' : '';
-
-        // Handle field errors with theme awareness
-        $errorHTML = '';
-        $errorClass = '';
-        $ariaAttrs = '';
         $errors = $field->getErrors();
+        //$required = $field->isRequired() ? ' required' : ''; //fixme
 
-        if (!empty($errors) && empty($options['hide_inline_errors'])) {
-            // Standard Bootstrap error class
-            $errorClass = ' is-invalid';
 
-            // Add accessibility attributes
-            $errorId = $id . '-error';
-            $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
+        // // Handle field errors with theme awareness
+        // $errorHTML = '';
+        // $errorClass = '';
+        // $ariaAttrs = '';
+        // $errors = $field->getErrors();
 
-            // Create error feedback with proper accessibility
-            $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
-            foreach ($errors as $error) {
-                $errorHTML .= htmlspecialchars($error) . '<br>';
-            }
-            $errorHTML .= '</div>';
-        }
+        // if (!empty($errors) && empty($options['hide_inline_errors'])) {
+        //     // Standard Bootstrap error class
+        //     $errorClass = ' is-invalid';
+
+        //     // Add accessibility attributes
+        //     $errorId = $id . '-error';
+        //     $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
+
+        //     // Create error feedback with proper accessibility
+        //     $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
+        //     foreach ($errors as $error) {
+        //         $errorHTML .= htmlspecialchars($error) . '<br>';
+        //     }
+        //     $errorHTML .= '</div>';
+        // }
 
         // Get all attributes
         $attributes = $field->getAttributes();
 
+        // Add default Bootstrap classes if not specified
+        $class = 'form-control';
+        if (isset($attributes['class'])) {
+            $class .= ' ' . $attributes['class'];
+        }
+        // if (isset($attributes['style'])) {
+        //     $attributes['style'] = 'form-control ' . $attributes['style'];
+        // } else {
+        //     $attributes['style'] = 'form-control';
+        // }
+
+
+
+
+
+
+
+
+
+
+        $fieldOptions = $field->getOptions();
+
+        // Add live validation attribute if enabled in config
+        if (!empty($fieldOptions['live_validation'])) {
+            $attributes['data-live-validation'] = 'true';
+        }
+
+
+
+
+
+
+
+
+
+
+
+
         // Build attribute string
         $attrString = '';
+        // foreach ($attributes as $attrName => $attrValue) {
+        //     // Skip id as we handle it separately
+        //     if ($attrName === 'id') {
+        //         continue;
+        //     }
+        //     $attrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+        // }
         foreach ($attributes as $attrName => $attrValue) {
             // Skip id as we handle it separately
             if ($attrName === 'id') {
                 continue;
             }
-            $attrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+            if ($attrName === 'type') {
+                continue;
+            }
+            if ($attrName === 'class') {
+                continue;
+            }
+            if ($attrName === 'name') {
+                continue;
+            }
+            // Boolean attributes (like required) should not have a value if true
+            if (is_bool($attrValue)) {
+                if ($attrValue) {
+                    $attrString .= ' ' . $attrName;
+                }
+                continue;
+            }
+            if ($attrValue !== null) {
+                $attrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+            }
+            // $attrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
         }
 
         // Ensure $attrString starts with a space if not empty
@@ -263,13 +321,24 @@ class BootstrapFormRenderer implements FormRendererInterface
             $attrString = ' ' . ltrim($attrString);
         }
 
-        // Add default Bootstrap classes if not specified
-        if (!isset($attributes['class'])) {
-            $attributes['class'] = 'form-control';
-        }
 
         $output = '<div class="mb-3">';
 
+
+        // Error handling
+        $errorHTML = '';
+        $errorClass = '';
+        $ariaAttrs = '';
+        if (!empty($errors) && empty($options['hide_inline_errors'])) {
+            $errorClass = ' is-invalid';
+            $errorId = $id . '-error';
+            $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
+            $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
+            foreach ($errors as $error) {
+                $errorHTML .= htmlspecialchars($error) . '<br>';
+            }
+            $errorHTML .= '</div>';
+        }
 
         // Special handling for CAPTCHA field type
         if ($field->getType() === 'captcha') {
@@ -304,16 +373,49 @@ class BootstrapFormRenderer implements FormRendererInterface
         }
 
 
+        $jsEnabled = $this->fookJsEnabled ?? false; // DangerDanger - Temp solution till we figure how to get this here
 
 
         // Different rendering based on field type
         switch ($type) {
             case 'checkbox':
+                // $checked = $field->getValue() ? ' checked' : '';
+                // $output .= '<div class="form-check">';
+                // $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"';
+                // $output .= ' id="' . $id . '" name="' . $name . '"';
+                // $output .= $checked . $required . $ariaAttrs . $attrString . '>';
+                // $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                // $output .= $errorHTML;
+                // $output .= '</div>';
+                // break;
                 $checked = $field->getValue() ? ' checked' : '';
+
+                // Build attribute string for the checkbox input
+                $checkboxAttributes = $field->getAttributes();
+                $checkboxAttributes['id'] = $id;
+                $checkboxAttributes['name'] = $name;
+
+                if ($checked) {
+                    $checkboxAttributes['checked'] = true;
+                }
+
+                $checkboxAttrString = '';
+                foreach ($checkboxAttributes as $attrName => $attrValue) {
+                    if ($attrName === 'id' || $attrName === 'name') {
+                        $checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                        continue;
+                    }
+                    if (is_bool($attrValue)) {
+                        if ($attrValue) {
+                            $checkboxAttrString .= ' ' . $attrName;
+                        }
+                        continue;
+                    }
+                    $checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                }
+
                 $output .= '<div class="form-check">';
-                $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"';
-                $output .= ' id="' . $id . '" name="' . $name . '"';
-                $output .= $checked . $required . $ariaAttrs . $attrString . '>';
+                $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"' . $checkboxAttrString . '>';
                 $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
                 $output .= $errorHTML;
                 $output .= '</div>';
@@ -321,26 +423,74 @@ class BootstrapFormRenderer implements FormRendererInterface
 
             case 'radio':
                 $output .= '<label>' . htmlspecialchars($label) . '</label>';
-                $options = $field->getOptions()['choices'] ?? [];
-                foreach ($options as $optionValue => $optionLabel) {
+                $optionsList = $field->getOptions()['choices'] ?? [];
+                // foreach ($options as $optionValue => $optionLabel) {
+                //     $checked = ($field->getValue() == $optionValue) ? ' checked' : '';
+                //     $output .= '<div class="form-check">';
+                //     $output .= '<input type="radio" class="form-check-input' . $errorClass . '"';
+                //     $output .= ' id="' . $id . '_' . $optionValue . '"';
+                //     $output .= ' name="' . $name . '" value="' . htmlspecialchars((string)$optionValue) . '"';
+                //     $output .= $checked . $required . $ariaAttrs . $attrString . '>';
+                //     $output .= '<label class="form-check-label" for="' . $id . '_' . $optionValue . '">';
+                //     $output .= htmlspecialchars($optionLabel);
+                //     $output .= '</label>';
+                //     $output .= '</div>';
+                // }
+                // $output .= $errorHTML;
+                foreach ($optionsList as $optionValue => $optionLabel) {
                     $checked = ($field->getValue() == $optionValue) ? ' checked' : '';
+
+                    // Build attribute string for each radio input
+                    $radioAttributes = $field->getAttributes();
+                    $radioAttributes['id'] = $id . '_' . $optionValue;
+                    $radioAttributes['value'] = $optionValue;
+                    $radioAttributes['name'] = $name;
+
+                    // Add checked attribute if needed
+                    if ($checked) {
+                        $radioAttributes['checked'] = true;
+                    }
+
+                    // Build attribute string
+                    $radioAttrString = '';
+                    foreach ($radioAttributes as $attrName => $attrValue) {
+                        if ($attrName === 'id' || $attrName === 'name' || $attrName === 'value') {
+                            $radioAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                            continue;
+                        }
+                        if (is_bool($attrValue)) {
+                            if ($attrValue) {
+                                $radioAttrString .= ' ' . $attrName;
+                            }
+                            continue;
+                        }
+                        $radioAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                    }
+
                     $output .= '<div class="form-check">';
-                    $output .= '<input type="radio" class="form-check-input' . $errorClass . '"';
-                    $output .= ' id="' . $id . '_' . $optionValue . '"';
-                    $output .= ' name="' . $name . '" value="' . htmlspecialchars((string)$optionValue) . '"';
-                    $output .= $checked . $required . $ariaAttrs . $attrString . '>';
+                    $output .= '<input type="radio" class="form-check-input' . $errorClass . '"' . $radioAttrString . '>';
                     $output .= '<label class="form-check-label" for="' . $id . '_' . $optionValue . '">';
                     $output .= htmlspecialchars($optionLabel);
                     $output .= '</label>';
                     $output .= '</div>';
                 }
-                $output .= $errorHTML;
                 break;
 
             case 'select':
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                $output .= '<select class="form-select' . $errorClass . '" id="' . $id . '" name="' . $name . '"';
-                $output .= $required . $ariaAttrs . $attrString . '>';
+                $output .= '<label class="form-label" for="' . $id . '">';
+                $output .= htmlspecialchars($label);
+                $output .= '</label>';
+
+                //$output .= '<select class="form-select' . $errorClass . '" id="' . $id . '" name="' . $name . '"';
+                //$output .= $required . $ariaAttrs . $attrString . '>';
+
+               // deleteme - $temp
+                $temp = '<input type="text" class="' . $class . $errorClass . '" id="' .
+                    $id . '" name="' . $name . '" ';
+                $output .= '<input type="text" class="'
+                    . $class . $errorClass .'" id="' . $id . '" name="' . $name . '" ';
+
+                $output .= 'value="' . $value . '"' . $attrString . '>';
 
                 $options = $field->getOptions()['choices'] ?? [];
                 $placeholder = $field->getOptions()['placeholder'] ?? null;
@@ -351,8 +501,7 @@ class BootstrapFormRenderer implements FormRendererInterface
 
                 foreach ($options as $optionValue => $optionLabel) {
                     $selected = ($field->getValue() == $optionValue) ? ' selected' : '';
-                    $output .= '<option value="' . htmlspecialchars((string)$optionValue) . '"';
-                    $output .= $selected . '>';
+                    $output .= '<option value="' . htmlspecialchars((string)$optionValue) . '"' . $selected . '>';
                     $output .= htmlspecialchars($optionLabel) . '</option>';
                 }
 
@@ -361,20 +510,72 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
 
             case 'textarea':
+                // $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                // $output .= '<textarea class="form-control' . $errorClass . '"';
+                // $output .= ' id="' . $id . '" name="' . $name . '"';
+                // $output .= $required . $ariaAttrs . $attrString . '>';
+                // $output .= $value . '</textarea>';
+                // $output .= $errorHTML;
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                $output .= '<textarea class="form-control' . $errorClass . '"';
-                $output .= ' id="' . $id . '" name="' . $name . '"';
-                $output .= $required . $ariaAttrs . $attrString . '>';
-                $output .= $value . '</textarea>';
+
+                // deleteme - $temp
+                $temp    = '<textarea class="' . $class . $errorClass . '" id="' . $id
+                    . '" name="' . $name . '"' . $ariaAttrs . $attrString . '>' . $value . '</textarea>';
+                $output .= '<textarea class="' . $class . $errorClass . '" id="' . $id
+                    . '" name="' . $name . '"' . $ariaAttrs . $attrString . '>' . $value . '</textarea>';
                 $output .= $errorHTML;
+                $output .= $this->renderCharCounter($field, $jsEnabled);
+                // $output .= $this->renderLiveErrorContainer($field);
+                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
+                break;
+
+            // case 'textarea':
+            //     $output .= sprintf(
+            //         '<label for="%s">%s</label><textarea name="%s" id="%s"%s>%s</textarea>',
+            //         $name,
+            //         $label,
+            //         $name,
+            //         $name,
+            //         $attributes,
+            //         $value
+            //     );
+            //     break;
+
+            case 'text':
+                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                //$output .= '<input type="' . $type . '" class="form-control' . $errorClass . '"';
+                // $output .= '<input type="text" class="form-control' . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                // deleteme - $temp
+                $temp    = '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                //$output .= ' id="' . $id . '" name="' . $name . '"';
+                //$output .= ' value="' . $value . '"' . $required . $ariaAttrs . $attrString . '>';
+                $output .= $errorHTML;
+
+                // // Config-driven character counter, only if JS is enabled
+                // $fieldOptions = $field->getOptions();
+                // // $jsEnabled = $options['js_enabled'] ?? false;
+                // $jsEnabled = $this->fookJsEnabled ?? false; // DangerDanger - Temp solution till we figure how to get this here
+                // if (!empty($fieldOptions['show_char_counter']) && $jsEnabled) {
+                //     $maxlength = $field->getAttribute('maxlength') ?? 30;
+                //     $output .= '<small id="' . $id . '-counter" class="form-text">0 / ' . (int)$maxlength . '</small>';
+                // }
+                $output .= $this->renderCharCounter($field, $jsEnabled);
+                // $output .= $this->renderLiveErrorContainer($field);
+                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
+
                 break;
 
             default:
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                $output .= '<input type="' . $type . '" class="form-control' . $errorClass . '"';
-                $output .= ' id="' . $id . '" name="' . $name . '"';
-                $output .= ' value="' . $value . '"' . $required . $ariaAttrs . $attrString . '>';
+                // deleteme - $temp
+                $temp    = '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
+
+                $output .= $this->renderCharCounter($field, $jsEnabled);
+                // $output .= $this->renderLiveErrorContainer($field);
+                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
                 break;
         }
 
@@ -383,6 +584,41 @@ class BootstrapFormRenderer implements FormRendererInterface
         return $output;
     }
 
+    /**
+     * Render a character counter for a field if enabled in config.
+     *
+     * @param FieldInterface $field
+     * @param bool $jsEnabled
+     * @return string
+     */
+    private function renderCharCounter(FieldInterface $field, bool $jsEnabled): string
+    {
+        $fieldOptions = $field->getOptions();
+        if (!empty($fieldOptions['show_char_counter']) && $jsEnabled) {
+            $id = $field->getAttribute('id') ?? $field->getName();
+            $maxlength = $field->getAttribute('maxlength') ?? 30;
+            return '<small id="' . $id . '-counter" class="form-text">0 / ' . (int)$maxlength . '</small>';
+        }
+        return '';
+    }
+
+    /**
+     * Render a live validation error container for a field if enabled in config.
+     *
+     * @param FieldInterface $field
+     * @return string
+     */
+    private function renderLiveErrorContainer(FieldInterface $field, bool $jsEnabled = false): string
+    // private function renderLiveErrorContainer(FieldInterface $field): string
+    {
+        $fieldOptions = $field->getOptions();
+        if (!empty($fieldOptions['live_validation'])) {
+            $id = $field->getAttribute('id') ?? $field->getName();
+            // Optionally add an ID for JS targeting, e.g., "{$id}-error"
+            return '<div class="live-error text-danger mt-1" id="' . $id . '-error"></div>';
+        }
+        return '';
+}
 
     /**
      * {@inheritdoc}

@@ -1,4 +1,4 @@
 ---
 applyTo: '**'
 ---
-Provide project context and coding guidelines that AI should follow when generating code, answering questions, or reviewing changes.
+We are about to introduce Javascript to our project. I need help and idea how to get started with this.

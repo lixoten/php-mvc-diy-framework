@@ -1,5 +1,8 @@
 <?php
 
+use App\Helpers\DebugRt;
+
+// DebugRt::j('0', '', 'BOOM on Config File');
 return [
     'id' => [
         'label' => 'acrID',
@@ -24,15 +27,15 @@ return [
             },
         ],
         'form' => [
-            'type' => 'text',
-            'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'text',
                 'id' => 'title',
-                'placeholder' => 'Enter a post titlezzzz'
-            ]
+                'placeholder' => 'testys.title.placeholder', //.Enter a testy title'
+                'minlength' => 5,
+                'maxlength' => 12,
+                'data-char-counter' => 'title-counter',
+            ],
+            'show_char_counter' => true, // js-feature
         ]
     ],
     'name' => [
@@ -89,8 +92,8 @@ return [
         'type' => 'text',
         'label' => 'Testname1',
         'required' => true,
-        'minLength' => 3,
-        'maxLength' => 50,
+        'minlength' => 3,
+        'maxlength' => 50,
         'attributes' => [
             'class' => 'form-control',
             'id' => 'testname1',
@@ -107,8 +110,8 @@ return [
             'attributes' => [
                 'placeholder' => 'Enter your username or emailxxx',
             ],
-            'minLength' => null,  // Remove minLength restriction
-            'maxLength' => null,  // Remove maxLength restriction
+            'minlength' => null,  // Remove minlength restriction
+            'maxlength' => null,  // Remove maxlength restriction
             // Remove registration-specific validators
             'validators' => []
         ]
@@ -122,8 +125,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 3,
-            'maxLength' => 50,
+            'minlength' => 3,
+            'maxlength' => 50,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'username',
@@ -142,7 +145,7 @@ return [
         'form' => [
             'type' => 'password',
             'required' => true,
-            'minLength' => 4,
+            'minlength' => 4,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'password',

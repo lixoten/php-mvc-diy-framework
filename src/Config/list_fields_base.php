@@ -1,5 +1,8 @@
 <?php
 
+use App\Helpers\DebugRt;
+
+DebugRt::j('1', '', 'BOOM on Config File');
 return [
     'id' => [
         'label' => 'acrID',
@@ -26,8 +29,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',
@@ -89,8 +92,8 @@ return [
         'type' => 'text',
         'label' => 'Testname1',
         'required' => true,
-        'minLength' => 3,
-        'maxLength' => 50,
+        'minlength' => 3,
+        'maxlength' => 50,
         'attributes' => [
             'class' => 'form-control',
             'id' => 'testname1',
@@ -107,8 +110,8 @@ return [
             'attributes' => [
                 'placeholder' => 'Enter your username or emailxxx',
             ],
-            'minLength' => null,  // Remove minLength restriction
-            'maxLength' => null,  // Remove maxLength restriction
+            'minlength' => null,  // Remove minlength restriction
+            'maxlength' => null,  // Remove maxlength restriction
             // Remove registration-specific validators
             'validators' => []
         ]
@@ -122,8 +125,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 3,
-            'maxLength' => 50,
+            'minlength' => 3,
+            'maxlength' => 50,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'username',
@@ -142,7 +145,7 @@ return [
         'form' => [
             'type' => 'password',
             'required' => true,
-            'minLength' => 4,
+            'minlength' => 4,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'password',

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use App\Helpers\DebugRt;
+
 /**
  * Abstract field registry with inheritance support
  */
@@ -108,14 +110,16 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
      */
     protected function getCommonField(string $fieldName): ?array
     {
+
+        DebugRt::j('1', '', 'BOOM on Config File 123');
         switch ($fieldName) {
             case 'name':
                 return [
                     'type' => 'text',
                     'label' => 'afrName',
                     'required' => true,
-                    'minLength' => 10,
-                    'maxLength' => 100, //255 Default max length
+                    'minlength' => 10,
+                    'maxlength' => 100, //255 Default max length
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'name', // Default id
@@ -127,8 +131,8 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
                     'type' => 'textarea',
                     'label' => 'afrDescription',
                     'required' => true,
-                    'minLength' => 10,
-                    'maxLength' => 5000, // Default max length
+                    'minlength' => 10,
+                    'maxlength' => 5000, // Default max length
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'description', // Default id
@@ -141,8 +145,8 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
                     'type' => 'text',
                     'label' => 'afrTitle',
                     'required' => true,
-                    'minLength' => 10,
-                    'maxLength' => 100, //255 Default max length
+                    'minlength' => 10,
+                    'maxlength' => 100, //255 Default max length
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'title', // Default id
@@ -154,8 +158,8 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
                     'type' => 'textarea',
                     'label' => 'afrContent',
                     'required' => true,
-                    'minLength' => 10,
-                    'maxLength' => 5000, // Default max length
+                    'minlength' => 10,
+                    'maxlength' => 5000, // Default max length
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'content', // Default id
@@ -168,8 +172,8 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
             //         'type' => 'text',
             //         'label' => 'Username xxx',
             //         'required' => true,
-            //         'minLength' => 3,
-            //         'maxLength' => 50,
+            //         'minlength' => 3,
+            //         'maxlength' => 50,
             //         'attributes' => [
             //             'class' => 'form-control',
             //             'id' => 'username',
@@ -188,8 +192,8 @@ abstract class AbstractFormFieldRegistry implements FormFieldRegistryInterface
     //         'attributes' => [
     //             'placeholder' => 'Enter your username or email',
     //         ],
-    //         'minLength' => null,  // Remove minLength restriction
-    //         'maxLength' => null,  // Remove maxLength restriction
+    //         'minlength' => null,  // Remove minlength restriction
+    //         'maxlength' => null,  // Remove maxlength restriction
     //         // Remove registration-specific validators
     //         'validators' => []
     //     ];

@@ -23,9 +23,18 @@ class EmailType extends AbstractFieldType
     public function getDefaultOptions(): array
     {
         return array_merge(parent::getDefaultOptions(), [
-            'attributes' => [
-                'type' => 'email',
-            ],
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultAttributes(): array
+    {
+        return array_merge(parent::getDefaultAttributes(), [
+            'type'      => 'email',
+            'minlength' => null,
+            'maxlength' => null,
         ]);
     }
 }

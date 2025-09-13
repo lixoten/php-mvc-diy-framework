@@ -12,8 +12,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',
@@ -32,8 +32,8 @@ return [
         'form' => [
             'type' => 'test1',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',
@@ -52,8 +52,8 @@ return [
         'form' => [
             'type' => 'test2',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',

@@ -22,6 +22,22 @@ return [
         'error' => 'layouts/error',
     ],
 
+    'js' => [
+        'enabled' => $_ENV['JS_ENABLED'] ?? true, // or false to disable globally
+        'flavor' => $_ENV['JS_FLAVOR'] ?? 'vanilla', // for future use - 'vanilla', 'jquery', 'alpine', etc.
+        'available' => [
+            'vanilla' => [
+                'js' => '/assets/js/vanilla.js',
+            ],
+            'jquery' => [
+                'js' => 'https://code.jquery.com/jquery-3.7.1.min.js',
+            ],
+            'alpine' => [
+                'js' => 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js',
+            ],
+        ],
+    ],
+
     // CSS Frameworks (renamed from 'themes')
     'css_frameworks' => [
         'default' => $_ENV['DEFAULT_CSS_FRAMEWORK'] ?? 'bootstrap',

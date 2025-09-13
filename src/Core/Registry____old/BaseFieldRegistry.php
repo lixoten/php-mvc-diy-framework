@@ -21,6 +21,7 @@ class BaseFieldRegistry extends AbstractFieldRegistry
     {
         $this->wth = "wtf";
 
+        DebugRt::j('1', '', 'BOOM on Config File');
         $this->fields = [
             'id' => [
                 'label' => 'acrID',
@@ -47,8 +48,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
                 'form' => [
                     'type' => 'text',
                     'required' => true,
-                    'minLength' => 2,
-                    'maxLength' => 10,
+                    'minlength' => 2,
+                    'maxlength' => 10,
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'title',
@@ -110,8 +111,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
                 'type' => 'text',
                 'label' => 'Testname1',
                 'required' => true,
-                'minLength' => 3,
-                'maxLength' => 50,
+                'minlength' => 3,
+                'maxlength' => 50,
                 'attributes' => [
                     'class' => 'form-control',
                     'id' => 'testname1',
@@ -128,8 +129,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
                     'attributes' => [
                         'placeholder' => 'Enter your username or emailxxx',
                     ],
-                    'minLength' => null,  // Remove minLength restriction
-                    'maxLength' => null,  // Remove maxLength restriction
+                    'minlength' => null,  // Remove minlength restriction
+                    'maxlength' => null,  // Remove maxlength restriction
                     // Remove registration-specific validators
                     'validators' => []
                 ]
@@ -143,8 +144,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
                 'form' => [
                     'type' => 'text',
                     'required' => true,
-                    'minLength' => 3,
-                    'maxLength' => 50,
+                    'minlength' => 3,
+                    'maxlength' => 50,
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'username',
@@ -163,7 +164,7 @@ class BaseFieldRegistry extends AbstractFieldRegistry
                 'form' => [
                     'type' => 'password',
                     'required' => true,
-                    'minLength' => 4,
+                    'minlength' => 4,
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'password',
@@ -354,8 +355,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
             'type' => 'text',
             'label' => 'Testname1',
             'required' => true,
-            'minLength' => 3,
-            'maxLength' => 50,
+            'minlength' => 3,
+            'maxlength' => 50,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'testname1',
@@ -377,8 +378,8 @@ class BaseFieldRegistry extends AbstractFieldRegistry
             'type' => 'text',
             'label' => 'Username.usernamezzzzzzzzGET',
             'required' => true,
-            'minLength' => 3,
-            'maxLength' => 50,
+            'minlength' => 3,
+            'maxlength' => 50,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'username',
@@ -404,7 +405,7 @@ class BaseFieldRegistry extends AbstractFieldRegistry
             'type' => 'password',
             'label' => 'Password',
             'required' => true,
-            'minLength' => 4,
+            'minlength' => 4,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'password',

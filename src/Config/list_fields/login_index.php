@@ -8,8 +8,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 3,
-            'maxLength' => 50,
+            'minlength' => 3,
+            'maxlength' => 50,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'testname2',
@@ -25,7 +25,7 @@ return [
             'attributes' => [
                 'placeholder' => 'Enter your password22'
             ],
-            'maxLength' => null,  // Remove maxLength restriction
+            'maxlength' => null,  // Remove maxlength restriction
             // Remove password complexity requirements for login
             'validators' => []
         ],

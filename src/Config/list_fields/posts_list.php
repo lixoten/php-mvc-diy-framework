@@ -20,8 +20,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',
@@ -64,8 +64,8 @@ return [
         'form' => [
             'type' => 'textarea',
             'required' => true,
-            'minLength' => 10,
-            'maxLength' => 2000,
+            'minlength' => 10,
+            'maxlength' => 2000,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'content',

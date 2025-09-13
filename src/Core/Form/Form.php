@@ -170,6 +170,14 @@ class Form implements FormInterface
             foreach ($this->fields as $name => $field) {
                 // Validate the field using the Validator service
 
+                $rrr = $field->getAttribute('disabled'); // fixme
+                // Disabled and Readonly fields shoud be skipped during Validation
+                if ($field->getAttribute('disabled') || $field->getAttribute('readonly')) {
+                // if ($field['attributes']['readonly']) {
+                    continue;
+                }
+
+
                 // Pass context to validator
                 $fieldErrors = $this->validator->validateField($field, $context);
 
@@ -192,6 +200,21 @@ class Form implements FormInterface
         }
 
         return $isValid;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getUpdatableData(): array
+    {
+        $data = $this->getData();
+        foreach ($this->fields as $name => $field) {
+            if ($field->getAttribute('disabled') || $field->getAttribute('readonly')) {
+                unset($data[$name]);
+            }
+        }
+        return $data; 
     }
 
 

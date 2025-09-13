@@ -44,8 +44,8 @@ class LoginFieldRegistry extends AbstractFieldRegistry
                 'form' => [
                     'type' => 'text',
                     'required' => true,
-                    'minLength' => 3,
-                    'maxLength' => 50,
+                    'minlength' => 3,
+                    'maxlength' => 50,
                     'attributes' => [
                         'class' => 'form-control',
                         'id' => 'testname2',
@@ -61,7 +61,7 @@ class LoginFieldRegistry extends AbstractFieldRegistry
                     'attributes' => [
                         'placeholder' => 'Enter your password22'
                     ],
-                    'maxLength' => null,  // Remove maxLength restriction
+                    'maxlength' => null,  // Remove maxlength restriction
                     // Remove password complexity requirements for login
                     'validators' => []
                 ],
@@ -102,8 +102,8 @@ class LoginFieldRegistry extends AbstractFieldRegistry
     //         'type' => 'text',
     //         'label' => 'Testname2',
     //         'required' => true,
-    //         'minLength' => 3,
-    //         'maxLength' => 50,
+    //         'minlength' => 3,
+    //         'maxlength' => 50,
     //         'attributes' => [
     //             'class' => 'form-control',
     //             'id' => 'testname2',
@@ -126,8 +126,8 @@ class LoginFieldRegistry extends AbstractFieldRegistry
     //         'attributes' => [
     //             'placeholder' => 'Enter your username or emailxxx',
     //         ],
-    //         'minLength' => null,  // Remove minLength restriction
-    //         'maxLength' => null,  // Remove maxLength restriction
+    //         'minlength' => null,  // Remove minlength restriction
+    //         'maxlength' => null,  // Remove maxlength restriction
     //         // Remove registration-specific validators
     //         'validators' => []
     //     ];
@@ -143,7 +143,7 @@ class LoginFieldRegistry extends AbstractFieldRegistry
     //         'attributes' => [
     //             'placeholder' => 'Enter your password22'
     //         ],
-    //         'maxLength' => null,  // Remove maxLength restriction
+    //         'maxlength' => null,  // Remove maxlength restriction
     //         // Remove password complexity requirements for login
     //         'validators' => []
     //     ];

@@ -41,6 +41,17 @@ interface FormInterface
      */
     public function getData(): array;
 
+
+    /**
+     * Get form updatable data
+     *
+     * Disabled and Readonly Data is unset/removed
+     *
+     * @return array
+     */
+    public function getUpdatableData(): array;
+
+
     /**
      * Get form errors
      *

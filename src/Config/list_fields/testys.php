@@ -18,15 +18,15 @@ return [
             // },
         ],
         'form' => [
-            'type' => 'text',
-            'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'text',
                 'id' => 'title',
-                'placeholder' => 'Enter a testy title'
-            ]
+                'placeholder' => 'testys.title.placeholder', //.Enter a testy title'
+                'minlength' => 5,
+                'maxlength' => 12,
+                'data-char-counter' => 'title-counter',
+            ],
+            'show_char_counter' => true, // js-feature
         ]
     ],
     'favorite_word' => [
@@ -39,14 +39,13 @@ return [
             // },
         ],
         'form' => [
-            'type' => 'text',
-            'required' => true,
-            'minLength' => 10,
-            'maxLength' => 20,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'text',
                 'id' => 'favorite_word',
                 'placeholder' => 'testys.favorite_word.placeholder', //.Enter a testy title'
+                'required' => true,
+                'minlength' => 10,
+                'maxlength' => 20,
             ]
         ]
     ],
@@ -83,14 +82,13 @@ return [
     'content' => [
         'label' => 'testys.content-local',
         'form' => [
-            'type' => 'textarea',
-            'required' => true,
-            'minLength' => 10,
-            'maxLength' => 2000,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'textarea',
                 'id' => 'content',
-                'placeholder' => 'testys.placeholder',//'Enter testy content',
+                'placeholder' => 'testys.content.placeholder',//'Enter testy content',
+                'required' => true,
+                'minlength' => 10,
+                'maxlength' => 2000,
                 'rows' => '6'
             ]
         ]

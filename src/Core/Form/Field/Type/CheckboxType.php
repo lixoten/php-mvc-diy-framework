@@ -23,12 +23,18 @@ class CheckboxType extends AbstractFieldType
     public function getDefaultOptions(): array
     {
         return array_merge(parent::getDefaultOptions(), [
-            'checked' => false,
-            'value' => '1',
-            'required' => false,
-            'attributes' => [
-                'type' => 'checkbox',
-            ],
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultAttributes(): array
+    {
+        return array_merge(parent::getDefaultAttributes(), [
+            'type'      => 'checkbox',
+            'checked'   => false,
+            'value'     => '1',
         ]);
     }
 }

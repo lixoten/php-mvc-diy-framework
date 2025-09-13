@@ -45,7 +45,7 @@ class FormBuilder implements FormBuilderInterface
     public function add(string $name, array $options = []): self
     {
         // Determine field type
-        $type = $options['type'] ?? 'text';
+        $type = $options['attributes']['type'] ?? 'text';
 
         // Create field using registry
         $field = $this->fieldTypeRegistry->createField($name, $type, $options);

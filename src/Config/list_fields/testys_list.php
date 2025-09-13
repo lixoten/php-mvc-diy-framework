@@ -1,5 +1,8 @@
 <?php
 
+use App\Helpers\DebugRt;
+
+// DebugRt::j('0', '', 'BOOM on Config File');
 return [
     'id' => [
         'label' => 'testys.id---testyField', //okkkkkkkkkkkkkkkkkkkk
@@ -20,8 +23,8 @@ return [
         'form' => [
             'type' => 'text',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 10,
+            'minlength' => 2,
+            'maxlength' => 10,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'title',

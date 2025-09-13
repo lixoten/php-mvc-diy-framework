@@ -21,8 +21,8 @@ class ProfileFieldRegistry extends AbstractFieldRegistry
             'type' => 'text',
             'label' => 'Store Name',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 100,
+            'minlength' => 2,
+            'maxlength' => 100,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'name',
@@ -40,8 +40,8 @@ class ProfileFieldRegistry extends AbstractFieldRegistry
             'type' => 'textarea',
             'label' => 'Description',
             'required' => true,
-            'minLength' => 10,
-            'maxLength' => 2000,
+            'minlength' => 10,
+            'maxlength' => 2000,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'content',

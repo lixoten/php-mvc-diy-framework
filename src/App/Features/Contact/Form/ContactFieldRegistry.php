@@ -28,8 +28,8 @@ class ContactFieldRegistry extends AbstractFieldRegistry
             'type' => 'text',
             'label' => 'Your Name',
             'required' => true,
-            'minLength' => 2,
-            'maxLength' => 100,
+            'minlength' => 2,
+            'maxlength' => 100,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'name',
@@ -47,7 +47,7 @@ class ContactFieldRegistry extends AbstractFieldRegistry
             'type' => 'email',
             'label' => 'Email Address',
             'required' => true,
-            'maxLength' => 255,
+            'maxlength' => 255,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'email',
@@ -65,8 +65,8 @@ class ContactFieldRegistry extends AbstractFieldRegistry
             'type' => 'text',
             'label' => 'Subject',
             'required' => true,
-            'minLength' => 10,
-            'maxLength' => 200,
+            'minlength' => 10,
+            'maxlength' => 200,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'subject',
@@ -84,8 +84,8 @@ class ContactFieldRegistry extends AbstractFieldRegistry
             'type' => 'textarea',
             'label' => 'Message',
             'required' => true,
-            'minLength' => 10,
-            'maxLength' => 2000,
+            'minlength' => 10,
+            'maxlength' => 2000,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'message',

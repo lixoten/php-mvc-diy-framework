@@ -8,6 +8,7 @@ use App\Helpers\DebugRt;
 
 // DebugRt::j('1', '', $form);
 ?>
+<script src="/assets/js/form-feature.js"></script>
 <h1><?= $title ?></h1>
 
 <?php if ($form->hasCaptchaScripts()) : ?>

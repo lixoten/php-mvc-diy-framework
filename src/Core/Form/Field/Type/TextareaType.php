@@ -26,24 +26,42 @@ class TextareaType extends AbstractFieldType
     public function getDefaultOptions(): array
     {
         return array_merge(parent::getDefaultOptions(), [
-            'attributes' => [
-                'rows' => 5,
-            ],
         ]);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function createField(string $name, array $options = []): FieldInterface
+    public function getDefaultAttributes(): array
+    {
+        return array_merge(parent::getDefaultAttributes(), [
+            'type'          => 'textarea',
+            'rows'          => 5,
+            'maxlength '    => null,
+            'minlength'     => null,
+            'placeholder'   => null,
+            'wrap'          => null,
+            'spellcheck'    => false,
+        ]);
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createField(string $name, array $options = [], $attributes = []): FieldInterface
     {
         // Extract and merge options with defaults
         $options = array_merge($this->getDefaultOptions(), $options);
-
         // Extract field options
         $label = $options['label'] ?? null;
-        $required = $options['required'] ?? false;
-        $attributes = $options['attributes'] ?? [];
+
+        // Merge with default attributes
+        $attributes = array_merge($this->getDefaultAttributes(), $attributes);
+
+
+
+        $required = $attributes['required'] ?? false;
 
         // Create field
         $field = new Field($name, $label);

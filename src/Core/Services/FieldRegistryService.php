@@ -99,24 +99,13 @@ class FieldRegistryService
     {
         // 1. Page-Context-specific config: config/list_fields/posts.php
         if (isset($this->pageName)) {
-            //$pageName = 'local_posts';
             $listName = $this->pageName;
             $field = $this->getField($fieldName, $listName);
             if ($field !== null) {
-                $field['label'] = '*' . $field['label'];
+                $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
                 return $field;
             }
         }
-        // * ! -
-
-        //$repoField = $this->configService->get('list_fields/' . $entity . "." . $fieldName); // loads "list_fields/posts.php"
-        // $config = $this->configService->get('list_fields_' . $entity); // loads posts.php
-        // $config = $this->configService->get('list_fields_' . $entity . ".test2"); // loads posts.php
-        // $config = $this->configService->get('list_fields/' . $entity . ".test2"); // loads posts.php
-        // $rrrrrrrrrrrrr = $this->configService->getConfigValue('security', 'rate_limits.endpoints.login', []);
-        // $serviceConfig = $this->configService->get('security.rate_limits.endpoints.login.limit', []);
-        // $serviceConfig = $this->configService->get('security.rate_limits', []);
-
 
         // 2. Entity-specific config: config/list_fields/posts.php
         if (isset($this->entityName)) {

@@ -21,7 +21,7 @@ class RegistrationFormFieldRegistry extends AbstractFormFieldRegistry
             'type' => 'email',
             'label' => 'Email Address',
             'required' => true,
-            'maxLength' => 255,
+            'maxlength' => 255,
             'attributes' => [
                 'class' => 'form-control',
                 'id' => 'email',

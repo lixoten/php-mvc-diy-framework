@@ -10,7 +10,6 @@ namespace Core\Form\Field;
 class Field implements FieldInterface
 {
     protected string $name;
-    protected string $type = 'text';
     protected $value = null;
     protected string $label;
     protected array $errors = [];
@@ -22,19 +21,22 @@ class Field implements FieldInterface
      *
      * @param string $name Field name
      * @param array $options Field options
+     * @param array $attributes Field attributes
      */
-    public function __construct(string $name, array $options = [])
+    public function __construct(string $name, array $options = [], array $attributes = [])
     {
         $this->name = $name;
         $this->options = $options;
 
         // Extract common options
-        $this->type = $options['type'] ?? 'text';
-        $this->label = $options['label'] ?? ucfirst($name);
-        $this->attributes = $options['attributes'] ?? [];
+        $this->label        = $options['label'] ?? ucfirst($name);
+        $this->attributes   = $attributes ?? [];
 
         // Apply any other options as properties if setter exists
         foreach ($options as $key => $value) {
+            if ($key === 'attributes') {
+                continue;
+            }
             $setter = 'set' . ucfirst($key);
             if (method_exists($this, $setter)) {
                 $this->$setter($value);
@@ -55,7 +57,7 @@ class Field implements FieldInterface
      */
     public function getType(): string
     {
-        return $this->type;
+        return $this->attributes['type'];
     }
 
     /**
@@ -140,7 +142,13 @@ class Field implements FieldInterface
         $attributeString = '';
 
         foreach ($this->attributes as $name => $value) {
-            $attributeString .= ' ' . $name . '="' . htmlspecialchars((string)$value) . '"';
+            if (is_bool($value)) {
+                if ($value) {
+                    $attributeString .= ' ' . $name;
+                }
+            } else if ($value !== null) {
+                $attributeString .= ' ' . $name . '="' . htmlspecialchars((string)$value) . '"';
+            }
         }
 
         return $attributeString;
@@ -151,7 +159,7 @@ class Field implements FieldInterface
      */
     public function isRequired(): bool
     {
-        return $this->options['required'] ?? false;
+        return $this->getAttribute('required', false);
     }
 
 
@@ -163,7 +171,7 @@ class Field implements FieldInterface
      */
     public function setType(string $type): self
     {
-        $this->type = $type;
+        $this->attributes['type'] = $type;
         return $this;
     }
 
@@ -175,7 +183,7 @@ class Field implements FieldInterface
      */
     public function setRequired(bool $required): self
     {
-        $this->options['required'] = $required;
+        $this->attributes['required'] = $required;
         return $this;
     }
 
@@ -228,12 +236,13 @@ class Field implements FieldInterface
                 );
 
             case 'checkbox':
+                $checked = $this->getAttribute('checked', false) ? ' checked' : '';
                 return sprintf(
-                    '<label><input type="checkbox" name="%s" id="%s"%s %s> %s</label>',
+                    '<label><input type="checkbox" name="%s" id="%s"%s%s> %s</label>',
                     $this->getName(),
                     $this->getName(),
                     $attributes,
-                    $value ? 'checked' : '',
+                    $checked,
                     $label
                 );
 

@@ -92,7 +92,7 @@ abstract class AbstractFormType implements FormTypeInterface
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
                 if (isset($columnDef['label'])) {
-                    $options['label'] = $columnDef['label'];
+                    $options['label'] = $columnDef['label']; 
                 }
                 $builder->add($name, $options);
             }

@@ -23,10 +23,19 @@ class PasswordType extends AbstractFieldType
     public function getDefaultOptions(): array
     {
         return array_merge(parent::getDefaultOptions(), [
-            'attributes' => [
-                'type' => 'password',
-                'autocomplete' => 'current-password',
-            ],
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultAttributes(): array
+    {
+        return array_merge(parent::getDefaultAttributes(), [
+            'type'      => 'password',
+            'autocomplete' => 'current-password',
+            'minlength' => null,
+            'maxlength' => null,
         ]);
     }
 }

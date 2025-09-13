@@ -2,69 +2,68 @@
 
 declare(strict_types=1);
 
+use App\Helpers\DebugRt;
+
+// DebugRt::j('0', '', 'BOOM on Config File');
 return [
-    'id' => [
-        'label' => 'testys.id---testyField', //ok
-        'list' => [
-            'sortable' => true,
-            'formatter' => null,
-        ],
-    ],
     'title' => [
         'label' => 'testys.title',
-        'list' => [
-            'sortable' => true,
-            'formatter' => fn($value) => htmlspecialchars($value ?? ''),
-            // 'formatter' => function ($value) {
-                // return htmlspecialchars($value ?? '');
-            // },
-        ],
         'form' => [
-            'type' => 'text',
-            'required' => true,
-            'minLength' => 10,
-            'maxLength' => 30,
+            'foo' => 'feeeeeeee',
             'attributes' => [
-                'class' => 'form-control',
+                'fake' => 'one',
+                'type' => 'text',
+                'class' => 'foocls',
+                'style' => 'border: 2px dotted green;',
                 'id' => 'title',
                 'placeholder' => 'testys.title.placeholder', //.Enter a testy title'
-            ]
+                'required' => true,
+                // 'readonly' => true,
+                'minlength' => 5,
+                'maxlength' => 12,
+                // 'style' => 'background: red;',
+                'data-char-counter' => 'title-counter',
+            ],
+            'show_char_counter' => true, // js-feature
+            'live_validation' => true,
         ]
     ],
     'content' => [
         'label' => 'testys.content-local',
         'form' => [
-            'type' => 'textarea',
-            'required' => true,
-            'minLength' => 10,
-            'maxLength' => 2000,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'textarea',
+                // 'class' => 'form-control',
                 'id' => 'content',
                 'placeholder' => 'testys.content.placeholder',//'Enter testy content',
-                'rows' => '6'
-            ]
+                'required' => true,
+                // 'disabled' => true,
+                'minlength' => 10,
+                'maxlength' => 2000,
+                // 'style' => 'background: yellow;',
+                'rows' => '6',
+                'data-char-counter' => 'content-counter',
+            ],
+            'show_char_counter' => true, // js-feature
+            'live_validation' => true,
         ]
     ],
     'favorite_word' => [
         'label' => 'testys.favorite_word',
-        'list' => [
-            'sortable' => true,
-            'formatter' => fn($value) => htmlspecialchars($value ?? ''),
-            // 'formatter' => function ($value) {
-                // return htmlspecialchars($value ?? '');
-            // },
-        ],
         'form' => [
-            'type' => 'text',
-            'required' => true,
-            'minLength' => 10,
-            'maxLength' => 20,
             'attributes' => [
-                'class' => 'form-control',
+                'type' => 'text',
+                // 'class' => 'form-control',
                 'id' => 'favorite_word',
                 'placeholder' => 'testys.favorite_word.placeholder', //.Enter a testy title'
-            ]
+                'required' => true,
+                'minlength' => 10,
+                'maxlength' => 20,
+                'data-char-counter' => 'favorite_word-counter',
+                // 'style' => 'background: cyan;',
+            ],
+            'show_char_counter' => true, // js-feature
+            'live_validation' => true,
         ]
     ],
 ];

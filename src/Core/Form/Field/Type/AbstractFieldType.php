@@ -18,15 +18,22 @@ abstract class AbstractFieldType implements FieldTypeInterface
     public function buildField(string $name, array $options = []): FieldInterface
     {
         // Merge default options with provided options
-        $resolvedOptions = array_merge($this->getDefaultOptions(), $options);
+        $resolvedOptions    = array_merge($this->getDefaultOptions(), $options);
+
+        $customAttributes   = $options['attributes'] ?? [];
+
+        $defaultAttributes  = $this->getDefaultAttributes();
+
+        $resolvedAttributes = array_merge($defaultAttributes, $customAttributes);
 
         // Set type if not explicitly provided
-        if (!isset($resolvedOptions['type'])) {
-            $resolvedOptions['type'] = $this->getName();
+        if (!isset($resolvedAttributes['type'])) {
+            $resolvedAttributes['type'] = $this->getName();
         }
 
         // Create and return field
-        return new Field($name, $resolvedOptions);
+        $newField = new Field($name, $resolvedOptions, $resolvedAttributes);
+        return $newField;
     }
 
     /**
@@ -35,9 +42,28 @@ abstract class AbstractFieldType implements FieldTypeInterface
     public function getDefaultOptions(): array
     {
         return [
-            'required' => false,
             'label' => null,
-            'attributes' => [],
         ];
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getDefaultAttributes(): array
+    {
+        return [
+            'id'            => null,
+            'name'          => null,
+            'class'         => null,
+            'style'         => null,
+            'readonly'      => false,
+            'required'      => false,
+            'autocomplete'  => false,
+            'autofocus'     => false,
+            'disabled'      => false,
+            'tabindex'      => null,
+            // 'form' => null,
+        ];
+    }
+
 }

@@ -1,5 +1,8 @@
 <?php
 
+use App\Helpers\DebugRt;
+
+DebugRt::j('1', '', 'BOOM on Config File');
 // Configuration for form fields per entity type
 return [
     'default' => [ // Default settings applied if not overridden
@@ -21,7 +24,7 @@ return [
                 'title' => [ // Overrides common 'title' from AbstractFormFieldRegistry if needed
                     'label' => 'Post Title', // Specific label
                     'required' => true,      // Override default required
-                    'maxLength' => 150,      // Specific max length for posts
+                    'maxlength' => 150,      // Specific max length for posts
                     'attributes' => [
                         // 'class' => 'form-control', // Inherited from default
                         'placeholder' => 'Enter the post title here' // Specific placeholder
@@ -30,7 +33,7 @@ return [
                 'content' => [ // Overrides common 'content'
                     'label' => 'Post Content',
                     'required' => true,
-                    'maxLength' => 3000,
+                    'maxlength' => 3000,
                     'attributes' => [
                         'rows' => '8', // Specific rows for posts
                         'placeholder' => 'Write your post content...'
@@ -63,7 +66,7 @@ return [
                 'name' => [ // Overrides common 'title' from AbstractFormFieldRegistry if needed
                     'label' => 'Store Name', // Specific label
                     'required' => true,      // Override default required
-                    'maxLength' => 150,      // Specific max length for posts
+                    'maxlength' => 150,      // Specific max length for posts
                     'attributes' => [
                         // 'class' => 'form-control', // Inherited from default
                         'placeholder' => 'Enter the store name here' // Specific placeholder
@@ -72,7 +75,7 @@ return [
                 'description' => [ // Overrides common 'content'
                     'label' => 'Store Description',
                     'required' => true,
-                    'maxLength' => 3000,
+                    'maxlength' => 3000,
                     'attributes' => [
                         'rows' => '8', // Specific rows
                         'placeholder' => 'Write your store description...'
@@ -104,8 +107,8 @@ return [
                 'username' => [
                     'label' => 'Username',
                     'required' => true,
-                    'minLength' => 3,
-                    'maxLength' => 50,
+                    'minlength' => 3,
+                    'maxlength' => 50,
                     'attributes' => [
                         'readonly' => true // Example: Username cannot be changed
                     ]
@@ -118,12 +121,12 @@ return [
                 'first_name' => [
                     'label' => 'First Name',
                     'required' => false,
-                    'maxLength' => 100,
+                    'maxlength' => 100,
                 ],
                 'last_name' => [
                     'label' => 'Last Name',
                     'required' => false,
-                    'maxLength' => 100,
+                    'maxlength' => 100,
                 ]
             ],
         ],

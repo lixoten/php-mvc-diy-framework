@@ -29,7 +29,7 @@ return [
         'layout_type' => 'sections', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
     //     'security_level' => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
     //     'error_display' => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-    //     'html5_validation' => false,
+        'html5_validation' => true,
     //     'css_form_theme_class' => "form-theme-christmas",
     //     'css_form_theme_file' => "christmas",
     //     'form_heading' => "Create Post Parent",
