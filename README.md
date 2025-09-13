@@ -1,3 +1,20 @@
+JS Features Added to MVC LIXO Framework
+Character Counter:
+Shows live character count for inputs/textareas, with color and tooltip feedback based on min/max length.
+
+Live Validation Feedback:
+Uses HTML5 validation APIs (checkValidity(), validationMessage) to show error messages and Bootstrap invalid styling as the user types or blurs a field.
+
+LocalStorage Auto-Save/Draft:
+Saves all form field values to localStorage as the user types.
+Restores draft data on page reload.
+Shows a notification and "Discard Draft" button if a draft is present.
+Triggers validation after restoring draft values.
+
+
+
+
+
 # MVC LIXO Framework V0.1
 
 A lightweight, feature-based PHP MVC framework focused on clean architecture and SOLID principles.
