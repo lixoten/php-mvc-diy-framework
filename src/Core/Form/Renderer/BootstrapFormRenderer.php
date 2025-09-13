@@ -17,7 +17,7 @@ use function PHPUnit\Framework\isNull;
 class BootstrapFormRenderer implements FormRendererInterface
 {
 
-    private $fookJsEnabled = false;
+    private $fookJsEnabled = true;
 
     /**
      * {@inheritdoc}
@@ -198,6 +198,10 @@ class BootstrapFormRenderer implements FormRendererInterface
             );
         }
 
+        //JS-CODE LocalStorage Draft
+        // Add draft notification and discard button at the top of the form
+        $output .= $this->renderDraftNotification($options, $this->fookJsEnabled);
+
         $output .= $this->renderEnd($form, $options);
 
         return $output;
@@ -372,8 +376,8 @@ class BootstrapFormRenderer implements FormRendererInterface
             }
         }
 
-
-        $jsEnabled = $this->fookJsEnabled ?? false; // DangerDanger - Temp solution till we figure how to get this here
+        // JS-CODE
+        $jsEnabled = $this->fookJsEnabled ?? true; // DangerDanger - Temp solution till we figure how to get this here
 
 
         // Different rendering based on field type
@@ -606,19 +610,41 @@ class BootstrapFormRenderer implements FormRendererInterface
      * Render a live validation error container for a field if enabled in config.
      *
      * @param FieldInterface $field
+     * @param bool $jsEnabled
      * @return string
      */
     private function renderLiveErrorContainer(FieldInterface $field, bool $jsEnabled = false): string
-    // private function renderLiveErrorContainer(FieldInterface $field): string
     {
         $fieldOptions = $field->getOptions();
-        if (!empty($fieldOptions['live_validation'])) {
+        if (!empty($fieldOptions['live_validation']) && $jsEnabled) {
             $id = $field->getAttribute('id') ?? $field->getName();
             // Optionally add an ID for JS targeting, e.g., "{$id}-error"
             return '<div class="live-error text-danger mt-1" id="' . $id . '-error"></div>';
         }
         return '';
-}
+    }
+
+    //JS-CODE LocalStorage Draft
+    /**
+     * Render draft notification and discard button if auto-save and localStorage are enabled.
+     *
+     * @param array $options
+     * @param bool $jsEnabled
+     * @return string
+     */
+    private function renderDraftNotification(array $options, bool $jsEnabled = false): string
+    {
+        if ($jsEnabled) {
+            if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
+                $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
+                $output .= '<button type="button" id="discard-draft-btn" style="display:none;" class="btn btn-secondary btn-sm">Discard Draft</button>';
+                return $output;
+            }
+        }
+        return '';
+    }
+
+
 
     /**
      * {@inheritdoc}
@@ -695,6 +721,18 @@ class BootstrapFormRenderer implements FormRendererInterface
         if (!empty($htmlAttributes)) {
             $attributes = array_merge($attributes, $htmlAttributes);
         }
+
+        // Add auto-save and localStorage flags from render_options
+        //$renderOptions = $options['render_options'] ?? [];
+        if (!empty($options['auto_save'])) {
+            $attributes['data-auto-save'] = 'true';
+        }
+        if (!empty($options['use_local_storage'])) {
+            $attributes['data-use-local-storage'] = 'true';
+        }
+
+
+
 
         // Handle direct HTML attributes like onsubmit (ADD THIS CODE)
         $directAttributes = ['onsubmit', 'onclick', 'onchange', 'onblur', 'onfocus'];

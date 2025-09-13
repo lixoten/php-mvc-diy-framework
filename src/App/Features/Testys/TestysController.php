@@ -271,6 +271,7 @@ class TestysController extends Controller
 
         // Get the record from the database
         $record = $this->repository->findById($recordId);
+        // DebugRt::j('1', '', 'BOOOMMMMM');
 
         if (!$record) {
             $this->throwPostNotFound($recordId);

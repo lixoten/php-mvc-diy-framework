@@ -108,66 +108,83 @@
         });
     });
 
+    // LocalStorage
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[data-auto-save="true"]').forEach(function(form) {
+            if (form.getAttribute('data-use-local-storage') !== 'true') {
+                return;
+            }
+            var key = 'draft_' + (form.getAttribute('id') || form.getAttribute('name') || window.location.pathname);
+            var draft = localStorage.getItem(key);
 
+            var notification = document.getElementById('draft-notification');
+            var discardBtn = document.getElementById('discard-draft-btn');
 
-    // document.querySelectorAll('input[data-live-validation], textarea[data-live-validation]').forEach(function(field) {
-    //     // Find the error container within the same parent
-    //     var errorContainer = field.parentNode.querySelector('.live-error');
-    //     if (!errorContainer) {
-    //         errorContainer = document.createElement('div');
-    //         errorContainer.className = 'live-error text-danger mt-1';
-    //         field.parentNode.appendChild(errorContainer);
-    //     }
+            if (draft) {
+                Object.entries(JSON.parse(draft)).forEach(([name, value]) => {
+                    var field = form.elements[name];
+                    if (field && typeof field.value !== 'undefined') {
+                        field.value = value;
+                        // Trigger validation after restoring value
+                        if (typeof field.dispatchEvent === 'function') {
+                            field.dispatchEvent(new Event('input', { bubbles: true }));
+                            field.dispatchEvent(new Event('blur', { bubbles: true }));
+                        }
+                    }
+                });
+                if (notification) {
+                    notification.textContent = 'Draft restored. You are viewing unsaved changes.';
+                    notification.style.display = 'block';
+                }
+                if (discardBtn) {
+                    discardBtn.style.display = 'inline-block';
+                    discardBtn.onclick = function() {
+                        localStorage.removeItem(key);
+                        window.location.reload();
+                    };
+                }
+            }
 
-    //     function showValidationError() {
-    //         if (!field.checkValidity()) {
-    //             errorContainer.textContent = field.validationMessage;
-    //             field.classList.add('is-invalid');
-    //         } else {
-    //             errorContainer.textContent = '';
-    //             field.classList.remove('is-invalid');
+            form.addEventListener('input', function() {
+                var data = {};
+                Array.from(form.elements).forEach(function(el) {
+                    if (el.name && typeof el.value !== 'undefined') {
+                        data[el.name] = el.value;
+                    }
+                });
+                localStorage.setItem(key, JSON.stringify(data));
+            });
+        });
+    });
+
+    // // LocalStorage
+    // document.addEventListener('DOMContentLoaded', function() {
+    //     document.querySelectorAll('form[data-auto-save="true"]').forEach(function(form) {
+    //         if (form.getAttribute('data-use-local-storage') !== 'true') {
+    //             return;
     //         }
-    //     }
-
-    //     field.addEventListener('input', showValidationError);
-    //     field.addEventListener('blur', showValidationError);
-    //     showValidationError();
-    // });
-
-
-
-
-
-
-
-    //  // Live Validation Feedback Feature
-    // document.querySelectorAll('input, textarea').forEach(function(field) {
-    //     // Only validate fields with live_validation enabled (optional: use data-live-validation)
-    //     if (!field.hasAttribute('data-live-validation')) {
-    //         return;
-    //     }
-
-    //     // Find or create error container
-    //     let errorContainer = field.nextElementSibling;
-    //     if (!errorContainer || !errorContainer.classList.contains('live-error')) {
-    //         errorContainer = document.createElement('div');
-    //         errorContainer.className = 'live-error text-danger mt-1';
-    //         field.parentNode.insertBefore(errorContainer, field.nextSibling);
-    //     }
-
-    //     function showValidationError() {
-    //         if (!field.checkValidity()) {
-    //             errorContainer.textContent = field.validationMessage;
-    //             field.classList.add('is-invalid');
-    //         } else {
-    //             errorContainer.textContent = '';
-    //             field.classList.remove('is-invalid');
+    //         var key = 'draft_' + (form.getAttribute('id') || form.getAttribute('name') || 'default');
+    //         // Restore draft
+    //         var draft = localStorage.getItem(key);
+    //         if (draft) {
+    //             Object.entries(JSON.parse(draft)).forEach(([name, value]) => {
+    //                 var field = form.elements[name];
+    //                 if (field) {
+    //                     field.value = value;
+    //                 }
+    //             });
     //         }
-    //     }
-
-    //     field.addEventListener('input', showValidationError);
-    //     field.addEventListener('blur', showValidationError);
-    //     showValidationError();
+    //         // Save draft on input
+    //         form.addEventListener('input', function() {
+    //             var data = {};
+    //             Array.from(form.elements).forEach(function(el) {
+    //                 if (el.name) {
+    //                     data[el.name] = el.value;
+    //                 }
+    //             });
+    //             localStorage.setItem(key, JSON.stringify(data));
+    //         });
+    //     });
     // });
 
     // TODO: Add more features here (e.g., live validation, input masking)
