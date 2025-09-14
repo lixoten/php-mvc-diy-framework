@@ -126,7 +126,7 @@ class TestysController extends Controller
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
         $this->flash22->add("hi there", FlashMessageType::Info);
-        $this->logger->alert("ssddddsss");
+        $this->logger->alert("test123");
 
         $options            = $this->listType->getOptions() ?? [];
         $renderOptions      = [];
@@ -271,7 +271,7 @@ class TestysController extends Controller
 
         // Get the record from the database
         $record = $this->repository->findById($recordId);
-        // DebugRt::j('1', '', 'BOOOMMMMM');
+        // DebugRt::j('1', '', 'Boom');
 
         if (!$record) {
             $this->throwPostNotFound($recordId);
@@ -380,9 +380,6 @@ class TestysController extends Controller
             }
         }
 
-        // $form->render(['js_enabled' => $jsEnabled]);
-        // $form->render(['js_enabled' => true]);
-        // $form->render()
         // Prepare view data
         $viewData = [
             'title' => 'Edit Record',
@@ -401,6 +398,48 @@ class TestysController extends Controller
 
         return $response;
     }
+
+    /**
+     * Handle AJAX draft save.
+     *
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function ajaxSaveDraftAction(ServerRequestInterface $request): ResponseInterface // js-feature
+    {
+        // Auto Save / Draft Feature - JS
+
+        // $this->logger->error('TEST LOG in TestyController');
+        // error_log('TEST ERRORLOG in TestyController');
+
+        $data = json_decode((string)$request->getBody(), true);
+
+        if (!is_array($data)) {
+            // error_log('WTF TEST ERRORLOG in TestyController');
+            return $this->json([
+                'success' => false,
+                'message' => 'Invalid or missing JSON data.'
+            ]);
+        }
+
+        error_log('DATA - TestyController: ' . print_r($data, true));
+        // Validate and save draft to DB (implement your own logic)
+        //$this->repository->saveDraft($data);
+        $success = $this->repository->saveDraft($data);
+
+        // if (!$success) {
+        //     $this->logger->error('AJAX draft save failed', ['data' => $data]);
+        // }
+
+        // Return JSON response
+        return $this->json([
+            'success' => $success,
+            'message' => $success ? 'Draft saved' : 'Failed to save record.'
+        ]);
+    }
+
+
+
 
     /**
      * Show the posts form

@@ -169,7 +169,7 @@ class FrontController implements RequestHandlerInterface
         // --- End Dynamic Pages --- // Dynamic-me posts
         //$dynamicPages =>['posts']
         $dynamicPages = [
-            'xxposts' => [],
+            'posts' => [],
             'stores' => [],
             // Add more pages as needed
         ];
@@ -521,6 +521,14 @@ class FrontController implements RequestHandlerInterface
         ]);
         $this->router->add('{controller}/{action}/param/{args:[\w+\/\w+\/]*}', [
             'route_id' => 'bee901-dyn/dyn/dyn',
+        ]);
+
+        // AJAX Save Feature - JS
+        $this->router->add('testys/ajax-save-draft', [ // js-feature
+            'namespace' => 'Testys',
+            'controller' => 'Testys',
+            'action' => 'ajaxSaveDraft',
+            'methods' => ['POST'],
         ]);
 
         ## Edit page

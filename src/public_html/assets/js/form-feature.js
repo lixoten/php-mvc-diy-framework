@@ -11,56 +11,26 @@
 (function() {
     'use strict';
 
-    // Character Counter Feature
+    // Character Counter Feature - JS
     document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-char-counter]').forEach(function(input) {
-            const counterId = input.getAttribute('data-char-counter');
-            const counter = document.getElementById(counterId);
-            if (!counter) return;
-
-            const maxlength = parseInt(input.getAttribute('maxlength'), 10) || 30;
-            const minlength = parseInt(input.getAttribute('minlength'), 10) || 0;
-
-            function updateCounter() {
-                const currentLength = input.value.length;
-                counter.textContent = `${currentLength} / ${maxlength}`;
-
-                // Validation feedback
-                if (currentLength < minlength) {
-                    counter.classList.add('text-danger');
-                    counter.classList.remove('text-success');
-                    counter.title = `Minimum ${minlength} characters required.`;
-                } else if (currentLength > maxlength) {
-                    counter.classList.add('text-danger');
-                    counter.classList.remove('text-success');
-                    counter.title = `Maximum ${maxlength} characters allowed.`;
-                } else {
-                    counter.classList.remove('text-danger');
-                    counter.classList.add('text-success');
-                    counter.title = '';
-                }
+        document.querySelectorAll('.char-counter').forEach(function (counter) {
+            counter.style.display = 'inline';
+            var inputId = counter.id.replace('-counter', '');
+            var input = document.getElementById(inputId);
+            if (input) {
+                var maxlength = parseInt(input.getAttribute('maxlength'), 10) || 30;
+                var updateCounter = function () {
+                    counter.textContent = input.value.length + ' / ' + maxlength;
+                };
+                input.addEventListener('input', updateCounter);
+                updateCounter();
             }
-
-            input.addEventListener('input', updateCounter);
-            updateCounter();
         });
     });
 
+    // Live Validation Feature - JS
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('input[data-live-validation], textarea[data-live-validation]').forEach(function(field) {
-            // // Build error container ID based on field ID
-            // var errorId = field.id + '-error';
-            // var errorContainer = document.getElementById(errorId);
-            // if (!errorContainer) {
-            //     errorContainer = document.createElement('div');
-            //     errorContainer.className = 'live-error text-danger mt-1';
-            //     errorContainer.id = errorId;
-            //     field.parentNode.appendChild(errorContainer);
-            // }
-//..........................................................................
-//..........................................................................
-//..........................................................................
-
             // Find the error container within the same parent
             var errorContainer = field.parentNode.querySelector('.live-error');
             if (!errorContainer) {
@@ -68,29 +38,6 @@
                 errorContainer.className = 'live-error text-danger mt-1';
                 field.parentNode.appendChild(errorContainer);
             }
-//..........................................................................
-//..........................................................................
-//..........................................................................
-
-
-            // // Only validate fields with live_validation enabled (optional: use data-live-validation)
-            // if (!field.hasAttribute('data-live-validation')) {
-            //     return;
-            // }
-
-            // // Find or create error container
-            // let errorContainer = field.nextElementSibling;
-            // if (!errorContainer || !errorContainer.classList.contains('live-error')) {
-            //     errorContainer = document.createElement('div');
-            //     errorContainer.className = 'live-error text-danger mt-1';
-            //     field.parentNode.insertBefore(errorContainer, field.nextSibling);
-            // }
-
-//..........................................................................
-//..........................................................................
-//..........................................................................
-
-
 
             function showValidationError() {
                 if (!field.checkValidity()) {
@@ -108,7 +55,7 @@
         });
     });
 
-    // LocalStorage
+    // Auto Save / Draft Feature - JS
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('form[data-auto-save="true"]').forEach(function(form) {
             if (form.getAttribute('data-use-local-storage') !== 'true') {
@@ -157,35 +104,70 @@
         });
     });
 
-    // // LocalStorage
-    // document.addEventListener('DOMContentLoaded', function() {
-    //     document.querySelectorAll('form[data-auto-save="true"]').forEach(function(form) {
-    //         if (form.getAttribute('data-use-local-storage') !== 'true') {
-    //             return;
-    //         }
-    //         var key = 'draft_' + (form.getAttribute('id') || form.getAttribute('name') || 'default');
-    //         // Restore draft
-    //         var draft = localStorage.getItem(key);
-    //         if (draft) {
-    //             Object.entries(JSON.parse(draft)).forEach(([name, value]) => {
-    //                 var field = form.elements[name];
-    //                 if (field) {
-    //                     field.value = value;
-    //                 }
-    //             });
-    //         }
-    //         // Save draft on input
-    //         form.addEventListener('input', function() {
-    //             var data = {};
-    //             Array.from(form.elements).forEach(function(el) {
-    //                 if (el.name) {
-    //                     data[el.name] = el.value;
-    //                 }
-    //             });
-    //             localStorage.setItem(key, JSON.stringify(data));
-    //         });
-    //     });
-    // });
+    // AJAX Save Feature - JS
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('form[data-ajax-save="true"]').forEach(function(form) {
+            // Save draft on input (or you can use a "Save Draft" button)
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent normal submit
 
+                var spinner = document.getElementById('ajax-save-spinner');
+                if (spinner) {
+                    spinner.style.display = 'block';
+                }
+
+
+                var data = {};
+                Array.from(form.elements).forEach(function(el) {
+                    if (el.name && typeof el.value !== 'undefined') {
+                        data[el.name] = el.value;
+                    }
+                });
+
+                // Add CSRF token if present
+                var csrfInput = form.querySelector('input[name="csrf_token"]');
+                var csrfToken = csrfInput ? csrfInput.value : '';
+                data['csrf_token'] = csrfToken;
+
+
+                fetch('/testys/ajax-save-draft', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify(data)
+                })
+                //.then(response => response.json())
+                .then(response => {
+                    // Try to parse as JSON, but handle non-JSON error gracefully
+                    return response.json().catch(() => {
+                        throw new Error('Non-JSON response (likely CSRF error)');
+                    });
+                })
+                .then(result => {
+                    if (spinner) {
+                        spinner.style.display = 'none';
+                    }
+                    if (result.success) {
+                        alert('Record saved via AJAX!');
+                        if (form.getAttribute('data-use-local-storage') === 'true') {
+                            var key = 'draft_' + (form.getAttribute('id') || form.getAttribute('name') || window.location.pathname);
+                            localStorage.removeItem(key);
+                        }
+                        // Optionally: window.location.href = '/testys'; // redirect
+                    } else {
+                        alert('Failed to save record.');
+                    }
+                })
+                .catch(error => {
+                    if (spinner) {
+                        spinner.style.display = 'none';
+                    }
+                    alert('AJAX error: ' + error);
+                });
+            });
+        });
+    });
     // TODO: Add more features here (e.g., live validation, input masking)
 })();

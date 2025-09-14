@@ -31,6 +31,15 @@ interface TestyRepositoryInterface
 
 
     /**
+     * Save a draft for a Testy record.
+     *
+     * @param array $data
+     * @return bool
+     */
+    public function saveDraft(array $data): bool; // js-feature
+
+
+    /**
      * Find testys by store ID
      */
     public function findByStoreId(

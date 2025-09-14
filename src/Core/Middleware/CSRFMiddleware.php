@@ -51,16 +51,44 @@ class CSRFMiddleware implements MiddlewareInterface
                 }
             }
 
+            // Auto Save / Draft Feature - JS FIX // js-feature
             // Get submitted token
             $body = $request->getParsedBody();
+            if (empty($body)) {
+                $body = json_decode((string)$request->getBody(), true) ?? [];
+            }
             $submittedToken = $body['csrf_token'] ?? '';
+
+            // error_log('Session status: ' . session_status());// js-feature
+            // error_log('Session ID: ' . session_id());
+            // error_log('Submitted token: ' . $submittedToken);
+            // error_log('Expected token: ' . $this->csrfToken->getToken());
 
             // Validate the token
             if (!$submittedToken || !$this->csrfToken->validate($submittedToken)) {
-                // Token validation failed - create 403 response
-                $response = $this->httpFactory->createResponse(403);
-                $response->getBody()->write('CSRF token validation failed. Please try again.');
-                return $response;
+                $isAjaxRequest = strtolower($request->getHeaderLine('X-Requested-With')) === 'xmlhttprequest';
+
+                // AJAX Save Feature - JS
+                if ($isAjaxRequest) { // js-feature
+                    $response = $this->httpFactory->createResponse(403);
+
+                    error_log(
+                        'TEST ERRORLOG in CSRF Middleware - isAjaxRequest is true'
+                            . json_encode($response->getStatusCode())
+                    );
+
+                    $response->getBody()->write(json_encode([
+                        'success' => false,
+                        'message' => 'CSRF token validation failed. Please try again.'
+                    ]));
+                    return $response->withHeader('Content-Type', 'application/json');
+                } else {
+                    error_log('TEST ERRORLOG in CSRF Middleware - isAjaxRequest is false');
+
+                    $response = $this->httpFactory->createResponse(403);
+                    $response->getBody()->write('CSRF token validation failed. Please try again.');
+                    return $response;
+                }
             }
         }
 

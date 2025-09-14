@@ -25,8 +25,9 @@ ListOptions::DEFAULT_SORT_KEY => PostFields2::ID->value,
 */
 return [
     'render_options' => [
-        'auto_save'         => true, // Enable auto-save/draft for the whole form
-        'use_local_storage' => true, // Use localStorage for drafts
+        'ajax_save'         => true,    // js-feature
+        'auto_save'         => true,    // js-feature Enable auto-save/draft for the whole form
+        'use_local_storage' => true,    // js-feature Use localStorage for drafts
 
     //     'force_captcha' => false,
         'layout_type'       => 'sections', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
@@ -36,7 +37,7 @@ return [
     //     'css_form_theme_class' => "form-theme-christmas",
     //     'css_form_theme_file' => "christmas",
     //     'form_heading' => "Create Post Parent",
-        'submit_text'       => "Add Parent",
+        'submit_text'       => "Save",
         'layout'            => [
             [
                 'title'     => 'Your Title',

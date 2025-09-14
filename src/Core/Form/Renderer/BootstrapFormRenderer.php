@@ -16,16 +16,12 @@ use function PHPUnit\Framework\isNull;
  */
 class BootstrapFormRenderer implements FormRendererInterface
 {
-
-    private $fookJsEnabled = true;
-
     /**
      * {@inheritdoc}
      */
     public function renderForm(FormInterface $form, array $options = []): string
     {
         $output = $this->renderStart($form, $options);
-        // DebugRt::j('0', '', $options);
 
         // Get error display style option
         $errorDisplay = $options['error_display'] ?? 'inline';
@@ -186,6 +182,11 @@ class BootstrapFormRenderer implements FormRendererInterface
             $output .= '</div>';
         }
 
+        if (!empty($options['ajax_save'])) {
+            $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2">'
+                . '<span class="spinner-border spinner-border-sm"></span> Saving...'
+                . '</div>';
+        }
 
         // Render submit button if requested
         if (!isset($options['no_submit_button']) || !$options['no_submit_button']) {
@@ -198,9 +199,7 @@ class BootstrapFormRenderer implements FormRendererInterface
             );
         }
 
-        //JS-CODE LocalStorage Draft
-        // Add draft notification and discard button at the top of the form
-        $output .= $this->renderDraftNotification($options, $this->fookJsEnabled);
+        $output .= $this->renderDraftNotification($options); // js-feature
 
         $output .= $this->renderEnd($form, $options);
 
@@ -376,22 +375,9 @@ class BootstrapFormRenderer implements FormRendererInterface
             }
         }
 
-        // JS-CODE
-        $jsEnabled = $this->fookJsEnabled ?? true; // DangerDanger - Temp solution till we figure how to get this here
-
-
         // Different rendering based on field type
         switch ($type) {
             case 'checkbox':
-                // $checked = $field->getValue() ? ' checked' : '';
-                // $output .= '<div class="form-check">';
-                // $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"';
-                // $output .= ' id="' . $id . '" name="' . $name . '"';
-                // $output .= $checked . $required . $ariaAttrs . $attrString . '>';
-                // $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                // $output .= $errorHTML;
-                // $output .= '</div>';
-                // break;
                 $checked = $field->getValue() ? ' checked' : '';
 
                 // Build attribute string for the checkbox input
@@ -419,8 +405,10 @@ class BootstrapFormRenderer implements FormRendererInterface
                 }
 
                 $output .= '<div class="form-check">';
-                $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"' . $checkboxAttrString . '>';
-                $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"' .
+                    $checkboxAttrString . '>';
+                $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) .
+                    '</label>';
                 $output .= $errorHTML;
                 $output .= '</div>';
                 break;
@@ -428,19 +416,6 @@ class BootstrapFormRenderer implements FormRendererInterface
             case 'radio':
                 $output .= '<label>' . htmlspecialchars($label) . '</label>';
                 $optionsList = $field->getOptions()['choices'] ?? [];
-                // foreach ($options as $optionValue => $optionLabel) {
-                //     $checked = ($field->getValue() == $optionValue) ? ' checked' : '';
-                //     $output .= '<div class="form-check">';
-                //     $output .= '<input type="radio" class="form-check-input' . $errorClass . '"';
-                //     $output .= ' id="' . $id . '_' . $optionValue . '"';
-                //     $output .= ' name="' . $name . '" value="' . htmlspecialchars((string)$optionValue) . '"';
-                //     $output .= $checked . $required . $ariaAttrs . $attrString . '>';
-                //     $output .= '<label class="form-check-label" for="' . $id . '_' . $optionValue . '">';
-                //     $output .= htmlspecialchars($optionLabel);
-                //     $output .= '</label>';
-                //     $output .= '</div>';
-                // }
-                // $output .= $errorHTML;
                 foreach ($optionsList as $optionValue => $optionLabel) {
                     $checked = ($field->getValue() == $optionValue) ? ' checked' : '';
 
@@ -472,7 +447,8 @@ class BootstrapFormRenderer implements FormRendererInterface
                     }
 
                     $output .= '<div class="form-check">';
-                    $output .= '<input type="radio" class="form-check-input' . $errorClass . '"' . $radioAttrString . '>';
+                    $output .= '<input type="radio" class="form-check-input' . $errorClass . '"'
+                        . $radioAttrString . '>';
                     $output .= '<label class="form-check-label" for="' . $id . '_' . $optionValue . '">';
                     $output .= htmlspecialchars($optionLabel);
                     $output .= '</label>';
@@ -485,14 +461,10 @@ class BootstrapFormRenderer implements FormRendererInterface
                 $output .= htmlspecialchars($label);
                 $output .= '</label>';
 
-                //$output .= '<select class="form-select' . $errorClass . '" id="' . $id . '" name="' . $name . '"';
                 //$output .= $required . $ariaAttrs . $attrString . '>';
 
-               // deleteme - $temp
-                $temp = '<input type="text" class="' . $class . $errorClass . '" id="' .
-                    $id . '" name="' . $name . '" ';
                 $output .= '<input type="text" class="'
-                    . $class . $errorClass .'" id="' . $id . '" name="' . $name . '" ';
+                    . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" ';
 
                 $output .= 'value="' . $value . '"' . $attrString . '>';
 
@@ -514,72 +486,35 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
 
             case 'textarea':
-                // $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                // $output .= '<textarea class="form-control' . $errorClass . '"';
-                // $output .= ' id="' . $id . '" name="' . $name . '"';
-                // $output .= $required . $ariaAttrs . $attrString . '>';
-                // $output .= $value . '</textarea>';
-                // $output .= $errorHTML;
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
 
-                // deleteme - $temp
-                $temp    = '<textarea class="' . $class . $errorClass . '" id="' . $id
-                    . '" name="' . $name . '"' . $ariaAttrs . $attrString . '>' . $value . '</textarea>';
                 $output .= '<textarea class="' . $class . $errorClass . '" id="' . $id
                     . '" name="' . $name . '"' . $ariaAttrs . $attrString . '>' . $value . '</textarea>';
                 $output .= $errorHTML;
-                $output .= $this->renderCharCounter($field, $jsEnabled);
-                // $output .= $this->renderLiveErrorContainer($field);
-                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
-                break;
 
-            // case 'textarea':
-            //     $output .= sprintf(
-            //         '<label for="%s">%s</label><textarea name="%s" id="%s"%s>%s</textarea>',
-            //         $name,
-            //         $label,
-            //         $name,
-            //         $name,
-            //         $attributes,
-            //         $value
-            //     );
-            //     break;
+                $output .= $this->renderCharCounter($field);        // js-feature
+                $output .= $this->renderLiveErrorContainer($field); // js-feature
+                break;
 
             case 'text':
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                //$output .= '<input type="' . $type . '" class="form-control' . $errorClass . '"';
-                // $output .= '<input type="text" class="form-control' . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
-                // deleteme - $temp
-                $temp    = '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
-                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
-                //$output .= ' id="' . $id . '" name="' . $name . '"';
-                //$output .= ' value="' . $value . '"' . $required . $ariaAttrs . $attrString . '>';
+                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
 
-                // // Config-driven character counter, only if JS is enabled
-                // $fieldOptions = $field->getOptions();
-                // // $jsEnabled = $options['js_enabled'] ?? false;
-                // $jsEnabled = $this->fookJsEnabled ?? false; // DangerDanger - Temp solution till we figure how to get this here
-                // if (!empty($fieldOptions['show_char_counter']) && $jsEnabled) {
-                //     $maxlength = $field->getAttribute('maxlength') ?? 30;
-                //     $output .= '<small id="' . $id . '-counter" class="form-text">0 / ' . (int)$maxlength . '</small>';
-                // }
-                $output .= $this->renderCharCounter($field, $jsEnabled);
-                // $output .= $this->renderLiveErrorContainer($field);
-                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
+                $output .= $this->renderCharCounter($field);        // js-feature
+                $output .= $this->renderLiveErrorContainer($field); // js-feature
 
                 break;
 
             default:
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                // deleteme - $temp
-                $temp    = '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
-                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
 
-                $output .= $this->renderCharCounter($field, $jsEnabled);
-                // $output .= $this->renderLiveErrorContainer($field);
-                $output .= $this->renderLiveErrorContainer($field, $this->fookJsEnabled);
+                $output .= $this->renderCharCounter($field);        // js-feature
+                $output .= $this->renderLiveErrorContainer($field); // js-feature
                 break;
         }
 
@@ -592,16 +527,17 @@ class BootstrapFormRenderer implements FormRendererInterface
      * Render a character counter for a field if enabled in config.
      *
      * @param FieldInterface $field
-     * @param bool $jsEnabled
      * @return string
      */
-    private function renderCharCounter(FieldInterface $field, bool $jsEnabled): string
+    private function renderCharCounter(FieldInterface $field): string // js-feature
     {
+        // Character Counter Feature - JS
         $fieldOptions = $field->getOptions();
-        if (!empty($fieldOptions['show_char_counter']) && $jsEnabled) {
+        if (!empty($fieldOptions['show_char_counter'])) {
             $id = $field->getAttribute('id') ?? $field->getName();
             $maxlength = $field->getAttribute('maxlength') ?? 30;
-            return '<small id="' . $id . '-counter" class="form-text">0 / ' . (int)$maxlength . '</small>';
+            return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
+                (int)$maxlength . '</small>';
         }
         return '';
     }
@@ -610,13 +546,13 @@ class BootstrapFormRenderer implements FormRendererInterface
      * Render a live validation error container for a field if enabled in config.
      *
      * @param FieldInterface $field
-     * @param bool $jsEnabled
      * @return string
      */
-    private function renderLiveErrorContainer(FieldInterface $field, bool $jsEnabled = false): string
+    private function renderLiveErrorContainer(FieldInterface $field): string // js-feature
     {
+        // Live Validation Feature - JS
         $fieldOptions = $field->getOptions();
-        if (!empty($fieldOptions['live_validation']) && $jsEnabled) {
+        if (!empty($fieldOptions['live_validation'])) {
             $id = $field->getAttribute('id') ?? $field->getName();
             // Optionally add an ID for JS targeting, e.g., "{$id}-error"
             return '<div class="live-error text-danger mt-1" id="' . $id . '-error"></div>';
@@ -624,22 +560,20 @@ class BootstrapFormRenderer implements FormRendererInterface
         return '';
     }
 
-    //JS-CODE LocalStorage Draft
     /**
      * Render draft notification and discard button if auto-save and localStorage are enabled.
      *
      * @param array $options
-     * @param bool $jsEnabled
      * @return string
      */
-    private function renderDraftNotification(array $options, bool $jsEnabled = false): string
+    private function renderDraftNotification(array $options): string // js-feature
     {
-        if ($jsEnabled) {
-            if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
-                $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
-                $output .= '<button type="button" id="discard-draft-btn" style="display:none;" class="btn btn-secondary btn-sm">Discard Draft</button>';
-                return $output;
-            }
+        // Auto Save / Draft Feature - JS
+        if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
+            $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
+            $output .= '<button type="button" id="discard-draft-btn" style="display:none;"
+                class="btn btn-secondary btn-sm">Discard Draft</button>';
+            return $output;
         }
         return '';
     }
@@ -652,7 +586,7 @@ class BootstrapFormRenderer implements FormRendererInterface
     public function renderErrors(FormInterface $form, array $options = []): string
     {
         // Check if we're in summary mode
-        $errorDisplay = $options['error_display'] ?? 'inlinsse';
+        $errorDisplay = $options['error_display'] ?? 'inline';
         // DebugRt::j('1', '', $errorDisplay);
         if ($errorDisplay === 'summary') {
             // Collect ALL errors (both field and form level)
@@ -731,6 +665,9 @@ class BootstrapFormRenderer implements FormRendererInterface
             $attributes['data-use-local-storage'] = 'true';
         }
 
+        if (!empty($options['ajax_save'])) {
+            $attributes['data-ajax-save'] = 'true';
+        }
 
 
 

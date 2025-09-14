@@ -87,3 +87,9 @@ body {
             'footer footer footer';
     }
 }
+
+/* Progressive Design // js-feature */
+.char-counter {
+    /* Hidden by default, shown by JS */
+    display: none;
+}

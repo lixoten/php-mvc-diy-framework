@@ -17,6 +17,28 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         $this->connection = $connection;
     }
 
+    public function saveDraft(array $data): bool // js-feature
+    {
+        // Auto Save / Draft Feature - JS
+        // Example: Save draft to the main testys table (update only draft fields)
+        $sql = "UPDATE testys SET
+                    title = :title,
+                    content = :content,
+                    favorite_word = :favorite_word,
+                    updated_at = NOW()
+                WHERE testy_id = :testy_id";
+
+        $stmt = $this->connection->prepare($sql);
+
+        return $stmt->execute([
+            ':testy_id' => $data['testy_id'] ?? null,
+            ':title' => $data['title'] ?? '',
+            ':content' => $data['content'] ?? '',
+            ':favorite_word' => $data['favorite_word'] ?? '',
+        ]);
+    }
+
+
     /**
      * Find a testy by ID
      */

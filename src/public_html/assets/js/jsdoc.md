@@ -82,3 +82,45 @@
 ---
 
 **This setup ensures your forms are interactive, user-friendly, and maintainable, with all enhancements controlled via your existing config system.**
+
+
+
+...................................
+...
+
+
+
+
+...................................................................
+...................................................................
+...................................................................
+...................................................................
+...................................................................
+<?php
+// ...existing code...
+private function renderCharCounter(FieldInterface $field): string
+{
+    $fieldOptions = $field->getOptions();
+    if (!empty($fieldOptions['show_char_counter'])) {
+        $id = $field->getAttribute('id') ?? $field->getName();
+        $maxlength = $field->getAttribute('maxlength') ?? 30;
+        return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
+            (int)$maxlength . '</small>';
+    }
+    return '';
+}
+// ...existing code...
+ddddddddddddddddd
+<?php
+// ...existing code...
+        return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
+            (int)$maxlength . '</small>';
+// ...existing code...
+
+<?php
+/**
+ * Render a character counter for a field if enabled in config.
+ *
+ * @param FieldInterface $field
+ * @return string
+ */

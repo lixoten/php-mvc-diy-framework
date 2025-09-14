@@ -18,6 +18,9 @@
             "type": "php",
             "request": "launch",
             "port": 9003,
+            "pathMappings": {
+                "/var/www/my-project": "d:/xampp/htdocs/my_projects/mvclixo"
+            },
             "skipFiles": [
                 "D:/xampp/htdocs/my_projects/mvclixo/vendor/composer/ClassLoader.php",
                 "${workspaceFolder}/vendor/**/*.php",

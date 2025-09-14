@@ -22,10 +22,10 @@ return [
                 'minlength' => 5,
                 'maxlength' => 12,
                 // 'style' => 'background: red;',
-                'data-char-counter' => 'title-counter',
+                'data-char-counter' => 'title-counter', // js-feature
             ],
-            'show_char_counter' => true, // js-feature
-            'live_validation' => true,
+            'show_char_counter' => true,    // js-feature
+            'live_validation' => true,      // js-feature
         ]
     ],
     'content' => [
@@ -42,10 +42,10 @@ return [
                 'maxlength' => 2000,
                 // 'style' => 'background: yellow;',
                 'rows' => '6',
-                'data-char-counter' => 'content-counter',
+                'data-char-counter' => 'content-counter', // js-feature
             ],
-            'show_char_counter' => true, // js-feature
-            'live_validation' => true,
+            'show_char_counter' => true,    // js-feature
+            'live_validation' => true,      // js-feature
         ]
     ],
     'favorite_word' => [
@@ -59,11 +59,11 @@ return [
                 'required' => true,
                 'minlength' => 10,
                 'maxlength' => 20,
-                'data-char-counter' => 'favorite_word-counter',
+                'data-char-counter' => 'favorite_word-counter', // js-feature
                 // 'style' => 'background: cyan;',
             ],
-            'show_char_counter' => true, // js-feature
-            'live_validation' => true,
+            'show_char_counter' => true,    // js-feature
+            'live_validation' => true,      // js-feature
         ]
     ],
 ];

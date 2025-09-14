@@ -121,7 +121,7 @@ class Router implements RouterInterface
      * @param ServerRequestInterface $request The request object
      * @return array|null The matched route parameters or null if no match
      */
-    public function matchRequest(ServerRequestInterface $request): ?array // <-- New method implementation
+    public function matchRequest(ServerRequestInterface $request): ?array 
     {
         $url = ltrim($request->getUri()->getPath(), '/');
 
