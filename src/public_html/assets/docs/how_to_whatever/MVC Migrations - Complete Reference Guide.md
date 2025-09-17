@@ -49,7 +49,7 @@ php bin/console.php migrate --force
 # Show all available seeders
 php bin/console.php seed
 
-# Run specific seeder  
+# Run specific seeder
 php bin/console.php seed UsersSeeder
 
 # Run ALL seeders at once
@@ -224,6 +224,7 @@ php -dxdebug.mode=debug -dxdebug.start_with_request=yes bin/console.php migrate
 
 # Migration Commands:
 php bin/console.php migrate                # Run all pending migrations
+php bin/console.php migrate:one 'Database\Migrations\CreateTestysTable' --force # Recreate a Single Migration
 php bin/console.php migrate --force        # Force run migrations (even if they might have been run before)
 php bin/console.php rollback               # Roll back the most recent batch of migrations
 php bin/console.php rollback 3             # Roll back the 3 most recent batches

@@ -22,11 +22,14 @@ use App\Features\Testys\Form\TestysFormType;
 use App\Features\Testys\List\TestysListType;
 use App\Repository\TestyRepositoryInterface;
 use App\Services\Email\EmailNotificationService;
+use App\Services\FeatureMetadataService;
 use Core\Controller;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\PaginationService;
+use Core\AbstractCrudController;
 use Core\Context\CurrentContext;
 use Core\Enum\SortDirection;
+use Core\Exceptions\ForbiddenException;
 use Core\Services\ConfigService;
 use stdClass;
 use Core\Http\HttpFactory;
@@ -46,7 +49,7 @@ use Psr\Log\LoggerInterface;
  * Testys controller
  *
  */
-class TestysController extends Controller
+class TestysController extends AbstractCrudController
 {
     protected ConfigService $config;
     protected ?ServerRequestInterface $request = null; // Declare correctly with proper type
@@ -71,15 +74,16 @@ class TestysController extends Controller
         CurrentContext $scrap,
         /////////////////////////////////
         ConfigInterface $config,
-        private FormFactoryInterface $formFactory,
-        private FormHandlerInterface $formHandler,
-        private TestyRepositoryInterface $repository,
-        private TestysFormType $formType,
+        protected FormFactoryInterface $formFactory,
+        protected FormHandlerInterface $formHandler,
+        protected TestyRepositoryInterface $repository,
+        protected TestysFormType $formType,
         private ListFactoryInterface $listFactory,
         private TestysListType $listType,
         protected LoggerInterface $logger,
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
+        private FeatureMetadataService $featureMetadataService,
     ) {
         parent::__construct(
             $route_params,
@@ -87,13 +91,18 @@ class TestysController extends Controller
             $view,
             $httpFactory,
             $container,
-            $scrap
+            $scrap,
+            $featureMetadataService,
+            $formFactory,
+            $formHandler,
+            $formType,
+            $repository
         );
         $this->config = $config;
-        $this->formFactory = $formFactory;
-        $this->formHandler = $formHandler;
-        $this->repository = $repository;
-        $this->formType = $formType;
+        // $this->formFactory = $formFactory;
+        // $this->formHandler = $formHandler;
+        // $this->repository = $repository;
+        // $this->formType = $formType;
         $this->listFactory = $listFactory;
         $this->listType = $listType;
         $this->listType->routeType = $scrap->getRouteType();
@@ -116,6 +125,7 @@ class TestysController extends Controller
 
         return $this->view(Url::CORE_TESTY->view(), $viewData);
     }
+
 
 
     /**
@@ -249,196 +259,23 @@ class TestysController extends Controller
     }
 
 
-    /**
-     * Edit an existing record
-     */
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
-
-
-         // Get record ID from route parameters
-        $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
-
-        // Important!!! Manual Tests.
-        // $recordId = 14;  // Test - Valid Record
-        // $recordId = 333;  // Test - Record does not exist
-        // $recordId = null; // Test - Route missing Record ID
-        // $recordId = 3;    // Test - Pointing to a Record that belongs to another User ID
-
-        if (!$recordId) {
-            $this->throwPostNotFound($recordId); //fixme
-        }
-
-        // Get the record from the database
-        $record = $this->repository->findById($recordId);
-        // DebugRt::j('1', '', 'Boom');
-
-        if (!$record) {
-            $this->throwPostNotFound($recordId);
-        }
-
-        // hack
-        //if (!$this->isUserAuthorized($record->getTestyUserId())) {
-        //    $this->flash->add("You don't have permission to edit this record", FlashMessageType::Error);
-        //    return $this->redirect(Url::CORE_TESTY->url()); //fix me - make this CORE_TESTY Generic
-        //}
-        // hack
-
-
-        // OVERRIDES config files
-        // We should not use this, unless we want to. USE `src/config/view_options/viewName.php/` file instead
-        // makes development easy without messing with config files.
-        // Important!!! - Advice, leave it commented out
-        /**********
-        $options = [
-            // 'ip_address' => $this->getIpAddress(),
-            // 'boo' => 'boo',
-            'render_options' => [
-                'error_display' => 'summary', // 'summary, inline'
-                'layout_type'   => 'fieldsets', // fieldsets / sections / sequential
-                // 'submit_text'   => "add fook",
-                'form_fields'   => [
-                    'content', 'title', 'favorite_word',
-                ],
-                'layout'        => [
-                    [
-                        'title' => 'Your Title',
-                        'fields' => ['title', 'content'],
-                        'divider' => true
-                    ],
-                    [
-                        'title' => 'Your Favorite',
-                        'fields' => ['favorite_word'],
-                        'divider' => true,
-                    ],
-                ],
-            ]
-        ];
-        ***********/
-
-        // Create the form with existing record data
-        $form = $this->formFactory->create(
-            formType: $this->formType,
-            data: [
-                'title'         => $record->getTitle(),          //fixme - make generic
-                'content'       => $record->getContent(),        //fixme - make generic
-                'favorite_word' => $record->getFavoriteWord(),   //fixme - make generic
-                // Add other fields as needed
-            ],
-            options: $options ?? [],
-        );
-
-
-        $formTheme = $form->getCssFormThemeFile();
-
-        // Process form submission
-        $formHandled = $this->formHandler->handle($form, $request);
-        if ($formHandled && $form->isValid()) {
-
-            ////////////////////////////////////////////////////////////////////////
-            // This getUpdatableData removes readonly and disabled data. prevents updates
-            // $data = $form->getData();
-            $data = $form->getUpdatableData();
-
-            // Since maybe it was unset, we get original data back on null
-            $record->setTitle($data['title'] ?? $record->getTitle());
-            $record->setContent($data['content'] ?? $record->getContent());
-            $record->setFavoriteWord($data['favorite_word'] ?? $record->getFavoriteWord());
-            $record->setSlug($this->generateSlug($data['title'] ?? $record->getTitle())); //fixme - make generic
-
-            // TODO - Future, make it more generic
-            // $fieldDefs = $form->getFields(); // Or get from config/registry
-
-            // foreach ($fieldDefs as $fieldName => $field) {
-            //     // Build setter name dynamically
-            //     $setter = 'set' . ucfirst($fieldName);
-
-            //     // Only update if the method exists and is not disabled/readonly
-            //     if (method_exists($record, $setter)) {
-            //         if (!$field->getAttribute('disabled') && !$field->getAttribute('readonly')) {
-            //             $value = $data[$fieldName] ?? $record->$getter(); // Use submitted or original value
-            //             $record->$setter($value);
-            //         }
-            //     }
-            // }
-            // TODO - Future, make it more generic
-            ////////////////////////////////////////////////////////////////////////
-
-            // Don't update user_id as this would change ownership
-
-            // Update the record in the database
-            $success = $this->repository->update($record);
-            // $success = false;
-            // throw new \PDOException();
-            // throw new \Exception();
-
-            if ($success) {
-                $this->flash22->add("Record updated successfully", FlashMessageType::Success);
-                return $this->redirect(Url::CORE_TESTY->url());
-            } else {
-                $form->addError('_form', 'Failed to update your record. Please try again.');
-            }
-        }
-
-        // Prepare view data
-        $viewData = [
-            'title' => 'Edit Record',
-            'record' => $record,
-            'form' => $form,
-            'formTheme' => $formTheme
-        ];
-
-        // Create response with appropriate status code
-        $response = $this->view(Url::CORE_TESTY_EDIT->view(), $viewData);
-
-        // Set 422 Unprocessable Entity status for form failures
-        if ($form->hasErrors()) {
-            return $response->withStatus(422);
-        }
-
-        return $response;
+        return parent::editAction(request: $request);
     }
+
 
     /**
-     * Handle AJAX draft save.
+     * Handles updating a resource via an AJAX request.
+     * Responds to POST /testys/edit/{id}/update
      *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
+     * @param ServerRequestInterface $request The incoming server request.
+     * @return ResponseInterface The JSON response.
      */
-    public function ajaxSaveDraftAction(ServerRequestInterface $request): ResponseInterface // js-feature
+    public function updateAction(ServerRequestInterface $request): ResponseInterface
     {
-        // Auto Save / Draft Feature - JS
-
-        // $this->logger->error('TEST LOG in TestyController');
-        // error_log('TEST ERRORLOG in TestyController');
-
-        $data = json_decode((string)$request->getBody(), true);
-
-        if (!is_array($data)) {
-            // error_log('WTF TEST ERRORLOG in TestyController');
-            return $this->json([
-                'success' => false,
-                'message' => 'Invalid or missing JSON data.'
-            ]);
-        }
-
-        error_log('DATA - TestyController: ' . print_r($data, true));
-        // Validate and save draft to DB (implement your own logic)
-        //$this->repository->saveDraft($data);
-        $success = $this->repository->saveDraft($data);
-
-        // if (!$success) {
-        //     $this->logger->error('AJAX draft save failed', ['data' => $data]);
-        // }
-
-        // Return JSON response
-        return $this->json([
-            'success' => $success,
-            'message' => $success ? 'Draft saved' : 'Failed to save record.'
-        ]);
+        return parent::updateAction(request: $request);
     }
-
-
 
 
     /**
@@ -572,6 +409,7 @@ class TestysController extends Controller
         ]);
     }
 
+
     // Test action to clear session
     // public function resetSessionAction(): void
     public function resetSessionAction(): ResponseInterface
@@ -585,6 +423,7 @@ class TestysController extends Controller
         // Redirect back to session test
         return $this->redirect(Url::CORE_TESTY_TESTSESSION->url());
     }
+
 
     // Test action for session
     public function testDatabaseAction(): ResponseInterface
@@ -668,6 +507,7 @@ class TestysController extends Controller
         ]);
     }
 
+
     /**
      * Show .....
      *
@@ -730,6 +570,7 @@ class TestysController extends Controller
             'linkDataButton' => $linkDataButton, // Pass the new data to the view
         ]);
     }
+
 
     public function paginationTestAction(ServerRequestInterface $request): ResponseInterface
     {
@@ -826,4 +667,4 @@ class TestysController extends Controller
         }
     }
 }
-## 764 804 403 372
+## 697 764 804 403 372

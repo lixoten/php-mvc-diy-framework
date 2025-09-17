@@ -38,6 +38,7 @@ howtodoc
 htdocs
 httponly
 humy
+imaskjs
 instantiator
 Instantiator
 intelephense

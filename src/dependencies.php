@@ -12,6 +12,7 @@ use App\Repository\RepositoryRegistry;
 use App\Repository\RepositoryRegistryInterface;
 use App\Repository\StoreRepositoryInterface;
 use App\Repository\UserRepositoryInterface;
+use App\Services\FeatureMetadataService;
 use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
@@ -30,6 +31,7 @@ use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\Validation\ValidatorRegistry;
 use Core\I18n\LabelProvider;
+use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\Middleware\RoutingMiddleware;
 use Core\RouterInterface;
@@ -1033,6 +1035,9 @@ return [
     'field.type.text' => function () {
         return new \Core\Form\Field\Type\TextType();
     },
+    'field.type.date' => function () {
+        return new \Core\Form\Field\Type\DateType();
+    },
     'field.type.email' => function () {
         return new \Core\Form\Field\Type\EmailType();
     },
@@ -1044,6 +1049,10 @@ return [
         return new \Core\Form\Field\Type\PasswordType();
     },
 
+    'field.type.hidden' => function () {
+        return new \Core\Form\Field\Type\HiddenType();
+    },
+
     'field.type.checkbox' => function () {
         return new \Core\Form\Field\Type\CheckboxType();
     },
@@ -1051,7 +1060,9 @@ return [
     // Field Type Registry
     \Core\Form\Field\Type\FieldTypeRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Field\Type\FieldTypeRegistry([
+            $c->get('field.type.hidden'),
             $c->get('field.type.text'),
+            $c->get('field.type.date'),
             $c->get('field.type.email'),
             $c->get('field.type.textarea'),
             $c->get('field.type.password'),
@@ -1067,6 +1078,9 @@ return [
     },
     'validator.email' => function () {
         return new \Core\Form\Validation\Rules\EmailValidator();
+    },
+    'validator.date' => function () {
+        return new \Core\Form\Validation\Rules\DateValidator();
     },
     'validator.length' => function () {
         return new \Core\Form\Validation\Rules\LengthValidator();
@@ -1104,6 +1118,7 @@ return [
         $registry = new \Core\Form\Validation\ValidatorRegistry([
             $c->get('validator.required'),
             $c->get('validator.email'),
+            $c->get('validator.date'),
             $c->get('validator.length'),
             $c->get('validator.regex'),
             $c->get('validator.unique_username'),
@@ -1423,7 +1438,24 @@ return [
 
 
 
+    // Autowiring with a Factory Override. a hybrid approach
     'App\Features\Testys\TestysController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // This factory creates the service just for this controller
+                $config = $c->get(ConfigInterface::class);
+                $metadataConfig = $config->get('view_options/testys_edit.metadata');
+
+                return new FeatureMetadataService(
+                    baseUrlEnum: $metadataConfig['base_url_enum'],
+                    editUrlEnum: $metadataConfig['edit_url_enum'],
+                    ownerForeignKey: $metadataConfig['owner_foreign_key'],
+                    redirectAfterSave: $metadataConfig['redirect_after_save'],
+                    redirectAfterAdd: $metadataConfig['redirect_after_add'],
+                );
+            })
+        ),
         // ->constructorParameter('route_params', \DI\get('route_params'))
         // ->constructorParameter('flash22', \DI\get('flash'))
         // ->constructorParameter('view', \DI\get('view'))

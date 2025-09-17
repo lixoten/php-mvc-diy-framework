@@ -112,6 +112,28 @@ echo "==================\n\n";
 
 // Execute command
 switch ($command) {
+    case 'migrate:one':
+        if (!$arg) {
+            echo "Usage: php bin/console.php migrate:one [MigrationClassName] [--force]\n";
+            break;
+        }
+
+        $migrationClass = $arg;
+        $force = in_array('--force', $argv, true);
+
+        try {
+            $executed = $runner->runSingleMigration($migrationClass, $force);
+
+            if ($executed) {
+                echo "Migration '{$migrationClass}' executed successfully.\n";
+            } else {
+                echo "Migration '{$migrationClass}' was not executed (already up to date or not found).\n";
+            }
+        } catch (\Throwable $e) {
+            echo "Error running migration '{$migrationClass}': " . $e->getMessage() . "\n";
+        }
+        break;
+
     case 'migrate':
         echo "Running migrations...\n";
 
@@ -223,7 +245,7 @@ switch ($command) {
 
 
 
-
+print_r(get_declared_classes());
 
 
         // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {

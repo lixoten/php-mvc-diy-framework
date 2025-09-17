@@ -17,7 +17,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         $this->connection = $connection;
     }
 
-    public function saveDraft(array $data): bool // js-feature
+    public function saveDraft(array $data): bool // js-feature // Deleteme
     {
         // Auto Save / Draft Feature - JS
         // Example: Save draft to the main testys table (update only draft fields)
@@ -61,6 +61,35 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         return $this->mapToEntity($testyData);
     }
 
+
+    /**
+     * Find a testy by ID, selecting only specified columns.
+     *
+     * @param int $testyId
+     * @param array<string> $fields
+     * @return array<string, mixed>|null
+     */
+    public function findByIdWithFields(int $testyId, array $fields): ?array
+    {
+        if (empty($fields)) {
+            // Default to all columns if none specified
+            $fields = ['*'];
+        }
+        $columns = implode(', ', $fields);
+
+        $sql = "SELECT $columns FROM testys WHERE testy_id = :testy_id";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':testy_id', $testyId, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($result === false) {
+            return null;
+        }
+
+        return $result;
+    }
 
     /**
      * Find testys by store ID
@@ -182,6 +211,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
                 title,
                 content,
                 favorite_word,
+                date_of_birth,
+                telephone,
                 created_at,
                 updated_at
             ) VALUES (
@@ -192,6 +223,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
                 :title,
                 :content,
                 :favorite_word,
+                :date_of_birth,
+                :telephone,
                 NOW(),
                 NOW()
             )";
@@ -205,6 +238,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         $stmt->bindValue(':title', $testy->getTitle());
         $stmt->bindValue(':content', $testy->getContent());
         $stmt->bindValue(':favorite_word', $testy->getFavoriteWord());
+        $stmt->bindValue(':date_of_birth', $testy->getDateOfBirth());
+        $stmt->bindValue(':telephone', $testy->getTelephone());
 
         $stmt->execute();
 
@@ -229,9 +264,11 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
                 slug = :slug,
                 title = :title,
                 content = :content,
-                favorite_word = :favorite_word,
-                updated_at = NOW()
-            WHERE testy_id = :testy_id";
+                favorite_word   = :favorite_word,
+                date_of_birth   = :date_of_birth,
+                telephone       = :telephone,
+                updated_at      = NOW()
+            WHERE testy_id      = :testy_id";
 
         $stmt = $this->connection->prepare($sql);
 
@@ -243,11 +280,46 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         $stmt->bindValue(':title', $testy->getTitle());
         $stmt->bindValue(':content', $testy->getContent());
         $stmt->bindValue(':favorite_word', $testy->getFavoriteWord());
+        $stmt->bindValue(':date_of_birth', $testy->getDateOfBirth());
+        $stmt->bindValue(':telephone', $testy->getTelephone());
 
         $stmt->execute();
 
         return $stmt->rowCount() > 0;
     }
+
+
+
+    /**
+     * Update only the specified fields for a Testy record.
+     *
+     * @param int $testyId
+     * @param array<string, mixed> $fieldsToUpdate
+     * @return bool
+     */
+    public function updateFields(int $testyId, array $fieldsToUpdate): bool
+    {
+        if (empty($fieldsToUpdate)) {
+            return false;
+        }
+
+        $setClauses = [];
+        $params = [':testy_id' => $testyId];
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClauses[] = "$field = :$field";
+            $params[":$field"] = $value;
+        }
+
+        $setClauses[] = "updated_at = NOW()";
+        $sql = "UPDATE testys SET " . implode(', ', $setClauses) . " WHERE testy_id = :testy_id";
+
+        $stmt = $this->connection->prepare($sql);
+
+        return $stmt->execute($params);
+    }
+
+
 
     /**
      * Delete a testy
@@ -341,6 +413,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         $testy->setTitle($testyData['title']);
         $testy->setContent($testyData['content']);
         $testy->setFavoriteWord($testyData['favorite_word']);
+        $testy->setDateOfBirth($testyData['date_of_birth']);
+        $testy->setTelephone($testyData['telephone']);
         $testy->setCreatedAt($testyData['created_at']);
         $testy->setUpdatedAt($testyData['updated_at']);
 
@@ -375,6 +449,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
             'title' => $testy->getTitle(),
             'content' => $testy->getContent(),
             'favorite_word' => $testy->getFavoriteWord(),
+            'date_of_birth' => $testy->getDateOfBirth(),
+            'telephone' => $testy->getTelephone(),
             'created_at' => $testy->getCreatedAt(),
             'updated_at' => $testy->getUpdatedAt(),
             'username' => $testy->getUsername(),

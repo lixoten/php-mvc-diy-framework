@@ -24,6 +24,9 @@ class CreateTestysTable extends Migration
             $table->text('content');
             $table->string('favorite_word', 20);
 
+            $table->date('date_of_birth')->nullable()->comment('Date of Birth');
+            $table->string('telephone', 30)->nullable()->comment('Telephone number');
+
             $table->timestamps();
 
             // Add indexes for frequent queries

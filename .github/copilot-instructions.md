@@ -6,7 +6,22 @@ applyTo: '**'
 
 This document serves as a guide for GitHub Copilot to ensure all code contributions align with the project's standards, conventions, and architecture.
 
+
+## Code Style and Best Practices
+
+
 ## Coding Style
+### General Principles and Formatting
+- Line Length: Adhere to a maximum line length of 120 characters. Break long lines for improved readability.
+- Indentation: Use a consistent indentation style of 4 spaces for PHP and 2 spaces for HTML and JavaScript.
+- Code Formatting: Keep tags, attributes, and content on logical lines.
+- Comments: Use clear, concise comments to explain complex sections or to add notes about specific functionality.
+
+### PHP Conventions
+- Type Hinting: For PHPDoc array type hints, prefer the use of generics to specify both key and value types for clarity and static analysis.
+    - Do not use Type[].
+    - Do use array<KeyType, ValueType>.
+- Exceptions: Always include a declare(strict_types=1); statement at the top of every PHP file. Use custom exceptions for specific application errors, like the ValidatorNotFoundException.
 
 * **Maximum Line Length:** All code lines must not exceed 120 characters.
 * Do not use single-line if statements. Always use block syntax:
@@ -25,7 +40,7 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 ## 1. General Principles and Language
 
 * **PHP Version:** All code must be compatible with **PHP 8.2** and above. Leverage new language features like Readonly Properties, Enums, and Intersection Types where appropriate.
-* **PSR Standards:** Strictly follow PSR-3 (Logger), PSR-4 (Autoloading), PSR-7 (HTTP), PSR-11 (DI), PSR-12 (Coding Style), PSR-15 (Middleware).
+* **PSR Standards:** Strictly follow PSR-3 (Logger), PSR-4 (Autoloading), PSR-7 (HTTP), PSR-11 (DI), PSR-12 (Coding Style), PSR-15 (Middleware). I also try to follow PSR-2
 * **SOLID Principles:** Maintain clean architecture with strong separation of concerns.
 
 ## Architecture Overview

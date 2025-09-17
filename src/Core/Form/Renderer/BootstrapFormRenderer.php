@@ -84,6 +84,13 @@ class BootstrapFormRenderer implements FormRendererInterface
         //$captchaFieldName = 'captcha';
         //$hasCaptcha = $form->hasField($captchaFieldName);
 
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'hidden') {
+                $output .= $this->renderField($field, $options);
+            }
+        }
+
+
         if ($layout_type === 'fieldsets' && !empty($layout)) {
             // Determine column class based on layout
             // $columns = $layout['columns'] ?? 1;
@@ -211,6 +218,9 @@ class BootstrapFormRenderer implements FormRendererInterface
      */
     public function renderField(FieldInterface $field, array $options = []): string
     {
+        static $autofocusSet = false;
+
+
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
@@ -244,6 +254,12 @@ class BootstrapFormRenderer implements FormRendererInterface
 
         // Get all attributes
         $attributes = $field->getAttributes();
+
+        // Autofocus logic: set autofocus on the first field with errors
+        if (!empty($field->getErrors()) && !$autofocusSet) {
+            $attributes['autofocus'] = true;
+            $autofocusSet = true;
+        }
 
         // Add default Bootstrap classes if not specified
         $class = 'form-control';
@@ -506,6 +522,21 @@ class BootstrapFormRenderer implements FormRendererInterface
                 $output .= $this->renderLiveErrorContainer($field); // js-feature
 
                 break;
+            case 'date':
+                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                $output .= '<input type="date" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                $output .= $this->renderLiveErrorContainer($field); // js-feature
+
+                //$output .= $this->renderCharCounter($field);        // js-feature
+                //$output .= $this->renderLiveErrorContainer($field); // js-feature
+
+                break;
+            case 'hidden':
+                $output .= '<input type="hidden" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                break;
 
             default:
                 $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
@@ -571,8 +602,9 @@ class BootstrapFormRenderer implements FormRendererInterface
         // Auto Save / Draft Feature - JS
         if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
             $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
+                // class="btn btn-secondary btn-sm">Discard Draft</button>';
             $output .= '<button type="button" id="discard-draft-btn" style="display:none;"
-                class="btn btn-secondary btn-sm">Discard Draft</button>';
+                class="btn btn-secondary btn-sm">Restore Data from server</button>';
             return $output;
         }
         return '';
@@ -658,7 +690,7 @@ class BootstrapFormRenderer implements FormRendererInterface
 
         // Add auto-save and localStorage flags from render_options
         //$renderOptions = $options['render_options'] ?? [];
-        if (!empty($options['auto_save'])) {
+        if (!empty($options['auto_save'])) { // jas-feature
             $attributes['data-auto-save'] = 'true';
         }
         if (!empty($options['use_local_storage'])) {

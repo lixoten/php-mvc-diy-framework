@@ -10,6 +10,14 @@ namespace Core\Repository;
  */
 interface BaseRepositoryInterface
 {
+    /**
+     * Update selected fields for an entity by its primary ID.
+     *
+     * @param int $id The entity ID.
+     * @param array<string, mixed> $fieldsToUpdate Associative array of fields to update.
+     * @return bool True on success, false on failure.
+     */
+    public function updateFields(int $id, array $fieldsToUpdate): bool;
 
     /**
      * Find an entity by its primary ID.

@@ -27,6 +27,39 @@ class Validator
         $this->registry = $registry;
     }
 
+
+    /**
+     * Validate arbitrary data against rules (decoupled from forms).
+     *
+     * @param array $data
+     * @param array $rules
+     * @return array<string, array<string>>
+     */
+    public function validateData(array $data, array $rules): array
+    {
+        $errors = [];
+
+        foreach ($rules as $field => $fieldRules) {
+            $value = $data[$field] ?? null;
+
+            foreach ($fieldRules as $ruleName => $options) {
+                if ($ruleName === 'required' && $options) {
+                    $error = $this->registry->validate($value, 'required');
+                    if ($error !== null) {
+                        $errors[$field][] = $error;
+                    }
+                } elseif ($this->registry->has($ruleName)) {
+                    $error = $this->registry->validate($value, $ruleName, (array)$options);
+                    if ($error !== null) {
+                        $errors[$field][] = $error;
+                    }
+                }
+            }
+        }
+
+        return $errors;
+    }
+
     /**
      * Validate a field
      *
@@ -63,6 +96,15 @@ class Validator
                 $errors[] = $error;
             }
         }
+
+        // Date validation
+        if ($field->getType() === 'date') {
+            $error = $this->registry->validate($value, 'date', array_merge($attributes, $context));
+            if ($error) {
+                $errors[] = $error;
+            }
+        }
+
 
         // Length validation
         $minlength = $attributes['minlength'] ?? null;

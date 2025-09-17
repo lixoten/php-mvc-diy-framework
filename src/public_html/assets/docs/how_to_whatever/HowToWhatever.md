@@ -25,6 +25,8 @@ HowToWhatever.md
   - [How-to-bring-in-favorites-json-to-new-project](#how-to-bring-in-favorites-json-to-new-project)
   - [vs code setup and tips.md](#vs-code-setup-and-tipsmd)
 - [Application Processes](#application-processes)
+  - [MVC Migrations - Complete Reference Guide](#mvc-migrations---complete-reference-guide)
+    - [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
 - [Apache Server](#apache-server)
 - [XAMPP - Recover](#xampp---recover)
 - [Run Composer](#run-composer)
@@ -156,7 +158,51 @@ Understanding Settings.json
 
 # Application Processes
 
-- ## [MVC Migrations - Complete Reference Guide](<MVC Migrations - Complete Reference Guide.md>)
+## [MVC Migrations - Complete Reference Guide](<MVC Migrations - Complete Reference Guide.md>)
+### Quick Steps to create a new field recreate ble with new data
+1. I modified `src\Database\Migrations\004_CreateTestysTable.php`
+  - In this case i added 2 new columns
+```php
+$table->date('date_of_birth')->nullable()->comment('Date of Birth');
+$table->string('telephone', 30)->nullable()->comment('Telephone number');
+```
+
+2. I modified `src\Database\Seeders\Test
+  - In this case for each record i added the 2 columns for, i created data
+  - If adding new make sure slug is unique
+```php
+'favorite_word' => 'Hello',
+'date_of_birth' => '1990-01-01',
+```
+3. I backed up my table....just incase
+- Run to populate data. this drops the table and recreates it
+  - `php bin/console.php migrate:one 'Database\Migrations\CreateTestysTable' --force`
+- Run to populate data in seeder.
+  - `php bin/console.php seed UsersSeeder`
+4. Entity - `src\App\Entities\Testy.php`
+5. Update REPOS `src\App\Repository\TestyRepository.php`
+  - create
+  - update
+  - mapToEntity
+  - toArray
+6. src\Config\view_options\testys_edit.php
+  - add field to `'form_fields' => [` to see it and test it
+7. src\Config\list_fields\testys_edit.php
+   - add the new field with all of it's attributes
+
+// todo fff
+Validation adding
+- src\Core\Form\Validation\Validator.php
+- new validator in rules folder - src\Core\Form\Validation\Rules
+  - Example DateValidator.php
+- new field type - src\Core\Form\Field\Type\DateType.php
+- in dependencies.php
+  - // Register the ValidatorRegistry
+  - // Static Single-Field Validators
+  - // Field Types
+
+
+
 
 # Apache Server
 

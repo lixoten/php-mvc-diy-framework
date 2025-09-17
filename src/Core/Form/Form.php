@@ -171,7 +171,7 @@ class Form implements FormInterface
                 // Validate the field using the Validator service
 
                 $rrr = $field->getAttribute('disabled'); // fixme
-                // Disabled and Readonly fields shoud be skipped during Validation
+                // Disabled and Readonly fields should be skipped during Validation
                 if ($field->getAttribute('disabled') || $field->getAttribute('readonly')) {
                 // if ($field['attributes']['readonly']) {
                     continue;
@@ -210,11 +210,11 @@ class Form implements FormInterface
     {
         $data = $this->getData();
         foreach ($this->fields as $name => $field) {
-            if ($field->getAttribute('disabled') || $field->getAttribute('readonly')) {
+            if ($field->getAttribute('type') === 'hidden' || $field->getAttribute('disabled') || $field->getAttribute('readonly')) {
                 unset($data[$name]);
             }
         }
-        return $data; 
+        return $data;
     }
 
 

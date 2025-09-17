@@ -524,12 +524,21 @@ class FrontController implements RequestHandlerInterface
         ]);
 
         // AJAX Save Feature - JS
-        $this->router->add('testys/ajax-save-draft', [ // js-feature
+        // $this->router->add('testys/ajax-save-draft', [ // js-feature
+        //     'namespace' => 'Testys',
+        //     'controller' => 'Testys',
+        //     'action' => 'ajaxSaveDraft',
+        //     'methods' => ['POST'],
+        // ]);
+
+        // ADD THIS NEW ROUTE FOR THE RESTFUL-STYLE UPDATE
+        $this->router->add('testys/edit/{id:\d+}/update', [
             'namespace' => 'Testys',
             'controller' => 'Testys',
-            'action' => 'ajaxSaveDraft',
-            'methods' => ['POST'],
+            'action' => 'update',
+            // 'methods' => ['POST'], // Use POST for compatibility
         ]);
+
 
         ## Edit page
 

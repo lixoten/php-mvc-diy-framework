@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Database\Migrations;
 
+echo "Including migration file: $migrationFile\n";
+
 use Core\Database\ConnectionInterface;
 use Psr\Log\LoggerInterface;
 
@@ -43,7 +45,7 @@ class MigrationRunner
         $this->repository->createRepository();
 
         // Now it's safe to get migrated files
-       
+
 
 
         $files = $this->getMigrationFiles();
@@ -193,6 +195,88 @@ class MigrationRunner
             $this->log("Migration failed: {$name} - {$e->getMessage()}", 'error');
             throw $e; // Re-throw so it's caught by the run() method
         }
+    }
+
+
+    /**
+     * Run a single migration by class name.
+     *
+     * @param string $migrationClass
+     * @param bool $force
+     * @return bool True if migration executed, false if not found or already executed
+     * @throws \Core\Exceptions\MigrationException
+     */
+   /**
+     * Run a single migration by class name.
+     *
+     * @param string $migrationClass
+     * @param bool $force
+     * @return bool True if migration executed, false if not found or already executed
+     * @throws \Exception
+     */
+    public function runSingleMigration(string $migrationClass, bool $force = false): bool
+    {
+        $migrationFile = $this->findMigrationFile($migrationClass);
+
+        if ($migrationFile === null) {
+            throw new \Exception("Migration class {$migrationClass} not found.");
+        }
+
+        require_once $migrationFile;
+
+        if (!class_exists($migrationClass)) {
+            throw new \Exception("Migration class {$migrationClass} not loaded.");
+        }
+
+        // Check if already migrated unless --force
+        if (!$force && $this->repository->getMigratedFiles() && in_array($migrationClass, $this->repository->getMigratedFiles(), true)) {
+            return false;
+        }
+
+        /** @var \Core\Database\Migrations\Migration $migration */
+        $migration = new $migrationClass($this->db);
+
+        if ($force) {
+            $migration->down();
+        }
+
+        $migration->up();
+
+        // Log migration with next batch number
+        $batch = $this->repository->getLastBatchNumber() + 1;
+        $this->repository->log($migrationClass, $batch);
+
+        $this->log("Single migration executed: {$migrationClass}");
+
+        return true;
+    }
+
+    /**
+     * Find the migration file for a given class name.
+     *
+     * @param string $migrationClass
+     * @return string|null
+     */
+    private function findMigrationFile(string $migrationClass): ?string
+    {
+        $files = glob($this->path . '/*.php');
+
+        foreach ($files as $file) {
+            $contents = file_get_contents($file);
+
+            // Look for "class ClassName"
+            // if (preg_match('/class\s+' . preg_quote($migrationClass, '/') . '\b/', $contents)) {
+                // return $file;
+            // }
+            $parts = explode('\\', $migrationClass);
+            $shortClass = end($parts);
+
+            if (preg_match('/class\s+' . preg_quote($shortClass, '/') . '\b/', $contents)) {
+                return $file;
+            }
+        }
+
+        return null;
     }
 
 

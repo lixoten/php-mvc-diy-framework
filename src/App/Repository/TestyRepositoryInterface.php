@@ -9,9 +9,28 @@ use App\Entities\Testy;
 interface TestyRepositoryInterface
 {
     /**
+     * Update selected fields for an entity by its primary ID.
+     *
+     * @param int $id The entity ID.
+     * @param array<string, mixed> $fieldsToUpdate Associative array of fields to update.
+     * @return bool True on success, false on failure.
+     */
+    public function updateFields(int $id, array $fieldsToUpdate): bool;
+
+    /**
      * Find a testy by ID
      */
     public function findById(int $testyId): ?Testy;
+
+    /**
+     * Find a testy by ID, selecting only specified columns.
+     *
+     * @param int $testyId
+     * @param array<string> $fields
+     * @return array<string, mixed>|null
+     */
+    public function findByIdWithFields(int $testyId, array $fields): ?array;
+
 
     /**
      * Find all testys

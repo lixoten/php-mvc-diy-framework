@@ -82,6 +82,24 @@ class Testy
     private string $favorite_word;
 
     #[Field(
+        type: 'date',
+        nullable: false,
+        label: 'Date of Birth',
+        name: 'date_of_birth',
+        enum: null
+    )]
+    private string $date_of_birth;
+
+    #[Field(
+        type: 'string',
+        nullable: false,
+        label: 'Telephone',
+        name: 'telephone',
+        enum: null
+    )]
+    private string $telephone;
+
+    #[Field(
         type: 'string',
         nullable: true,
         label: 'Created At',
@@ -191,14 +209,34 @@ class Testy
         $this->content = $content;
         return $this;
     }
+
     public function getFavoriteWord(): string
     {
         return $this->favorite_word;
     }
-
     public function setFavoriteWord(string $favorite_word): self
     {
         $this->favorite_word = $favorite_word;
+        return $this;
+    }
+
+    public function getDateOfBirth(): string
+    {
+        return $this->date_of_birth;
+    }
+    public function setDateOfBirth(string $date_of_birth): self
+    {
+        $this->date_of_birth = $date_of_birth;
+        return $this;
+    }
+
+    public function getTelephone(): string
+    {
+        return $this->telephone;
+    }
+    public function setTelephone(string $telephone): self
+    {
+        $this->telephone = $telephone;
         return $this;
     }
 

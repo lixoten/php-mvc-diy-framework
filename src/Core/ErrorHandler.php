@@ -22,6 +22,7 @@ use Core\Exceptions\QueryException;
 use Core\Exceptions\RecordNotFoundException;
 use Core\Exceptions\ServerErrorException;
 use Core\Exceptions\UnauthenticatedException;
+use Core\Exceptions\ValidatorNotFoundException;
 use Exception;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
@@ -107,6 +108,9 @@ class ErrorHandler
         } elseif ($e instanceof BadRequestException) {
             ## Notes-: 400 Bad Request: Client error, requires the client to fix their
             ## request (e.g., incorrect data, missing parameters).
+            $statusCode = 400;
+        } elseif ($e instanceof ValidatorNotFoundException) {
+            ## // TODO
             $statusCode = 400;
         } elseif ($e instanceof InvalidArgumentException) {
             ## InvalidArgumentException is not HTTP exception
@@ -255,6 +259,72 @@ class ErrorHandler
         $response->getBody()->write($content);
         return $response;
     }
+
+    ######/TODO  Furture to make Errorhandler AJAX-aware
+    ######/ ...existing code...
+    ######* @return ResponseInterface
+    ######*/
+    ######public function handleException(Throwable $e, ?ServerRequestInterface $request = null): ResponseInterface
+    ######
+    ######   // --- START: NEW LOGIC ---
+    ######
+    ######   // 1. Check if the request is an AJAX request by looking for the header our JavaScript sends.
+    ######   $isAjax = $request && $request->getHeaderLine('X-Requested-With') === 'XMLHttpRequest';
+    ######
+    ######   // --- END: NEW LOGIC ---
+    ######
+    ######
+    ######
+    ######   // ... all your existing code to determine status code and log the error ...
+    ######   // ... this part doesn't change at all ...
+    ######   $statusCode = 500; // Default
+    ######   // ...
+    ######   $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
+    ######
+    ######
+    ######   // --- START: NEW LOGIC ---
+    ######
+    ######   // 2. If it IS an AJAX request, build a JSON response and exit early.
+    ######   if ($isAjax) {
+    ######       // Determine the error message based on development mode.
+    ######       $errorMessage = $this->developmentMode ? $e->getMessage() : 'An error occurred.';
+    ######
+    ######       $payload = [
+    ######           'success' => false,
+    ######           'message' => $errorMessage,
+    ######       ];
+    ######
+    ######       // If we are in development, add extra debug info to the JSON payload.
+    ######       if ($this->developmentMode) {
+    ######           $payload['debug'] = [
+    ######               'exception' => get_class($e),
+    ######               'file' => $e->getFile(),
+    ######               'line' => $e->getLine(),
+    ######           ];
+    ######       }
+    ######
+    ######       // Use the existing HttpFactory to create a JSON response.
+    ######       // This is the same factory you use elsewhere.
+    ######       if ($this->httpFactory) {
+    ######           return $this->httpFactory->createJsonResponse($payload)->withStatus($statusCode);
+    ######       }
+    ######
+    ######       // Fallback if the factory isn't available (this is just for extreme cases).
+    ######       header('Content-Type: application/json');
+    ######       http_response_code($statusCode);
+    ######       echo json_encode($payload);
+    ######       exit;
+    ######   }
+    ######
+    ######   // --- END: NEW LOGIC ---
+    ######
+    ######
+    ######   // 3. If it's NOT an AJAX request, the code continues exactly as it did before,
+    ######   //    generating an HTML page. No changes are needed here.
+    ######   if (!$this->httpFactory) {
+    ######       // Create a basic response (without PSR-7)
+    ######   // ...existing code...
+
 
 
     private function getExtraMessage(Exception $e): string

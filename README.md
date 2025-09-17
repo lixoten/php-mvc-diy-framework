@@ -19,6 +19,19 @@ Triggers validation after restoring draft values.
 
 A lightweight, feature-based PHP MVC framework focused on clean architecture and SOLID principles.
 
+
+We create a new AbstractCrudController for the framework that serves as a base controller that centralizes and standardizes common CRUD (Create, Read, Update, Delete) operations for your application's entities. The main reason was a way of reducing boilerplate code.
+
+
+## Progressive Enhancements
+- Progressive enhancement:
+  - Added JS features for character counters,
+  - live validation,
+  - input masking (imaskjs),
+  - auto-save with localStorage,
+  - and AJAX form save with inline error handling.
+  - All features are config-driven and gracefully degrade for JS-less users.
+
 ## Features
 
 - Feature-based directory structure

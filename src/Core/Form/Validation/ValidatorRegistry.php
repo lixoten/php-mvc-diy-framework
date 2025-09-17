@@ -12,7 +12,7 @@ use App\Helpers\DebugRt as Debug;
 class ValidatorRegistry
 {
     /**
-     * @var ValidatorInterface[]
+     * @var array<string, ValidatorInterface>
      */
     private array $validators = [];
 
@@ -42,18 +42,17 @@ class ValidatorRegistry
     }
 
     /**
-     * Get a validator by name
+     * Get a validator by name.
      *
      * @param string $name
      * @return ValidatorInterface
-     * @throws \InvalidArgumentException If validator not found
+     * @throws \Core\Exceptions\ValidatorNotFoundException If validator not found
      */
     public function get(string $name): ValidatorInterface
     {
         if (!isset($this->validators[$name])) {
-            throw new \InvalidArgumentException("Validator '$name' not found...");
+            throw new \Core\Exceptions\ValidatorNotFoundException("Validator '{$name}' not found.");
         }
-
         return $this->validators[$name];
     }
 
@@ -72,19 +71,32 @@ class ValidatorRegistry
      * Validate a value using a specific validator
      *
      * @param mixed $value Value to validate
-     * @param string $validator Validator name
+     * @param string $name Validator name
      * @param array $options Validation options
      * @return string|null Error message if validation fails, null if valid
      */
-    public function validate($value, string $validator, array $options = []): ?string
+    public function validate($value, string $name, array $options = []): ?string
     {
+        if (!$this->has($name)) {
+            throw new \Core\Exceptions\ValidatorNotFoundException("Validator '{$name}' not found.");
+        }
         // Merge the full options array with the specific validator options
         $validatorOptions = array_merge(
             $options,
-            $options['validators'][$validator] ?? []
+            $options['validators'][$name] ?? []
         );
 
-
-        return $this->get($validator)->validate($value, $validatorOptions);
+        return $this->get($name)->validate($value, $validatorOptions);
     }
+    // public function validate($value, string $validator, array $options = []): ?string
+    // {
+    //     // Merge the full options array with the specific validator options
+    //     $validatorOptions = array_merge(
+    //         $options,
+    //         $options['validators'][$validator] ?? []
+    //     );
+
+
+    //     return $this->get($validator)->validate($value, $validatorOptions);
+    // }
 }
