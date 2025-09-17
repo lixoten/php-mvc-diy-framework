@@ -1,126 +1,109 @@
-# MVC LIXO Framework – JavaScript Integration Summary
+----------------------
+ ----------------------
+ ----------------------
+ ----------------------
+ ----------------------
 
-## 1. File Structure
 
-- **Main JS File:**
-  `src/public_html/assets/js/form-feature.js`
-  This file is the entry point for all form-related JavaScript enhancements.
-
----
-
-## 2. Features Implemented
-
-### A. Character Counter
-
-- **Purpose:**
-  Displays a live character count for `inputs` and `textareas`, helping users stay within min/max limits.
-- **How it works:**
-  - Fields with the `data-char-counter` attribute are targeted.
-  - The counter is updated on every input event.
-  - Counter color and tooltip change based on validity (red for invalid, green for valid).
-- **Setup:**
-  - Renderer outputs `<small id="field-counter" data-char-counter="field-counter">` next to each field.
-  - JS reads `minlength` and `maxlength` attributes for validation.
+ Absolutely! Here’s how you can continue to progressively enhance your form-feature.js for the MVC LIXO framework, following your conventions and keeping the code modular and maintainable.
 
 ---
 
-### B. Live Validation Feedback
+## Progressive Enhancement Ideas
 
-- **Purpose:**
-  Provides instant feedback for validation errors (required, min/max length, etc.) as the user types.
-- **How it works:**
-  - Fields with `data-live-validation="true"` are targeted.
-  - JS checks field validity using HTML5 APIs (`checkValidity()`, `validationMessage`) on input and blur events.
-  - Validation errors are displayed in a `<div class="live-error ...">` container below each field.
-  - Invalid fields get the Bootstrap `is-invalid` class for styling.
-- **Setup:**
-  - Renderer outputs `<div class="live-error text-danger mt-1" id="field-error"></div>` for each field with live validation enabled.
-  - JS finds the error container by class or ID and updates its content.
+Below are **scaffolded features** you can add, each wrapped in its own `DOMContentLoaded` block for clarity and separation of concerns.
 
 ---
 
-## 3. Config-Driven Integration
+### 1. **Input Masking (e.g., for phone, date, etc.)**
 
-- **Config Options:**
-  - Features are enabled per field via config (e.g., `'live_validation' => true`, `'show_char_counter' => true`).
-  - Renderer outputs corresponding `data-*` attributes based on config.
-- **Extensibility:**
-  - New features can be added by extending config and updating the JS scaffold.
-
----
-
-## 4. Setup & Usage
-
-- **Renderer:**
-  Outputs necessary HTML attributes and containers for JS features.
-- **JS:**
-  Modular, uses event listeners and DOM queries to enhance fields.
-- **No global pollution:**
-  JS is wrapped in an IIFE for safety.
-
----
-
-## 5. Next Steps
-
-- **Planned Features:**
-  - Auto-save/draft support
-  - Bootstrap tooltips for help text
-  - Generalized JS features via config
-  - Modular JS organization for extensibility
+```javascript
+// Input Masking Feature - JS
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[data-mask]').forEach(function(input) {
+        var mask = input.getAttribute('data-mask');
+        input.addEventListener('input', function(e) {
+            // Simple example: phone mask (999-999-9999)
+            if (mask === 'phone') {
+                let value = input.value.replace(/\D/g, '').slice(0, 10);
+                let formatted = value.replace(/(\d{3})(\d{3})(\d{0,4})/, function(_, a, b, c) {
+                    return a + (b ? '-' + b : '') + (c ? '-' + c : '');
+                });
+                input.value = formatted;
+            }
+            // Add more masks as needed
+        });
+    });
+});
+```
 
 ---
 
-## 6. Best Practices Followed
+### 2. **Password Strength Meter**
 
-- **Config-driven:**
-  All JS features are opt-in via config.
-- **Layered architecture:**
-  JS enhancements work seamlessly with PHP renderer and config system.
-- **HTML5 validation APIs:**
-  Native browser validation is leveraged for reliability and accessibility.
+```javascript
+// Password Strength Meter Feature - JS
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="password"][data-strength-meter]').forEach(function(input) {
+        var meter = document.createElement('div');
+        meter.className = 'password-strength-meter mt-1';
+        input.parentNode.appendChild(meter);
+
+        input.addEventListener('input', function() {
+            var val = input.value;
+            var score = 0;
+            if (val.length >= 8) score++;
+            if (/[A-Z]/.test(val)) score++;
+            if (/[a-z]/.test(val)) score++;
+            if (/\d/.test(val)) score++;
+            if (/[^A-Za-z0-9]/.test(val)) score++;
+            meter.textContent = ['Weak', 'Fair', 'Good', 'Strong', 'Very Strong'][score - 1] || '';
+            meter.className = 'password-strength-meter mt-1 strength-' + score;
+        });
+    });
+});
+```
 
 ---
 
-**This setup ensures your forms are interactive, user-friendly, and maintainable, with all enhancements controlled via your existing config system.**
+### 3. **Show/Hide Password Toggle**
 
+```javascript
+// Show/Hide Password Feature - JS
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="password"][data-toggle-visibility]').forEach(function(input) {
+        var toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.textContent = 'Show';
+        toggle.className = 'btn btn-sm btn-outline-secondary ms-2';
+        input.parentNode.appendChild(toggle);
 
+        toggle.addEventListener('click', function() {
+            if (input.type === 'password') {
+                input.type = 'text';
+                toggle.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                toggle.textContent = 'Show';
+            }
+        });
+    });
+});
+```
 
-...................................
-...
+---
 
+### 4. **Date Picker Enhancement** // TODO just for the hell of it
 
+If you want to enhance date fields with a native or custom date picker:
 
-
-...................................................................
-...................................................................
-...................................................................
-...................................................................
-...................................................................
-<?php
-// ...existing code...
-private function renderCharCounter(FieldInterface $field): string
-{
-    $fieldOptions = $field->getOptions();
-    if (!empty($fieldOptions['show_char_counter'])) {
-        $id = $field->getAttribute('id') ?? $field->getName();
-        $maxlength = $field->getAttribute('maxlength') ?? 30;
-        return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
-            (int)$maxlength . '</small>';
-    }
-    return '';
-}
-// ...existing code...
-ddddddddddddddddd
-<?php
-// ...existing code...
-        return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
-            (int)$maxlength . '</small>';
-// ...existing code...
-
-<?php
-/**
- * Render a character counter for a field if enabled in config.
- *
- * @param FieldInterface $field
- * @return string
- */
+```javascript
+// Date Picker Enhancement - JS
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input[type="date"][data-enhanced]').forEach(function(input) {
+        // If you want to use a custom date picker, initialize it here.
+        // For now, just ensure the browser's native picker is enabled.
+        input.setAttribute('autocomplete', 'off');
+    });
+});
+```
