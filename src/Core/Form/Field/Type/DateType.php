@@ -26,18 +26,4 @@ class DateType extends AbstractFieldType
             // Add any date-specific default options here if needed
         ]);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'      => 'date',
-            'min'       => null,
-            'max'       => null,
-            'required'  => false,
-            'class'     => 'form-control',
-        ]);
-    }
 }

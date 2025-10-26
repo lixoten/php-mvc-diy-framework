@@ -20,12 +20,83 @@ interface BaseRepositoryInterface
     public function updateFields(int $id, array $fieldsToUpdate): bool;
 
     /**
+     * Insert a new record into the database.
+     *
+     * @param array<string, mixed> $data The data to insert.
+     * @return int The ID of the newly inserted record.
+     */
+    public function insertFields(array $data): int;
+
+
+
+    /**
      * Find an entity by its primary ID.
      *
      * @param int $id The entity ID.
      * @return object|null The entity object or null if not found.
      */
     public function findById(int $id): ?object;
+
+
+    public function findByStoreId(
+        int $storeId,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array;
+
+    /**
+     * Find testy by user ID
+     */
+    public function findByUserId(
+        int $userId,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array;
+
+    public function countByStoreId(int $storeId): int;
+
+    public function countByUserId(int $userId): int;
+
+
+
+    /**
+     * Find testy by store ID, selecting only specified columns.
+     *
+     * @param int $storeId
+     * @param array<int, string> $fields
+     * @param array<string, string> $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return array<array<string, mixed>>
+     */
+    public function findByStoreIdWithFields(
+        int $storeId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array;
+
+    /**
+     * Find testy by user ID, selecting only specified columns.
+     *
+     * @param int $userId
+     * @param array<int, string> $fields
+     * @param array<string, string> $orderBy
+     * @param int|null $limit
+     * @param int|null $offset
+     * @return array<array<string, mixed>>
+     */
+    public function findByUserIdWithFields(
+        int $userId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array;
+
 
     /**
      * Find all entities matching criteria.
@@ -81,4 +152,14 @@ interface BaseRepositoryInterface
      * @return array
      */
     // public function toArray(object $entity, array $fields = []): array;
+
+    /**
+     * Fetches a record by ID, returning only the specified fields.
+     *
+     * @param int $id
+     * @param array<string> $fields
+     * @return array<string, mixed>|null
+     */
+    public function findByIdWithFields(int $id, array $fields): ?array;
+
 }

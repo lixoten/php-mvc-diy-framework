@@ -131,7 +131,7 @@ use App\Helpers\DebugRt;
         <!--<h1>Responsive (CSS Grid Demo)</h1>-->
         <!--<p>By foo</p>-->
         <?php
-            require('../App/Views/menu.php');
+            require('../App/Views/menu2.php');
         ?>
     </header>
     <main class="main-content">

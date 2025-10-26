@@ -19,7 +19,7 @@ interface ValidatorInterface
     public function validate($value, array $options = []): ?string;
 
     /**
-     * Get validator name
+     * Get validator name.
      *
      * @return string
      */

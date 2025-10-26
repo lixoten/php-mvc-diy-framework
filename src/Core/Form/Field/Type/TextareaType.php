@@ -29,21 +29,48 @@ class TextareaType extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'          => 'textarea',
-            'rows'          => 5,
-            'maxlength '    => null,
-            'minlength'     => null,
-            'placeholder'   => null,
-            'wrap'          => null,
-            'spellcheck'    => false,
-        ]);
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getDefaultAttributes(): array
+    // {
+    //     return array_merge(parent::getDefaultAttributes(), [
+    //         // 'type'          => 'textarea',
+    //         'rows'          => 5,
+    //         'maxlength '    => null,
+    //         'minlength'     => null,
+    //         'placeholder'   => null,
+    //         'wrap'          => null,
+    //         'spellcheck'    => false,
+
+
+    //         // // -- Attributes
+    //         // 'name'          => null,
+    //         // 'disabled'      => null,
+    //         // 'form'          => null, // Associates input with a specific form, allowing it to be outside the <form> tags
+    //         // 'autocomplete'  => null,
+    //         // 'autocapitalize'  => null, // "off", "on", "<token-list>"
+    //         // 'autocorrect'       => null, // "off", "on",
+    //         // 'autofocus'     => null,
+
+    //         // 'rows'          => null,
+    //         // 'cols'          => null,
+    //         // 'wrap'          => null, // "hard", "soft", "off". soft is default
+    //         // 'required'      => null,
+    //         // 'maxlength'     => null,
+    //         // 'minlength'     => null,
+    //         // 'placeholder'   => null,
+    //         // 'readonly'      => null,
+    //         // 'spellcheck'    => null,
+    //         // 'dirname'       => null,
+    //         // 'inputmode'     => null, // depends on context, "numeric" for zipcode or "decimal" for price
+
+
+
+
+
+    //     ]);
+    // }
 
 
     /**

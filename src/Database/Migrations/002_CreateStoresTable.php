@@ -13,6 +13,11 @@ class CreateStoresTable extends Migration
      */
     public function up(): void
     {
+        // Idempotent guard: skip if table already exists
+        if ($this->schema->hasTable('stores')) {
+            return;
+        }
+
         $this->create('stores', function ($table) {
             $table->bigIncrements('store_id');
             $table->bigInteger('store_user_id')->unsigned();              // Store owner

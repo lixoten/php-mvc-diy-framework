@@ -18,7 +18,7 @@ class Post
         nullable: true,
         label: 'Post ID',
         primary: true,
-        name: 'post_id',
+        name: 'id',
         autoIncrement: true,
         unsigned: true
     )]
@@ -28,7 +28,7 @@ class Post
         type: 'int',
         nullable: true,
         label: 'Store ID',
-        name: 'post_store_id',
+        name: 'store_id',
         index: true,
         unsigned: true,
         foreign: ['table' => 'stores', 'column' => 'store_id', 'onDelete' => 'CASCADE']
@@ -39,7 +39,7 @@ class Post
         type: 'int',
         nullable: false,
         label: 'User ID',
-        name: 'post_user_id',
+        name: 'user_id',
         index: true,
         unsigned: true,
         foreign: ['table' => 'users', 'column' => 'user_id', 'onDelete' => 'CASCADE']
@@ -50,7 +50,7 @@ class Post
         type: 'string',
         nullable: false,
         label: 'Status',
-        name: 'post_status',
+        name: 'status',
         length: 1,
         enum: ['P', 'D', 'A'],
         index: true,

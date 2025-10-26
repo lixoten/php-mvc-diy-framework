@@ -26,13 +26,13 @@ class HiddenType extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'      => 'hidden',
-        ]);
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getDefaultAttributes(): array
+    // {
+    //     return array_merge(parent::getDefaultAttributes(), [
+    //         'type'      => 'hidden',
+    //     ]);
+    // }
 }

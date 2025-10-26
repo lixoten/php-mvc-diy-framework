@@ -13,7 +13,7 @@ class Post
         nullable: true,
         label: 'Post ID',
         primary: true,
-        name: 'post_id',
+        name: 'id',
         enum: null,
     )]
     private ?int $postId = null;
@@ -22,7 +22,7 @@ class Post
         type: 'int',
         nullable: true,
         label: 'Store ID',
-        name: 'post_store_id',
+        name: 'store_id',
         enum: null
     )]
     private ?int $postStoreId = null;
@@ -31,7 +31,7 @@ class Post
         type: 'int',
         nullable: false,
         label: 'User ID',
-        name: 'post_user_id',
+        name: 'user_id',
         enum: null
     )]
     private int $postUserId;
@@ -40,7 +40,7 @@ class Post
         type: 'string',
         nullable: false,
         label: 'Status',
-        name: 'post_status',
+        name: 'status',
         enum: ['P', 'D', 'A']
     )]
     private string $postStatus;

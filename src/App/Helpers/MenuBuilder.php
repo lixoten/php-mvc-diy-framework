@@ -37,10 +37,10 @@ class MenuBuilder
         foreach ($menuItems as $item) {
             // Dropdown support
             if (isset($item['items']) && is_array($item['items'])) {
-                $html .= '<li class="dropdown">';
+                $html .= '<li class="lx-dropdown">';
                 $html .= '<a href="#" class="dropdown-toggle" data-toggle="dropdown">'
                     . htmlspecialchars($item['label']) . ' <span class="caret"></span></a>';
-                $html .= '<ul class="dropdown-menu">';
+                $html .= '<ul class="lx-dropdown-menu">';
                 $html .= self::renderItems($item['items'], $currentPath, $options);
                 $html .= '</ul></li>';
                 continue;
@@ -79,6 +79,6 @@ class MenuBuilder
      */
     public static function renderCategory(string $title): string
     {
-        return '<li class="menu-category">' . htmlspecialchars($title) . '</li>';
+        return '<li class="lx-menu-category">' . htmlspecialchars($title) . '</li>';
     }
 }

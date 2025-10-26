@@ -1,0 +1,202 @@
+/*
+ * Full Custom Christmas Theme for Bootstrap
+ * Place this file AFTER the default Bootstrap CSS link.
+ */
+
+/* 1. Global Variables: Colors and Roundness */
+:root {
+    /* Define the new primary colors for a Christmas look */
+    --bs-primary: #a00000;    /* Deep Christmas Red */
+    --bs-success: #006400;    /* Dark Christmas Green */
+    --bs-info: #ffd700;       /* Gold/Yellow for accents */
+    --bs-light: #f0f8ff;      /* Light Blue/Snow White for highlights */
+    --bs-dark: #333333;       /* Dark base for text */
+    --bs-secondary: #808080;  /* Gray for secondary items */
+
+    /* Custom variables for the roundness you requested! */
+    --bs-border-radius: 0.75rem;     /* Standard roundness */
+    --bs-border-radius-sm: 0.5rem;
+    --bs-border-radius-lg: 1rem;     /* Large roundness for buttons/alerts */
+    --bs-border-radius-xl: 1.5rem;   /* Extra large roundness for cards/structural elements */
+}
+
+/* 2. Full Page and Structural Element Styling (Body, Main, Footer, Aside, Section) */
+
+body {
+    /* Set a snowy/icy background for the entire page */
+    background: linear-gradient(to bottom, #e6f7ff 0%, #ffffff 100%);
+    background-color: none;
+    min-height: 100vh;
+    color: var(--bs-dark);
+}
+
+main {
+    padding-top: 2rem; /* Give some space below the navbar */
+    padding-bottom: 2rem;
+}
+
+section {
+    padding: 1.5rem 0; /* Standard padding for content sections */
+}
+
+/* Structural elements with a background color will get rounded corners */
+section[class*="bg-"] {
+    border-radius: var(--bs-border-radius-lg);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+aside {
+    /* Give the sidebar a light, 'snowy' background */
+    background-color: var(--bs-light);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    /* Full roundness for a clean, contained block */
+    border-radius: var(--bs-border-radius-xl);
+    border: 1px solid rgba(0, 100, 0, 0.2); /* Subtle green border */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    /* A prominent green base for the bottom of the page */
+    background-color: var(--bs-success);
+    color: var(--bs-light); /* Light text for contrast */
+    padding: 2.5rem 1.5rem;
+    margin-top: 3rem;
+    /* Apply round corners to the top of the footer */
+    border-top-left-radius: var(--bs-border-radius-xl);
+    border-top-right-radius: var(--bs-border-radius-xl);
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3); /* Shadow facing upwards */
+}
+
+
+/* 4. Table Styling */
+
+.table {
+    /* Set a unified background color for tables */
+    --bs-table-bg: var(--bs-light);
+    --bs-table-hover-bg: #ffe6e6; /* Light pink/red tint on hover */
+    --bs-table-striped-bg: #ccffcc; /* Light green for striped rows */
+    --bs-table-border-color: rgba(0, 100, 0, 0.4); /* Subtle Christmas Green borders */
+
+    border-collapse: separate; /* Required for border-radius to show up well */
+    border-spacing: 0;
+    border-radius: var(--bs-border-radius-lg); /* Apply roundness to the whole table */
+    overflow: hidden; /* Crucial: Hides sharp inner corners */
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Optional: Make the table headers stand out (Red) */
+.table > :not(caption) > :not(:last-child) > .table-active,
+.table > :not(caption) > :last-child > .table-active,
+.table-primary,
+.table-head {
+    --bs-table-accent-bg: var(--bs-primary) !important;
+    color: var(--bs-light) !important;
+    border-color: var(--bs-primary) !important;
+}
+
+.scrap-container .table td {
+    border-left: var(--bs-border-width) solid var(--bs-border-color);
+}
+
+.debugbar {
+    background-color: var(--bs-light); /* Snowy white background */
+    padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x); /* Standard card padding */
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius-xl); /* Your preferred roundness */
+    box-shadow: var(--bs-box-shadow-sm); /* Subtle shadow */
+}
+
+
+/* 3. Bootstrap Component Overrides (Including Navbar) */
+
+/* Navigation Bar */
+.navbar-light {
+    background-color: #006400 !important; /* Christmas Green Navbar */
+    border-bottom-left-radius: var(--bs-border-radius);
+    border-bottom-right-radius: var(--bs-border-radius);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.navbar-light .navbar-brand,
+.navbar-light .nav-link {
+    color: var(--bs-info); /* Gold text */
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+.navbar-light .nav-link:hover {
+    color: #ffffff; /* White/Snow hover effect */
+}
+
+/* Buttons (All variants) */
+.btn {
+    border-radius: var(--bs-border-radius-lg);
+}
+
+/* Primary Button Styling (Christmas Red) */
+.btn-primary {
+    background-color: var(--bs-primary);
+    border-color: var(--bs-primary);
+    transition: all 0.2s ease-in-out;
+}
+.btn-primary:hover {
+    background-color: #c00000;
+    border-color: #c00000;
+    transform: scale(1.02);
+}
+
+/* Cards */
+.card {
+    border-radius: var(--bs-border-radius-xl);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* Alerts */
+.alert {
+    border-radius: var(--bs-border-radius-lg);
+    border-left: 5px solid;
+}
+.alert-primary {
+    color: #490000;
+    background-color: #ffcccc;
+    border-left-color: #a00000;
+}
+.alert-success {
+    color: #003300;
+    background-color: #ccffcc;
+    border-left-color: #006400;
+}
+
+/* Forms and Inputs */
+.form-control,
+.form-select,
+.input-group-text {
+    border-radius: var(--bs-border-radius);
+}
+
+/* Badges */
+.badge {
+    border-radius: var(--bs-border-radius-xl);
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+    border-radius: var(--bs-border-radius);
+    border: 2px solid var(--bs-primary);
+}
+
+/* List Groups */
+.list-group-item {
+    border-radius: var(--bs-border-radius) !important;
+    margin-bottom: 5px;
+}
+
+/* Utility Class Enhancements */
+.text-info {
+    color: var(--bs-info) !important;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); /* Gold Shimmer */
+}
+.bg-light {
+    background-color: var(--bs-light) !important;
+}

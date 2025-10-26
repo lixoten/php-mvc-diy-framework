@@ -64,8 +64,8 @@ trait EntityNotFoundTrait
         // Add entity-specific links
         switch (strtolower($entityType)) {
             case 'post':
-                $links['Return to Posts List'] = Urls::STORE_POSTS;
-                $links['Create a New Post'] = Urls::STORE_POSTS_CREATE;
+                $links['Return to Posts List'] = Urls::STORE_POST;
+                $links['Create a New Post'] = Urls::STORE_POST_CREATE;
                 break;
 
             case 'product':

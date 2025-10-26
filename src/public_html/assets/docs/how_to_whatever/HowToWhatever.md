@@ -6,46 +6,46 @@ HowToWhatever.md
 
  whatthefook
 
-- [What are we currently doing.](#what-are-we-currently-doing)
-- [Lets get started](#lets-get-started)
-  - [Start XAMPP with Admin Privileges](#start-xampp-with-admin-privileges)
-  - [Try Running the app](#try-running-the-app)
-  - [Login](#login)
-- [Quick Troubleshooting](#quick-troubleshooting)
-  - [Clear DNS Cache](#clear-dns-cache)
-  - [Steps to Restore MySQL from a Copied MySQL Folder](#steps-to-restore-mysql-from-a-copied-mysql-folder)
-  - [Clear VS-Code Cache](#clear-vs-code-cache)
-- [VS-CODE](#vs-code)
-  - [Excluse Files](#excluse-files)
-  - [Understanding how files are matched:](#understanding-how-files-are-matched)
-- [Troubleshooting Doc](#troubleshooting-doc)
-  - [How to recover from XAMPP database corruption](#how-to-recover-from-xampp-database-corruption)
-- [How to Shit](#how-to-shit)
-  - [How-to-use-vscode-snippets](#how-to-use-vscode-snippets)
-  - [How-to-bring-in-favorites-json-to-new-project](#how-to-bring-in-favorites-json-to-new-project)
-  - [vs code setup and tips.md](#vs-code-setup-and-tipsmd)
-- [Application Processes](#application-processes)
-  - [MVC Migrations - Complete Reference Guide](#mvc-migrations---complete-reference-guide)
-    - [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
-- [Apache Server](#apache-server)
-- [XAMPP - Recover](#xampp---recover)
-- [Run Composer](#run-composer)
-- [File-Program Locations](#file-program-locations)
-  - [hosts](#hosts)
-  - [Terminal History](#terminal-history)
-- [Terminal History](#terminal-history-1)
-- [Abbreviations](#abbreviations)
-- [Ideas](#ideas)
-- [Redirect URLS](#redirect-urls)
-- [Start here](#start-here)
-  - [External Doc 'whatever\_notes'](#external-doc-whatever_notes)
-  - [**Current Status:**](#current-status)
-  - [**Missing View Helpers:**](#missing-view-helpers)
-    - [**1. BreadcrumbHelper**](#1-breadcrumbhelper)
-    - [**2. PaginationHelper**](#2-paginationhelper)
-    - [**3. ActionButtonHelper**](#3-actionbuttonhelper)
-    - [**4. AlertHelper**](#4-alerthelper)
-  - [**Should We Create These View Helpers Now?**](#should-we-create-these-view-helpers-now)
+1. [What are we currently doing.](#what-are-we-currently-doing)
+2. [Lets get started](#lets-get-started)
+    1. [Start XAMPP with Admin Privileges](#start-xampp-with-admin-privileges)
+    2. [Try Running the app](#try-running-the-app)
+    3. [Login](#login)
+3. [Quick Troubleshooting](#quick-troubleshooting)
+    1. [Clear DNS Cache](#clear-dns-cache)
+    2. [Steps to Restore MySQL from a Copied MySQL Folder](#steps-to-restore-mysql-from-a-copied-mysql-folder)
+    3. [Clear VS-Code Cache](#clear-vs-code-cache)
+4. [VS-CODE](#vs-code)
+    1. [Excluse Files](#excluse-files)
+    2. [Understanding how files are matched:](#understanding-how-files-are-matched)
+5. [Troubleshooting Doc](#troubleshooting-doc)
+    1. [How to recover from XAMPP database corruption](#how-to-recover-from-xampp-database-corruption)
+6. [How to Shit](#how-to-shit)
+    1. [How-to-use-vscode-snippets](#how-to-use-vscode-snippets)
+    2. [How-to-bring-in-favorites-json-to-new-project](#how-to-bring-in-favorites-json-to-new-project)
+    3. [vs code setup and tips.md](#vs-code-setup-and-tipsmd)
+7. [Application Processes](#application-processes)
+    1. [MVC Migrations - Complete Reference Guide](#mvc-migrations---complete-reference-guide)
+        1. [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
+8. [Apache Server](#apache-server)
+9. [XAMPP - Recover](#xampp---recover)
+10. [Run Composer](#run-composer)
+11. [File-Program Locations](#file-program-locations)
+     1. [hosts](#hosts)
+     2. [Terminal History](#terminal-history)
+12. [Terminal History](#terminal-history-1)
+13. [Abbreviations](#abbreviations)
+14. [Ideas](#ideas)
+15. [Redirect URLS](#redirect-urls)
+16. [Start here](#start-here)
+     1. [External Doc 'whatever\_notes'](#external-doc-whatever_notes)
+     2. [**Current Status:**](#current-status)
+     3. [**Missing View Helpers:**](#missing-view-helpers)
+         1. [**1. BreadcrumbHelper**](#1-breadcrumbhelper)
+         2. [**2. PaginationHelper**](#2-paginationhelper)
+         3. [**3. ActionButtonHelper**](#3-actionbuttonhelper)
+         4. [**4. AlertHelper**](#4-alerthelper)
+     4. [**Should We Create These View Helpers Now?**](#should-we-create-these-view-helpers-now)
 
 
 # What are we currently doing.
@@ -160,47 +160,59 @@ Understanding Settings.json
 
 ## [MVC Migrations - Complete Reference Guide](<MVC Migrations - Complete Reference Guide.md>)
 ### Quick Steps to create a new field recreate ble with new data
-1. I modified `src\Database\Migrations\004_CreateTestysTable.php`
-  - In this case i added 2 new columns
+1. Make sure database is exists.  `mvclixo`
+1. Update Create Table
+    - I modified `src\Database\Migrations\004_CreateTestysTable.php`
+        - In this case i added 2 new columns
 ```php
 $table->date('date_of_birth')->nullable()->comment('Date of Birth');
 $table->string('telephone', 30)->nullable()->comment('Telephone number');
 ```
-
-2. I modified `src\Database\Seeders\Test
-  - In this case for each record i added the 2 columns for, i created data
-  - If adding new make sure slug is unique
+2. Update Seeder
+    - I modified `src\Database\Seeders\Test
+        - In this case for each record i added the 2 columns for, i created data
+        - If adding new make sure slug is unique
 ```php
-'favorite_word' => 'Hello',
+'generic_text' => 'Hello',
 'date_of_birth' => '1990-01-01',
 ```
+
 3. I backed up my table....just incase
-- Run to populate data. this drops the table and recreates it
-  - `php bin/console.php migrate:one 'Database\Migrations\CreateTestysTable' --force`
-- Run to populate data in seeder.
-  - `php bin/console.php seed UsersSeeder`
-4. Entity - `src\App\Entities\Testy.php`
-5. Update REPOS `src\App\Repository\TestyRepository.php`
-  - create
-  - update
-  - mapToEntity
-  - toArray
-6. src\Config\view_options\testys_edit.php
+
+4. Open Terminal and run
+    - Run to populate data. this drops the table and recreates it
+        - `php bin/console.php migrate:one 'Database\Migrations\CreateTestysTable' --force`
+    - Run to populate data in seeder.
+        - `php bin/console.php seed TestysSeeder`
+
+3. Entity - `src\App\Entities\Testy.php`
+
+4. Update REPOS `src\App\Repository\TestyRepository.php`
+    - create
+    - update
+    - mapToEntity
+    - toArray
+
+5. src\Config\view_options\testys_edit.php
   - add field to `'form_fields' => [` to see it and test it
-7. src\Config\list_fields\testys_edit.php
+
+6. src\Config\list_fields\testys_edit.php
    - add the new field with all of it's attributes
 
 // todo fff
 Validation adding
+
 - src\Core\Form\Validation\Validator.php
 - new validator in rules folder - src\Core\Form\Validation\Rules
   - Example DateValidator.php
 - new field type - src\Core\Form\Field\Type\DateType.php
 - in dependencies.php
-  - // Register the ValidatorRegistry
-  - // Static Single-Field Validators
-  - // Field Types
-
+    - // Field Types                    - must
+    - // Field Type Registry            - must
+    - // Register the ValidatorRegistry - if needed
+    - // Static Single-Field Validators - if needed
+- in Bootstrap->renderField()
+    - add new `switch ($type) {` for it.
 
 
 
@@ -396,16 +408,16 @@ return $this->redirect($this->url('Posts', 'edit', ['id' => 42]));
 
 ```php
 // Usage in views:
-<?= PaginationHelper::render(Url::STORE_POSTS, $currentPage, $totalPages) ?>
+<?= PaginationHelper::render(Url::STORE_POST, $currentPage, $totalPages) ?>
 ```
 
 ### **3. ActionButtonHelper**
 
 ```php
 // Usage in views:
-<?= ActionButtonHelper::edit(Url::STORE_POSTS_EDIT, ['id' => $post->getId()]) ?>
-<?= ActionButtonHelper::delete(Url::STORE_POSTS_DELETE, ['id' => $post->getId()]) ?>
-<?= ActionButtonHelper::create(Url::STORE_POSTS_ADD, 'Add New Post') ?>
+<?= ActionButtonHelper::edit(Url::STORE_POST_EDIT, ['id' => $post->getId()]) ?>
+<?= ActionButtonHelper::delete(Url::STORE_POST_DELETE, ['id' => $post->getId()]) ?>
+<?= ActionButtonHelper::create(Url::STORE_POST_ADD, 'Add New Post') ?>
 ```
 
 ### **4. AlertHelper**

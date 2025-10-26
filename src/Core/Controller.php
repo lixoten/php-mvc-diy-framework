@@ -39,7 +39,6 @@ abstract class Controller
     protected ContainerInterface $container;
     protected string $pageTitle;
     public array $route_params;
-    // protected FlashMessageServiceInterface $flash22;
     protected View $view;
     protected HttpFactory $httpFactory;
     protected ?SessionManagerInterface $session = null;
@@ -170,7 +169,17 @@ abstract class Controller
         //Debug::p($template);
         $args['flash'] = $this->flash22;
         // DebugRt::j('1', '', 111);
+        // DebugRt::j('0', 'Core/View themeAsset: activeVariant:', $this ?? 'None');
+
+
+
+
+        
         $content = $this->view->renderWithLayout($template, $args);
+
+
+
+
         // DebugRt::j('1', '', 111);
         $response = $this->httpFactory->createResponse($statusCode);
         $response->getBody()->write($content);
@@ -222,17 +231,6 @@ abstract class Controller
     //}
 
 
-    protected function oldview(string $template, array $args = []): void
-    {
-        $args['flash'] = $this->flash22;
-
-        //......$args += ["scrapsArr" => $this->route_params];
-        $this->view->renderWithLayout($template, $args);
-
-        // Get common data (keep this part as it's controller-specific logic)
-        //..$commonData = $this->getCommonData();
-    }
-
     /**
      * Convert string with hyphens to camelCase
      * e.g. post-authors => postAuthors
@@ -279,6 +277,33 @@ abstract class Controller
 
 
 
+/**
+     * Generate a pseudo-random alphanumeric title.
+     *
+     * Produces simple gibberish: N words separated by spaces, each word is
+     * alpha-numeric. Defaults produce a 2-word title with 6 chars each.
+     *
+     * @param int $wordCount Number of words to generate (default: 2)
+     * @param int $wordLength Length of each word (default: 6)
+     * @return string
+     */
+    protected function generateTitle(int $wordCount = 2, int $wordLength = 6): string
+    {
+        $chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        $max = strlen($chars) - 1;
+        $parts = [];
+
+        for ($w = 0; $w < $wordCount; $w++) {
+            $word = '';
+            for ($i = 0; $i < $wordLength; $i++) {
+                $idx = random_int(0, $max);
+                $word .= $chars[$idx];
+            }
+            $parts[] = ucfirst($word);
+        }
+
+        return implode(' ', $parts);
+    }
 
     protected function xxxgetActionLinks(string $page, array $needArr = []): array
     {
@@ -357,8 +382,8 @@ abstract class Controller
         // Add entity-specific standard links based on entity type
         switch (strtolower($entityType)) {
             case 'post':
-                $helpfulLinks['Return to Posts List'] = Urls::STORE_POSTS;
-                $helpfulLinks['Create a New Post'] = Urls::STORE_POSTS_ADD;
+                $helpfulLinks['Return to Posts List'] = Urls::STORE_POST;
+                $helpfulLinks['Create a New Post'] = Urls::STORE_POST_ADD;
                 break;
 
             case 'product':
@@ -383,6 +408,54 @@ abstract class Controller
             entityId: $entityId,
             helpfulLinks: $helpfulLinks
         );
+    }
+
+    protected function getDebugBar(): array
+    {
+        $debugBarService = $this->container->get(\App\Services\DebugBarService::class);
+        return $debugBarService->getDebugInfo();
+    }
+
+    protected function getNavigationData(string $currentPath): array
+    {
+        $navigationService = $this->container->get(\App\Services\NavigationService::class);
+        $themeManager = $this->container->get(\Core\Services\ThemeConfigurationManagerService::class);
+
+        $activeTheme = $themeManager->getActiveTheme();
+        $rendererClass = match ($activeTheme) {
+            'bootstrap' => 'Core\Navigation\Bootstrap\BootstrapNavigationRendererService',
+            'material' => 'Core\Navigation\Material\MaterialNavigationRendererService',
+            default => 'Core\Navigation\Bootstrap\BootstrapNavigationRendererService',
+        };
+
+        $navigationRenderer = $this->container->get($rendererClass);
+        $navigationData = $navigationService->buildNavigation($currentPath);
+
+        return [
+            'navigationRenderer' => $navigationRenderer,
+            'navigationData' => $navigationData,
+            'currentPath' => $currentPath,
+        ];
+    }
+
+    /**
+     * Build common view data for all pages (navigation, debug bar, current path)
+     *
+     * @param array<string, mixed> $viewData
+     * @return array<string, mixed>
+     */
+    protected function buildCommonViewData(array $viewData = []): array
+    {
+        $debugBar = $this->getDebugBar();
+        $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $navData = $this->getNavigationData($currentPath);
+
+        return array_merge($viewData, [
+            'debugBar' => $debugBar,
+            'navigationRenderer' => $navData['navigationRenderer'],
+            'navigationData' => $navData['navigationData'],
+            'currentPath' => $navData['currentPath'],
+        ]);
     }
 }
 # End of File 1919 430 149

@@ -29,6 +29,7 @@ class Form implements FormInterface
     private ?FormRendererInterface $renderer = null;
     // private array $layout = [];
     private array $renderOptions = [];
+    private array $layout = [];
 
     /**
      * Constructor
@@ -158,10 +159,11 @@ class Form implements FormInterface
     /**
      * Validate the form
      *
-     * @param array $context Additional context for validation (e.g. request object)
+     * @param array<string, mixed> $context Additional context for validation (e.g. 'region' for phone validation).
+     *                             Do NOT pass the entire request object; only pass minimal data needed by validators.
      * @return bool True if valid, false otherwise
      */
-    public function validate(array $context = []): bool
+    public function validate(array $fieldContext = []): bool
     {
         $this->errors = []; // Reset errors before validation
         $isValid = true;
@@ -170,16 +172,19 @@ class Form implements FormInterface
             foreach ($this->fields as $name => $field) {
                 // Validate the field using the Validator service
 
-                $rrr = $field->getAttribute('disabled'); // fixme
+                //$rrr = $field->getAttribute('disabled'); // fixme - just remove
                 // Disabled and Readonly fields should be skipped during Validation
-                if ($field->getAttribute('disabled') || $field->getAttribute('readonly')) {
+                if ($field->getAttribute('disabled') ||
+                    $field->getAttribute('readonly') ||
+                    $field->getType() === 'hidden'
+                ) {
                 // if ($field['attributes']['readonly']) {
                     continue;
                 }
 
 
                 // Pass context to validator
-                $fieldErrors = $this->validator->validateField($field, $context);
+                $fieldErrors = $this->validator->validateField($field, $fieldContext);
 
                 if (!empty($fieldErrors)) {
                     // Add errors to the form's error list
@@ -427,8 +432,7 @@ class Form implements FormInterface
      */
     public function setLayout(array $layout): self
     {
-        // $this->layout = $layout;
-        $this->renderOptions['layout'] = $layout;
+        $this->layout = $layout;
         return $this;
     }
 
@@ -439,8 +443,7 @@ class Form implements FormInterface
      */
     public function getLayout(): array
     {
-        // return $this->layout;
-        return $this->renderOptions['layout'];
+        return $this->layout;
     }
 
 
@@ -453,6 +456,17 @@ class Form implements FormInterface
     public function setRenderOptions(array $options): void
     {
         $this->renderOptions = $options;
+    }
+
+    /**
+     * Add to Existing render options for the form
+     *
+     * @param array $options
+     * @return void
+     */
+    public function mergeRenderOptions(array $options): void
+    {
+        $this->renderOptions = array_merge($this->renderOptions, $options);
     }
 
 

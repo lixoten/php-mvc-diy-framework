@@ -21,6 +21,8 @@ class UsersSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->requireTable('users');
+
         $passwordHash = password_hash('password123', PASSWORD_DEFAULT);
 
         $this->createIfNotExists('users', [
@@ -42,10 +44,18 @@ class UsersSeeder extends Seeder
          $passwordHash = password_hash('q1Q!', PASSWORD_DEFAULT);
 
         $this->createIfNotExists('users', [
+            'username' => 'storejohn2',
+            'email' => 'storejohn2@example.com',
+            'password_hash' => $passwordHash,
+            'roles' => json_encode(['user']),
+            'status' => 'A'
+        ], ['username', 'email']);
+
+        $this->createIfNotExists('users', [
             'username' => 'storejohn',
             'email' => 'storejohn@example.com',
             'password_hash' => $passwordHash,
-            'roles' => json_encode(['user']),
+            'roles' => json_encode(['user', 'admin']),
             'status' => 'A'
         ], ['username', 'email']);
     }

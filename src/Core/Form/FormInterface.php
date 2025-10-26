@@ -206,6 +206,15 @@ interface FormInterface
     public function setRenderOptions(array $options): void;
 
     /**
+     * Add to Existing render options for the form
+     *
+     * @param array $options
+     * @return void
+     */
+    public function mergeRenderOptions(array $options): void;
+
+
+    /**
      * Get the security level of this form
      *
      * @return string 'high', 'medium', or 'low'

@@ -16,6 +16,6 @@ class Urls
     // public const STORE_PROFILE = '/account/stores/profile';
     // public const STORE_CREATE = '/account/stores/profile/create';
     // public const NO_STORES = '/account/dashboard';
-    // public const STORE_POSTS = '/account/stores/posts';
-    // public const STORE_POSTS_ADD = '/account/stores/posts/create';
+    // public const STORE_POST = '/account/stores/posts';
+    // public const STORE_POST_ADD = '/account/stores/posts/create';
 }

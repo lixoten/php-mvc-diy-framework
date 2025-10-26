@@ -83,11 +83,15 @@ class ErrorsController extends Controller
     // ErrorController.php
     public function showError($code, $message, $data = []): ResponseInterface
     {
-        //exit();
-        return $this->view("errors/{$code}", [
-            'layout' => "error",
+        $minimal = in_array((int)$code, [500, 503], true); // Use minimal layout for 500/503
+        $layout = $minimal ? 'abend' : 'error';
+
+        $viewData = [
+            'layout' => $layout,
             'message' => $message,
-            'data' => $data
-        ], (int)$code);
+            'data' => $data,
+        ];
+
+        return $this->view("errors/{$code}", $viewData, (int)$code);
     }
 }

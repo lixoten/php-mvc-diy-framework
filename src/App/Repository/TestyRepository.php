@@ -20,21 +20,21 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
     public function saveDraft(array $data): bool // js-feature // Deleteme
     {
         // Auto Save / Draft Feature - JS
-        // Example: Save draft to the main testys table (update only draft fields)
-        $sql = "UPDATE testys SET
+        // Example: Save draft to the main testy table (update only draft fields)
+        $sql = "UPDATE testy SET
                     title = :title,
                     content = :content,
-                    favorite_word = :favorite_word,
+                    generic_text = :generic_text,
                     updated_at = NOW()
-                WHERE testy_id = :testy_id";
+                WHERE id = :id";
 
         $stmt = $this->connection->prepare($sql);
 
         return $stmt->execute([
-            ':testy_id' => $data['testy_id'] ?? null,
+            ':id' => $data['id'] ?? null,
             ':title' => $data['title'] ?? '',
             ':content' => $data['content'] ?? '',
-            ':favorite_word' => $data['favorite_word'] ?? '',
+            ':generic_text' => $data['generic_text'] ?? '',
         ]);
     }
 
@@ -44,12 +44,12 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
      */
     public function findById(int $testyId): ?Testy
     {
-        $sql = "SELECT p.*, u.username FROM testys p
-                LEFT JOIN users u ON p.testy_user_id = u.user_id
-                WHERE p.testy_id = :testy_id";
+        $sql = "SELECT p.*, u.username FROM testy p
+                LEFT JOIN users u ON p.user_id = u.user_id
+                WHERE p.id = :id";
 
         $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':testy_id', $testyId);
+        $stmt->bindValue(':id', $testyId);
         $stmt->execute();
 
         $testyData = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -77,9 +77,9 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         }
         $columns = implode(', ', $fields);
 
-        $sql = "SELECT $columns FROM testys WHERE testy_id = :testy_id";
+        $sql = "SELECT $columns FROM testy WHERE id = :id";
         $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':testy_id', $testyId, \PDO::PARAM_INT);
+        $stmt->bindValue(':id', $testyId, \PDO::PARAM_INT);
         $stmt->execute();
 
         $result = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -92,7 +92,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
     }
 
     /**
-     * Find testys by store ID
+     * Find testy by store ID
      */
     public function findByStoreId(
         int $storeId,
@@ -101,7 +101,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         ?int $offset = null
     ): array {
         return $this->findBy(
-            ['testy_store_id' => $storeId],
+            ['store_id' => $storeId],
             $orderBy,
             $limit,
             $offset
@@ -109,12 +109,146 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
     }
 
 
+    /** {@inheritdoc} */
+    public function findByStoreIdWithFields(
+        int $storeId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array {
+        if (empty($fields)) {
+            $fields = ['*'];
+        } else {
+            $fields = array_merge($fields, ['id', 'status']);
+            // unset($fields['id']);
+            // unset($fields['status']);
+        }
+
+        foreach ($fields as $f) {
+            if (!preg_match('/^[A-Za-z0-9_\\.]+$/', (string) $f)) {
+                throw new \InvalidArgumentException("Invalid field name: {$f}");
+            }
+        }
+
+        $columns = implode(', ', $fields);
+        $sql = "SELECT {$columns} FROM testy p WHERE p.store_id = :store_id";
+
+        if (!empty($orderBy)) {
+            $orderClauses = [];
+            foreach ($orderBy as $field => $direction) {
+                $dir = strtoupper((string) $direction) === 'DESC' ? 'DESC' : 'ASC';
+                $cleanField = strpos((string) $field, '.') === false ? "p.{$field}" : (string) $field;
+                if (!preg_match('/^[A-Za-z0-9_\\.]+$/', $cleanField)) {
+                    throw new \InvalidArgumentException("Invalid order field: {$cleanField}");
+                }
+                $orderClauses[] = "{$cleanField} {$dir}";
+            }
+            $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
+        } else {
+            $sql .= ' ORDER BY p.created_at DESC';
+        }
+
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+            if ($offset !== null) {
+                $sql .= ' OFFSET :offset';
+            }
+        }
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':store_id', $storeId, \PDO::PARAM_INT);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        }
+        if ($offset !== null) {
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($rows === false) {
+            return [];
+        }
+
+        return $rows;
+    }
+
+
+
+
+    /** {@inheritdoc} */
+    public function findByUserIdWithFields(
+        int $userId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array {
+        if (empty($fields)) {
+            $fields = ['*'];
+        }
+
+        foreach ($fields as $f) {
+            if (!preg_match('/^[A-Za-z0-9_\\.]+$/', (string) $f)) {
+                throw new \InvalidArgumentException("Invalid field name: {$f}");
+            }
+        }
+
+        $columns = implode(', ', $fields);
+        $sql = "SELECT {$columns} FROM testy p WHERE p.user_id = :user_id";
+
+        if (!empty($orderBy)) {
+            $orderClauses = [];
+            foreach ($orderBy as $field => $direction) {
+                $dir = strtoupper((string) $direction) === 'DESC' ? 'DESC' : 'ASC';
+                $cleanField = strpos((string) $field, '.') === false ? "p.{$field}" : (string) $field;
+                if (!preg_match('/^[A-Za-z0-9_\\.]+$/', $cleanField)) {
+                    throw new \InvalidArgumentException("Invalid order field: {$cleanField}");
+                }
+                $orderClauses[] = "{$cleanField} {$dir}";
+            }
+            $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
+        } else {
+            $sql .= ' ORDER BY p.created_at DESC';
+        }
+
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+            if ($offset !== null) {
+                $sql .= ' OFFSET :offset';
+            }
+        }
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, \PDO::PARAM_INT);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        }
+
+        if ($offset !== null) {
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($rows === false) {
+            return [];
+        }
+
+        return $rows;
+    }
+
 
 
     /**
-     * Find testys based on criteria.
+     * Find testy based on criteria.
      *
-     * @param array $criteria Optional filtering criteria (e.g., ['testy_user_id' => 5, 'testy_status' => 'Published'])
+     * @param array $criteria Optional filtering criteria (e.g., ['user_id' => 5, 'status' => 'Published'])
      * @param array $orderBy Optional sorting criteria (e.g., ['created_at' => 'DESC'])
      * @param int|null $limit Maximum number of results
      * @param int|null $offset Result offset for pagination
@@ -126,8 +260,8 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         ?int $limit = null,
         ?int $offset = null
     ): array {
-        $sql = "SELECT p.*, u.username FROM testys p
-                LEFT JOIN users u ON p.testy_user_id = u.user_id";
+        $sql = "SELECT p.*, u.username FROM testy p
+                LEFT JOIN users u ON p.user_id = u.user_id";
         $params = [];
 
         // Add WHERE clauses for criteria
@@ -173,16 +307,16 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
 
         $stmt->execute();
 
-        $testys = [];
+        $testy = [];
         while ($testyData = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $testys[] = $this->mapToEntity($testyData);
+            $testy[] = $this->mapToEntity($testyData);
         }
 
-        return $testys;
+        return $testy;
     }
 
     /**
-     * Find testys by user ID
+     * Find testy by user ID
      */
     public function findByUserId(
         int $userId,
@@ -191,7 +325,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         ?int $offset = null
     ): array {
         return $this->findBy(
-            ['testy_user_id' => $userId],
+            ['user_id' => $userId],
             $orderBy,
             $limit,
             $offset
@@ -203,43 +337,65 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
      */
     public function create(object $testy): object
     {
-        $sql = "INSERT INTO testys (
-                testy_store_id,
-                testy_user_id,
-                testy_status,
+        $sql = "INSERT INTO testy (
+                store_id,
+                user_id,
+                status,
                 slug,
                 title,
                 content,
-                favorite_word,
+                generic_text,
                 date_of_birth,
                 telephone,
+                gender_id,
+                gender_other,
+                is_verified,
+                interest_soccer_ind,
+                interest_baseball_ind,
+                interest_football_ind,
+                interest_hockey_ind,
                 created_at,
                 updated_at
             ) VALUES (
-                :testy_store_id,
-                :testy_user_id,
-                :testy_status,
+                :store_id,
+                :user_id,
+                :status,
                 :slug,
                 :title,
                 :content,
-                :favorite_word,
+                :generic_text,
                 :date_of_birth,
                 :telephone,
+                :gender_id,
+                :gender_other,
+                :is_verified,
+                :interest_soccer_ind,
+                :interest_baseball_ind,
+                :interest_football_ind,
+                :interest_hockey_ind,
+
                 NOW(),
                 NOW()
             )";
 
         $stmt = $this->connection->prepare($sql);
 
-        $stmt->bindValue(':testy_store_id', $testy->getTestyStoreId());
-        $stmt->bindValue(':testy_user_id', $testy->getTestyUserId());
-        $stmt->bindValue(':testy_status', $testy->getTestyStatus());
+        $stmt->bindValue(':store_id', $testy->getTestyStoreId());
+        $stmt->bindValue(':user_id', $testy->getTestyUserId());
+        $stmt->bindValue(':status', $testy->getTestyStatus());
         $stmt->bindValue(':slug', $testy->getSlug());
         $stmt->bindValue(':title', $testy->getTitle());
         $stmt->bindValue(':content', $testy->getContent());
-        $stmt->bindValue(':favorite_word', $testy->getFavoriteWord());
+        $stmt->bindValue(':generic_text', $testy->getFavoriteWord());
         $stmt->bindValue(':date_of_birth', $testy->getDateOfBirth());
         $stmt->bindValue(':telephone', $testy->getTelephone());
+        $stmt->bindValue(':gender_id', $testy->getGenderId());
+        $stmt->bindValue(':gender_other', $testy->getGenderOther());
+        $stmt->bindValue(':is_verified', $testy->getIsVerified());
+        $stmt->bindValue(':interest_soccer_ind', $testy->getInterestSoccerInd());
+        $stmt->bindValue(':interest_baseball_ind', $testy->getInterestBaseballInd());
+        $stmt->bindValue(':interest_football_ind', $testy->getInterestFootballInd());
+        $stmt->bindValue(':interest_hockey_ind', $testy->getInterestHockeyInd());
 
         $stmt->execute();
 
@@ -251,37 +407,54 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         return $this->findById($testyId);
     }
 
+
+
+
     // /** @var App\Entities\Testy */
     /**
      * Update an existing testy
      */
     public function update(object $testy): bool
     {
-        $sql = "UPDATE testys SET
-                testy_store_id = :testy_store_id,
-                testy_user_id = :testy_user_id,
-                testy_status = :testy_status,
+        $sql = "UPDATE testy SET
+                store_id = :store_id,
+                user_id = :user_id,
+                status = :status,
                 slug = :slug,
                 title = :title,
                 content = :content,
-                favorite_word   = :favorite_word,
+                generic_text   = :generic_text,
                 date_of_birth   = :date_of_birth,
                 telephone       = :telephone,
+                gender_id       = :gender_id,
+                gender_other    = :gender_other,
+                is_verified     = :is_verified,
+                interest_soccer_ind     = :interest_soccer_ind,
+                interest_baseball_ind   = :interest_baseball_ind,
+                interest_football_ind   = :interest_football_ind,
+                interest_hockey_ind     = :interest_hockey_ind,
                 updated_at      = NOW()
-            WHERE testy_id      = :testy_id";
+            WHERE id      = :id";
 
         $stmt = $this->connection->prepare($sql);
 
-        $stmt->bindValue(':testy_id', $testy->getTestyId());
-        $stmt->bindValue(':testy_store_id', $testy->getTestyStoreId());
-        $stmt->bindValue(':testy_user_id', $testy->getTestyUserId());
-        $stmt->bindValue(':testy_status', $testy->getTestyStatus());
+        $stmt->bindValue(':id', $testy->getTestyId());
+        $stmt->bindValue(':store_id', $testy->getTestyStoreId());
+        $stmt->bindValue(':user_id', $testy->getTestyUserId());
+        $stmt->bindValue(':status', $testy->getTestyStatus());
         $stmt->bindValue(':slug', $testy->getSlug());
         $stmt->bindValue(':title', $testy->getTitle());
         $stmt->bindValue(':content', $testy->getContent());
-        $stmt->bindValue(':favorite_word', $testy->getFavoriteWord());
+        $stmt->bindValue(':generic_text', $testy->getFavoriteWord());
         $stmt->bindValue(':date_of_birth', $testy->getDateOfBirth());
         $stmt->bindValue(':telephone', $testy->getTelephone());
+        $stmt->bindValue(':gender_id', $testy->getGenderId());
+        $stmt->bindValue(':gender_other', $testy->getGenderOther());
+        $stmt->bindValue(':is_verified', $testy->getIsVerified());
+        $stmt->bindValue(':interest_soccer_ind', $testy->getInterestSoccerInd());
+        $stmt->bindValue(':interest_baseball_ind', $testy->getInterestBaseballInd());
+        $stmt->bindValue(':interest_football_ind', $testy->getInterestFootballInd());
+        $stmt->bindValue(':interest_hockey_ind', $testy->getInterestHockeyInd());
 
         $stmt->execute();
 
@@ -304,7 +477,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         }
 
         $setClauses = [];
-        $params = [':testy_id' => $testyId];
+        $params = [':id' => $testyId];
 
         foreach ($fieldsToUpdate as $field => $value) {
             $setClauses[] = "$field = :$field";
@@ -312,7 +485,7 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
         }
 
         $setClauses[] = "updated_at = NOW()";
-        $sql = "UPDATE testys SET " . implode(', ', $setClauses) . " WHERE testy_id = :testy_id";
+        $sql = "UPDATE testy SET " . implode(', ', $setClauses) . " WHERE id = :id";
 
         $stmt = $this->connection->prepare($sql);
 
@@ -321,28 +494,63 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
 
 
 
+
+    /**
+     * Insert a new record into the testy table.
+     *
+     * @param array<string, mixed> $data The data to insert.
+     * @return int The ID of the newly inserted record.
+     */
+    public function insertFields(array $data): int
+    {
+        if (empty($data)) {
+            throw new \InvalidArgumentException('Data array cannot be empty.');
+        }
+
+        $columns = array_keys($data);
+        $placeholders = array_map(fn($col) => ":$col", $columns);
+        $sql = "INSERT INTO testy (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
+
+        $stmt = $this->connection->prepare($sql);
+
+        foreach ($data as $col => $value) {
+            $stmt->bindValue(":$col", $value);
+        }
+
+        $stmt->execute();
+
+        return (int) $this->connection->lastInsertId();
+    }
+
+
+
+
+
+
+
+
     /**
      * Delete a testy
      */
     public function delete(int $testyId): bool
     {
-        $sql = "DELETE FROM testys WHERE testy_id = :testy_id";
+        $sql = "DELETE FROM testy WHERE id = :id";
         $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':testy_id', $testyId);
+        $stmt->bindValue(':id', $testyId);
         $stmt->execute();
 
         return $stmt->rowCount() > 0;
     }
 
     /**
-     * Count total testys based on criteria.
+     * Count total testy based on criteria.
      *
      * @param array $criteria Optional filtering criteria
      * @return int The total count.
      */
     public function countBy(array $criteria = []): int // Renamed from countAll
     {
-        $sql = "SELECT COUNT(*) as count FROM testys p"; // Use alias 'p'
+        $sql = "SELECT COUNT(*) as count FROM testy p"; // Use alias 'p'
         $params = [];
 
         // Add WHERE clauses for criteria
@@ -380,21 +588,21 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
 
 
     /**
-     * Counts testys associated with a specific store ID.
+     * Counts testy associated with a specific store ID.
      */
     public function countByStoreId(int $storeId): int
     {
         // Simply reuse the existing countAll logic
-        return $this->countBy(['testy_store_id' => $storeId]);
+        return $this->countBy(['store_id' => $storeId]);
     }
 
     /**
-     * Counts testys associated with a specific user ID.
+     * Counts testy associated with a specific user ID.
      */
     public function countByUserId(int $userId): int
     {
         // Simply reuse the existing countAll logic
-        return $this->countBy(['testy_user_id' => $userId]);
+        return $this->countBy(['user_id' => $userId]);
     }
 
 
@@ -405,16 +613,23 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
     {
         $testy = new Testy();
 
-        $testy->setTestyId((int) $testyData['testy_id']);
-        $testy->setTestyStoreId((int) $testyData['testy_store_id']);
-        $testy->setTestyUserId((int) $testyData['testy_user_id']);
-        $testy->setTestyStatus($testyData['testy_status']);
+        $testy->setTestyId((int) $testyData['id']);
+        $testy->setTestyStoreId((int) $testyData['store_id']);
+        $testy->setTestyUserId((int) $testyData['user_id']);
+        $testy->setTestyStatus($testyData['status']);
         $testy->setSlug($testyData['slug']);
         $testy->setTitle($testyData['title']);
         $testy->setContent($testyData['content']);
-        $testy->setFavoriteWord($testyData['favorite_word']);
+        $testy->setFavoriteWord($testyData['generic_text']);
         $testy->setDateOfBirth($testyData['date_of_birth']);
         $testy->setTelephone($testyData['telephone']);
+        $testy->setGenderId($testyData['gender_id']);
+        $testy->setGenderOther($testyData['gender_other']);
+        $testy->setIsVerified($testyData['is_verified']);
+        $testy->setInterestSoccerInd($testyData['interest_soccer_ind']);
+        $testy->setInterestBaseballInd($testyData['interest_baseball_ind']);
+        $testy->setInterestFootballInd($testyData['interest_football_ind']);
+        $testy->setInterestHockeyInd($testyData['interest_hockey_ind']);
         $testy->setCreatedAt($testyData['created_at']);
         $testy->setUpdatedAt($testyData['updated_at']);
 
@@ -448,9 +663,16 @@ class TestyRepository implements TestyRepositoryInterface, BaseRepositoryInterfa
             'slug' => $testy->getSlug(),
             'title' => $testy->getTitle(),
             'content' => $testy->getContent(),
-            'favorite_word' => $testy->getFavoriteWord(),
+            'generic_text' => $testy->getFavoriteWord(),
             'date_of_birth' => $testy->getDateOfBirth(),
             'telephone' => $testy->getTelephone(),
+            'gender_id' => $testy->getGenderId(),
+            'gender_other' => $testy->getGenderOther(),
+            'is_verified' => $testy->getIsVerified(),
+            'interest_soccer_ind' => $testy->getInterestSoccerInd(),
+            'interest_baseball_ind' => $testy->getInterestBaseballInd(),
+            'interest_football_ind' => $testy->getInterestFootballInd(),
+            'interest_hockey_ind' => $testy->getInterestHockeyInd(),
             'created_at' => $testy->getCreatedAt(),
             'updated_at' => $testy->getUpdatedAt(),
             'username' => $testy->getUsername(),

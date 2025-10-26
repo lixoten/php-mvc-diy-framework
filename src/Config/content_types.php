@@ -46,7 +46,7 @@ return [
                 ],
                 'attr' => ['rows' => 10],
             ],
-            // 'post_status' => [ // Example status field
+            // 'status' => [ // Example status field
             //      'type' => 'select',
             //      'label' => 'Status',
             //      'required' => true,
@@ -63,7 +63,7 @@ return [
         // Column definitions for DynamicListType (conceptual)
         'list_columns' => [
             'title' => ['label' => 'xTitle', 'sortable' => true],
-            'post_status' => ['label' => 'xStatus', 'sortable' => true, /* 'formatter' => 'status_badge' */],
+            'status' => ['label' => 'xStatus', 'sortable' => true, /* 'formatter' => 'status_badge' */],
             'updated_at' => ['label' => 'xLast Updated', 'sortable' => true, /* 'formatter' => 'datetime' */],
         ],
 
@@ -86,7 +86,7 @@ return [
             [
                 'id' => 'metadata',
                 'title' => 'xSettings',
-                'fields' => ['post_status'],
+                'fields' => ['status'],
             ]
         ],
     ],
@@ -118,7 +118,7 @@ return [
                 ],
                 'attr' => ['rows' => 10],
             ],
-            // 'post_status' => [ // Example status field
+            // 'status' => [ // Example status field
             //      'type' => 'select',
             //      'label' => 'Status',
             //      'required' => true,
@@ -135,7 +135,7 @@ return [
         // Column definitions for DynamicListType (conceptual)
         'list_columns' => [
             'title' => ['label' => 'xTitle', 'sortable' => true],
-            'post_status' => ['label' => 'xStatus', 'sortable' => true, /* 'formatter' => 'status_badge' */],
+            'status' => ['label' => 'xStatus', 'sortable' => true, /* 'formatter' => 'status_badge' */],
             'updated_at' => ['label' => 'xLast Updated', 'sortable' => true, /* 'formatter' => 'datetime' */],
         ],
 
@@ -158,7 +158,7 @@ return [
             [
                 'id' => 'metadata',
                 'title' => 'Settings',
-                'fields' => ['post_status'],
+                'fields' => ['status'],
             ]
         ],
     ],

@@ -62,12 +62,12 @@ class Blueprint
         return $column;
     }
 
-    public function float(string $name, int $precision = 8, int $scale = 2): Column
-    {
-        $column = new Column($name, "FLOAT({$precision}, {$scale})");
-        $this->columns[] = $column;
-        return $column;
-    }
+    // public function float(string $name, int $precision = 8, int $scale = 2): Column
+    // {
+    //     $column = new Column($name, "FLOAT({$precision}, {$scale})");
+    //     $this->columns[] = $column;
+    //     return $column;
+    // }
 
     public function decimal(string $name, int $precision = 8, int $scale = 2): Column
     {
@@ -78,19 +78,19 @@ class Blueprint
 
     public function boolean(string $name): Column
     {
-        $column = new Column($name, 'TINYINT(1)');
+        $column = new Column($name, 'BOOLEAN');
         $this->columns[] = $column;
         return $column;
     }
 
-    public function enum(string $name, array $values): Column
-    {
-        $escapedValues = array_map(fn($v) => "'" . addslashes($v) . "'", $values);
-        $valuesString = implode(', ', $escapedValues);
-        $column = new Column($name, "ENUM({$valuesString})");
-        $this->columns[] = $column;
-        return $column;
-    }
+    // public function enum(string $name, array $values): Column
+    // {
+    //     $escapedValues = array_map(fn($v) => "'" . addslashes($v) . "'", $values);
+    //     $valuesString = implode(', ', $escapedValues);
+    //     $column = new Column($name, "ENUM({$valuesString})");
+    //     $this->columns[] = $column;
+    //     return $column;
+    // }
 
     public function json(string $name): Column
     {

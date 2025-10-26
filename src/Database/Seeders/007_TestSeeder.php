@@ -10,6 +10,8 @@ class TestSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->requireTable('test_table');
+
         // $this->table('test_table')->insert([
             // ['name' => 'Test 1', 'description' => 'First test record'],
             // ['name' => 'Test 2', 'description' => 'Second test record'],

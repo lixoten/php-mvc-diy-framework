@@ -56,9 +56,11 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         $entityId = $request->getAttribute('id');     // Get individual attribute
         $actionName = $request->getAttribute('action'); // Get individual attribute
 
-        $namespace =  $request->getAttribute('namespace');
+        $namespace  =  $request->getAttribute('namespace');
         $controller =  $request->getAttribute('controller');
-        $route_id =  $request->getAttribute('route_id');
+        $route_id   =  $request->getAttribute('route_id');
+        $pageKey    =  $request->getAttribute('page_key');
+        $pageConfigKey =  $request->getAttribute('page_config_key');
 
         // Add flash message if the flash service is available
         if (isset($this->flash)) {
@@ -70,12 +72,14 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         }
 
         // Set context values (null if attributes don't exist)
-        $this->currentContext->setPageKey($pageName);
+        $this->currentContext->setPageKey($pageKey);
+        $this->currentContext->setPageConfigKey($pageConfigKey);
         $this->currentContext->setEntityId($entityId !== null ? (int)$entityId : null);
         $this->currentContext->setActionName($actionName);
 
         $this->currentContext->setNamespaceName($namespace);
         $this->currentContext->setControllerName($controller);
+        // $routeParams = null;
         $this->currentContext->setRouteParams($routeParams);
         $this->currentContext->setRouteId($route_id);
 

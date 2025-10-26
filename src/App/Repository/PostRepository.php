@@ -22,12 +22,12 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
      */
     public function findById(int $postId): ?Post
     {
-        $sql = "SELECT p.*, u.username FROM posts p
-                LEFT JOIN users u ON p.post_user_id = u.user_id
-                WHERE p.post_id = :post_id";
+        $sql = "SELECT p.*, u.username FROM post p
+                LEFT JOIN users u ON p.user_id = u.user_id
+                WHERE p.id = :id";
 
         $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':post_id', $postId);
+        $stmt->bindValue(':id', $postId);
         $stmt->execute();
 
         $postData = $stmt->fetch(\PDO::FETCH_ASSOC);
@@ -41,7 +41,38 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
 
 
     /**
-     * Find posts by store ID
+     * Find a post by ID, selecting only specified columns.
+     *
+     * @param int $postId
+     * @param array<string> $fields
+     * @return array<string, mixed>|null
+     */
+    public function findByIdWithFields(int $id, array $fields): ?array
+    {
+        if (empty($fields)) {
+            // Default to all columns if none specified
+            $fields = ['*'];
+        }
+        $columns = implode(', ', $fields);
+
+        $sql = "SELECT $columns FROM post WHERE id = :id";
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':id', $id, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($result === false) {
+            return null;
+        }
+
+        return $result;
+    }
+
+
+
+    /**
+     * Find post by store ID
      */
     public function findByStoreId(
         int $storeId,
@@ -50,7 +81,7 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
         ?int $offset = null
     ): array {
         return $this->findBy(
-            ['post_store_id' => $storeId],
+            ['store_id' => $storeId],
             $orderBy,
             $limit,
             $offset
@@ -60,10 +91,149 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
 
 
 
+
+    /** {@inheritdoc} */
+    public function findByStoreIdWithFields(
+        int $storeId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array {
+        if (empty($fields)) {
+            $fields = ['*'];
+        } else {
+            $fields = array_merge($fields, ['id', 'status']);
+            // unset($fields['id']);
+            // unset($fields['status']);
+        }
+
+        foreach ($fields as $f) {
+            if (!preg_match('/^[A-Za-z0-9_\\.]+$/', (string) $f)) {
+                throw new \InvalidArgumentException("Invalid field name: {$f}");
+            }
+        }
+
+        $columns = implode(', ', $fields);
+        $sql = "SELECT {$columns} FROM post p WHERE p.store_id = :store_id";
+
+        if (!empty($orderBy)) {
+            $orderClauses = [];
+            foreach ($orderBy as $field => $direction) {
+                $dir = strtoupper((string) $direction) === 'DESC' ? 'DESC' : 'ASC';
+                $cleanField = strpos((string) $field, '.') === false ? "p.{$field}" : (string) $field;
+                if (!preg_match('/^[A-Za-z0-9_\\.]+$/', $cleanField)) {
+                    throw new \InvalidArgumentException("Invalid order field: {$cleanField}");
+                }
+                $orderClauses[] = "{$cleanField} {$dir}";
+            }
+            $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
+        } else {
+            $sql .= ' ORDER BY p.created_at DESC';
+        }
+
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+            if ($offset !== null) {
+                $sql .= ' OFFSET :offset';
+            }
+        }
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':store_id', $storeId, \PDO::PARAM_INT);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        }
+        if ($offset !== null) {
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($rows === false) {
+            return [];
+        }
+
+        return $rows;
+    }
+
+
+
+
+    /** {@inheritdoc} */
+    public function findByUserIdWithFields(
+        int $userId,
+        array $fields,
+        array $orderBy = [],
+        ?int $limit = null,
+        ?int $offset = null
+    ): array {
+        if (empty($fields)) {
+            $fields = ['*'];
+        }
+
+        foreach ($fields as $f) {
+            if (!preg_match('/^[A-Za-z0-9_\\.]+$/', (string) $f)) {
+                throw new \InvalidArgumentException("Invalid field name: {$f}");
+            }
+        }
+
+        $columns = implode(', ', $fields);
+        $sql = "SELECT {$columns} FROM post p WHERE p.user_id = :user_id";
+
+        if (!empty($orderBy)) {
+            $orderClauses = [];
+            foreach ($orderBy as $field => $direction) {
+                $dir = strtoupper((string) $direction) === 'DESC' ? 'DESC' : 'ASC';
+                $cleanField = strpos((string) $field, '.') === false ? "p.{$field}" : (string) $field;
+                if (!preg_match('/^[A-Za-z0-9_\\.]+$/', $cleanField)) {
+                    throw new \InvalidArgumentException("Invalid order field: {$cleanField}");
+                }
+                $orderClauses[] = "{$cleanField} {$dir}";
+            }
+            $sql .= ' ORDER BY ' . implode(', ', $orderClauses);
+        } else {
+            $sql .= ' ORDER BY p.created_at DESC';
+        }
+
+        if ($limit !== null) {
+            $sql .= ' LIMIT :limit';
+            if ($offset !== null) {
+                $sql .= ' OFFSET :offset';
+            }
+        }
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, \PDO::PARAM_INT);
+
+        if ($limit !== null) {
+            $stmt->bindValue(':limit', $limit, \PDO::PARAM_INT);
+        }
+
+        if ($offset !== null) {
+            $stmt->bindValue(':offset', $offset, \PDO::PARAM_INT);
+        }
+
+        $stmt->execute();
+
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($rows === false) {
+            return [];
+        }
+
+        return $rows;
+    }
+
+
+
+
+
     /**
-     * Find posts based on criteria.
+     * Find post based on criteria.
      *
-     * @param array $criteria Optional filtering criteria (e.g., ['post_user_id' => 5, 'post_status' => 'Published'])
+     * @param array $criteria Optional filtering criteria (e.g., ['user_id' => 5, 'status' => 'Published'])
      * @param array $orderBy Optional sorting criteria (e.g., ['created_at' => 'DESC'])
      * @param int|null $limit Maximum number of results
      * @param int|null $offset Result offset for pagination
@@ -75,8 +245,8 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
         ?int $limit = null,
         ?int $offset = null
     ): array {
-        $sql = "SELECT p.*, u.username FROM posts p
-                LEFT JOIN users u ON p.post_user_id = u.user_id";
+        $sql = "SELECT p.*, u.username FROM post p
+                LEFT JOIN users u ON p.user_id = u.user_id";
         $params = [];
 
         // Add WHERE clauses for criteria
@@ -140,7 +310,7 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
         ?int $offset = null
     ): array {
         return $this->findBy(
-            ['post_user_id' => $userId],
+            ['user_id' => $userId],
             $orderBy,
             $limit,
             $offset
@@ -152,19 +322,19 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
      */
     public function create(object $post): object
     {
-        $sql = "INSERT INTO posts (
-                post_store_id,
-                post_user_id,
-                post_status,
+        $sql = "INSERT INTO post (
+                store_id,
+                user_id,
+                status,
                 slug,
                 title,
                 content,
                 created_at,
                 updated_at
             ) VALUES (
-                :post_store_id,
-                :post_user_id,
-                :post_status,
+                :store_id,
+                :user_id,
+                :status,
                 :slug,
                 :title,
                 :content,
@@ -174,9 +344,9 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
 
         $stmt = $this->connection->prepare($sql);
 
-        $stmt->bindValue(':post_store_id', $post->getPostStoreId());
-        $stmt->bindValue(':post_user_id', $post->getPostUserId());
-        $stmt->bindValue(':post_status', $post->getPostStatus());
+        $stmt->bindValue(':store_id', $post->getPostStoreId());
+        $stmt->bindValue(':user_id', $post->getPostUserId());
+        $stmt->bindValue(':status', $post->getPostStatus());
         $stmt->bindValue(':slug', $post->getSlug());
         $stmt->bindValue(':title', $post->getTitle());
         $stmt->bindValue(':content', $post->getContent());
@@ -197,22 +367,22 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
      */
     public function update(object $post): bool
     {
-        $sql = "UPDATE posts SET
-                post_store_id = :post_store_id,
-                post_user_id = :post_user_id,
-                post_status = :post_status,
+        $sql = "UPDATE post SET
+                store_id = :store_id,
+                user_id = :user_id,
+                status = :status,
                 slug = :slug,
                 title = :title,
                 content = :content,
                 updated_at = NOW()
-            WHERE post_id = :post_id";
+            WHERE id = :id";
 
         $stmt = $this->connection->prepare($sql);
 
-        $stmt->bindValue(':post_id', $post->getPostId());
-        $stmt->bindValue(':post_store_id', $post->getPostStoreId());
-        $stmt->bindValue(':post_user_id', $post->getPostUserId());
-        $stmt->bindValue(':post_status', $post->getPostStatus());
+        $stmt->bindValue(':id', $post->getPostId());
+        $stmt->bindValue(':store_id', $post->getPostStoreId());
+        $stmt->bindValue(':user_id', $post->getPostUserId());
+        $stmt->bindValue(':status', $post->getPostStatus());
         $stmt->bindValue(':slug', $post->getSlug());
         $stmt->bindValue(':title', $post->getTitle());
         $stmt->bindValue(':content', $post->getContent());
@@ -223,13 +393,73 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
     }
 
     /**
+     * Update only the specified fields for a Post record.
+     *
+     * @param int $postId
+     * @param array<string, mixed> $fieldsToUpdate
+     * @return bool
+     */
+    public function updateFields(int $id, array $fieldsToUpdate): bool
+    {
+        if (empty($fieldsToUpdate)) {
+            return false;
+        }
+
+        $setClauses = [];
+        $params = [':id' => $id];
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setClauses[] = "$field = :$field";
+            $params[":$field"] = $value;
+        }
+
+        $setClauses[] = "updated_at = NOW()";
+        $sql = "UPDATE post SET " . implode(', ', $setClauses) . " WHERE id = :id";
+
+        $stmt = $this->connection->prepare($sql);
+
+        return $stmt->execute($params);
+    }
+
+
+
+    /**
+     * Insert a new record into the post table.
+     *
+     * @param array<string, mixed> $data The data to insert.
+     * @return int The ID of the newly inserted record.
+     */
+    public function insertFields(array $data): int
+    {
+        if (empty($data)) {
+            throw new \InvalidArgumentException('Data array cannot be empty.');
+        }
+
+        $columns = array_keys($data);
+        $placeholders = array_map(fn($col) => ":$col", $columns);
+        $sql = "INSERT INTO post (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
+
+        $stmt = $this->connection->prepare($sql);
+
+        foreach ($data as $col => $value) {
+            $stmt->bindValue(":$col", $value);
+        }
+
+        $stmt->execute();
+
+        return (int) $this->connection->lastInsertId();
+    }
+
+
+
+    /**
      * Delete a post
      */
     public function delete(int $postId): bool
     {
-        $sql = "DELETE FROM posts WHERE post_id = :post_id";
+        $sql = "DELETE FROM post WHERE id = :id";
         $stmt = $this->connection->prepare($sql);
-        $stmt->bindValue(':post_id', $postId);
+        $stmt->bindValue(':id', $postId);
         $stmt->execute();
 
         return $stmt->rowCount() > 0;
@@ -243,7 +473,7 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
      */
     public function countBy(array $criteria = []): int // Renamed from countAll
     {
-        $sql = "SELECT COUNT(*) as count FROM posts p"; // Use alias 'p'
+        $sql = "SELECT COUNT(*) as count FROM post p"; // Use alias 'p'
         $params = [];
 
         // Add WHERE clauses for criteria
@@ -286,7 +516,7 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
     public function countByStoreId(int $storeId): int
     {
         // Simply reuse the existing countAll logic
-        return $this->countBy(['post_store_id' => $storeId]);
+        return $this->countBy(['store_id' => $storeId]);
     }
 
     /**
@@ -295,7 +525,7 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
     public function countByUserId(int $userId): int
     {
         // Simply reuse the existing countAll logic
-        return $this->countBy(['post_user_id' => $userId]);
+        return $this->countBy(['user_id' => $userId]);
     }
 
 
@@ -306,10 +536,10 @@ class PostRepository implements PostRepositoryInterface, BaseRepositoryInterface
     {
         $post = new Post();
 
-        $post->setPostId((int) $postData['post_id']);
-        $post->setPostStoreId((int) $postData['post_store_id']);
-        $post->setPostUserId((int) $postData['post_user_id']);
-        $post->setPostStatus($postData['post_status']);
+        $post->setPostId((int) $postData['id']);
+        $post->setPostStoreId((int) $postData['store_id']);
+        $post->setPostUserId((int) $postData['user_id']);
+        $post->setPostStatus($postData['status']);
         $post->setSlug($postData['slug']);
         $post->setTitle($postData['title']);
         $post->setContent($postData['content']);

@@ -68,11 +68,13 @@ class LinkBuilder
         Url $url,
         array $params = [],
         ?string $text = null,
-        array $attributes = []
+        array $attributes = [],
+        string $icon = null
     ): string {
         $href = $url->url($params);
         $linkText = $text ?? $url->label();
-        $icon = $url->icon();
+        // $icon = $url->icon();
+        // $icon = $icon;
         $attrString = self::buildAttributes($attributes);
 
         $iconHtml = '';
@@ -117,12 +119,18 @@ class LinkBuilder
         // Extract data from the array with safe defaults
         $href = $linkData['href'] ?? '#';
         $text = $linkData['text'] ?? '';
-        $iconClass = $linkData['icon'] ?? null;
+        $iconClass = $linkData['icon'] ?? $linkData['action'] ?? null;
         $attributes = $linkData['attributes'] ?? [];
         $showIcon = $linkData['show_icon'] ?? true;
 
         // Reuse the attribute builder
         $attrString = self::buildAttributes($attributes);
+
+        if ($iconClass === 'index') {
+            $iconClass = 'view';
+        }
+
+
 
         // Prepare icon HTML, which will be empty if no icon is provided
         $iconHtml = '';
@@ -153,7 +161,7 @@ class LinkBuilder
      *
      * @example
      * // Generates: <a href="/posts/create" class="btn btn-success"><i class="fas fa-plus"></i> New Post</a>
-     * echo LinkBuilder::generateButtonLink(Url::STORE_POSTS_CREATE, [], 'New Post', ['class' => 'btn-success']);
+     * echo LinkBuilder::generateButtonLink(Url::STORE_POST_CREATE, [], 'New Post', ['class' => 'btn-success']);
      */
     public static function generateButtonLink(
         Url $url,

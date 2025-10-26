@@ -48,34 +48,72 @@ class MiddlewareFactory
         $pipeline->pipe($container->get(RoutingMiddleware::class));
 
 
-        // 7. Authentication/Authorization Middleware (using RoutePatternMiddleware)
+
+        // TODO
+        // attaching middleware d1irectly to routes in the router (as in your example below) is
+        //    the more explicit and scalable pattern, does not rely on pipe-RoutePatternMiddleware
+        // $router->add('/checkout', [
+        //     'controller' => 'Checkout',
+        //     'action' => 'index',
+        //     'middleware' => [GeoLocationMiddleware::class]
+        // ]);
+        // TODO
+
+        // 7.
+        // for per-route geolocation ---
+        $pipeline->pipe(
+            new RoutePatternMiddleware(
+                '/checkout*', // Adjust pattern as needed
+                $container->get(GeoLocationMiddleware::class)
+            )
+        );
+        // 8.
+        // Enable geolocation for /testy* routes as well
+        $pipeline->pipe(
+            new RoutePatternMiddleware(
+                '/testy*',
+                $container->get(GeoLocationMiddleware::class)
+            )
+        );
+
+
+        // 9. Authentication/Authorization Middleware (using RoutePatternMiddleware)
         // These now rely on attributes set by RoutingMiddleware
         // Guest-only middleware for login/registration pages
+        // 9.
         $pipeline->pipe(new RoutePatternMiddleware('/login', $container->get(GuestOnlyMiddleware::class)));
+        // 10.
         $pipeline->pipe(new RoutePatternMiddleware('/registration', $container->get(GuestOnlyMiddleware::class)));
+        // 11.
         $pipeline->pipe(new RoutePatternMiddleware('/forgot-password', $container->get(GuestOnlyMiddleware::class)));
 
         // ... other RoutePatternMiddleware for auth/roles ...
         $storeContextPatterns = [
-            '/posts*',
+            // '/posts*', // dynamic-fix
             // add more as needed
         ];
 
 
+        // 12.
         $pipeline->pipe(new RoutePatternMiddleware('/account/*', $container->get(RequireAuthMiddleware::class)));
+        // 13.
         $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireAuthMiddleware::class)));
+        // 14.
         $pipeline->pipe(new RoutePatternMiddleware('/profile/*', $container->get(RequireAuthMiddleware::class)));
+        // 15.
         $pipeline->pipe(new RoutePatternMiddleware('/stores/*', $container->get(StoreContextMiddleware::class)));
         //$pipeline->pipe(new RoutePatternMiddleware('/posts', $container->get(StoreContextMiddleware::class)));
         foreach ($storeContextPatterns as $pattern) {
             $pipeline->pipe(new RoutePatternMiddleware($pattern, $container->get(RequireAuthMiddleware::class)));
             $pipeline->pipe(new RoutePatternMiddleware($pattern, $container->get(StoreContextMiddleware::class)));
         }
+        // 16.
         $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireRoleMiddleware::class)));
+        // 17.
         $pipeline->pipe(new RoutePatternMiddleware('/users', $container->get(RequireRoleMiddleware::class)));
 
 
-        // 8. Context Population (runs after routing and auth checks)
+        // 18. Context Population (runs after routing and auth checks)
         $pipeline->pipe($container->get(ContextPopulationMiddleware::class));
 
         // Future middleware can be added here in the desired order

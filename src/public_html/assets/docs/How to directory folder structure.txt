@@ -1,0 +1,44 @@
+mvclixo/
+├── src/
+│   ├── App/
+│   │   ├── Features/      # Feature-based organization
+│   │   │   ├── Home/
+│   │   │   ├── About/
+│   │   │   └── Admin/
+│   │   └── Services/      # Application services
+│   ├── Core/              # Framework core components
+│   │   ├── Interfaces/    # Framework interfaces
+│   │   │── Middleware/    # PSR-15 middleware components
+│   │   └── Services/      # Framework services
+│   ├── Config/            # Configuration files
+│   └── public_html/       # Document root
+├── Tests/                 # Unit tests mirror src structure
+├── logs/                  # Log files
+└── vendor/                # Composer dependencies
+
+/var/www/mvclixo/   <-- This is the root application directory (NON-WEB-ACCESSIBLE)
+├── app/                  <-- Contains compiled/transferred application logic
+│   ├── App/              <-- Your unique feature code (from src/App)
+│   │   ├── Features/
+│   │   └── Services/
+│   └── Core/             <-- Your internal framework code (from src/Core)
+│       ├── Interfaces/
+│       ├── Middleware/
+│       └── Services/
+├── vendor/               <-- Composer dependencies (from vendor/)
+├── config/               <-- Configuration files (from src/Config)
+│   └── services.php
+├── logs/                 <-- Log files (from logs/)
+│   └── app.log
+├── cache/                <-- New: Generated runtime files (Cache/Temp)
+│   ├── container/        <-- Compiled DI Container definitions
+│   └── templates/        <-- Compiled template files
+├── public/               <-- The only directory the web server should point to (WEB ROOT)
+│   ├── index.php         <-- The application entry point (from src/public_html/index.php)
+│   └── assets/           <-- Static assets (JS, CSS, Images)
+├── .env                  <-- Environment specific variables
+└── composer.json
+
+
+
+```

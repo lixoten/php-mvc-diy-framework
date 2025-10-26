@@ -60,7 +60,7 @@ Thumbs.db
 # Cache and logs
 /var/cache/*
 /var/logs/*
-/temp/*
+/texmp/*
 logs
 /_external_scrap/*
 
@@ -92,5 +92,4 @@ _scrap
 :/xampp/htdocs/my_projects/_external_scrap
 # ols shit, saving just incase
 old_shit
-temp
 src/public_html/assets/js/aaaa.md

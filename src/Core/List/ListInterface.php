@@ -58,6 +58,12 @@ interface ListInterface
      */
     public function getActions(): array;
 
+    /**
+     * Check if the list has any actions defined
+     */
+    public function hasActions(): bool;
+
+
     public function addAction(string $name, array $options): self;
 
 

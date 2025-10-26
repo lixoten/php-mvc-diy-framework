@@ -114,8 +114,8 @@ class GenericListType extends AbstractListType
             // 'icon' => '<i class="fas fa-eye"></i>',
             // 'class' => 'btn btn-info'
             'label' => Url::GENERIC_VIEW->label(),
-            'icon' => Url::GENERIC_VIEW->icon(),
-            'class' => Url::GENERIC_VIEW->class()
+            // 'icon' => Url::GENERIC_VIEW->icon(),
+            // 'class' => Url::GENERIC_VIEW->class()
         ]);
 
         $builder->addAction('edit', [
@@ -124,8 +124,8 @@ class GenericListType extends AbstractListType
             // 'icon' => '<i class="fas fa-edit"></i>',
             // 'class' => 'btn btn-primary'
             'label' => Url::GENERIC_EDIT->label(),
-            'icon' => Url::GENERIC_EDIT->icon(),
-            'class' => Url::GENERIC_EDIT->class()
+            // 'icon' => Url::GENERIC_EDIT->icon(),
+            // 'class' => Url::GENERIC_EDIT->class()
         ]);
 
         $builder->addAction('delete', [
@@ -134,8 +134,8 @@ class GenericListType extends AbstractListType
             // 'icon' => '<i class="fas fa-trash"></i>',
             // 'class' => 'btn btn-danger delete-generic-btn', // Keep class generic or make dynamic
             'label' => Url::GENERIC_DELETE->label(),
-            'icon' => Url::GENERIC_DELETE->icon(),
-            'class' => Url::GENERIC_DELETE->class(),
+            // 'icon' => Url::GENERIC_DELETE->icon(),
+            // 'class' => Url::GENERIC_DELETE->class(),
             'data-attributes' => [ //dangerdanger missing data attributes in generic..works on non generic
                 // Make data attributes more generic or load keys from config
                 'entity-id' => '{id}',

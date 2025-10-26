@@ -197,13 +197,6 @@ switch ($command) {
     case 'seed':
         $seederPath = __DIR__ . '/../src/Database/Seeders';
 
-        // if (!$arg) {
-        //     echo "Error: Seeder name is required\n";
-        //     echo "Usage: php bin/console.php seed [seeder_name]\n";
-        //     break;
-        // }
-
-
         if (!$arg) {
             // Show available seeders instead of requiring name
             echo "Available seeders:\n";
@@ -240,46 +233,161 @@ switch ($command) {
                     $seeder->run();
                 }
             }
-        }
-
-
-
-
-print_r(get_declared_classes());
-
-
-        // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {
-        //     // Direct execution of UsersSeeder
-        //     //D:\xampp\htdocs\my_projects\mvclixo\src\Database\Seeder\UsersSeeder.php
-        //     $seeder = new UsersSeeder();
-        //     $seeder->run($db);
-        //     echo "UsersSeeder executed successfully!\n";
-        // } else {
-        $className = $arg ?? 'DatabaseSeeder';
-
-        $seederClass = (strpos($className, '\\') === false)
-        ? 'Database\\Seeders\\' . $className  // Add namespace when needed
-        : $className;
-        // Debug::p($seederClass);
-        echo "Running seeder: {$seederClass}\n";
-
-        if (class_exists($seederClass)) {
-            //Debug::p(111);
-            $seeder = new $seederClass($db);
-            $seeder->run();
-            echo "Seeding completed.\n";
         } else {
-            echo "Seeder class not found: {$seederClass}\n";
+            // Single seeder: support short name, numeric-prefixed filename, or FQCN
+            $classArg = (string) $arg;
+
+            // Normalize short name: strip namespace and any leading digits + underscore
+            $shortName = basename(str_replace('\\', '/', $classArg));
+            $shortName = preg_replace('/^\d+_/', '', $shortName);
+
+            // Determine FQCN we will try to instantiate
+            $seederClass = (strpos($classArg, '\\') === false)
+                ? 'Database\\Seeders\\' . $shortName
+                : $classArg;
+
+            // Find the actual file (with possible numeric prefix)
+            $files = scandir($seederPath);
+            $actualFile = null;
+            foreach ($files as $file) {
+                if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
+                    $filename = pathinfo($file, PATHINFO_FILENAME);
+                    $strippedName = preg_replace('/^\d+_/', '', $filename);
+                    if ($strippedName === $shortName || $filename === $classArg) {
+                        $actualFile = $file;
+                        break;
+                    }
+                }
+            }
+
+            // If file found, include it to support non-autoloaded classes
+            if ($actualFile) {
+                require_once $seederPath . '/' . $actualFile;
+            }
+
+            // Resolve class: prefer exact FQCN, otherwise scan declared classes for short name
+            $foundClass = null;
+            if (class_exists($seederClass)) {
+                $foundClass = $seederClass;
+            } else {
+                foreach (get_declared_classes() as $declared) {
+                    $declShort = basename(str_replace('\\', '/', $declared));
+                    if ($declShort === $shortName && str_starts_with($declared, 'Database\\Seeders\\')) {
+                        $foundClass = $declared;
+                        break;
+                    }
+                }
+                if ($foundClass === null && class_exists('Database\\Seeders\\' . $shortName)) {
+                    $foundClass = 'Database\\Seeders\\' . $shortName;
+                }
+            }
+
+            if ($foundClass !== null) {
+                echo "Running seeder: {$foundClass}\n";
+                $seeder = new $foundClass($db);
+                $seeder->run();
+                echo "Seeding completed.\n";
+            } else {
+                echo "Seeder class not found for: {$classArg}\n";
+            }
         }
-        // }
         break;
+    // case 'seedxxxxxx':
+    //     $seederPath = __DIR__ . '/../src/Database/Seeders';
+
+    //     // if (!$arg) {
+    //     //     echo "Error: Seeder name is required\n";
+    //     //     echo "Usage: php bin/console.php seed [seeder_name]\n";
+    //     //     break;
+    //     // }
+
+
+    //     if (!$arg) {
+    //         // Show available seeders instead of requiring name
+    //         echo "Available seeders:\n";
+    //         $availableSeeders = getSeederFiles($seederPath);
+    //         foreach ($availableSeeders as $seeder) {
+    //             echo "- $seeder\n";
+    //         }
+    //         echo "\nUsage: php bin/console.php seed [seeder_name]\n";
+    //         echo "       php bin/console.php seed --all\n";
+    //         break;
+    //     }
+
+    //     if ($arg === '--all') {
+    //         echo "Running all seeders...\n";
+    //         $allSeeders = getSeederFiles($seederPath);
+    //         foreach ($allSeeders as $seederName) {
+    //             // Find the actual file (with prefix)
+    //             $files = scandir($seederPath);
+    //             $actualFile = null;
+    //             foreach ($files as $file) {
+    //                 if (strpos($file, $seederName . '.php') !== false) {
+    //                     $actualFile = $file;
+    //                     break;
+    //                 }
+    //             }
+
+    //             if ($actualFile) {
+    //                 // LOAD FILE DIRECTLY like migrations do
+    //                 require_once $seederPath . '/' . $actualFile;
+
+    //                 $seederClass = 'Database\\Seeders\\' . $seederName;
+    //                 echo "Running: $seederName\n";
+    //                 $seeder = new $seederClass($db);
+    //                 $seeder->run();
+    //             }
+    //         }
+    //     }
+
+
+
+
+    //     //print_r(get_declared_classes());
+
+
+    //     // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {
+    //     //     // Direct execution of UsersSeeder
+    //     //     //D:\xampp\htdocs\my_projects\mvclixo\src\Database\Seeder\UsersSeeder.php
+    //     //     $seeder = new UsersSeeder();
+    //     //     $seeder->run($db);
+    //     //     echo "UsersSeeder executed successfully!\n";
+    //     // } else {
+    //     $className = $arg ?? 'DatabaseSeeder';
+
+    //     $seederClass = (strpos($className, '\\') === false)
+    //     ? 'Database\\Seeders\\' . $className  // Add namespace when needed
+    //     : $className;
+    //     // Debug::p($seederClass);
+    //     echo "Running seeder: {$seederClass}\n";
+    //     // "Database\Seeders\007_TestSeeder"
+    //     // "Database\Seeders\TestySeeder"
+
+    //     if (class_exists($seederClass)) {
+    //         //Debug::p(111);
+    //         $seeder = new $seederClass($db);
+    //         $seeder->run();
+    //         echo "Seeding completed.\n";
+    //     } else {
+    //         echo "Seeder class not found: {$seederClass}\n";
+    //     }
+    //     // }
+    //     break;
 
     case 'help':
     default:
         echo "Migration Commands:\n";
         echo "  migrate           Run pending migrations\n";
+        echo "                    php bin/console.php migrate\n";
+        echo "  migrate:one       Run single migration\n";
+        echo "                    php bin/console.php migrate:one 'Database\Migrations\CreateStoresTable'\n";
+        echo "                    php bin/console.php migrate:one 'CreateStoresTable'\n";
         echo "  rollback [steps]  Roll back the last batch or specific number of batches\n";
         echo "  seed [class]      Run database seeders\n";
+        echo "  seed [class]      Run database seeders\n";
+        echo "                    php bin/console.php seed --all 'CreateStoresTable'\n";
+        echo "  seed -- all]      Run single database seeder\n";
+        echo "                    php bin/console.php seed  'TestysSeeder'\n";
         break;
 }
 

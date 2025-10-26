@@ -82,6 +82,100 @@ class GenericDataService implements GenericDataServiceInterface
         return $repository->findById($entityId);
     }
 
+    /** {@inheritdoc} */
+    public function fetchEntityFieldsById(string $entityType, int $entityId, array $fields): ?array
+    {
+        if (empty($fields)) {
+            $fields = ['*'];
+        }
+
+        $repository = $this->repositoryRegistry->getRepository($entityType);
+
+        if (method_exists($repository, 'findByIdWithFields')) {
+            return $repository->findByIdWithFields($entityId, $fields);
+        }
+
+        if (!method_exists($repository, 'findById')) {
+            throw new RuntimeException("Repository for '{$entityType}' missing 'findById' method.");
+        }
+
+        $entity = $repository->findById($entityId);
+        if ($entity === null) {
+            return null;
+        }
+
+        if (!method_exists($repository, 'toArray')) {
+            throw new RuntimeException(
+                "Repository for '{$entityType}' missing 'toArray' method to project requested fields."
+            );
+        }
+
+        return $repository->toArray($entity, $fields);
+    }
+
+
+    /** {@inheritdoc} */
+    public function updateEntityFields(string $entityType, int $entityId, array $fieldsToUpdate): bool
+    {
+        if (empty($fieldsToUpdate)) {
+            throw new InvalidArgumentException('fieldsToUpdate cannot be empty.');
+        }
+
+        $repository = $this->repositoryRegistry->getRepository($entityType);
+
+        // If repository has an optimized updateFields method, use it
+        if (method_exists($repository, 'updateFields')) {
+            return $repository->updateFields($entityId, $fieldsToUpdate);
+        }
+
+        // Otherwise, try: fetch entity, set properties via setters, then call update()
+        if (!method_exists($repository, 'findById') || !method_exists($repository, 'update')) {
+            throw new RuntimeException("Repository for '{$entityType}' must implement updateFields or (findById + update).");
+        }
+
+        $entity = $repository->findById($entityId);
+        if ($entity === null) {
+            return false;
+        }
+
+        foreach ($fieldsToUpdate as $field => $value) {
+            $setter = 'set' . $this->snakeToPascal((string) $field);
+            if (method_exists($entity, $setter)) {
+                $entity->{$setter}($value);
+                continue;
+            }
+
+            // Try direct public property
+            if (property_exists($entity, $field)) {
+                $entity->{$field} = $value;
+                continue;
+            }
+
+            // ignore unknown fields
+        }
+
+        return (bool) $repository->update($entity);
+    }
+
+
+
+    /**
+     * Convert snake_case or dash to PascalCase (PostTitle -> PostTitle).
+     *
+     * @param string $value
+     * @return string
+     */
+    private function snakeToPascal(string $value): string
+    {
+        $parts = preg_split('/[_-]+/', $value);
+        $parts = array_map(function ($p) {
+            return ucfirst($p);
+        }, $parts);
+
+        return implode('', $parts);
+    }
+
+
 
     /** {@inheritdoc} */
     public function createNewEntity(string $entityType): object

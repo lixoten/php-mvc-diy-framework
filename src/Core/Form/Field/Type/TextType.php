@@ -25,17 +25,4 @@ class TextType extends AbstractFieldType
         return array_merge(parent::getDefaultOptions(), [
         ]);
     }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'      => 'text',
-            'minlength' => null,
-            'maxlength' => null,
-            'style' => 'background: yellow;',
-        ]);
-    }
 }

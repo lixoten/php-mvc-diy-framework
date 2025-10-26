@@ -104,6 +104,17 @@ class Router implements RouterInterface
 
 
                 $params["url"] = $url;
+
+
+                $params['page_key'] = $params['controller'] . '_' . $params['action'];
+                if ($params['action'] === 'create') {
+                    $params['page_config_key'] = $params['controller'] . '_edit';
+                } else {
+                    $params['page_config_key'] = $params['controller'] . '_' . $params['action'];
+                }
+
+
+
                 //Debug::p($params,0);
                 $this->params = $params;
                 //Debug::p($params, 0);
@@ -121,7 +132,7 @@ class Router implements RouterInterface
      * @param ServerRequestInterface $request The request object
      * @return array|null The matched route parameters or null if no match
      */
-    public function matchRequest(ServerRequestInterface $request): ?array 
+    public function matchRequest(ServerRequestInterface $request): ?array
     {
         $url = ltrim($request->getUri()->getPath(), '/');
 
@@ -280,7 +291,7 @@ class Router implements RouterInterface
 
         if ($this->match($url)) {
             //DebugRt::p($this->routes);
-            ## fix to make sure controller is always Pascalcase as in "Posts" vs "posts", required
+            ## fix to make sure controller is always Pascalcase as in "Post" vs "post", required
             ##for comparing controller name again controller::class in Feature tree structure
             $this->params['controller'] = $this->toPascalCase($this->params['controller']);
 

@@ -10,6 +10,8 @@ class StoresSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->requireTable('stores');
+
         // First check if we have user with ID 1 in the system
         $user = $this->db->query("SELECT user_id FROM users WHERE user_id = 1 LIMIT 1");
 
@@ -44,6 +46,16 @@ class StoresSeeder extends Seeder
             ],
             [
                 'store_user_id' => 2,
+                'store_status' => 'A',
+                'slug' => 'john-stampsxx',
+                'name' => 'John Stampsxx',
+                'description' => 'Handmade stamps, artisanal goods, and unique creations. Each product is carefully crafted with love and attention to detail. Find one-of-a-kind items for your home or as special gifts.',
+                'theme' => 'vintage',
+                'created_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                'updated_at' => date('Y-m-d H:i:s', strtotime('-1 day')),
+            ],
+            [
+                'store_user_id' => 4,
                 'store_status' => 'A',
                 'slug' => 'john-stamps',
                 'name' => 'John Stamps',

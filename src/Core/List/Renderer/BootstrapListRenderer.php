@@ -6,79 +6,28 @@ namespace Core\List\Renderer;
 
 use Core\List\ListInterface;
 use Core\List\ListView;
+use Core\Services\ThemeServiceInterface;
 
 /**
  * Bootstrap list renderer
  */
-class BootstrapListRenderer implements ListRendererInterface
+class BootstrapListRenderer extends AbstractListRenderer
 {
     /**
-     * Default options
+     * Constructor
      */
-    protected array $defaultOptions = [
-        'table_class' => 'table table-striped',
-        'card_class' => 'card mb-4',
-        'card_header_class' => 'card-header d-flex justify-content-between align-items-center',
-        'card_body_class' => 'card-body',
-        'pagination_class' => 'pagination',
-        'show_actions' => true,
-        'show_pagination' => true,
-        'add_button_label' => 'Add New', // ref-add_button_label
-        // 'add_button_class' => 'btn btn-success btn-lg',
-        // 'add_button_class' => 'btn btn-outline-primary btn -lg text-primary',
-        'add_button_class' => 'btn btn-light btn-sm text-primary border border-primary',
-        // 'add_button_class' => 'btn btn-warning btn-lg text-dark',
-        'action_group_class' => 'btn-group btn-group-sm',
-        'test_value' => 'low',          // RemoveMe remove This was for me later for testing
-        'test_value_only_low' => 'low'  // RemoveMe remove This was for me later for testing
-    ];
+    public function __construct(
+        ThemeServiceInterface $themeService
+    ) {
+        parent::__construct($themeService);
 
-    /**
-     * Default action classes
-     */
-    protected array $actionClasses = [
-        'view' => 'btn btn-info',
-        'edit' => 'btn btn-primary',
-        'delete' => 'btn btn-danger',
-    ];
-
-    /**
-     * Default action icons
-     */
-    protected array $actionIcons = [
-        'view' => '<i class="fas fa-eye"></i>',
-        'edit' => '<i class="fas fa-edit"></i>',
-        'delete' => '<i class="fas fa-trash"></i>',
-        'add' => '<i class="fas fa-plus"></i>',
-    ];
-
-    /**
-     * Render a full list
-     */
-    public function renderList(ListInterface $list, array $options = []): string
-    {
-        // defaultOptions - Another Level of hardcoded defaults that 
-        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
-
-        $output = '<div class="' . $options['card_class'] . '">';
-
-        // Render header with title and add button if provided
-        $output .= $this->renderHeader($list, $options);
-
-        // Render body with table
-        $output .= $this->renderBody($list, $options);
-
-        // Render pagination if enabled
-        if ($options['show_pagination'] && !empty($list->getPagination())) {
-            $output .= $this->renderPagination($list, $options);
-        }
-
-        $output .= '</div>';
-
-        $output .= $this->renderDeleteModal($list);
-
-
-        return $output;
+        // Fik - List View Default - GRID TABLE LIST
+        // Bootstrap-specific default options
+        $this->defaultOptions = array_merge($this->defaultOptions, [
+            // 'view_type' => self::VIEW_GRID,
+            'view_type' => self::VIEW_TABLE,
+            // 'view_type' => self::VIEW_LIST, //Importantx!!! Shit
+        ]);
     }
 
     /**
@@ -88,20 +37,19 @@ class BootstrapListRenderer implements ListRendererInterface
     {
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
 
-        $output = '<div class="' . $options['card_header_class'] . '">';
+        $headerClass = $this->themeService->getElementClass('card.header');
+        $addButtonClass = $this->themeService->getElementClass('button.add');
 
-        //$renderOptionsxxxx = $list->getRenderOptions();
-
-
-
+        $output = '<div class="' . $headerClass . '">';
 
         // Add title
         $output .= '<h2>' . htmlspecialchars($list->getTitle()) . '</h2>';
 
         // Add "Add New" button if URL is provided
         if (!empty($options['add_url'])) {
-            $output .= '<a href="' . $options['add_url'] . '" class="' . $options['add_button_class'] . '">';
-            $output .= $this->actionIcons['add'] . ' ' . htmlspecialchars($options['add_button_label']);
+            $output .= '<a href="' . $options['add_url'] . '" class="' . $addButtonClass . '">';
+            $output .= $this->themeService->getIconHtml('add') . ' ' .
+                htmlspecialchars($options['add_button_label']);
             $output .= '</a>';
         }
 
@@ -111,14 +59,64 @@ class BootstrapListRenderer implements ListRendererInterface
     }
 
     /**
-     * Render list body
+     * Render view toggle buttons
+     */
+    protected function renderViewToggle(ListInterface $list, array $options = []): string
+    {
+        $baseUrl = $options['toggle_url_base'] ?? $_SERVER['REQUEST_URI'];
+        $baseUrl = strtok($baseUrl, '?'); // Remove existing query string
+        $currentView = $options['view_type'];
+
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+        $toggleClass = $this->themeService->getElementClass('view.toggle');
+
+        $output = '<div class="' . $cardBodyClass . ' pt-0">';
+        $output .= '<div class="' . $toggleClass . '" role="group" aria-label="View options">';
+
+        // Table view button
+        $activeClass = ($currentView === self::VIEW_TABLE) ? ' active' : '';
+        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_TABLE . '" ';
+        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="Table View">';
+        $output .= $this->themeService->getIconHtml('table') . '</a>';
+
+        // Grid view button
+        $activeClass = ($currentView === self::VIEW_GRID) ? ' active' : '';
+        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_GRID . '" ';
+        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="Grid View">';
+        $output .= $this->themeService->getIconHtml('grid') . '</a>';
+
+        // List view button
+        $activeClass = ($currentView === self::VIEW_LIST) ? ' active' : '';
+        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_LIST . '" ';
+        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="List View">';
+        $output .= $this->themeService->getIconHtml('list') . '</a>';
+
+        $output .= '</div>';
+        $output .= '</div>';
+
+        return $output;
+    }
+
+    /**
+     * Render list body (table view)
      */
     public function renderBody(ListInterface $list, array $options = []): string
     {
+        return $this->renderTableView($list, $options);
+    }
+
+    /**
+     * Render table view
+     */
+    public function renderTableView(ListInterface $list, array $options = []): string
+    {
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
 
-        $output = '<div class="' . $options['card_body_class'] . '">';
-        $output .= '<table class="' . $options['table_class'] . '">';
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+        $tableClass = $this->themeService->getElementClass('table');
+
+        $output = '<div class="' . $cardBodyClass . '">';
+        $output .= '<table class="' . $tableClass . '">';
 
         // Render table header
         $output .= '<thead><tr>';
@@ -139,12 +137,8 @@ class BootstrapListRenderer implements ListRendererInterface
             $output .= '<tr>';
 
             foreach (array_keys($list->getColumns()) as $columnName) {
-                // TAG: albumtag1
                 $columns = $list->getColumns();
-                // $options - used to be passes straight
-
                 $value = $record[$columnName] ?? null;
-                // $output .= '<td>' . $this->renderValue($columnName, $value, $record, $options) . '</td>';
                 $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
             }
 
@@ -162,6 +156,287 @@ class BootstrapListRenderer implements ListRendererInterface
         return $output;
     }
 
+    /**
+     * Render grid view with cards in a grid layout
+     */
+    protected function renderGridView(ListInterface $list, array $options = []): string
+    {
+        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+
+        $viewLayout = $this->themeService->getViewLayoutClasses('grid');
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+
+        $output = '<div class="' . $cardBodyClass . '">';
+        $output .= '<div class="' . $viewLayout['container'] . '">';
+
+        // Get columns to display
+        $columns = $list->getColumns();
+
+        // Get primary image field, title field and description fields
+        $imageField = $options['grid_image_field'] ?? $this->findFirstFieldOfType($columns, 'image');
+        $titleField = $options['grid_title_field']
+            ?? $this->findFirstFieldOfType($columns, 'title')
+            ?? array_key_first($columns);
+        $descFields = $options['grid_description_fields'] ?? array_slice(array_keys($columns), 1, 2);
+
+        // Render each record as a card
+        foreach ($list->getData() as $record) {
+            $output .= '<div class="' . $viewLayout['item'] . '">';
+            $output .= '<div class="' . $viewLayout['card'] . '">';
+
+            // Render image if we have an image field defined
+            if ($imageField && !empty($record[$imageField])) {
+                $imageValue = $record[$imageField];
+                $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+                if ($imageUrl) {
+                    $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
+                        $viewLayout['image'] . '" alt="' .
+                        htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
+                }
+            }
+
+            // Card body with title and description
+            $output .= '<div class="' . $viewLayout['body'] . '">';
+
+            // Title
+            if (isset($record[$titleField])) {
+                $output .= '<h5 class="' . $viewLayout['title'] . '">' .
+                    htmlspecialchars((string)$record[$titleField]) . '</h5>';
+            }
+
+            // Description fields
+            foreach ($descFields as $field) {
+                if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
+                    $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
+                    $output .= '<p class="' . $viewLayout['text'] . '">';
+                    $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
+                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= '</p>';
+                }
+            }
+
+            $output .= '</div>'; // End card body
+
+            // Card footer with actions
+            if ($options['show_actions'] && !empty($list->getActions())) {
+                $output .= '<div class="' . $viewLayout['footer'] . '">';
+                $output .= $this->renderActions($list, $record, $options);
+                $output .= '</div>';
+            }
+
+            $output .= '</div>'; // End card
+            $output .= '</div>'; // End col
+        }
+
+        $output .= '</div>'; // End grid
+        $output .= '</div>'; // End card body
+
+        return $output;
+    }
+
+    /**
+     * Render list view with full-width items
+     */
+    protected function renderListView(ListInterface $list, array $options = []): string
+    {
+        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+
+        $viewLayout = $this->themeService->getViewLayoutClasses('list');
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+
+        $output = '<div class="' . $cardBodyClass . '">';
+        $output .= '<div class="' . $viewLayout['container'] . '">';
+
+        // Get columns to display
+        $columns = $list->getColumns();
+        $displayFields = $options['list_display_fields'] ?? array_keys($columns);
+
+        // Get primary fields
+        $imageField = $options['list_image_field'] ?? $this->findFirstFieldOfType($columns, 'image');
+        $titleField = $options['list_title_field']
+            ?? $this->findFirstFieldOfType($columns, 'title')
+            ?? array_key_first($columns);
+
+        // Render each record as a list item
+        foreach ($list->getData() as $record) {
+            $output .= '<div class="' . $viewLayout['item'] . '">';
+
+            // Optional image
+            if ($imageField && !empty($record[$imageField])) {
+                $imageValue = $record[$imageField];
+                $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+                if ($imageUrl) {
+                    $output .= '<img src="' . htmlspecialchars($imageUrl) . '"
+                        class="rounded me-3" style="max-width: 64px; max-height: 64px;"
+                        alt="' . htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
+                }
+            }
+
+            // Main content area
+            $output .= '<div class="' . $viewLayout['content'] . '">';
+
+            // Title field
+            if ($titleField && isset($record[$titleField])) {
+                $output .= '<h5 class="' . $viewLayout['title'] . '">' .
+                    htmlspecialchars((string)$record[$titleField]) . '</h5>';
+            }
+
+            // Additional fields
+            $output .= '<div class="d-flex flex-wrap gap-3 mt-2">';
+            foreach ($displayFields as $field) {
+                if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
+                    $output .= '<div><strong>' .
+                        htmlspecialchars($columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field))) .
+                        ':</strong> ' . $this->renderValue($field, $record[$field], $record, $columns) . '</div>';
+                }
+            }
+            $output .= '</div>';
+
+            $output .= '</div>'; // End content
+
+            // Actions area
+            if ($options['show_actions'] && !empty($list->getActions())) {
+                $output .= '<div class="ms-auto">';
+                $output .= $this->renderActions($list, $record, $options);
+                $output .= '</div>';
+            }
+
+            $output .= '</div>'; // End list item
+        }
+
+        $output .= '</div>'; // End list
+        $output .= '</div>'; // End card body
+
+        return $output;
+    }
+
+    /**
+     * Render column value with appropriate formatting
+     *
+     * @param string $column The column name
+     * @param mixed $value The value to render
+     * @param array<string, mixed> $record The complete record data
+     * @param array<string, mixed> $columns Column definitions
+     * @return string The formatted value as HTML
+     */
+    public function renderValue(string $column, $value, array $record, array $columns = []): string
+    {
+        // Handle Bootstrap-specific formatting for special columns
+        if ($column === 'status' && $value !== null) {
+            $statusClass = ((string)$value === 'Published') ? 'success' : 'warning';
+            return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars((string)$value) . '</span>';
+        }
+
+        // For all other columns, use the parent implementation
+        return parent::renderValue($column, $value, $record, $columns);
+    }
+
+    /**
+     * Render actions for a record
+     *
+     * @param ListInterface $list The list containing actions configuration
+     * @param array<string, mixed> $record The current record data
+     * @param array<string, mixed> $options Rendering options
+     * @return string The rendered HTML for action buttons
+     */
+    public function renderActions(ListInterface $list, array $record, array $options = []): string
+    {
+        $actions = $list->getActions();
+
+        // if (isset($actions['view'])) {
+        //     // Debug the first action to see what's happening
+        //     $debugIcon = $this->themeService->getIconHtml('view');
+        //     error_log('Debug icon HTML: ' . htmlspecialchars($debugIcon));
+        // }
+
+        if (empty($actions)) {
+            return '';
+        }
+
+        $buttonGroupClass = $this->themeService->getElementClass('button.group');
+
+        $output = '<div class="' . $buttonGroupClass . '" role="group">';
+
+        foreach ($actions as $name => $actionOptions) {
+            $url = $actionOptions['url'] ?? '#';
+
+            // Replace placeholders in URL
+            foreach ($record as $key => $value) {
+                if (is_scalar($value)) {
+                    $url = str_replace('{' . $key . '}', (string)$value, $url);
+                }
+            }
+
+            // $class = $actionOptions['class'] ?? $this->getActionButtonClass($name);
+            $class = $this->getActionButtonClass($name);
+
+
+
+            // Get the icon HTML from theme service
+            // $iconHtml = isset($actionOptions['icon'])
+            //     ? $actionOptions['icon']
+            //     : $this->themeService->getIconHtml($name);
+
+            // $name = 'dd';
+            $iconHtml = $this->themeService->getIconHtml($name);
+
+
+            $title = $actionOptions['title'] ?? ucfirst($name);
+
+            if ($name === 'delete') {
+                // Delete button code with modal trigger
+                $output .= '<button type="button" ';
+                $output .= 'class="' . $class . ' delete-item-btn" ';
+
+                // Add data attributes for the delete confirmation modal
+                if (isset($actionOptions['attributes']) && is_array($actionOptions['attributes'])) {
+                    foreach ($actionOptions['attributes'] as $attr => $val) {
+                        // Replace placeholders with record values
+                        foreach ($record as $key => $value) {
+                            if (is_scalar($value)) {
+                                $val = str_replace('{' . $key . '}', (string)$value, $val);
+                            }
+                        }
+                        $output .= ' data-' . htmlspecialchars($attr) . '="' . htmlspecialchars($val) . '"';
+                    }
+                }
+
+                $confirmMsg = $actionOptions['confirm'] ?? "Are you sure you want to delete this item?";
+                $titleValue = $record['title'] ?? ($record['name'] ?? 'this item');
+                $confirmMsg = str_replace('{title}', htmlspecialchars((string)$titleValue), $confirmMsg);
+
+                $output .= 'data-confirm="' . htmlspecialchars($confirmMsg) . '" ';
+                $output .= 'data-bs-toggle="modal" data-bs-target="#deleteItemModal" ';
+                $output .= 'title="' . htmlspecialchars((string)$title) . '">';
+                // CRITICAL: Use the HTML directly (not escaping)
+                $output .= $iconHtml;
+                $output .= '</button>';
+            } else {
+                // Regular link for other actions
+                $output .= '<a href="' . $url . '" ';
+                $output .= 'class="' . $class . '" ';
+                $output .= 'title="' . htmlspecialchars((string)$title) . '">';
+                // CRITICAL: Use the HTML directly (not escaping)
+                $output .= $iconHtml;
+                $output .= '</a>';
+            }
+        }
+
+        $output .= '</div>';
+
+        return $output;
+    }
+
+    /**
+     * Get action button CSS class
+     *
+     * @param string $actionName The action name
+     * @return string The CSS class for the button
+     */
+    protected function getActionButtonClass(string $actionName): string
+    {
+        return $this->themeService->getElementClass('button.' . $actionName);
+    }
 
     /**
      * Render pagination
@@ -175,19 +450,29 @@ class BootstrapListRenderer implements ListRendererInterface
         }
 
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+        $paginationClass = $this->themeService->getElementClass('pagination');
 
-        $output = '<nav aria-label="Page navigation"><ul class="' . $options['pagination_class'] . '">';
+        $output = '<nav aria-label="Page navigation"><ul class="' . $paginationClass . '">';
 
         $baseUrl = $options['pagination_url'] ?? '';
         $currentPage = $pagination['current_page'];
         $totalPages = $pagination['total_pages'];
+
+        // Add view type to pagination URLs if it exists
+        if (!empty($options['view_type']) && $options['view_type'] !== self::VIEW_TABLE) {
+            $viewParam = 'view=' . $options['view_type'];
+            if (strpos($baseUrl, '?') !== false) {
+                $baseUrl .= '&' . $viewParam;
+            } else {
+                $baseUrl .= '?' . $viewParam;
+            }
+        }
 
         for ($i = 1; $i <= $totalPages; $i++) {
             $active = ($i === $currentPage) ? ' active' : '';
             $url = str_replace('{page}', (string)$i, $baseUrl);
 
             $output .= '<li class="page-item' . $active . '">';
-            // Make sure we convert $i to string before using htmlspecialchars
             $output .= '<a class="page-link" href="' . $url . '">' . (string)$i . '</a>';
             $output .= '</li>';
         }
@@ -198,176 +483,56 @@ class BootstrapListRenderer implements ListRendererInterface
     }
 
     /**
-     * Render column value
+     * Helper method to get image URL from record
      */
-    public function renderValue(string $column, $value, array $record, array $options = []): string
+    protected function getImageUrl(string $field, $value, array $record, array $columns): string
     {
-        if ($value === null) {
+        if (empty($value)) {
             return '';
         }
 
-        // TAG: albumtag1 - this options is a bit misleading, it is actually all columns
-        $columns = $options[$column] ?? [];
-        //$columnOptions = $columns[$column] ?? [];
-        $columnOptions = $columns['options'] ?? [];
+        // Check if we have formatter options for this field
+        $columnData = $columns[$field] ?? [];
+        $options = $columnData['options'] ?? [];
+        $formatters = $options['formatters'] ?? [];
 
-        // Handle specific column formatters
-        switch ($column) {
-            case 'status':
-                $statusClass = ($value == 'Published') ? 'success' : 'warning';
-                return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars($value) . '</span>';
-
-            default:
-                // TAG: albumtag1
-                // Apply any custom formatters defined in options
-                if (isset($columnOptions['formatter']) && is_callable($columnOptions['formatter'])) {
-                    return $columnOptions['formatter']($value, $record);
-                }
-
-                // Default formatting
-                return is_string($value) ? htmlspecialchars($value) : (string)$value;
+        // If we have image formatter configuration, use its base URL
+        if (isset($formatters['image']) && isset($formatters['image']['base_url'])) {
+            return $formatters['image']['base_url'] . $value;
         }
-    }
 
+        // Default behavior - assume value is already a URL
+        return (string)$value;
+    }
 
     /**
-     * Render actions for a record
+     * Helper to find the first field of a specific type
      */
-    public function renderActions(ListInterface $list, array $record, array $options = []): string
+    protected function findFirstFieldOfType(array $columns, string $type): ?string
     {
-        $actions = $list->getActions();
+        foreach ($columns as $name => $column) {
+            $options = $column['options'] ?? [];
+            $fieldType = $options['type'] ?? '';
 
-        if (empty($actions)) {
-            return '';
-        }
-
-        $output = '<div class="' . $options['action_group_class'] . '" role="group">';
-
-        foreach ($actions as $name => $actionOptions) {
-            $url = $actionOptions['url'] ?? '#';
-
-            // Replace placeholders in URL
-            foreach ($record as $key => $value) {
-                if (is_scalar($value)) {
-                    $url = str_replace('{' . $key . '}', (string)$value, $url);
-                }
+            if ($fieldType === $type) {
+                return $name;
             }
 
-            $class = $actionOptions['class'] ?? $this->actionClasses[$name] ?? 'btn btn-secondary';
-            $icon = $actionOptions['icon'] ?? $this->actionIcons[$name] ?? '';
-            $title = $actionOptions['title'] ?? ucfirst($name);
-
-            if ($name === 'delete') {
-                // // For delete actions, we'll use a button with data attributes for confirmation
-                // $output .= '<button type="button" ';
-                // $output .= 'class="' . $class . ' delete-item-btn" ';
-                // // Make sure to cast these values to string explicitly
-                // $output .= 'data-id="' . htmlspecialchars((string)($record['id'] ?? '')) . '" ';
-                // $output .= 'data-title="' . htmlspecialchars((string)($record['title'] ?? '')) . '" ';
-                // $output .= 'title="' . htmlspecialchars((string)$title) . '">';
-                // $output .= $icon;
-                // $output .= '</button>';
-
-                // $confirmMessage = $actionOptions['confirm'] ?? 'Are you sure you want to delete this item?';
-                // $output .= '<a href="' . $url . '" ';
-                // $output .= 'class="' . $class . '" ';
-                // $output .= 'onclick="return confirm(\'' . htmlspecialchars($confirmMessage) . '\');" ';
-                // $output .= 'title="' . htmlspecialchars((string)$title) . '">';
-                // $output .= $icon;
-                // $output .= '</a>';
-
-                //$id = $record['id'] ?? null;
-                $title = $record['name'] ?? ($record['title'] ?? 'this item');
-                $confirmMsg = $actionOptions['confirm'] ?? "Are you sure you want to delete {$title}?";
-
-                $output .= '<button type="button" ';
-                $output .= 'class="' . $class . ' delete-item-btn" ';
-                // $output .= 'data-id="' . htmlspecialchars((string)$id) . '" ';
-                // $output .= 'data-title="' . htmlspecialchars((string)$title) . '" ';
-                if (isset($actionOptions['attributes']) && is_array($actionOptions['attributes'])) {
-                    foreach ($actionOptions['attributes'] as $attr => $val) {
-                        // Replace placeholders with actual record values
-                        foreach ($record as $key => $value) {
-                            if (is_scalar($value)) {
-                                $val = str_replace('{' . $key . '}', (string)$value, $val);
-                            }
-                        }
-                        $output .= ' data-' . htmlspecialchars($attr) . '="' . htmlspecialchars($val) . '"';
-                    }
-                }
-                $output .= 'data-confirm="' . htmlspecialchars($confirmMsg) . '" ';
-                $output .= 'data-bs-toggle="modal" data-bs-target="#deleteItemModal" ';
-                $output .= 'title="' . htmlspecialchars((string)$actionOptions['label']) . '">';
-                // $output .= $icon;
-                //if (isset($icon)) {
-                    $output .= '<i class="' . htmlspecialchars($icon) . '"></i> ';
-                //}
-                $output .= '</button>';
-
-            } else {
-                // Regular link for other actions
-                $output .= '<a href="' . $url . '" ';
-                $output .= 'class="' . $class . '" ';
-                $output .= 'title="' . htmlspecialchars((string)$title) . '">';
-                // $output .= $icon;
-                //$output .= '<i class="' . $icon . '"</i> ';
-                //if (isset($icon)) {
-                    $output .= '<i class="' . htmlspecialchars($icon) . '"></i> ';
-                //} else {
-                //    $output .= htmlspecialchars((string)$actionOptions['label']);
-                //}
-                $output .= '</a>';
+            // Check field name for common patterns
+            if (strpos($name, $type) !== false || strpos($name, 'image') !== false) {
+                return $name;
             }
         }
 
-        $output .= '</div>';
-
-        return $output;
+        return null;
     }
 
-    protected function renderActionButtons(ListView $list, array $row): string
-    {
-        $output = '<div class="btn-group" role="group">';
-
-        foreach ($list->getActions() as $name => $options) {
-            if ($name === 'delete') {
-                $output .= $this->renderDeleteButton($list, $row, $options);
-            } else {
-                // Other action buttons
-            }
-        }
-
-        $output .= '</div>';
-        return $output;
-    }
-
-    protected function renderDeleteButton(ListView $list, array $row, array $options): string
-    {
-        $id = $row[$options['id_field'] ?? 'id'];
-        $label = $options['label'] ?? 'Delete';
-        $confirmMsg = $options['confirm_message'] ?? 'Are you sure?';
-
-        $csrfField = '';
-        if ($list->hasCsrfProtection()) {
-            $csrfField = '<input type="hidden" name="csrf_token" value="' .
-                htmlspecialchars($list->getCsrfToken()) . '">';
-        }
-
-        return <<<HTML
-        <button type="button" class="btn btn-sm btn-danger delete-item-btn"
-            data-id="{$id}"
-            data-confirm="{$confirmMsg}"
-            data-bs-toggle="modal"
-            data-bs-target="#deleteItemModal">
-            {$label}
-        </button>
-
-        <!-- We'll also need a modal template included once for the whole list -->
-        HTML;
-    }
-
-
-    // Add method to render the delete modal once for the whole list
+    /**
+     * Render delete modal
+     *
+     * @param ListInterface $list
+     * @return string
+     */
     public function renderDeleteModal(ListView $list): string
     {
         if (!$list->hasActions() || !isset($list->getActions()['delete'])) {
@@ -383,8 +548,6 @@ class BootstrapListRenderer implements ListRendererInterface
             $csrfField = '<input type="hidden" name="csrf_token" value="' .
                 htmlspecialchars($list->getCsrfToken()) . '">';
         }
-
-        //$formAction = $options['form_action'] ?? '';
 
         return <<<HTML
         <div class="modal fade" id="deleteItemModal" tabindex="-1" aria-hidden="true">

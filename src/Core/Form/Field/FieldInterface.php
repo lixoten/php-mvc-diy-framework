@@ -10,18 +10,95 @@ namespace Core\Form\Field;
 interface FieldInterface
 {
     /**
-     * Get the field name
-     *
-     * @return string
-     */
+        * Get the field name
+        *
+        * @return string
+        */
     public function getName(): string;
 
     /**
-     * Get the field type
-     *
-     * @return string
-     */
+        * Get the field type
+        *
+        * @return string
+        */
     public function getType(): string;
+
+   /**
+    * Set the field type
+    *
+    * @param string $type
+    * @return self
+    */
+   public function setType(string $type): self;
+
+
+    /**
+    * Get the field label
+    *
+    * @return string
+    */
+    public function getLabel(): string;
+
+    /**
+     * Get formatter(s) for this field.
+     *
+     * @return null|callable|string|array<int, callable|string>
+     */
+    public function getFormatters(): null|callable|string|array;
+
+    /**
+     * Set formatter(s) for this field.
+     *
+     * @param null|callable|string|array<int, callable|string> $formatters
+     * @return self
+     */
+    public function setFormatters(null|callable|string|array $formatters): self;
+
+
+    /**
+     * Get validator(s) for this field.
+     *
+     * @return null|callable|string|array<int, callable|string>
+     */
+    public function getValidators(): null|callable|string|array;
+
+    /**
+     * Set validator(s) for this field.
+     *
+     * @param null|callable|string|array<int, callable|string> $formatters
+     * @return self
+     */
+    public function setValidators(null|callable|string|array $validators): self;
+
+
+
+
+
+
+    /**
+     * Get HTML attributes
+     *
+     * @return array<string, mixed>
+     */
+    public function getAttributes(): array;
+
+    /**
+        * Get a specific attribute value
+        *
+        * @param string $name Attribute name
+        * @param mixed $default Default value if attribute doesn't exist
+        * @return mixed
+        */
+    public function getAttribute(string $name, $default = null);
+
+//    /**
+//     * Get HTML attributes as a string
+//     *
+//     * @return string
+//     */
+//    public function getAttributesString(): string;
+//
+
 
     /**
      * Get the field value
@@ -39,33 +116,26 @@ interface FieldInterface
     public function setValue($value): self;
 
     /**
-     * Get the field label
-     *
-     * @return string
-     */
-    public function getLabel(): string;
-
-    /**
      * Get field error messages
      *
-     * @return array
+     * @return array<int, string>
      */
     public function getErrors(): array;
 
-    /**
-     * Add an error message
-     *
-     * @param string $message
-     * @return self
-     */
-    public function addError(string $message): self;
-
-    /**
-     * Check if field has errors
-     *
-     * @return bool
-     */
-    public function hasError(): bool;
+//    /**
+//     * Add an error message
+//     *
+//     * @param string $message
+//     * @return self
+//     */
+//    public function addError(string $message): self;
+//
+//    /**
+//     * Check if field has errors
+//     *
+//     * @return bool
+//     */
+//    public function hasError(): bool;
 
     /**
      * Get all field options
@@ -74,28 +144,7 @@ interface FieldInterface
      */
     public function getOptions(): array;
 
-    /**
-     * Get HTML attributes
-     *
-     * @return array
-     */
-    public function getAttributes(): array;
 
-   /**
-     * Get a specific attribute value
-     *
-     * @param string $name Attribute name
-     * @param mixed $default Default value if attribute doesn't exist
-     * @return mixed
-     */
-    public function getAttribute(string $name, $default = null);
-
-    /**
-     * Get HTML attributes as a string
-     *
-     * @return string
-     */
-    public function getAttributesString(): string;
 
 
     /**
@@ -105,13 +154,13 @@ interface FieldInterface
      */
     public function isRequired(): bool;
 
-    public function setOptions(array $options): self;
-
-
-    /**
-     * Render the field as HTML
-     *
-     * @return string
-     */
-    public function render(): string;
+//    public function setOptions(array $options): self;
+//
+//
+//    /**
+//     * Render the field as HTML
+//     *
+//     * @return string
+//     */
+//    public function render(): string;
 }

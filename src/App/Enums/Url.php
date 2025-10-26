@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Enums;
 
+use App\Helpers\DebugRt;
+
 /**
  * Enum for all application URLs and their metadata.
  *
@@ -17,14 +19,10 @@ namespace App\Enums;
  * @method array data()
  * @method string paginationUrl(?int $page = null)
  * @method array toPaginationItem(?int $page = null)
- * @method string|null icon()
- * @method string|null class()
  * @method array|null attributes()
  * @method array toLinkData(
  *     array $params = [],
  *     ?string $label = null,
- *     ?string $icon = null,
- *     ?string $class = null,
  *     ?array $attributes = null
  * )
  */
@@ -53,8 +51,18 @@ enum Url
     case CORE_CONTACT_DIRECT;
 
     case CORE_TESTY;
+    case CORE_TESTY_LIST;
     case CORE_TESTY_CREATE;
     case CORE_TESTY_EDIT;
+
+    // case CORE_TESTYS;
+    // case CORE_TESTYS_CREATE;
+    // case CORE_TESTYS_EDIT;
+    case CORE_TESTY_VIEW;
+    case CORE_TESTY_DELETE;
+
+
+
     case CORE_TESTY_PLACEHOLDER;
     case CORE_TESTY_LINKDEMO;
     case CORE_TESTY_TESTLOGGER;
@@ -63,19 +71,15 @@ enum Url
     case CORE_TESTY_EMAILTEST;
     case CORE_TESTY_PAGINATION_TEST;
     case CORE_MYNOTES;
-    case CORE_GENPOSTS;
+    case CORE_GENPOST;
 
-    case CORE_POSTS;
-    case CORE_POSTS_CREATE;
-    case CORE_POSTS_EDIT;
-    case CORE_POSTS_VIEW;
-    case CORE_POSTS_DELETE;
+    case CORE_POST;
+    case CORE_POST_CREATE;
+    case CORE_POST_EDIT;
+    case CORE_POST_VIEW;
+    case CORE_POST_DELETE;
 
-    case CORE_TESTYS;
-    case CORE_TESTYS_CREATE;
-    case CORE_TESTYS_EDIT;
-    case CORE_TESTYS_VIEW;
-    case CORE_TESTYS_DELETE;
+
 
 
     // Account URLs
@@ -83,11 +87,11 @@ enum Url
     case ACCOUNT_PROFILE;
     case ACCOUNT_MYNOTES;
 
-    case ACCOUNT_POSTS;
-    case ACCOUNT_POSTS_CREATE;
-    case ACCOUNT_POSTS_EDIT;
-    case ACCOUNT_POSTS_VIEW;
-    case ACCOUNT_POSTS_DELETE;
+    case ACCOUNT_POST;
+    case ACCOUNT_POST_CREATE;
+    case ACCOUNT_POST_EDIT;
+    case ACCOUNT_POST_VIEW;
+    case ACCOUNT_POST_DELETE;
 
     case ACCOUNT_TESTYS;
     case ACCOUNT_TESTYS_CREATE;
@@ -112,11 +116,11 @@ enum Url
     case STORE_SETTINGS;
     case STORE_CREATE;
 
-    case STORE_POSTS;
-    case STORE_POSTS_CREATE;
-    case STORE_POSTS_EDIT;
-    case STORE_POSTS_VIEW;
-    case STORE_POSTS_DELETE;
+    case STORE_POST;
+    case STORE_POST_CREATE;
+    case STORE_POST_EDIT;
+    case STORE_POST_VIEW;
+    case STORE_POST_DELETE;
 
     case STORE_TESTYS;
     case STORE_TESTYS_CREATE;
@@ -146,7 +150,9 @@ enum Url
      */
     public function data(): array
     {
-        return match ($this) {
+
+
+        $foo =  match ($this) {
             // Core URLs
             self::BASE_ADMIN => $this->routeData(
                 'admin/',
@@ -288,84 +294,10 @@ enum Url
                 'ContactDir'
             ),
 
-            self::CORE_TESTY => $this->routeData(
-                'testys',
-                'testys/index',
-                'index',
-                'Testy',
-                [],
-                'fas fa-newspaper',
-                'btn btn-primary'
-            ),
-            self::CORE_TESTY_CREATE => $this->routeData(
-                'testys/create',
-                'testys/create',
-                'create',
-                'Create Testy',
-                [],
-                'fas fa-plus'
-            ),
-            self::CORE_TESTY_EDIT => $this->routeData(
-                'testys/edit/{id}',
-                'testys/edit',
-                'edit',
-                'Edit Testy',
-                ['id'],
-                'fas fa-pencil-alt'
-            ),
 
 
 
 
-
-
-
-            self::CORE_TESTY_PLACEHOLDER => $this->routeData(
-                'testys/placeholder',
-                'testys/placeholder',
-                'placeholder',
-                'Placeholder',
-                [],
-                null,
-            ),
-            self::CORE_TESTY_LINKDEMO => $this->routeData(
-                'testys/linkdemo',
-                'testys/linkdemo',
-                'linkdemo',
-                'Link Demo',
-                [],
-                'fas fa-images'
-            ),
-            self::CORE_TESTY_TESTLOGGER => $this->routeData(
-                'testys/testlogger',
-                'testys/testlogger',
-                'testlogger',
-                'Logger'
-            ),
-            self::CORE_TESTY_TESTSESSION => $this->routeData(
-                'testys/testsession',
-                'testys/testsession',
-                'testsession',
-                'Testsession'
-            ),
-            self::CORE_TESTY_TESTDATABASE => $this->routeData(
-                'testys/testdatabase',
-                'testys/testdatabase',
-                'testdatabase',
-                'Testdatabase'
-            ),
-            self::CORE_TESTY_EMAILTEST => $this->routeData(
-                'testys/emailtest',
-                'testys/emailtest',
-                'emailtest',
-                'Emailtest'
-            ),
-            self::CORE_TESTY_PAGINATION_TEST => $this->routeData(
-                'testys/paginationtest',
-                'testys/paginationtest',
-                'paginationtest',
-                'Pagination Test'
-            ),
 
 
             self::CORE_MYNOTES => $this->routeData(
@@ -376,59 +308,49 @@ enum Url
                 [],
                 null,
             ),
-            self::CORE_GENPOSTS => $this->routeData(
-                'genposts/index',
-                'genposts/index',
+            self::CORE_GENPOST => $this->routeData(
+                'genpost/index',
+                'genpost/index',
                 'index',
-                'Posts',
+                'Post',
                 [],
-                'fas fa-blog'
             ),
 
-            self::CORE_POSTS => $this->routeData(
-                'posts/index',
-                'posts/index',
+            self::CORE_POST => $this->routeData(
+                'post',
+                // 'post/index',
+                'post/list',
                 'index',
-                'Posts',
+                'Post',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
             ),
-            self::CORE_POSTS_CREATE => $this->routeData(
-                'posts/create',
-                'posts/create',
+            self::CORE_POST_CREATE => $this->routeData(
+                'post/create',
+                'post/create',
                 'create',
                 'Create Post',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
-            self::CORE_POSTS_EDIT => $this->routeData(
-                'posts/edit/{id}',
-                'posts/edit',
+            self::CORE_POST_EDIT => $this->routeData(
+                'post/edit/{id}',
+                'post/edit',
                 'edit',
                 'Edit Post',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
-            self::CORE_POSTS_VIEW => $this->routeData(
-                'posts/view/{id}',
-                'posts/view',
+            self::CORE_POST_VIEW => $this->routeData(
+                'post/view/{id}',
+                'post/view',
                 'view',
                 'VIEW Post',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
-            self::CORE_POSTS_DELETE => $this->routeData(
-                'posts/delete/{id}',
-                'posts/delete',
+            self::CORE_POST_DELETE => $this->routeData(
+                'post/delete/{id}',
+                'post/delete',
                 'delete',
                 'Delete Post',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
             self::GENERIC => $this->routeData(
@@ -451,8 +373,6 @@ enum Url
                 'edit',
                 'Edit Generic',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
             self::GENERIC_VIEW => $this->routeData(
                 'generic/view',
@@ -460,8 +380,6 @@ enum Url
                 'view',
                 'View Generic',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
             self::GENERIC_DELETE => $this->routeData(
                 'generic/delete',
@@ -469,8 +387,6 @@ enum Url
                 'delete',
                 'Delete Generic',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
@@ -485,7 +401,6 @@ enum Url
                 'index',
                 'User Dashboard',
                 [],
-                'fas fa-tachometer-alt'
             ),
             self::ACCOUNT_PROFILE => $this->routeData(
                 'account/profile/index',
@@ -493,7 +408,6 @@ enum Url
                 'index',
                 'Profile',
                 [],
-                'fas fa-user'
             ),
             self::ACCOUNT_MYNOTES => $this->routeData(
                 'account/mynotes/index',
@@ -501,53 +415,44 @@ enum Url
                 'index',
                 'Notes',
                 [],
-                'fas fa-book'
             ),
 
-            self::ACCOUNT_POSTS => $this->routeData(
-                'account/posts/index',
-                'posts/index',
+            self::ACCOUNT_POST => $this->routeData(
+                'account/post/list',
+                'post/list',
+                // 'account/post/index',
+                // 'post/index',
                 'index',
-                'Posts',
+                'Post',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
             ),
-            self::ACCOUNT_POSTS_CREATE => $this->routeData(
-                'account/posts/create',
-                'posts/create',
+            self::ACCOUNT_POST_CREATE => $this->routeData(
+                'account/post/create',
+                'post/create',
                 'index',
                 'Create Post',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
-            self::ACCOUNT_POSTS_EDIT => $this->routeData(
-                'account/posts/edit/{id}',
-                'posts/edit',
+            self::ACCOUNT_POST_EDIT => $this->routeData(
+                'account/post/edit/{id}',
+                'post/edit',
                 'edit',
                 'Edit Post',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
-            self::ACCOUNT_POSTS_VIEW => $this->routeData(
-                'account/posts/view/{id}',
-                'posts/view',
+            self::ACCOUNT_POST_VIEW => $this->routeData(
+                'account/post/view/{id}',
+                'post/view',
                 'view',
                 'VIEW Post',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
-            self::ACCOUNT_POSTS_DELETE => $this->routeData(
-                'account/posts/delete/{id}',
-                'posts/delete',
+            self::ACCOUNT_POST_DELETE => $this->routeData(
+                'account/post/delete/{id}',
+                'post/delete',
                 'delete',
                 'Delete Post',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
@@ -556,143 +461,180 @@ enum Url
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-            self::CORE_TESTYS => $this->routeData(
-                'testys/list',
-                'testys/list',
+            self::CORE_TESTY => $this->routeData(
+                'testy',
+                'testy/index',
                 'index',
-                'Testys',
+                'Testy',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
             ),
-            self::CORE_TESTYS_CREATE => $this->routeData(
-                'testys/create',
-                'testys/create',
+            self::CORE_TESTY_LIST => $this->routeData(
+                'testy/list',
+                'testy/list',
+                'list',
+                'Testy',
+                [],
+            ),
+            self::CORE_TESTY_CREATE => $this->routeData(
+                'testy/create',
+                'testy/create',
                 'create',
                 'Create Testy',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
-            self::CORE_TESTYS_EDIT => $this->routeData(
-                'testys/edit/{id}',
-                'testys/edit',
+            self::CORE_TESTY_EDIT => $this->routeData(
+                'testy/edit/{id}',
+                'testy/edit',
                 'edit',
                 'Edit Testy',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
-            self::CORE_TESTYS_VIEW => $this->routeData(
-                'testys/view/{id}',
-                'testys/view',
+
+            self::CORE_TESTY_VIEW => $this->routeData(
+                'testy/view/{id}',
+                'testy/view',
                 'view',
                 'VIEW Testy',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
-            self::CORE_TESTYS_DELETE => $this->routeData(
-                'testys/delete/{id}',
-                'testys/delete',
+            self::CORE_TESTY_DELETE => $this->routeData(
+                'testy/delete/{id}',
+                'testy/delete',
                 'delete',
                 'Delete Testy',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
-            self::ACCOUNT_TESTYS => $this->routeData(
-                'account/testys/list',
-                'testys/list',
-                'index',
-                'Testys',
+
+
+
+
+
+            self::CORE_TESTY_PLACEHOLDER => $this->routeData(
+                'testy/placeholder',
+                'testy/placeholder',
+                'placeholder',
+                'Placeholder',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
+                null,
+            ),
+            self::CORE_TESTY_LINKDEMO => $this->routeData(
+                'testy/linkdemo',
+                'testy/linkdemo',
+                'linkdemo',
+                'Link Demo',
+                [],
+            ),
+            self::CORE_TESTY_TESTLOGGER => $this->routeData(
+                'testy/testlogger',
+                'testy/testlogger',
+                'testlogger',
+                'Logger'
+            ),
+            self::CORE_TESTY_TESTSESSION => $this->routeData(
+                'testy/testsession',
+                'testy/testsession',
+                'testsession',
+                'Testsession'
+            ),
+            self::CORE_TESTY_TESTDATABASE => $this->routeData(
+                'testy/testdatabase',
+                'testy/testdatabase',
+                'testdatabase',
+                'Testdatabase'
+            ),
+            self::CORE_TESTY_EMAILTEST => $this->routeData(
+                'testy/emailtest',
+                'testy/emailtest',
+                'emailtest',
+                'Emailtest'
+            ),
+            self::CORE_TESTY_PAGINATION_TEST => $this->routeData(
+                'testy/paginationtest',
+                'testy/paginationtest',
+                'paginationtest',
+                'Pagination Test'
+            ),
+
+
+
+
+
+
+
+
+
+            self::ACCOUNT_TESTYS => $this->routeData(
+                'account/testy/list',
+                'testy/list',
+                'index',
+                'Testy',
+                [],
             ),
             self::ACCOUNT_TESTYS_CREATE => $this->routeData(
-                'account/testys/create',
-                'testys/create',
+                'account/testy/create',
+                'testy/create',
                 'index',
                 'Create Testy',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
             self::ACCOUNT_TESTYS_EDIT => $this->routeData(
-                'account/testys/edit/{id}',
-                'testys/edit',
+                'account/testy/edit/{id}',
+                'testy/edit',
                 'edit',
                 'Edit Testy',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
             self::ACCOUNT_TESTYS_VIEW => $this->routeData(
-                'account/testys/view/{id}',
-                'testys/view',
+                'account/testy/view/{id}',
+                'testy/view',
                 'view',
                 'VIEW Testy',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
             self::ACCOUNT_TESTYS_DELETE => $this->routeData(
-                'account/testys/delete/{id}',
-                'testys/delete',
+                'account/testy/delete/{id}',
+                'testy/delete',
                 'delete',
                 'Delete Testy',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
 
             self::STORE_TESTYS => $this->routeData(
-                'stores/testys/list',
-                'testys/list',
+                'stores/testy/list',
+                'testy/list',
                 'index',
-                'Testys',
+                'Testy',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
             ),
             self::STORE_TESTYS_CREATE => $this->routeData(
-                'stores/testys/create',
-                'testys/create',
+                'stores/testy/create',
+                'testy/create',
                 'create',
                 'Create Testy',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
             self::STORE_TESTYS_EDIT => $this->routeData(
-                'stores/testys/edit/{id}',
-                'testys/edit',
+                'stores/testy/edit/{id}',
+                'testy/edit',
                 'edit',
                 'Edit Testy',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
             self::STORE_TESTYS_VIEW => $this->routeData(
-                'stores/testys/view/{id}',
-                'testys/view',
+                'stores/testy/view/{id}',
+                'testy/view',
                 'view',
                 'VIEW Testy',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
             self::STORE_TESTYS_DELETE => $this->routeData(
-                'stores/testys/delete/{id}',
-                'testys/delete',
+                'stores/testy/delete/{id}',
+                'testy/delete',
                 'delete',
                 'Delete Testy',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
@@ -711,7 +653,6 @@ enum Url
                 'index',
                 'Albums',
                 [],
-                'fas fa-images'
             ),
             // self::ACCOUNT_ALBUMS_CREATE => $this->routeData(
             //     'account/albums/create',
@@ -724,7 +665,6 @@ enum Url
             //     'albums/edit',
             //     'Edit Album',
             //     ['id'],
-            //     'fas fa-pencil-alt'
             // ),
 
 
@@ -740,7 +680,6 @@ enum Url
             //     'stores/albums/index',
             //     'Albums',
             //     [],
-            //     'fas fa-images',
             // ),
 
 
@@ -752,7 +691,6 @@ enum Url
                 'index',
                 'Store Dashboard',
                 [],
-                'fas fa-tachometer-alt'
             ),
             self::STORE_PROFILE => $this->routeData(
                 'stores/profile/index',
@@ -760,7 +698,6 @@ enum Url
                 'index',
                 'Profile',
                 [],
-                'fas fa-store'
             ),
             self::STORE_SETTINGS => $this->routeData(
                 'stores/settings/index',
@@ -768,7 +705,6 @@ enum Url
                 'index',
                 'Settings',
                 [],
-                'fas fa-store'
             ),
             self::STORE_CREATE => $this->routeData(
                 'stores/profile/create',
@@ -776,78 +712,66 @@ enum Url
                 'index',
                 'Create Store',
                 [],
-                'fas fa-plus'
             ),
-            // self::STORE_POSTS => $this->routeData(
-            //     'stores/posts/index',
-            //     'posts/index',
+            // self::STORE_POST => $this->routeData(
+            //     'stores/post/index',
+            //     'post/index',
                 // 'index',
-            //     'Posts',
+            //     'Post',
             //     [],
-            //     'fas fa-newspaper'
             // ),
-            // self::STORE_POSTS_CREATE => $this->routeData(
-            //     'stores/posts/create',
-            //     'posts/create',
+            // self::STORE_POST_CREATE => $this->routeData(
+            //     'stores/post/create',
+            //     'post/create',
                 // 'index',
             //     'Create Post',
             //     [],
-            //     'fas fa-plus'
             // ),
-            // self::STORE_POSTS_EDIT => $this->routeData(
-            //     'stores/posts/edit/{id}',
-            //     'posts/edit',
+            // self::STORE_POST_EDIT => $this->routeData(
+            //     'stores/post/edit/{id}',
+            //     'post/edit',
                 // 'index',
             //     'Edit Post',
             //     ['id'],
-            //     'fas fa-pencil-alt'
             // ),
 
 
-            self::STORE_POSTS => $this->routeData(
-                'stores/posts/index',
-                'posts/index',
+            self::STORE_POST => $this->routeData(
+                'stores/post/list',
+                'post/list',
+                // 'stores/post/index',
+                // 'post/index',
                 'index',
-                'Posts',
+                'Post',
                 [],
-                'fas fa-blog',
-                'btn btn-primary'
             ),
-            self::STORE_POSTS_CREATE => $this->routeData(
-                'stores/posts/create',
-                'posts/create',
+            self::STORE_POST_CREATE => $this->routeData(
+                'stores/post/create',
+                'post/create',
                 'create',
                 'Create Post',
                 [],
-                'fas fa-plus',
-                'btn btn-primary'
             ),
-            self::STORE_POSTS_EDIT => $this->routeData(
-                'stores/posts/edit/{id}',
-                'posts/edit',
+            self::STORE_POST_EDIT => $this->routeData(
+                'stores/post/edit/{id}',
+                'post/edit',
                 'edit',
                 'Edit Post',
                 ['id'],
-                'fas fa-pencil-alt',
-                'btn btn-primary'
             ),
-            self::STORE_POSTS_VIEW => $this->routeData(
-                'stores/posts/view/{id}',
-                'posts/view',
+            self::STORE_POST_VIEW => $this->routeData(
+                'stores/post/view/{id}',
+                'post/view',
                 'view',
                 'VIEW Post',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
-            self::STORE_POSTS_DELETE => $this->routeData(
-                'stores/posts/delete/{id}',
-                'posts/delete',
+            self::STORE_POST_DELETE => $this->routeData(
+                'stores/post/delete/{id}',
+                'post/delete',
                 'delete',
                 'Delete Post',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
@@ -863,7 +787,6 @@ enum Url
                 'index',
                 'Albums',
                 [],
-                'fas fa-images'
             ),
             self::STORE_ALBUMS_CREATE => $this->routeData(
                 'stores/albums/create',
@@ -878,7 +801,6 @@ enum Url
                 'edit',
                 'Edit Album',
                 ['id'],
-                'fas fa-pencil-alt'
             ),
             self::STORE_ALBUMS_VIEW => $this->routeData(
                 'stores/albums/view/{id}',
@@ -886,8 +808,6 @@ enum Url
                 'view',
                 'VIEW Album',
                 ['id'],
-                'fas fa-eye',
-                'btn btn-info'
             ),
             self::STORE_ALBUMS_DELETE => $this->routeData(
                 'stores/albums/delete/{id}',
@@ -895,8 +815,6 @@ enum Url
                 'delete',
                 'Delete Album',
                 ['id'],
-                'fas fa-trash',
-                'btn btn-danger'
             ),
 
 
@@ -919,7 +837,6 @@ enum Url
                 'index',
                 'Admin Dashboard',
                 [],
-                'fas fa-tachometer-alt'
             ),
             self::ADMIN_USERS => $this->routeData(
                 'admin/users/index',
@@ -927,10 +844,10 @@ enum Url
                 'index',
                 'Manage Users',
                 [],
-                'fas fa-users',
-                'xxxbtn xxxbtn-danger'
             ),
         };
+
+        return $foo;
     }
 
 
@@ -944,8 +861,6 @@ enum Url
         string $action,
         string $label,
         array $params = [],
-        ?string $icon = null,
-        ?string $class = null
     ): array {
         $data = [
             'path' => $path,
@@ -1012,17 +927,6 @@ enum Url
             $data['section'] = null;
             $data['requiresAuth'] = false;
             $data['roles'] = [];
-        }
-
-
-        // Only add icon if provided.
-        if ($icon !== null) {
-            $data['icon'] = $icon;
-        }
-
-        // Only add class if provided.
-        if ($class !== null) {
-            $data['class'] = $class;
         }
 
         return $data;
@@ -1110,6 +1014,12 @@ enum Url
         return $this->data()['label'];
     }
 
+    public function pageName(): string
+    {
+        $pageName = $this->data()['view'];
+        $pageName = str_replace('/', '_', $pageName);
+        return $pageName;
+    }
 
 
     // public function toLinkData(?string $label = null, array $params = []): array
@@ -1118,7 +1028,6 @@ enum Url
     //         // 'url' => $this,
     //         'url' => $this->url($params),
     //         'label' => $label ?? $this->label(),
-    //         'icon' => $this->icon(),
     //         // 'params' => $params,
     //     ];
     // }
@@ -1128,17 +1037,15 @@ enum Url
         array $params = [],
         // string $action = null,
         ?string $label = null,
-        ?string $icon = null,
-        ?string $class = null,
-        ?array $attributes = null
+        ?array $attributes = null,
+        ?array $action = null
     ): array {
         return [
             'url' => $this->url($params),
             // 'action' => $action ?? $this->action(),
             'label' => $label ?? $this->label(),
-            'icon' => $icon ?? $this->icon(),
-            'class' => $class ?? $this->class(),
             'attributes' => $attributes ?? $this->attributes(),
+            'action' => $action ?? $this->action(),
         ];
     }
 
@@ -1175,8 +1082,8 @@ enum Url
 
     /**
      * Generate a pagination URL for this route
-     * example: $template = Url::STORE_POSTS->paginationUrl();
-     *        : $page3 = Url::STORE_POSTS->paginationUrl(3);
+     * example: $template = Url::STORE_POST->paginationUrl();
+     *        : $page3 = Url::STORE_POST->paginationUrl(3);
      *
      * @param int|null $page The current page number (null for template with {page} placeholder)
      * @return string The pagination URL
@@ -1188,7 +1095,7 @@ enum Url
 
         return $paginationUrl;
     }
-    // Returns: /account/stores/posts/page/{page}
+    // Returns: /account/stores/post/page/{page}
 
     /**
      * Get pagination URL and label as an array suitable for pagination controls
@@ -1206,25 +1113,6 @@ enum Url
     }
 
     /**
-     * Get the icon for this URL
-     */
-    public function icon(): ?string
-    {
-        $data = $this->data();
-        return $data['icon'] ?? null;
-    }
-
-
-    /**
-     * Get the class for this URL
-     */
-    public function class(): ?string
-    {
-        $data = $this->data();
-        return $data['class'] ?? null;
-    }
-
-    /**
      * Get the attributes for this URL
      */
     public function attributes(): ?array
@@ -1233,3 +1121,4 @@ enum Url
         return $data['attributes'] ?? null;
     }
 }
+// 1257 1123

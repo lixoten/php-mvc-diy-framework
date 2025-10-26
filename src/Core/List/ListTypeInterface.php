@@ -58,6 +58,7 @@ interface ListTypeInterface
      */
     public function setOptions(array $options): void;
 
+    public function setFocus(string $pageName, string $entityName ): void;
 
 
     /**
@@ -100,7 +101,7 @@ interface ListTypeInterface
      *
      * @return array List of default column names.
      */
-    public function getListFields(): array;
+    public function getFields(): array;
 
 
     /**
@@ -108,10 +109,10 @@ interface ListTypeInterface
      *
      * Any invalid fields names will be removed.
      *
-     * @param array $listFields Associative array of list fields.
+     * @param array $fields Associative array of list fields.
      * @return void
      */
-    public function setListFields(array $listFields): void;
+    public function setFields(array $fields): void;
 
 
     /**

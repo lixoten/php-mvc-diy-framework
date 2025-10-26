@@ -1,0 +1,97 @@
+﻿/* Custom Bootstrap theme styles */
+
+:root {
+    /* --base-primary: var(--bs-primary);
+    --base-secondary:  var(--bs-secondary);
+    --base-accent: #e6c779;
+    --base-light: var(--bs-light);
+    --base-dark: var(--bs-dark); */
+
+/* --base-primary: #2c6aa0;
+    --base-secondary: #b33c3c;
+    --base-accent: #e6c779;
+    --base-light: #f0f8ff;
+    --base-dark: #233240; */
+
+    /* --base-shadow: rgba(68, 132, 182, 0.2); */
+
+    /* --nav-bg: linear-gradient(90deg, rgb(247, 249, 250) 0%, #e3e3e3 100%); */
+
+
+    /* --primary-color: var(--base-primary);
+    --nav-link-radius: 0;
+    --nav-shadow: 0 2px 12px rgba(23, 78, 166, 0.06);
+    --secondary-color: var(--base-secondary);
+    --border-color: var(--base-primary); */
+
+    /* Layout elements */
+    /* --header-bg: var(--base-primary);
+    --footer-bg: var(--base-dark);
+    --sidebar-bg: var(--base-dark); */
+
+    /* Navigation */
+    /* --nav-bg: linear-gradient(to right, var(--base-primary), #d8e4ed);
+    --nav-shadow: 0 2px 12px rgba(23, 78, 166, 0.06);
+    --nav-link-radius: 0;
+    --nav-link-color: white;
+    --nav-link-bg: rgba(255, 255, 255, 0.1);
+    --nav-link-border-radius: 6px;
+    --nav-link-hover-bg: rgba(255, 255, 255, 0.2);
+    --nav-link-hover-color: var(--base-light);
+    --nav-link-active-bg: var(--base-accent);
+    --nav-link-active-color: var(--base-dark);
+    --navbar-brand-color: var(--base-primary);
+    --navbar-brand-font-size: 1.5rem;
+    --navbar-brand-font-weight: 700;
+    --navbar-brand-letter-spacing: 1px;
+    --navbar-padding-x: 2rem;
+    --navbar-padding-y: 0.5rem;
+    --navbar-border-color: #e2e6ea; */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+  /* Navigation styling */
+  /* nav ul {
+    background: var(--nav-bg);
+    border-radius: var(--nav-border-radius);
+    box-shadow: 0 4px 8px var(--winter-shadow);
+    padding: var(--nav-padding);
+  }
+
+  nav li a {
+    background-color: var(--nav-link-bg);
+    color: var(--nav-link-color);
+    border-radius: var(--nav-link-border-radius);
+    font-weight: 500;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+    letter-spacing: 0.5px;
+  }
+
+  nav li a:hover {
+    background-color: var(--nav-link-hover-bg);
+    color: var(--nav-link-hover-color);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+
+  nav li.active a {
+    background-color: var(--nav-link-active-bg);
+    color: var(--nav-link-active-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    font-weight: 600;
+  } */

@@ -96,7 +96,7 @@ class NavigationService
                     Url::ACCOUNT_DASHBOARD->toLinkData(),
                     Url::ACCOUNT_PROFILE->toLinkData(),
                     Url::ACCOUNT_MYNOTES->toLinkData(),
-                    Url::ACCOUNT_POSTS->toLinkData(),
+                    Url::ACCOUNT_POST->toLinkData(),
                     Url::ACCOUNT_ALBUMS->toLinkData(),
                 ],
             ]
@@ -105,7 +105,7 @@ class NavigationService
             // Url::ACCOUNT_DASHBOARD->toLinkData(),
             // Url::ACCOUNT_PROFILE->toLinkData(),
             // Url::ACCOUNT_MYNOTES->toLinkData(),
-            // Url::ACCOUNT_POSTS->toLinkData(),
+            // Url::ACCOUNT_POST->toLinkData(),
             // Url::ACCOUNT_ALBUMS->toLinkData(),
         // ];
         // return array_map(
@@ -127,7 +127,7 @@ class NavigationService
                     Url::STORE_DASHBOARD->toLinkData(),
                     Url::STORE_PROFILE->toLinkData(),
                     Url::STORE_SETTINGS->toLinkData(),
-                    Url::STORE_POSTS->toLinkData(),
+                    Url::STORE_POST->toLinkData(),
                     Url::STORE_ALBUMS->toLinkData(),
                 ]
             ]
@@ -185,7 +185,7 @@ class NavigationService
                     Url::STORE_DASHBOARD->toLinkData(),
                     Url::STORE_PROFILE->toLinkData(),
                     Url::STORE_SETTINGS->toLinkData(),
-                    Url::STORE_POSTS->toLinkData(),
+                    Url::STORE_POST->toLinkData(),
                     Url::STORE_ALBUMS->toLinkData(),
                 ],
                 'store-nav',
@@ -212,7 +212,7 @@ class NavigationService
                 Url::ACCOUNT_DASHBOARD->toLinkData(),
                 Url::ACCOUNT_PROFILE->toLinkData(),
                 Url::ACCOUNT_MYNOTES->toLinkData(),
-                Url::ACCOUNT_POSTS->toLinkData(),
+                Url::ACCOUNT_POST->toLinkData(),
                 Url::ACCOUNT_ALBUMS->toLinkData(),
             ],
             'account-nav',

@@ -7,6 +7,10 @@ namespace Core\Form\Renderer;
 use Core\Form\FormInterface;
 use Core\Form\Field\FieldInterface;
 use App\Helpers\DebugRt;
+use Core\Services\ClosureFormatterService;
+use Core\Services\FormatterService;
+use Core\Services\ThemeServiceInterface;
+use Psr\Log\LoggerInterface;
 
 use function PHPUnit\Framework\isEmpty;
 use function PHPUnit\Framework\isNull;
@@ -16,6 +20,23 @@ use function PHPUnit\Framework\isNull;
  */
 class BootstrapFormRenderer implements FormRendererInterface
 {
+    private ThemeServiceInterface $themeService; 
+    private FormatterService $formatterService;
+    private LoggerInterface $logger;
+
+    /**
+     * @param FormatterService $formatterService
+     */
+    public function __construct(
+        ThemeServiceInterface $themeService,  // <-- Change from FormatterService
+        FormatterService $formatterService,
+        LoggerInterface $logger
+    ) {
+        $this->themeService = $themeService;
+        $this->formatterService = $formatterService;
+        $this->logger = $logger;
+    }
+
     /**
      * {@inheritdoc}
      */
@@ -69,9 +90,9 @@ class BootstrapFormRenderer implements FormRendererInterface
         // $layout[0]['fields'] = $options['form_fields'];
         // $layout = $options['layout'];
 
-        if (!is_array($layout) || empty($layout)) {
-            $layout[0]['fields'] = $options['form_fields'];
-        }
+        //if (!is_array($layout) || empty($layout)) {
+         //   $layout[0]['fields'] = $options['form_fields'];
+        //}
 
         $layout_type = $options['layout_type'] ?? 'sequential';
 
@@ -87,6 +108,8 @@ class BootstrapFormRenderer implements FormRendererInterface
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
                 $output .= $this->renderField($field, $options);
+                $field->setType('display');
+                $rrr = 4;
             }
         }
 
@@ -224,8 +247,88 @@ class BootstrapFormRenderer implements FormRendererInterface
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
-        $label = $field->getLabel();
-        $value = htmlspecialchars((string)$field->getValue());
+        // $label = $field->getLabel();
+        $label = htmlspecialchars($field->getLabel());  // Escape first for security
+
+
+        //$value = htmlspecialchars((string)$field->getValue());
+        // Get the raw value
+        $rawValue = $field->getValue();
+        $fieldOptions = $field->getOptions();
+        $value = '';
+
+        // $formatters = $fieldOptions['formatter'];
+        $formatters = $field->getFormatters();
+
+
+        //$accesskey = $fieldConfig['form']['attributes']['accesskey'] ?? null;
+        $accesskey = $field->getAttribute('accesskey');
+
+        if ($accesskey) {
+            // Underline the access key in the label (case-insensitive)
+            $pos = stripos($label, $accesskey);
+            if ($pos !== false) {
+                $label = substr_replace(
+                    $label,
+                    '<u>' . substr($label, $pos, 1) . '</u>',
+                    $pos,
+                    1
+                );
+            } else {
+                // If not in label, append in parentheses
+                $label .= ' (<u>' . strtoupper($accesskey) . '</u>)';
+            }
+        }
+
+
+        // Important!!! - Uber_GEO, Uber_Formatter, Uber_Phone
+        if (!empty($field->getErrors())) {
+            // Show the original user input (escaped)
+            $value = htmlspecialchars((string)$rawValue ?? '');
+        } elseif (isset($formatters)) {
+            //$formatters = $formatter;
+
+            // Ensure formatters is an array for uniform processing
+            if (!is_array($formatters)) {
+                $formatters = [$formatters];
+            }
+
+            // Start with the raw value
+            $currentValue = $rawValue;
+
+            // Apply each formatter in sequence
+            foreach ($formatters as $key => $formatter) {
+                if (is_int($key) && is_string($formatter)) {
+                    // Simple string: 'phone'
+                    $currentValue = $this->formatterService->format($formatter, $currentValue, []);
+
+                } elseif (is_int($key) && is_callable($formatter)) {
+                    $aaa = new ClosureFormatterService();
+                    // $currentValue = $this->formatterService->formatClosure($formatter, $currentValue, []);
+                    $currentValue = $aaa->format($formatter, $currentValue, []);
+
+                } elseif (is_string($key)) {
+                    // Associative array: 'phone' => [options] or closure //xx
+                    if (is_callable($formatter)) {
+                        $currentValue = $formatter($currentValue);
+                    } else {
+                        $currentValue = $this->formatterService->format($key, $currentValue, $formatter ?? []);
+                    }
+                }
+            }
+
+            // Final value after all formatters: escape unless it's a display field with HTML output
+            if (($type === 'display' || $type === 'file') && !empty($formatters)) {
+                $value = (string)$currentValue;
+            } else {
+                $value = htmlspecialchars((string)$currentValue ?? '');
+            }
+        } else {
+            // Fallback for fields without a formatter
+            $value = htmlspecialchars((string)$rawValue ?? '');
+        }
+
+
         $errors = $field->getErrors();
         //$required = $field->isRequired() ? ' required' : ''; //fixme
 
@@ -255,11 +358,27 @@ class BootstrapFormRenderer implements FormRendererInterface
         // Get all attributes
         $attributes = $field->getAttributes();
 
+
+
         // Autofocus logic: set autofocus on the first field with errors
         if (!empty($field->getErrors()) && !$autofocusSet) {
             $attributes['autofocus'] = true;
             $autofocusSet = true;
         }
+
+
+        // Add ARIA attributes for accessibility (applies to all fields)
+        if ($field->isRequired()) {
+            $attributes['aria-required'] = 'true';
+        }
+        if (!empty($errors)) {
+            $attributes['aria-invalid'] = 'true';
+            $attributes['aria-describedby'] = $id . '-error';
+        }
+
+
+
+
 
         // Add default Bootstrap classes if not specified
         $class = 'form-control';
@@ -273,43 +392,46 @@ class BootstrapFormRenderer implements FormRendererInterface
         // }
 
 
-
-
-
-
-
-
-
-
-        $fieldOptions = $field->getOptions();
-
-        // Add live validation attribute if enabled in config
-        if (!empty($fieldOptions['live_validation'])) {
-            $attributes['data-live-validation'] = 'true';
-        }
-
-
-
-
-
-
-
-
-
-
-
-
         // Build attribute string
         $attrString = '';
-        // foreach ($attributes as $attrName => $attrValue) {
-        //     // Skip id as we handle it separately
-        //     if ($attrName === 'id') {
-        //         continue;
-        //     }
-        //     $attrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
-        // }
         foreach ($attributes as $attrName => $attrValue) {
             // Skip id as we handle it separately
+            if ($attrName === 'data-show-value') {
+                continue;
+            }
+            if ($attrName === 'minlength_message') {
+                continue;
+            }
+            if ($attrName === 'maxlength_message') {
+                continue;
+            }
+            if ($attrName === 'custom_minlength_message') {
+                continue;
+            }
+            if ($attrName === 'custom_maxlength_message') {
+                continue;
+            }
+            if ($attrName === 'custom_min_message') {
+                continue;
+            }
+            if ($attrName === 'custom_max_message') {
+                continue;
+            }
+            if ($attrName === 'custom_invalid_message') {
+                continue;
+            }
+            if ($attrName === 'min_message') {
+                continue;
+            }
+            if ($attrName === 'max_message') {
+                continue;
+            }
+            if ($attrName === 'invalid_message') {
+                continue;
+            }
+            if ($attrName === 'required_message') {
+                continue;
+            }
             if ($attrName === 'id') {
                 continue;
             }
@@ -371,7 +493,7 @@ class BootstrapFormRenderer implements FormRendererInterface
 
                 // Render CAPTCHA
                 $output = '<div class="mb-3">';
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
                 $output .= $captchaService->render($id, [
                     'theme' => $theme,
                     'size' => $size
@@ -393,15 +515,57 @@ class BootstrapFormRenderer implements FormRendererInterface
 
         // Different rendering based on field type
         switch ($type) {
+            case 'display':
+                $output .= '<span class="form-label" for="' . $id . '">' . $label . '</span>';
+                $output .= "<div class=\"{$class}{$errorClass}\" id=\"{$id}\" name=\"{$name}\"" .
+                    "{$ariaAttrs}{$attrString}>{$value}</div>";
+                //$output .= $errorHTML;
+                break;
+            case 'file':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                 $output .= '<div class="mb-2">' . $value . '</div>';
+
+                // // Display current image if value exists
+                // if (!empty($rawValue)) {
+                //     // Use the image formatter if defined
+                //     foreach ($formatters as $formatter) {
+                //         $formatterName = is_array($formatter) ? $formatter['name'] : $formatter;
+                //         $formatterOptions = is_array($formatter) ? ($formatter['options'] ?? []) : [];
+                //         if ($formatterName === 'image') {
+                //             $imgHtml = $this->formatterService->format('image', $rawValue, $formatterOptions);
+                //             $output .= '<div class="mb-2">' . $imgHtml . '</div>';
+                //             break;
+                //         }
+                //     }
+                // }
+
+                $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+
+                // $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                // $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' . $attrString . '>';
+                // $output .= $errorHTML;
+                // break;
+
+
             case 'checkbox':
-                $checked = $field->getValue() ? ' checked' : '';
+                // $checked = $field->getValue() ? ' checked' : '';
 
-                // Build attribute string for the checkbox input
-                $checkboxAttributes = $field->getAttributes();
-                $checkboxAttributes['id'] = $id;
-                $checkboxAttributes['name'] = $name;
 
-                if ($checked) {
+                 // Build attribute string for the checkbox input
+                 $checkboxAttributes = $field->getAttributes();
+                 $checkboxAttributes['id'] = $id;
+                 $checkboxAttributes['name'] = $name;
+                 $checkboxAttributes['value'] = '1';
+
+                // Add ARIA attributes for accessibility (applies to all fields)
+                if ($field->isRequired()) {
+                    $checkboxAttributes['aria-required'] = 'true';
+                }
+
+                if ($field->getValue()) {
                     $checkboxAttributes['checked'] = true;
                 }
 
@@ -411,26 +575,54 @@ class BootstrapFormRenderer implements FormRendererInterface
                         $checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
                         continue;
                     }
+                    // Skip id as we handle it separately
+                    if ($attrName === 'minlength_message') {
+                        continue;
+                    }
+                    if ($attrName === 'maxlength_message') {
+                        continue;
+                    }
+                    if ($attrName === 'min_message') {
+                        continue;
+                    }
+                    if ($attrName === 'max_message') {
+                        continue;
+                    }
+                    if ($attrName === 'invalid_message') {
+                        continue;
+                    }
+                    if ($attrName === 'required_message') {
+                        continue;
+                    }
+                    if ($attrName === 'type') {
+                        continue;
+                    }
+                    // if ($attrName === 'class') {
+                    //     continue;
+                    // }
                     if (is_bool($attrValue)) {
                         if ($attrValue) {
                             $checkboxAttrString .= ' ' . $attrName;
                         }
                         continue;
                     }
-                    $checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                    if ($attrValue !== null) {
+                        $checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                    }
+                    //$checkboxAttrString .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
                 }
 
                 $output .= '<div class="form-check">';
                 $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '"' .
-                    $checkboxAttrString . '>';
-                $output .= '<label class="form-check-label" for="' . $id . '">' . htmlspecialchars($label) .
+                    $ariaAttrs . $checkboxAttrString . '>';
+                $output .= '<label class="form-check-label" for="' . $id . '">' . $label .
                     '</label>';
                 $output .= $errorHTML;
                 $output .= '</div>';
                 break;
 
             case 'radio':
-                $output .= '<label>' . htmlspecialchars($label) . '</label>';
+                $output .= '<label>' . $label . '</label>';
                 $optionsList = $field->getOptions()['choices'] ?? [];
                 foreach ($optionsList as $optionValue => $optionLabel) {
                     $checked = ($field->getValue() == $optionValue) ? ' checked' : '';
@@ -474,26 +666,27 @@ class BootstrapFormRenderer implements FormRendererInterface
 
             case 'select':
                 $output .= '<label class="form-label" for="' . $id . '">';
-                $output .= htmlspecialchars($label);
+                $output .= $label;
                 $output .= '</label>';
 
-                //$output .= $required . $ariaAttrs . $attrString . '>';
+                $output .= '<select class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' .
+                    $ariaAttrs . $attrString . '>';
 
-                $output .= '<input type="text" class="'
-                    . $class . $errorClass . '" id="' . $id . '" name="' . $name . '" ';
-
-                $output .= 'value="' . $value . '"' . $attrString . '>';
-
-                $options = $field->getOptions()['choices'] ?? [];
-                $placeholder = $field->getOptions()['placeholder'] ?? null;
-
-                if ($placeholder) {
-                    $output .= '<option value="">' . htmlspecialchars($placeholder) . '</option>';
+                // $options = $field->getOptions()['options'] ?? [];
+                $choices = $field->getOptions()['choices'] ?? [];
+                $defaultChoice = $field->getOptions()['default_choice'] ?? null;
+                if ($defaultChoice) {
+                    $output .= '<option value="">' . htmlspecialchars($defaultChoice) . '</option>';
                 }
 
-                foreach ($options as $optionValue => $optionLabel) {
-                    $selected = ($field->getValue() == $optionValue) ? ' selected' : '';
-                    $output .= '<option value="' . htmlspecialchars((string)$optionValue) . '"' . $selected . '>';
+                // foreach ($options as $optionValue => $optionLabel) {
+                //     $selected = ($field->getValue() == $optionValue) ? ' selected' : '';
+                //     $output .= '<option value="' . htmlspecialchars((string)$optionValue) . '"' . $selected . '>';
+                //     $output .= htmlspecialchars($optionLabel) . '</option>';
+                // }
+                foreach ($choices as $choiceValue => $optionLabel) {
+                    $selected = ($field->getValue() == $choiceValue) ? ' selected' : '';
+                    $output .= '<option value="' . htmlspecialchars((string)$choiceValue) . '"' . $selected . '>';
                     $output .= htmlspecialchars($optionLabel) . '</option>';
                 }
 
@@ -502,93 +695,186 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
 
             case 'textarea':
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-
-                $output .= '<textarea class="' . $class . $errorClass . '" id="' . $id
-                    . '" name="' . $name . '"' . $ariaAttrs . $attrString . '>' . $value . '</textarea>';
+                $output .= "<label class=\"form-label\" for=\"{$id}\">{$label}</label>";
+                $output .= "<textarea class=\"{$class}{$errorClass}\" id=\"{$id}\" name=\"{$name}\"" .
+                    "{$ariaAttrs}{$attrString}>{$value}</textarea>";
                 $output .= $errorHTML;
-
-                $output .= $this->renderCharCounter($field);        // js-feature
-                $output .= $this->renderLiveErrorContainer($field); // js-feature
+                break;
+            case 'color':
+                $output .= "<label class=\"form-label\" for=\"{$id}\">{$label}</label>";
+                $output .= "<input type=\"color\" class=\"{$class} {$errorClass}\" id=\"{$id}\""
+                        . " name=\"{$name}\" value=\"{$value}\" {$attrString}>";
+                // Add datalist if provided
+                if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
+                    $datalistId = $attributes['list'] ?? $id . '-list';
+                    $output .= '<datalist id="' . $datalistId . '">';
+                    foreach ($fieldOptions['datalist'] as $option) {
+                        $output .= '<option value="' . htmlspecialchars($option) . '">';
+                    }
+                    $output .= '</datalist>';
+                }
+                $output .= $errorHTML;
                 break;
 
             case 'text':
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
-                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
-                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                // Add datalist if provided
+                if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
+                    $datalistId = $attributes['list'] ?? $id . '-list';
+                    $output .= '<datalist id="' . $datalistId . '">';
+                    foreach ($fieldOptions['datalist'] as $option) {
+                        $output .= '<option value="' . htmlspecialchars($option) . '">';
+                    }
+                    $output .= '</datalist>';
+                }
                 $output .= $errorHTML;
-
-                $output .= $this->renderCharCounter($field);        // js-feature
-                $output .= $this->renderLiveErrorContainer($field); // js-feature
-
                 break;
+
+            case 'password':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="password" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'email':
+                //$fieldOptions = $field->getOptions();
+
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="email" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'tel':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="tel" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                // Add datalist if provided
+                if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
+                    $datalistId = $attributes['list'] ?? $id . '-list';
+                    $output .= '<datalist id="' . $datalistId . '">';
+                    foreach ($fieldOptions['datalist'] as $option) {
+                        $output .= '<option value="' . htmlspecialchars($option) . '">';
+                    }
+                    $output .= '</datalist>';
+                }
+                $output .= $errorHTML;
+                break;
+
+            case 'url':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="url" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'search':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="search" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
             case 'date':
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
                 $output .= '<input type="date" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
                     $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
-                $output .= $this->renderLiveErrorContainer($field); // js-feature
-
-                //$output .= $this->renderCharCounter($field);        // js-feature
-                //$output .= $this->renderLiveErrorContainer($field); // js-feature
-
                 break;
+
+            case 'datetime':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="datetime-local" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'month':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="month" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'number':
+            case 'decimal':
+                // $fieldOptions = $field->getOptions();
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="number" class="' . $class . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                // Add datalist if provided
+                if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
+                    $datalistId = $attributes['list'] ?? $id . '-list';
+                    $output .= '<datalist id="' . $datalistId . '">';
+                    foreach ($fieldOptions['datalist'] as $option) {
+                        $output .= '<option value="' . htmlspecialchars($option) . '">';
+                    }
+                    $output .= '</datalist>';
+                }
+
+                if (!empty($attributes['data-show-value'])) {
+                    $output .= '<output for="' . $id . '" id="' . $id . '_output">' . htmlspecialchars($value) . '</output>';
+                }
+                $output .= $errorHTML;
+                break;
+
+            case 'range':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="range" class="' . $class . ' form-control-range-custom' . $errorClass . '" id="' . $id .
+                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                // Render datalist for tick marks if configured
+                 if (!empty($attributes['list']) && !empty($fieldOptions['tickmarks'])) {
+                    // if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
+                    $listId = htmlspecialchars($attributes['list']);
+                    $output .= '<datalist id="' . $listId . '">';
+                    foreach ($fieldOptions['tickmarks'] as $tick) {
+                        // $output .= '<option value="' . htmlspecialchars($tick) . '"></option>';
+                        // $output .= "<option value=\"' . htmlspecialchars((string)$tick) . '\" label=\"{$tick}\" ></option>";
+                        $output .= '<option value="' . htmlspecialchars((string)$tick) . '" label="' . htmlspecialchars((string)$tick) . '"></option>';
+                    }
+                    $output .= '</datalist>';
+                }
+
+                if (!empty($attributes['data-show-value'])) {
+                    $output .= '<output for="' . $id . '" id="' . $id . '_output">' . htmlspecialchars($value) . '</output>';
+                }
+                $output .= $errorHTML;
+                break;
+
+            case 'week':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="week" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
+            case 'time':
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= '<input type="time" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                    $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $errorHTML;
+                break;
+
             case 'hidden':
                 $output .= '<input type="hidden" id="' . $id . '" name="' .
                     $name . '" value="' . $value . '"' . $attrString . '>';
                 break;
 
             default:
-                $output .= '<label class="form-label" for="' . $id . '">' . htmlspecialchars($label) . '</label>';
+                DebugRt::j('1', '', 'BOOOOMMMM');
+                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
                 $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
                     $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
-
-                $output .= $this->renderCharCounter($field);        // js-feature
-                $output .= $this->renderLiveErrorContainer($field); // js-feature
                 break;
         }
 
-        $output .= '</div>';
+            $output .= '</div>';
 
         return $output;
-    }
-
-    /**
-     * Render a character counter for a field if enabled in config.
-     *
-     * @param FieldInterface $field
-     * @return string
-     */
-    private function renderCharCounter(FieldInterface $field): string // js-feature
-    {
-        // Character Counter Feature - JS
-        $fieldOptions = $field->getOptions();
-        if (!empty($fieldOptions['show_char_counter'])) {
-            $id = $field->getAttribute('id') ?? $field->getName();
-            $maxlength = $field->getAttribute('maxlength') ?? 30;
-            return '<small id="' . $id . '-counter" class="form-text char-counter" style="display:none;">0 / ' .
-                (int)$maxlength . '</small>';
-        }
-        return '';
-    }
-
-    /**
-     * Render a live validation error container for a field if enabled in config.
-     *
-     * @param FieldInterface $field
-     * @return string
-     */
-    private function renderLiveErrorContainer(FieldInterface $field): string // js-feature
-    {
-        // Live Validation Feature - JS
-        $fieldOptions = $field->getOptions();
-        if (!empty($fieldOptions['live_validation'])) {
-            $id = $field->getAttribute('id') ?? $field->getName();
-            // Optionally add an ID for JS targeting, e.g., "{$id}-error"
-            return '<div class="live-error text-danger mt-1" id="' . $id . '-error"></div>';
-        }
-        return '';
     }
 
     /**
@@ -680,6 +966,17 @@ class BootstrapFormRenderer implements FormRendererInterface
     public function renderStart(FormInterface $form, array $options = []): string
     {
         $attributes = $form->getAttributes();
+
+
+
+        // Add enctype if any field is of type 'file'
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'file') {
+                $attributes['enctype'] = 'multipart/form-data';
+                break;
+            }
+        }
+
 
 
         // Include HTML attributes from options (ADD THIS CODE)

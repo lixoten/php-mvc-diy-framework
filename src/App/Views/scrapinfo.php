@@ -8,14 +8,18 @@ declare(strict_types=1);
  * @var \Core\Context\CurrentContext $scrap
  * @var string $title - Page title
  */
+
+// $rr = $this->scrap();
+// $rr = $scrap();
+// $rr = 33;
 ?>
 
-<div class="card mb-4">
-    <div class="card-header bg-primary text-white">
+<div class="scrap-container card mb-4 table-responsive">
+    <div class="scrap-head card-header bg-primary text-white">
         Debug Info
     </div>
-    <div class="card-body">
-        <table class="table table-bordered table-striped mb-0">
+    <div class="scrap-body card-body">
+        <table class="scrap-table table table-bordered table-striped mb-0">
             <tbody>
                 <tr>
                     <th scope="row">Namespace</th>
@@ -59,3 +63,5 @@ declare(strict_types=1);
         </table>
     </div>
 </div>
+
+

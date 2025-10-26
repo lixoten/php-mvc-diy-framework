@@ -77,7 +77,7 @@ class FieldTypeRegistry
      */
     public function createField(string $name, string $type, array $options = []): FieldInterface
     {
-        $fieldType = $this->get($type);
+        $fieldType = $this->get($type); // We are getting a FieldType Object
         return $fieldType->buildField($name, $options);
         // Chained
         // return $this->get($type)->buildField($name, $options);

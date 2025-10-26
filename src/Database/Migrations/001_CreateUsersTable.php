@@ -13,6 +13,11 @@ class CreateUsersTable extends Migration
      */
     public function up(): void
     {
+        // Idempotent guard: skip if table already exists
+        if ($this->schema->hasTable('users')) {
+            return;
+        }
+
         $this->create('users', function ($table) {
             $table->bigIncrements('user_id');
             $table->string('username', 50)->unique();

@@ -26,6 +26,6 @@ use App\Helpers\DebugRt;
     <?php endif; ?>
 
     <div class="mt-4">
-        <a href="<?= BASE_URL ?>/testys" class="btn btn-primary">Back to Testy</a>
+        <a href="<?= BASE_URL ?>/testy" class="btn btn-primary">Back to Testy</a>
     </div>
 </div>

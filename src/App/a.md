@@ -1,9 +1,9 @@
 ```SQL
 CREATE TABLE posts (
-    post_id INT AUTO_INCREMENT PRIMARY KEY, -- Unique identifier for the post
-    post_user_id INT NOT NULL,                         -- Reference to the user who created the post
+    id INT AUTO_INCREMENT PRIMARY KEY, -- Unique identifier for the post
+    user_id INT NOT NULL,                         -- Reference to the user who created the post
     post_name VARCHAR(255) NOT NULL,        -- Human-readable name for the post
-    post_status CHAR(1) NOT NULL DEFAULT 'P', -- Status of the v ('P' for Published, etc.)
+    status CHAR(1) NOT NULL DEFAULT 'P', -- Status of the v ('P' for Published, etc.)
     title VARCHAR(255) NOT NULL,                    -- Title of the post
     content TEXT NOT NULL,                          -- Main body content of the post
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp for when the post was created

@@ -45,15 +45,15 @@ class CaptchaFieldType extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'required' => true, // fixme - might not be used or needed at all
-        ]);
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getDefaultAttributes(): array
+    // {
+    //     return array_merge(parent::getDefaultAttributes(), [
+    //         'required' => true, // fixme - might not be used or needed at all
+    //     ]);
+    // }
 
 
     /**

@@ -29,12 +29,17 @@ use Core\Form\FormBuilderInterface;
 use Core\Middleware\CSRFMiddleware;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
+use Core\Form\Schema\FieldSchema;
 use Core\Form\Validation\ValidatorRegistry;
 use Core\I18n\LabelProvider;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\Middleware\RoutingMiddleware;
 use Core\RouterInterface;
+use Core\Services\DataNormalizerService;
+use Core\Services\FormatterService;
+use Core\Services\ThemeServiceInterface;
+use Psr\Log\LoggerInterface;
 
 // Define services
 return [
@@ -51,9 +56,6 @@ return [
         // ->constructorParameter('basePath', __DIR__)
         ->constructorParameter('configPath', __DIR__ . '\\Config')
         ->constructorParameter('environment', \DI\get('environment')),
-
-
-   // ConfigServiceInterface::class => \DI\autowire(ConfigService::class),
 
 
     // Important!!! Lesson: Alias the ConfigInterface to 'config'
@@ -102,9 +104,29 @@ return [
     //-----------------------------------------------------------------
 
 
+
+    // Register GeoLocationService
+    'App\Services\GeoLocationService' => \DI\autowire(),
+
+
+
+
     'Core\View' => \DI\get('view'),
 
     //-----------------------------------------------------------------
+
+
+    // Storage provider (local disk)
+    Core\Storage\StorageProviderInterface::class => \DI\autowire(\Core\Storage\LocalStorageService::class)
+        ->constructorParameter('basePath', __DIR__ . '/../src/public_html/uploads')
+        ->constructorParameter('baseUrl', '/uploads'),
+
+    // High-level file upload service (validates and delegates to StorageProvider)
+    Core\Form\Upload\FileUploadServiceInterface::class => \DI\autowire(\Core\Form\Upload\FileUploadService::class)
+        ->constructorParameter('storage', \DI\get(Core\Storage\StorageProviderInterface::class))
+        ->constructorParameter('logger', \DI\get('logger')),
+
+
 
     //-----------------------------------------------------------------
 
@@ -147,6 +169,15 @@ return [
     // // This binds the interface to the concrete class
     // FlashMessageServiceInterface::class => \DI\get(FlashMessageService::class),
     // //------------------------------------------------------------------------
+
+
+    // Register GeoLocationMiddleware with dependencies injected
+    'Core\Middleware\GeoLocationMiddleware' => \DI\autowire()
+        ->constructorParameter('geoLocationService', \DI\get('App\Services\GeoLocationService'))
+        ->constructorParameter('sessionManager', \DI\get('Core\Session\SessionManagerInterface')),
+
+
+
 
 
 
@@ -244,6 +275,13 @@ return [
         ->constructorParameter('context', \DI\get('Core\Context\CurrentContext')),
 
 
+
+    // Register BootstrapNavigationRendererService for navigation rendering
+    'Core\Navigation\Bootstrap\BootstrapNavigationRendererService' => \DI\autowire()
+        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
+
+    // Optionally, bind the interface to the Bootstrap implementation as the default
+    'Core\Navigation\NavigationRendererInterface' => \DI\get('Core\Navigation\Bootstrap\BootstrapNavigationRendererService'),
     //-----------------------------------------------------------------
 
 
@@ -254,8 +292,8 @@ return [
 
     /// Dynamic-me 2
     // --- Generic CRUD Components ---
-    'App\Features\GenericCrud\GenericCrudController' => \DI\autowire(), // Autowires dependencies including ContentTypeRegistry
-    'App\Features\Generic\Form\GenericFormType' => \DI\autowire(), // Autowires dependencies like CaptchaService
+    'App\Features\GenericCrud\GenericCrudController' => \DI\autowire(),
+    'App\Features\Generic\Form\GenericFormType' => \DI\autowire(),
     // 'App\Features\Generic\List\DynamicListType' => \DI\autowire(), // Register when created
 
 
@@ -444,12 +482,12 @@ return [
 
 
     'Core\I18n\LabelProvider' => function () {
-        $posts = include dirname(__DIR__) . '/lang/en/posts.php';
+        $post = include dirname(__DIR__) . '/lang/en/post.php';
         $albums = include dirname(__DIR__) . '/lang/en/albums.php';
         $common = include dirname(__DIR__) . '/lang/en/common.php';
-        // Merge posts and common for the provider
+        // Merge post and common for the provider
         $labels = [
-            'posts' => $posts,
+            'post' => $post,
             'albums' => $albums,
             'common' => $common,
         ];
@@ -543,26 +581,77 @@ return [
             ->constructorParameter('userService', \DI\get('App\Services\UserService'))
             ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
-// fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-// fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-// fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-// fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    // fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    // fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    // fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    // fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
     // Add this to your existing container definitions
 
-    // List system
-    // $container->set(\Core\List\Renderer\ListRendererInterface::class, \DI\create(\Core\List\Renderer\BootstrapListRenderer::class));
-    // $container->set(\Core\List\ListFactory::class, \DI\create(\Core\List\ListFactory::class)
-    //     ->constructor(
-    //         \DI\get(ContainerInterface::class),
-    //         \DI\get(\Core\List\Renderer\ListRendererInterface::class)
-    //     )
-    // );
 
-    // Add these lines at the end of your file before the closing bracket
+    // ThemeService registrations
+    'Core\Services\ThemeServiceInterface' => \DI\autowire('Core\Services\BootstrapThemeService'),
+    'Core\Services\BootstrapThemeService' => \DI\autowire(),
+    'Core\Services\MaterialThemeService' => \DI\autowire(),
+    'Core\Services\VanillaThemeService' => \DI\autowire(),
 
-    // ListView system dependencies
-    'Core\List\Renderer\ListRendererInterface' => \DI\autowire(\Core\List\Renderer\BootstrapListRenderer::class),
+
+    // Theme Asset Service
+    'Core\Services\ThemeAssetService' => \DI\autowire()
+        ->constructorParameter('config', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('themeManager', \DI\get(\Core\Services\ThemeConfigurationManagerService::class)),
+
+
+    // Theme Configuration Manager
+    'Core\Services\ThemeConfigurationManagerService' => \DI\factory(function (ContainerInterface $c) {
+        $manager = new \Core\Services\ThemeConfigurationManagerService(
+            $c->get('Core\Interfaces\ConfigInterface'),
+            $c->get(\Core\Session\SessionManagerInterface::class),
+            $_ENV['DEFAULT_THEME'] ?? 'bootstrap'
+        );
+
+        // Register all theme services
+        $manager->registerThemeService('bootstrap', $c->get(\Core\Services\BootstrapThemeService::class))
+            ->registerThemeService('material', $c->get(\Core\Services\MaterialThemeService::class))
+            ->registerThemeService('vanilla', $c->get(\Core\Services\VanillaThemeService::class));
+
+        // Load configuration from config files
+        $manager->loadThemeConfiguration();
+        // $manager->setActiveVariant('christmas');
+
+        return $manager;
+    }),
+
+    // Theme Preview Service
+    'Core\Services\ThemePreviewService' => \DI\autowire()
+        ->constructorParameter('sessionManager', \DI\get(\Core\Session\SessionManagerInterface::class))
+        ->constructorParameter('themeManager', \DI\get(\Core\Services\ThemeConfigurationManagerService::class)),
+
+    // Convenience alias
+    'theme.manager' => \DI\get('Core\Services\ThemeConfigurationManagerService'),
+
+    // List renderer with theme service
+    'Core\List\Renderer\ListRendererInterface' => function (
+        \Psr\Container\ContainerInterface $container
+    ) {
+        return new \Core\List\Renderer\BootstrapListRenderer(
+            $container->get('Core\Services\ThemeServiceInterface')
+        );
+    },
+
+    // Form renderer with theme service
+    'Core\Form\Renderer\FormRendererInterface' => function (
+        \Psr\Container\ContainerInterface $container
+    ) {
+        return new \Core\Form\Renderer\BootstrapFormRenderer(
+            // $container->get('Core\Services\ThemeServiceInterface'),
+            $container->get(ThemeServiceInterface::class),  // <-- First: ThemeService
+            $container->get(FormatterService::class),        // <-- Second: FormatterService
+            $container->get(LoggerInterface::class)
+        );
+    },
+
+
 
 
     //-----------------------------------------------------------------
@@ -714,7 +803,8 @@ return [
     //'view' => \DI\autowire(Core\View::class)
    //     ->constructorParameter('config', \DI\get('config')),
     'view' => \DI\autowire(\Core\View::class)
-        ->constructorParameter('config', \DI\get('config')),
+        ->constructorParameter('config', \DI\get('config'))
+        ->constructorParameter('themeManager', \DI\get('Core\Services\ThemeConfigurationManagerService')),
 
     //-----------------------------------------------------------------
 
@@ -756,12 +846,6 @@ return [
          ->constructorParameter('view', \DI\get('view'))
          ->constructorParameter('httpFactory', \DI\get('httpFactory')),
 
-    'App\Features\Home\HomeController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('view', \DI\get('view'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
     'App\Features\About\AboutController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
@@ -772,20 +856,20 @@ return [
 
 
 
-    'App\Features\Posts\PostsController' => \DI\autowire()
-        ->constructorParameter('route_params', \DI\get('route_params'))
-        ->constructorParameter('flash', \DI\get('flash'))
-        ->constructorParameter('view', \DI\get('view'))
-        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-        ->constructorParameter('container', \DI\get(ContainerInterface::class))
-        // ->constructorParameter('currentContext', \DI\get(CurrentContext::class))
-        ->constructorParameter('scrap', \DI\get(CurrentContext::class))
-        ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-        ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-        ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface'))
-        ->constructorParameter('formType', \DI\get('App\Features\Posts\Form\PostsFormType'))
-        ->constructorParameter('listFactory', \DI\get('Core\List\ListFactory'))
-        ->constructorParameter('listType', \DI\get('App\Features\Posts\List\PostsListType')),
+    // 'App\Features\Post\PostController' => \DI\autowire()
+    //     ->constructorParameter('route_params', \DI\get('route_params'))
+    //     ->constructorParameter('flash', \DI\get('flash'))
+    //     ->constructorParameter('view', \DI\get('view'))
+    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
+    //     // ->constructorParameter('currentContext', \DI\get(CurrentContext::class))
+    //     ->constructorParameter('scrap', \DI\get(CurrentContext::class))
+    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+    //     ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface'))
+    //     ->constructorParameter('formType', \DI\get('App\Features\Post\Form\PostFormType'))
+    //     ->constructorParameter('listFactory', \DI\get('Core\List\ListFactory'))
+    //     ->constructorParameter('listType', \DI\get('App\Features\Post\List\PostListType')),
 
 
     // 'App\Features\Admin\Generic\GenericController' => \DI\autowire()
@@ -797,7 +881,7 @@ return [
     //     // ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
     //     // ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
     //     ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
-    //     // ->constructorParameter('postsFormType', \DI\get('App\Features\Stores\Posts\Form\PostsFormType')),
+    //     // ->constructorParameter('postFormType', \DI\get('App\Features\Stores\Post\Form\PostFormType')),
 
     // Dynamic-me 3
     // Update GenericController definition to use the GenericDataService
@@ -807,25 +891,15 @@ return [
         ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
-        ->constructorParameter('listFactory', \DI\get('Core\List\ListFactoryInterface')) // Ensure ListFactory is injected
-        ->constructorParameter('genericListType', \DI\get('App\Features\Admin\Generic\List\GenericListType')) // Ensure GenericListType is injected
+
+        ->constructorParameter('listFactory', \DI\get('Core\List\ListFactoryInterface'))
+        ->constructorParameter('genericListType', \DI\get('App\Features\Admin\Generic\List\GenericListType'))
         // Inject the GenericDataService instead of the specific repository
         ->constructorParameter('dataService', \DI\get(GenericDataServiceInterface::class))
-        // ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface')), // Inject Config if needed for fields
-    //     ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
+        // ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface')),
+        // ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
         ->constructorParameter('columnRegistry', \DI\get('App\Features\Admin\Generic\List\GenericColumnRegistry'))
         ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
-
-        // Inject the configuration parameters (example for 'posts')
-        // These values would typically be defined per-route or in a factory for the controller
-        // ->constructorParameter('entityType', 'posts') // Example value
-        // ->constructorParameter('listFields', ['id', 'title', 'username', 'status', 'created_at']) // Example value
-        // ->constructorParameter('repositoryInterfaceName', PostRepositoryInterface::class) // Less needed if using DataService
-        //->constructorParameter('paginationUrl', '/admin/posts/page/{page:\d+}') // Example value - Use Url::STORE_POSTS->paginationUrl() if possible
-        //->constructorParameter('viewTemplate', 'admin/generic/index') // Example value
-        //->constructorParameter('pageTitle', 'Manage Posts'), // Example value
-
-
 
 
 
@@ -887,9 +961,9 @@ return [
         ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
         ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface'))
-        ->constructorParameter('formType', \DI\get('App\Features\Posts\Form\PostsFormType'))
+        ->constructorParameter('formType', \DI\get('App\Features\Post\Form\PostFormType'))
         ->constructorParameter('listFactory', \DI\get('Core\List\ListFactory'))
-        ->constructorParameter('listType', \DI\get('App\Features\Posts\List\PostsListType')),
+        ->constructorParameter('listType', \DI\get('App\Features\Post\List\PostListType')),
 
 
 
@@ -914,10 +988,10 @@ return [
     RepositoryRegistryInterface::class => \DI\autowire(RepositoryRegistry::class)
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // Pass the container itself
         ->constructorParameter('repositoryMap', [
-            'testys' => TestyRepositoryInterface::class, // Map 'testys' string to the Post repo service ID/interface
-            'posts' => PostRepositoryInterface::class, // Map 'posts' string to the Post repo service ID/interface
-            'stores' => StoreRepositoryInterface::class, // Example: Map 'users' string to the User repo service ID/interface
-            'users' => UserRepositoryInterface::class, // Example: Map 'users' string to the User repo service ID/interface
+            'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the Post repo service ID/interface
+            'post' => PostRepositoryInterface::class, // Map 'post' string to the Post repo service ID/interface
+            'stores' => StoreRepositoryInterface::class, // Ex: Map 'users' string to the User repo service ID/interface
+            'users' => UserRepositoryInterface::class, // Ex: Map 'users' string to the User repo service ID/interface
             // *** Add mappings for all entity types you want the GenericDataService to handle ***
             // 'products' => ProductRepositoryInterface::class,
         ]),
@@ -955,10 +1029,12 @@ return [
     // --- Generic Form Components ---
     'App\Features\Admin\Generic\Form\GenericFieldRegistry' => \DI\autowire()
         ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface')),
-        //..->constructorParameter('baseRegistry', null), // Or inject BaseFieldRegistry if needed: \DI\get('Core\Form\BaseFieldRegistry')
+        //..->constructorParameter('baseRegistry', null),
+        // Or inject BaseFieldRegistry if needed: \DI\get('Core\Form\BaseFieldRegistry')
 
     // You might want an interface alias if you plan to swap implementations later
-    // 'App\Features\Admin\Generic\Form\GenericFieldRegistryInterface' => \DI\get('App\Features\Admin\Generic\Form\GenericFieldRegistry'),
+    // 'App\Features\Admin\Generic\Form\GenericFieldRegistryInterface'
+    //                                           => \DI\get('App\Features\Admin\Generic\Form\GenericFieldRegistry'),
 
 
 
@@ -1031,60 +1107,162 @@ return [
     ////////////////////////////
     ////////////////////////////
 
+    'forms.schema' => \DI\factory(function (ContainerInterface $c) {
+        // This is the ideal way to load your schema configuration
+        $config = $c->get('config')->get('forms/schema');
+        return new FieldSchema($config);
+        //"Class "Core\Form\Schema\FieldSchema" not found"
+    }),
+
+    FieldSchema::class => \DI\get('forms.schema'),
+
+
+
     // Field Types
-    'field.type.text' => function () {
-        return new \Core\Form\Field\Type\TextType();
-    },
-    'field.type.date' => function () {
-        return new \Core\Form\Field\Type\DateType();
-    },
-    'field.type.email' => function () {
-        return new \Core\Form\Field\Type\EmailType();
-    },
-    'field.type.textarea' => function () {
-        return new \Core\Form\Field\Type\TextareaType();
-    },
+    'field.type.text' => \DI\autowire(\Core\Form\Field\Type\TextType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
-    'field.type.password' => function () {
-        return new \Core\Form\Field\Type\PasswordType();
-    },
+    'field.type.password' => \DI\autowire(\Core\Form\Field\Type\PasswordType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
-    'field.type.hidden' => function () {
-        return new \Core\Form\Field\Type\HiddenType();
-    },
+    'field.type.email' => \DI\autowire(\Core\Form\Field\Type\EmailType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
-    'field.type.checkbox' => function () {
-        return new \Core\Form\Field\Type\CheckboxType();
-    },
+    'field.type.url' => \DI\autowire(\Core\Form\Field\Type\UrlType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.tel' => \DI\autowire(\Core\Form\Field\Type\TelType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.search' => \DI\autowire(\Core\Form\Field\Type\SearchType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.date' => \DI\autowire(\Core\Form\Field\Type\DateType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.datetime' => \DI\autowire(\Core\Form\Field\Type\DatetimeType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.month' => \DI\autowire(\Core\Form\Field\Type\MonthType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.week' => \DI\autowire(\Core\Form\Field\Type\WeekType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.time' => \DI\autowire(\Core\Form\Field\Type\TimeType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.number' => \DI\autowire(\Core\Form\Field\Type\NumberType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.decimal' => \DI\autowire(\Core\Form\Field\Type\DecimalType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.range' => \DI\autowire(\Core\Form\Field\Type\RangeType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+
+
+    'field.type.display' => \DI\autowire(\Core\Form\Field\Type\DisplayType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.color' => \DI\autowire(\Core\Form\Field\Type\ColorType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.file' => \DI\autowire(\Core\Form\Field\Type\FileType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.select' => \DI\autowire(\Core\Form\Field\Type\SelectType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.hidden' => \DI\autowire(\Core\Form\Field\Type\HiddenType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.checkbox' => \DI\autowire(\Core\Form\Field\Type\CheckboxType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+    'field.type.radio' => \DI\autowire(\Core\Form\Field\Type\RadioType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.textarea' => \DI\autowire(\Core\Form\Field\Type\TextareaType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+
+    // 'field.type.checkbox' => function () {
+    //     return new \Core\Form\Field\Type\CheckboxType();
+    // },
 
     // Field Type Registry
     \Core\Form\Field\Type\FieldTypeRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Field\Type\FieldTypeRegistry([
             $c->get('field.type.hidden'),
             $c->get('field.type.text'),
-            $c->get('field.type.date'),
-            $c->get('field.type.email'),
-            $c->get('field.type.textarea'),
             $c->get('field.type.password'),
+            $c->get('field.type.email'),
+            $c->get('field.type.tel'),
+            $c->get('field.type.url'),
+            $c->get('field.type.search'),
+
+            $c->get('field.type.date'),
+            $c->get('field.type.datetime'),
+            $c->get('field.type.month'),
+            $c->get('field.type.week'),
+            $c->get('field.type.time'),
+
+            $c->get('field.type.number'),
+            $c->get('field.type.decimal'),
+            $c->get('field.type.range'),
+
+            $c->get('field.type.file'),
+            $c->get('field.type.color'),
+
+            $c->get('field.type.textarea'),
+            $c->get('field.type.select'),
+            $c->get('field.type.display'),
             $c->get('field.type.checkbox'),
+            $c->get('field.type.radio'),
             $c->get('field.type.captcha')
         ]);
         return $registry;
     }),
 
+
+
+
     // Static Single-Field Validators
     'validator.required' => function () {
         return new \Core\Form\Validation\Rules\RequiredValidator();
     },
-    'validator.email' => function () {
-        return new \Core\Form\Validation\Rules\EmailValidator();
-    },
-    'validator.date' => function () {
-        return new \Core\Form\Validation\Rules\DateValidator();
-    },
-    'validator.length' => function () {
-        return new \Core\Form\Validation\Rules\LengthValidator();
-    },
+
+    'validator.textarea' => \DI\autowire(\Core\Form\Validation\Rules\TextAreaValidator::class),
+    'validator.text'     => \DI\autowire(\Core\Form\Validation\Rules\TextValidator::class),
+    'validator.password' => \DI\autowire(\Core\Form\Validation\Rules\PasswordValidator::class),
+    'validator.email'    => \DI\autowire(\Core\Form\Validation\Rules\EmailValidator::class),
+    'validator.url'      => \DI\autowire(\Core\Form\Validation\Rules\UrlValidator::class),
+    'validator.phone'    => \DI\autowire(\Core\Form\Validation\Rules\PhoneValidator::class),
+    'validator.search'   => \DI\autowire(\Core\Form\Validation\Rules\SearchValidator::class),
+
+    'validator.date' => \DI\autowire(\Core\Form\Validation\Rules\DateValidator::class),
+    'validator.datetime' => \DI\autowire(\Core\Form\Validation\Rules\DateTimeValidator::class),
+    'validator.month' => \DI\autowire(\Core\Form\Validation\Rules\MonthValidator::class),
+    'validator.week' => \DI\autowire(\Core\Form\Validation\Rules\WeekValidator::class),
+    'validator.time' => \DI\autowire(\Core\Form\Validation\Rules\TimeValidator::class),
+
+    'validator.number' => \DI\autowire(\Core\Form\Validation\Rules\NumberValidator::class),
+    'validator.decimal' => \DI\autowire(\Core\Form\Validation\Rules\DecimalValidator::class),
+    'validator.currency' => \DI\autowire(\Core\Form\Validation\Rules\CurrencyValidator::class),
+    'validator.range' => \DI\autowire(\Core\Form\Validation\Rules\RangeValidator::class),
+    'validator.forbidden_words' => \DI\autowire(\Core\Form\Validation\Rules\ForbiddenWordsValidator::class),
+
+
+    'validator.color' => \DI\autowire(\Core\Form\Validation\Rules\ColorValidator::class),
+
+    'validator.checkbox' => \DI\autowire(\Core\Form\Validation\Rules\CheckboxValidator::class),
+    'validator.radio' => \DI\autowire(\Core\Form\Validation\Rules\RadioValidator::class),
+    'validator.file' => \DI\autowire(\Core\Form\Validation\Rules\FileValidator::class),
+
+    'validator.extratest' => \DI\autowire(\Core\Form\Validation\Rules\ExtraTestValidator::class),
+    'validator.extratest2' => \DI\autowire(\Core\Form\Validation\Rules\ExtraTest2Validator::class),
+
     'validator.regex' => function () {
         return new \Core\Form\Validation\Rules\RegexValidator();
     },
@@ -1117,9 +1295,35 @@ return [
     \Core\Form\Validation\ValidatorRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Validation\ValidatorRegistry([
             $c->get('validator.required'),
+
+            $c->get('validator.textarea'),
+            $c->get('validator.text'),
+            $c->get('validator.password'),
             $c->get('validator.email'),
+            $c->get('validator.url'),
+            $c->get('validator.phone'),
+            $c->get('validator.search'),
+
             $c->get('validator.date'),
-            $c->get('validator.length'),
+            $c->get('validator.datetime'),
+            $c->get('validator.month'),
+            $c->get('validator.week'),
+            $c->get('validator.time'),
+
+            $c->get('validator.number'),
+            $c->get('validator.decimal'),
+            $c->get('validator.currency'),
+            $c->get('validator.range'),
+
+            $c->get('validator.color'),
+
+            $c->get('validator.checkbox'),
+            $c->get('validator.radio'),
+            $c->get('validator.file'),
+
+            $c->get('validator.extratest'),
+            $c->get('validator.extratest2'),
+            $c->get('validator.forbidden_words'),
             $c->get('validator.regex'),
             $c->get('validator.unique_username'),
             $c->get('validator.unique_email'),
@@ -1129,11 +1333,73 @@ return [
     }),
 
     // Main Validator
-    \Core\Form\Validation\Validator::class => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\Form\Validation\Validator(
-            $c->get(\Core\Form\Validation\ValidatorRegistry::class)
-        );
+    \Core\Form\Validation\Validator::class => \DI\autowire()
+        // Explicitly inject the configured ValidatorRegistry instance into the constructor.
+        // Replace 'registry' with the actual parameter name used in the Validator's constructor if different.
+        ->constructorParameter('registry', \DI\get(\Core\Form\Validation\ValidatorRegistry::class))
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+
+
+    //-------------------------------------------------------------------------
+    // FORMATTER STRATEGY PATTERN - PURE AUTOWIRING
+    //-------------------------------------------------------------------------
+
+
+
+
+    // Core Components - Pure autowiring
+    'formatterz.text'      => \DI\autowire(\Core\Formatters\TextFormatter::class),
+    'formatterz.phone'     => \DI\autowire(\Core\Formatters\PhoneNumberFormatter::class),
+    'formatterz.email'     => \DI\autowire(\Core\Formatters\EmailFormatter::class),
+    'formatterz.image'     => \DI\autowire(\Core\Formatters\ImageFormatter::class),
+    'formatterz.decimal'   => \DI\autowire(\Core\Formatters\DecimalFormatter::class),
+    'formatterz.currency'  => \DI\autowire(\Core\Formatters\CurrencyFormatter::class),
+    'formatterz.foo'       => \DI\autowire(\Core\Formatters\FooFormatter::class),
+    'formatterz.truncate5' => \DI\autowire(\Core\Formatters\Truncate5Formatter::class),
+
+    'Core\Formatters\FormatterInterface'    => \DI\get('Core\Formatters\TextFormatter'),
+
+    \Core\Formatters\FormatterRegistry::class => \DI\factory(function (ContainerInterface $c) {
+        $registry = new \Core\Formatters\FormatterRegistry([
+            $c->get('formatterz.text'),
+            $c->get('formatterz.phone'),
+            $c->get('formatterz.email'),
+            $c->get('formatterz.image'),
+            $c->get('formatterz.decimal'),
+            $c->get('formatterz.currency'),
+            $c->get('formatterz.foo'),
+            $c->get('formatterz.truncate5'),
+            // ...other formatters
+        ]);
+        return $registry;
     }),
+
+    'Core\Services\ClosureFormatterService' => \DI\autowire(),
+
+    // 2. DEFINE THE SERVICE (SRP: Service uses the list)
+    // The FormatterService is defined ONCE, and it receives the fully configured Registry.
+    // Main formatter
+    'Core\Services\FormatterService' => \DI\autowire()
+        // Explicitly inject the configured Registry instance into the constructor.
+        // (This also ensures the logger is handled by autowiring the rest)
+        ->constructorParameter('registry', \DI\get('Core\Formatters\FormatterRegistry')),
+
+    // Convenience alias
+    'formatterxx' => \DI\get('Core\Services\FormatterService'),
+
+
+
+
+
+    'Core\Services\RegionContextService' => \DI\autowire(),
+
+    'Core\Services\DataNormalizerService' => \DI\autowire(),
+    'dataNormalizerService' => \DI\get('Core\Services\DataNormalizerService'),
+
+
+
+
 
     // TODO...revisit for FormDataSanitizer
     // Event Dispatcher
@@ -1241,10 +1507,23 @@ return [
 
 
     // Section - Form types
-    'App\Features\Testys\Form\TestysFormType' => \DI\autowire(),
-        // ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        // ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
-        // ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+    // 'App\Features\Testy\Form\ZzzzFormType' => \DI\autowire()
+    'Core\Form\ZzzzFormType' => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+
+    'App\Features\Testy\Form\TestyFormType' => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+
+    'App\Features\Post\Form\PostFormType' => \DI\autowire()
+        // ->constructorParameter('viewFocus2', \DI\get('viewFocus2'))
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+
 
     'App\Features\Auth\Form\LoginFormType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
@@ -1269,22 +1548,21 @@ return [
         ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
 
-    'App\Features\Posts\Form\PostsFormType' => \DI\autowire()
-        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
-        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
-
-
 
     //-----------------------------------------------------------------
 
     // Section - List types
 
-    'App\Features\Testys\List\TestysListType' => \DI\autowire(),
-        // ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        // ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+    // 'App\Features\Testy\List\ZzzzListType' => \DI\autowire()
+    'Core\List\ZzzzListType' => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
 
-    'App\Features\Posts\List\PostsListType' => \DI\autowire()
+    'App\Features\Testy\List\TestyListType' => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+
+    'App\Features\Post\List\PostListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
         ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
 
@@ -1300,8 +1578,8 @@ return [
     // Base field registry
     //..'Core\Registry\BaseFieldRegistry' => \DI\autowire(),
 
-    // Posts ListView dependencies
-    'App\Features\Posts\Field\PostsFieldRegistry' => \DI\autowire()
+    // Post ListView dependencies
+    'App\Features\Post\Field\PostFieldRegistry' => \DI\autowire()
         ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface')),
         //..->constructorParameter('baseRegistry', \DI\get('Core\Registry\BaseFieldRegistry')),
 
@@ -1311,6 +1589,18 @@ return [
 
 
     //-----------------------------------------------------------------
+
+    // TypeResolverService (lazy-loading via config and factory - instantiates only when needed)
+    'Core\Services\TypeResolverService' => \DI\autowire()
+        ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('factory', \DI\factory(function (ContainerInterface $container) {
+            return function (string $className) use ($container) {
+                // Instantiate with dependencies only when resolveFormType() is called (lazy)
+                return $container->get($className);
+            };
+        })),
+
+
 
 
 
@@ -1363,8 +1653,6 @@ return [
     // 'listFactory' => \DI\get('Core\List\ListFactoryInterface'),
     // //----------------------------------------------------------------------
 
-    ##########################################################################
-
     //foofee
     // Important!!! - Lesson: This uses DI\autowire to automatically inject dependencies into FormFactory.
     // Important!!! - Constructor parameters are overridden explicitly where needed.
@@ -1374,6 +1662,12 @@ return [
         // ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
         ->constructorParameter('formRendererRegistry', \DI\get('Core\Form\Renderer\FormRendererRegistry'))
         ->constructorParameter('validator', \DI\get('Core\Form\Validation\Validator')),
+
+
+
+    ##########################################################################
+
+
 
 
     // // Notes-: Aliases and shortcuts are optional.
@@ -1394,68 +1688,126 @@ return [
     // }),
 
 
+
     // Form Renderers
-    'form.renderer.bootstrap' => \DI\factory(function () {
-        return new \Core\Form\Renderer\BootstrapFormRenderer();
+    'form.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\Form\Renderer\BootstrapFormRenderer(
+            $c->get('Core\Services\ThemeServiceInterface'),
+            $c->get('Core\Services\FormatterService'),
+            $c->get(LoggerInterface::class)
+        );
     }),
-    'list.renderer.bootstrap' => \DI\factory(function () {
-        return new \Core\List\Renderer\BootstrapListRenderer();
+
+
+
+
+
+    // List Renderers
+    'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\List\Renderer\BootstrapListRenderer(
+            $c->get('Core\Services\ThemeServiceInterface')
+        );
+    }),
+
+    // Material Design renderer
+    'list.renderer.material' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\List\Renderer\MaterialListRenderer(
+            $c->get('Core\Services\ThemeServiceInterface')
+        );
+    }),
+
+    // Vanilla List Renderer
+    'list.renderer.vanilla' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\List\Renderer\VanillaListRenderer(
+            $c->get('Core\Services\VanillaThemeService')
+        );
     }),
 
     // Notes-: This is called 'factory closure'
-    // Renderer Registry
-    // \Core\Form\Renderer\FormRendererXRegistry::class => \DI\factory(function (ContainerInterface $c) {
-    //     $registry = new \Core\Form\Renderer\FormRendererXRegistry();
-    //     $registry->register('bootstrap', $c->get('form.renderer.bootstrap'));
+    // Update the renderer registry
+    \Core\List\Renderer\ListRendererRegistry::class => \DI\factory(function (ContainerInterface $c) {
+        $registry = new \Core\List\Renderer\ListRendererRegistry();
+        $registry->register('bootstrap', $c->get('list.renderer.bootstrap'));
+        $registry->register('material', $c->get('list.renderer.material'));
+        $registry->register('vanilla', $c->get('list.renderer.vanilla'));
 
-    //     // Set default renderer based on environment setting
-    //     $defaultRenderer = $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap';
-    //     $registry->setDefaultRenderer($defaultRenderer);
+        // Get default renderer from environment or config
+        $defaultRenderer = $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap';
+        $registry->setDefaultRenderer($defaultRenderer);
+        return $registry;
+    }),
 
-    //     return $registry;
-    // }),
-
-    // Notes-: This is called 'factory closure'
     \Core\Form\Renderer\FormRendererRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Form\Renderer\FormRendererRegistry();
         $registry->register('bootstrap', $c->get('form.renderer.bootstrap'));
+        // $registry->register('material', $c->get('form.renderer.material')); // todo - missing
+        // $registry->register('vanilla', $c->get('form.renderer.vanilla')); // todo - missing
+
+        // Get default renderer from environment or config
         $defaultRenderer = $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap';
         $registry->setDefaultRenderer($defaultRenderer);
         return $registry;
     }),
 
-    \Core\List\Renderer\ListRendererRegistry::class => \DI\factory(function (ContainerInterface $c) {
-        $registry = new \Core\List\Renderer\ListRendererRegistry();
-        $registry->register('bootstrap', $c->get('list.renderer.bootstrap'));
-        $defaultRenderer = $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap';
-        $registry->setDefaultRenderer($defaultRenderer);
-        return $registry;
-    }),
     // More services...
 
 
+    'App\Features\Theme\ThemeController' => \DI\autowire()
+        ->constructorParameter('route_params', \DI\get('route_params'))
+        ->constructorParameter('flash', \DI\get('flash'))
+        ->constructorParameter('view', \DI\get('view'))
+        ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('scrap', \DI\get(CurrentContext::class))
+        ->constructorParameter('themeManager', \DI\get('Core\Services\ThemeConfigurationManagerService'))
+        ->constructorParameter('themePreview', \DI\get('Core\Services\ThemePreviewService'))
+        ->constructorParameter('themeAsset', \DI\get('Core\Services\ThemeAssetService')),
 
-
-
+    // Register the factory service (autowire dependencies)
+    'App\Services\FeatureMetadataFactoryService' => \DI\autowire()
+        ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('currentContext', \DI\get(Core\Context\CurrentContext::class)),
 
     // Autowiring with a Factory Override. a hybrid approach
-    'App\Features\Testys\TestysController' => \DI\autowire()
+    // 'App\Features\Testy\TestyController' => \DI\autowire()
+    //     ->constructorParameter(
+    //         'featureMetadataService',
+    //         \DI\factory(function (ContainerInterface $c) {
+    //             // This factory creates the service just for this controller
+    //             $config = $c->get(ConfigInterface::class);
+    //             $metadataConfig = $config->get('view_options/testy_edit.metadata');
+
+    //             return new FeatureMetadataService(
+    //                 baseUrlEnum: $metadataConfig['base_url_enum'],
+    //                 editUrlEnum: $metadataConfig['edit_url_enum'],
+    //                 ownerForeignKey: $metadataConfig['owner_foreign_key'],
+    //                 redirectAfterSave: $metadataConfig['redirect_after_save'],
+    //                 redirectAfterAdd: $metadataConfig['redirect_after_add'],
+    //             );
+    //         })
+    //     )
+
+    'App\Features\Home\HomeController' => \DI\autowire(),
+        // ->constructorParameter('route_params', \DI\get('route_params'))
+        // ->constructorParameter('flash', \DI\get('flash'))
+        // ->constructorParameter('view', \DI\get('view'))
+        // ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+        // ->constructorParameter('container', \DI\get(ContainerInterface::class)),
+
+
+
+    'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter(
             'featureMetadataService',
             \DI\factory(function (ContainerInterface $c) {
-                // This factory creates the service just for this controller
-                $config = $c->get(ConfigInterface::class);
-                $metadataConfig = $config->get('view_options/testys_edit.metadata');
-
-                return new FeatureMetadataService(
-                    baseUrlEnum: $metadataConfig['base_url_enum'],
-                    editUrlEnum: $metadataConfig['edit_url_enum'],
-                    ownerForeignKey: $metadataConfig['owner_foreign_key'],
-                    redirectAfterSave: $metadataConfig['redirect_after_save'],
-                    redirectAfterAdd: $metadataConfig['redirect_after_add'],
-                );
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('testy_edit');
             })
-        ),
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Repository\TestyRepositoryInterface')),
         // ->constructorParameter('route_params', \DI\get('route_params'))
         // ->constructorParameter('flash22', \DI\get('flash'))
         // ->constructorParameter('view', \DI\get('view'))
@@ -1466,16 +1818,44 @@ return [
         // ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         // ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
         // ->constructorParameter('repository', \DI\get('App\Repository\TestyRepositoryInterface'))
-        // ->constructorParameter('formType', \DI\get('App\Features\Testys\Form\TestysFormType'))
+        // ->constructorParameter('formType', \DI\get('App\Features\Testy\Form\TestyFormType'))
         // ->constructorParameter('listFactory', \DI\get(ListFactoryInterface::class))
-        // ->constructorParameter('listType', \DI\get('App\Features\Testys\List\TestysListType'))
+        // ->constructorParameter('listType', \DI\get('App\Features\Testy\List\TestyListType'))
         //     /////////////
         // ->constructorParameter('logger', \DI\get('logger'))
         // ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
 
 
+    // dynamic-fix
+    // Autowiring with a Factory Override. a hybrid approach
+    'App\Features\Post\PostController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('post_edit');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface')),
 
+        // dynamic-fix
+    // Autowiring with a Factory Override. a hybrid approach
+    'App\Features\Gen\GenController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('post_edit');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface')),
 
 ];
 // 1435 1395

@@ -2,6 +2,27 @@
 
 declare(strict_types=1);
 
+$uri = $_SERVER['REQUEST_URI'] ?? '';
+if (preg_match('#\.(css|js|png|jpg|jpeg|gif|svg|woff2?|ttf|eot|ico)$#i', $uri)) {
+    // Optionally serve the file or just exit
+    http_response_code(404);
+    exit;
+}
+// dangerdanger  # .htaccess or httpd.conf
+// RewriteEngine On
+// RewriteCond %{REQUEST_FILENAME} -f [OR]
+// RewriteCond %{REQUEST_FILENAME} -d
+// RewriteRule ^ - [L]
+// RewriteRule ^ index.php [QSA,L]
+// dangerdanger  Example: Laravel's .htaccess
+// <IfModule mod_rewrite.c>
+//     RewriteEngine On
+//     RewriteCond %{REQUEST_FILENAME} !-f
+//     RewriteCond %{REQUEST_FILENAME} !-d
+//     RewriteRule ^ index.php [L]
+// </IfModule>
+// dangerdanger
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -128,7 +149,7 @@ $container->get('urlServiceInitializer');
 
 /** @var \Core\FrontController $frontController */
 $frontController = $container->get('frontController');
-
+// DebugRt::j('0', '$frontController', $frontController);
 
 // PSR-7 approach
 $httpFactory = $container->get('httpFactory');
@@ -145,4 +166,12 @@ $response = $pipeline->handle($request);
 // Output the response to the browser
 $container->get('responseEmitter')->emit($response);
 
+// dangerdanger
+$rrr = 4;
+$sc = $_SERVER['SCRIPT_NAME'];
+if ($_SERVER['SCRIPT_NAME'] === '/index.php') {
+    file_put_contents('exit.log', 'EXIT index  HIT: ' . date('c') . ' ' . $sc . ' '. ($_SERVER['REQUEST_URI'] ?? '') . PHP_EOL, FILE_APPEND);
+}
+file_put_contents('exit.log', 'EXIT HIT: ' . date('c') . ' ' . $sc . ' '. ($_SERVER['REQUEST_URI'] ?? '') . PHP_EOL, FILE_APPEND);
+exit();
 # 244 233 108

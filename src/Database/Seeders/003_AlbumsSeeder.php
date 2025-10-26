@@ -10,6 +10,8 @@ class AlbumsSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->requireTable('albums');
+
         // Check for prerequisite data: User ID 1 and Store ID 1
         $user = $this->db->query("SELECT user_id FROM users WHERE user_id = 1 LIMIT 1");
         $store = $this->db->query("SELECT store_id FROM stores WHERE store_id = 1 LIMIT 1");

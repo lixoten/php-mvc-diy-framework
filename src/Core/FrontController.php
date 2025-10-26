@@ -66,6 +66,9 @@ class FrontController implements RequestHandlerInterface
         $controllerClass = $routeParams['controller_class'];
         $actionMethod = $routeParams['action_method'];
 
+        //"App\Features\Post\PostController"
+        //"App\Features\Testy\TestyController"
+
         // Check if controller class exists
         if (!class_exists($controllerClass)) {
             throw new PageNotFoundException("Controller class '$controllerClass' not found.");
@@ -104,6 +107,7 @@ class FrontController implements RequestHandlerInterface
                     $response->getBody()->write($result);
                     return $response;
                 }
+
                 // Otherwise, it's an invalid return type
                 throw new \RuntimeException(
                     "Controller action '$controllerClass::$actionMethod' must return an instance of ResponseInterface."
@@ -140,10 +144,10 @@ class FrontController implements RequestHandlerInterface
     {
 
 
-        // Route for edit (e.g., /content/posts/edit/11) - THIS MATCHES YOUR URL if changed to /content/posts/edit/11
+        // Route for edit (e.g., /content/post/edit/11) - THIS MATCHES YOUR URL if changed to /content/post/edit/11
         // $this->router->add('content/{content_type}/edit/{id:\d+}', [
         //$this->router->add('{content_type}/edit/{id:\d+}', [
-        // $this->router->add('{content_type:(?:posts|notes|todos)}/edit/{id:\d+}', [
+        // $this->router->add('{content_type:(?:post|notes|todos)}/edit/{id:\d+}', [
         //     'controller' => 'GenericCrud',
         //     'action'     => 'edit',
         //     // 'namespace'  => 'App\\Features\\GenericCrud'
@@ -160,16 +164,17 @@ class FrontController implements RequestHandlerInterface
         ## http://mvclixo.tv/terms
         foreach (array_keys($dynamicPages) as $pageName) {
             $this->router->add($pageName, [
-                'controller' => 'DynamicBasic', // Assuming your controller namespace is correctly resolved
+                'controller' => 'Dynamic', // Assuming your controller namespace is correctly resolved
                 'action'     => 'page',
                 'page_name'   => $pageName, // Pass the slug as page_name
                 'route_id' => 'bee801-gen-hc/hc/hc' // ok
             ]);
         }
-        // --- End Dynamic Pages --- // Dynamic-me posts
-        //$dynamicPages =>['posts']
+        // --- End Dynamic Pages --- // Dynamic-me post
+
+        //$dynamicPages =>['post']
         $dynamicPages = [
-            'posts' => [],
+            'post' => [], // dynamic-fix
             'stores' => [],
             // Add more pages as needed
         ];
@@ -187,17 +192,30 @@ class FrontController implements RequestHandlerInterface
             foreach ($basePaths as $basePath) {
                 $baseRoute = $basePath . $pageName;
                 $routeParams = [
-                    'controller' => 'Generic',
-                    'namespace'  => 'Generic',  // Consider different namespaces for different paths if needed
+                    // 'controller' => 'Generic',
+                    // 'namespace'  => 'Generic',  // Consider different namespaces for different paths if needed
+                    'controller' => 'Gen', // dynamic-fix
+                    'namespace'  => 'Gen', // dynamic-fix
                     'page_name'  => $pageName,
                     'route_id' => 'bee802-gen'
                 ];
 
                 // Index/List Route
-                $this->router->add($baseRoute, array_merge($routeParams, ['action' => 'index']));
+                $this->router->add($baseRoute, array_merge($routeParams, [
+                    'action' => 'index',
+                    'route_id' => 'xxxxxxxxxxxxxxbee100-admin-hc/dyn/hc' //
+                ]));
+
+                // Edit Route
+                $this->router->add($baseRoute . '/list', array_merge($routeParams, [
+                    'action' => 'list',
+                    'route_id' => 'xxxx33xxxxxxxxxxbee100-admin-hc/dyn/hc' //
+                ]));
 
                 // Index with Pagination
-                $this->router->add($baseRoute . '/page/{page:\d+}', array_merge($routeParams, ['action' => 'index']));
+                $this->router->add($baseRoute . '/page/{page:\d+}', array_merge($routeParams, [
+                    'action' => 'index'
+                ]));
 
                 // Add Route
                 $this->router->add($baseRoute . '/add', array_merge($routeParams, ['action' => 'add']));
@@ -212,7 +230,7 @@ class FrontController implements RequestHandlerInterface
 
 
         // Register Home routes
-        //$this->router->add('/posts', 'Posts@index');
+        //$this->router->add('/post', 'Post@index');
         //??? $this->router->add('', ['controller' => 'Home', 'action' => 'index']);
         $this->router->add('{controller}/page/{page:\d+}', ['action' => 'index']);
         //$this->router->add('admin/{controller}/{action}');
@@ -232,13 +250,13 @@ class FrontController implements RequestHandlerInterface
         ]);
 
 
-        // $this->router->add('stores/posts/{action}', [
+        // $this->router->add('stores/post/{action}', [
         //     'namespace' => 'Account\\Stores',
-        //     'controller' => 'Posts'
+        //     'controller' => 'Post'
         // ]);
-        // $this->router->add('stores/posts', [
+        // $this->router->add('stores/post', [
         //     'namespace' => 'Account\\Stores',
-        //     'controller' => 'Posts',
+        //     'controller' => 'Post',
         //     'action' => 'index'
         // ]);
 
@@ -288,6 +306,15 @@ class FrontController implements RequestHandlerInterface
         //     'namespace' => 'Account\\Stores'
         // ]);
 
+        // Theme management routes
+        // $this->router->add('theme', [
+        //     // 'namespace' => 'Features\\Theme',
+        //     'controller' => 'Theme',
+        //     'action' => 'index',
+        //     'route_id' => 'theme-index'
+        // ]);
+
+
 
         ## http://mvclixo.tv/account/dashboard
         $this->router->add('account/dashboard', [
@@ -320,7 +347,7 @@ class FrontController implements RequestHandlerInterface
 
 
         // For URL: /account/xxxxxx
-        ## http://mvclixo.tv/account/posts
+        ## http://mvclixo.tv/account/post
         ## http://mvclixo.tv/account/albums
         ## http://mvclixo.tv/account/mynotes
         $this->router->add('account/{controller}', [
@@ -378,7 +405,7 @@ class FrontController implements RequestHandlerInterface
 
         ## http://mvclixo.tv/stores/xxxxx
         ## http://mvclixo.tv/stores/albums
-        ## http://mvclixo.tv/stores/posts
+        ## http://mvclixo.tv/stores/post
         $this->router->add('stores/{controller}', [
             // 'namespace' => 'Stores',
             'action' => 'index',
@@ -489,15 +516,16 @@ class FrontController implements RequestHandlerInterface
             'route_id' => 'bee506-resend-hc/hc/hc', //ok
         ]);
 
-        // // Dynamic-me
-        // $dynamicPages = ['about', 'terms', 'privacy', 'contact', 'faq'];
-        // foreach ($dynamicPages as $page) {
-        //     $this->router->add($page, [
-        //         'controller' => 'Dynamic',
-        //         'action' => 'page',
-        //         'page_name' => $page
-        //     ]);
-        // }
+        // Dynamic-me
+        $dynamicPages = ['about', 'terms', 'privacy', 'contact', 'faq'];
+        foreach ($dynamicPages as $page) {
+            $this->router->add($page, [
+                'controller' => 'Dynamic',
+                'action' => 'page',
+                'page_name' => $page,
+                'route_id' => 'xxxx234bee506-resend-hc/hc/hc', //
+            ]);
+        }
 
 
 
@@ -524,17 +552,17 @@ class FrontController implements RequestHandlerInterface
         ]);
 
         // AJAX Save Feature - JS
-        // $this->router->add('testys/ajax-save-draft', [ // js-feature
-        //     'namespace' => 'Testys',
-        //     'controller' => 'Testys',
+        // $this->router->add('testy/ajax-save-draft', [ // js-feature
+        //     'namespace' => 'Testy',
+        //     'controller' => 'Testy',
         //     'action' => 'ajaxSaveDraft',
         //     'methods' => ['POST'],
         // ]);
 
         // ADD THIS NEW ROUTE FOR THE RESTFUL-STYLE UPDATE
-        $this->router->add('testys/edit/{id:\d+}/update', [
-            'namespace' => 'Testys',
-            'controller' => 'Testys',
+        $this->router->add('testy/edit/{id:\d+}/update', [
+            'namespace' => 'Testy',
+            'controller' => 'Testy',
             'action' => 'update',
             // 'methods' => ['POST'], // Use POST for compatibility
         ]);
@@ -547,7 +575,7 @@ class FrontController implements RequestHandlerInterface
 
 
         $this->router->add('{controller}/{action}/{id:\d+}', [
-            'route_id' => 'bee902-dynfully'
+            'route_id' => 'bee902-dynfully',
         ]);
         // http://mvclixo.tv/home/test/badrequest
         // http://mvclixo.tv/home/test/validation
@@ -560,7 +588,7 @@ class FrontController implements RequestHandlerInterface
         // http://mvclixo.tv/home
         // http://mvclixo.tv/contact
         // http://mvclixo.tv/testy
-        ## http://mvclixo.tv/posts ---- user
+        ## http://mvclixo.tv/post ---- user
         ## http://mvclixo.tv/albums ---- user
         $this->router->add('{controller}', ['action' => 'index', 'route_id' => 'bee904-na/dyn/hc-noaction']); //ok
 
@@ -571,6 +599,49 @@ class FrontController implements RequestHandlerInterface
         // http://mvclixo.tv/testy/placeholder
         // http://mvclixo.tv/testy/testlogger
         $this->router->add('{controller}/{action}', ['route_id' => 'bee999-na/dyn/dyn-noparms']); //ok
+
+        // Theme management routes
+        $this->router->add('theme', [
+            // 'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'index',
+            'route_id' => 'theme-index'
+        ]);
+
+        $this->router->add('theme/switch/{theme}', [
+            'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'switch',
+            'route_id' => 'theme-switch'
+        ]);
+
+        $this->router->add('theme/preview/{theme}', [
+            'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'preview',
+            'route_id' => 'theme-preview'
+        ]);
+
+        $this->router->add('theme/exit-preview', [
+            'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'exitPreview',
+            'route_id' => 'theme-exit-preview'
+        ]);
+
+        $this->router->add('theme/apply/{theme}', [
+            'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'apply',
+            'route_id' => 'theme-apply'
+        ]);
+        // In your FrontController::registerRoutes method
+        $this->router->add('theme/variant/{variant}', [
+            'namespace' => 'Features\\Theme',
+            'controller' => 'Theme',
+            'action' => 'setVariant',
+            'route_id' => 'theme-variant'
+        ]);
     }
 }
 

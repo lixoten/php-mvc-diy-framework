@@ -38,8 +38,8 @@ use App\Helpers\UiHelper;
             Url::CORE_TESTY,
             showIcon: false,
             text: 'Back to Testy',
-            // attributes: ['class' => "btn btn-primary"]
-            attributes: ['class' =>  Url::CORE_TESTY->class()]
+            attributes: ['class' => "btn btn-primary"]
+            // attributes: ['class' =>  Url::CORE_TESTY->class()]
         ) ?>
     </div>
 </div>

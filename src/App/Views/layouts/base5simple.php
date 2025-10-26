@@ -18,113 +18,99 @@ use App\Helpers\DebugRt;
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <link rel="stylesheet" type="text/css" href="/assets/css/style.css" />
-    <link rel="stylesheet" type="text/css" href="/assets/css/menu.css" />
-    <title>xxxxxx</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="content-language" content="en">
     <meta name="robots" content="index, follow">
-    <!-- Include Bootstrap CSS -->
-    <!--
-        <link rel="stylesheet" type="text/css"
-        href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    -->
-    <!--
-        <link rel="stylesheet" type="text/css"
-        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    -->
 
-    <!-- Main CSS Framework (Bootstrap/Tailwind) -->
-    <?php $defaultFramework = $this->config->getConfigValue('view', 'css_frameworks.default', 'bootstrap'); ?>
-    <link rel="stylesheet" type="text/css"
-          href="<?= $this->config->getConfigValue('view', "css_frameworks.available.{$defaultFramework}.css", '') ?>">
+    <title><?= $title ?? 'MVC LIXO' ?></title>
 
-    <!-- Form CSS Framework (if different from default) -->
-    <?php $formFramework = $this->config->getConfigValue('view', 'form.css_framework', ''); ?>
-    <?php if ($formFramework && $formFramework !== $defaultFramework) : ?>
-        <link rel="stylesheet" type="text/css"
-              href="<?= $this->config->getConfigValue('view', "css_frameworks.available.{$formFramework}.css", '') ?>">
-    <?php endif; ?>
+    <!-- Theme CSS - Dynamically loaded based on active theme -->
+    <?= $themeAssets->renderCssLinks() ?>
 
-    <!-- Visual Theme (if specified) -->
-    <?php $visualTheme = $this->config->getConfigValue('view', 'visual_themes.active', ''); ?>
-    <?php if ($visualTheme && $visualTheme !== 'standard') : ?>
-        <?php $themeCSS = $this->config->getConfigValue('view', "visual_themes.available.{$visualTheme}.css", ''); ?>
-        <?php if ($themeCSS) : ?>
-            <link rel="stylesheet" type="text/css" href="<?= $themeCSS ?>">
-        <?php endif; ?>
-    <?php endif; ?>
+    <!-- Theme JS (head) -->
+    <?= $themeAssets->renderJsScripts('default', 'head') ?>
 
-    <?php if (!empty($formTheme)) : ?>
-        <?php $formThemeCss = $this->config->getConfigValue('view', "form.themes.{$formTheme}.css", ''); ?>
-        <?php if (!empty($formThemeCss)) : ?>
-            <link rel="stylesheet" href="<?= $formThemeCss ?>">
-        <?php endif; ?>
-    <?php endif; ?>
+    <!-- Legacy CSS support (can be removed after full theme migration) -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/style.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/menu.css" />
+
+    <?php if ($themePreview->isPreviewModeActive()): ?>
     <style>
-
+        .theme-preview-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+        }
+        .theme-preview-bar a {
+            color: white;
+            text-decoration: underline;
+        }
     </style>
+    <?php endif; ?>
 </head>
 <body>
 
-<div class="containerLayout">
-    <header class="header">
-        <!--<h1>Responsive (CSS Grid Demo)</h1>-->
-        <!--<p>By foo</p>-->
+<?php if ($themePreview->isPreviewModeActive()): ?>
+<div class="theme-preview-bar">
+    <div>
+        <strong>Preview Mode:</strong> <?= htmlspecialchars(ucfirst($themePreview->getPreviewTheme() ?? 'Unknown')) ?>
+    </div>
+    <div>
+        <a href="<?= '/theme/apply/' . htmlspecialchars($themePreview->getPreviewTheme() ?? '') ?>">Apply Theme</a> |
+        <a href="<?= '/theme/exit-preview?return_url=' . urlencode($_SERVER['REQUEST_URI'] ?? '/') ?>">Exit Preview</a>
+    </div>
+</div>
+<?php endif; ?>
 
-        <?php
-            // require ('../App/Views/menu.php');
-            require(dirname(__DIR__) . '/menu.php');
-        ?>
+
+<div class="<?= $theme->getElementClass('layout.container') ?>">
+    <header class="<?= $theme->getElementClass('layout.header') ?>">
+        <?php require(dirname(__DIR__) . '/menu.php'); ?>
     </header>
-    <main class="main-content">
+
+    <main class="<?= $theme->getElementClass('layout.main-content') ?>">
         <?= $flashRenderer->render() ?>
-        <!-- <h2>Main contents</h2> -->
-        <?php
-        //print "aaaaaaaaaaaa";
-        //Debug::p($data);
-        ?>
-
-
         <?= $content ?>
-
     </main>
-    <section class="left-sidebar">
-        <h2>Left xsidebar</h2>
+
+    <section class="<?= $theme->getElementClass('layout.sidebar') ?>">
+        <h2>Left sidebar</h2>
         <?php
-        // TODO - Removeme
+        // Debug information (only if needed)
         if (isset($form)) {
+            DebugRt::j('0', 'Data', $form->getData(), false);
             DebugRt::j('0', 'Render Options', $form->getRenderOptions(), false);
+            foreach ($form->getFields() as $field) {
+                DebugRt::j('0', '', $field->getName(), false);
+                DebugRt::j('0', '', $field->getAttributes(), false);
+            }
+            DebugRt::j('0', 'Form Layout', $form->getLayout(), false);
         }
 
         if (isset($scrapInfo)) {
             require(dirname(__DIR__) . '/scrapinfo.php');
-            DebugRt::j('1', 'ScrapInfo', $scrapInfo, false);
         }
-
         ?>
     </section>
-    <footer class="footer">
+
+    <footer class="<?= $theme->getElementClass('layout.footer') ?>">
         <h2>Footer</h2>
     </footer>
 </div>
 
-<!-- Include Bootstrap JS and jQuery -->
+<!-- jQuery (for legacy support) -->
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script> -->
 
-<!-- JavaScript support for main CSS framework -->
-<?php
-$defaultFrameworkJS = $this->config->getConfigValue(
-    'view',
-    "css_frameworks.available.{$defaultFramework}.js",
-    ''
-);
-?>
-<?php if ($defaultFrameworkJS) : ?>
-    <script src="<?= $defaultFrameworkJS ?>"></script>
-<?php endif; ?>
+<!-- Theme JS (footer) -->
+<?= $themeAssets->renderJsScripts('default', 'footer') ?>
 
 </body>
 </html>

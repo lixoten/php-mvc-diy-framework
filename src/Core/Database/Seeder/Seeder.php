@@ -86,4 +86,21 @@ abstract class Seeder
     {
         return new TableSeeder($this->db, $table);
     }
+
+
+        /**
+     * Ensure a table exists before seeding. Throws if missing.
+     *
+     * @param string $table
+     * @throws \Core\Exceptions\MissingTableException
+     */
+    public function requireTable(string $table): void
+    {
+        $schema = new \Core\Database\Schema\SchemaBuilder($this->db);
+        if (!$schema->hasTable($table)) {
+            throw new \Core\Exceptions\MissingTableException(
+                "Required table '{$table}' not found. Run migrations before seeding."
+            );
+        }
+    }
 }

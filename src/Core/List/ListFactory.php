@@ -50,20 +50,21 @@ class ListFactory implements ListFactoryInterface
         array $data = [],
         array $options = [],
     ): ListInterface {
-        // Merge Options - List options and options set in controller
-        $finalOptions           = array_merge($listType->getOptions(), $options['options']);
-        $finalPagination        = array_merge($listType->getPaginationOptions(), $options['pagination']);
-        $finalRenderOptions     = array_merge($listType->getRenderOptions(), $options['render_options']);
-        $fields =  $options['list_fields'];
-        if (!isset($fields) || !is_array($fields) || empty($fields)) {
-            $finalListFields    = $listType->getListFields();
-        } else {
-            $finalListFields    =  $options['list_fields'];
-        }
-        $listType->setOptions($finalOptions);
-        $listType->setPaginationOptions($finalPagination);
-        $listType->setRenderOptions($finalRenderOptions);
-        $listType->setListFields($finalListFields);
+        // // Merge Options - List options and options set in controller
+        // $finalOptions           = array_merge($listType->getOptions(), $options['options']);
+        // $finalPagination        = array_merge($listType->getPaginationOptions(), $options['pagination']);
+        // $finalRenderOptions     = array_merge($listType->getRenderOptions(), $options['render_options']);
+        // $fields =  $options['list_fields'];
+        // if (!isset($fields) || !is_array($fields) || empty($fields)) {
+        //     $finalListFields    = $listType->getFields();
+        // } else {
+        //     $finalListFields    =  $options['list_fields'];
+        // }
+        // $listType->setOptions($finalOptions);
+        // $listType->setPaginationOptions($finalPagination);
+        // $listType->setRenderOptions($finalRenderOptions);
+        // $listType->setFields($finalListFields);
+        $listType->setPaginationOptions($options['pagination']);
 
         $listType->setUrlDependentRenderOptions();
         ///////////////////////////////////////////////////////////////////////
@@ -74,32 +75,22 @@ class ListFactory implements ListFactoryInterface
 
 
         // Create list instance
-        $list = new ListView($listType->viewName);
+        $list = new ListView($listType->pageConfigKey);
 
-        // // Set list renderer if available
-        // if ($this->listRendererRegistry) {
-        //     $rendererName = $finalRenderOptions['renderer'] ?? 'bootstrap';
-        //     // // Notes-: If you want flexibility: do this:
-        //     // $renderer = $this->listRendererRegistry
-        //     //     ? $this->listRendererRegistry->getRenderer($rendererName)
-        //     //     : new BootstrapListRenderer();
+        // Create list builder
+        $builder = new ListBuilder($list, $this->fieldTypeRegistry);
 
-        //     // Notes-: If you want strictness: do this:
-        //     $renderer = $this->listRendererRegistry->getRenderer($rendererName);
-        //     $list->setRenderer($renderer);
-        // }
+        // Built it
+        $listType->buildList($builder);
+
 
         // Set form renderer if available
         if ($this->listRendererRegistry) {
-            // dangerdanger
-            //$rendererName = $finalOptions['renderer'] ?? 'bootstrap';
-            $rendererName = $finalRenderOptions['renderer'] ?? 'bootstrap';
+            $rendererName = $finalOptions['renderer'] ?? 'bootstrap';
             $renderer = $this->listRendererRegistry->getRenderer($rendererName);
             $list->setRenderer($renderer);
         }
-        // Create the list builder
-        $builder = new ListBuilder($list, $this->fieldTypeRegistry);
-        $listType->buildList($builder, $data, $finalOptions);
+
 
         // Set data and CSRF
         $builder->setListData($data);

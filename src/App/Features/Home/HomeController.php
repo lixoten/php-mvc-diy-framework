@@ -8,7 +8,6 @@ use App\Enums\FlashMessageType;
 use App\Enums\Url;
 use Core\Controller;
 use App\Helpers\DebugRt;
-use App\Helpers\FlashMessages;
 use App\Helpers\Redirector;
 use App\Helpers\ReturnPageManager;
 use App\Scrap;
@@ -41,7 +40,7 @@ class HomeController extends Controller
 {
     public function __construct(
         array $route_params,
-        FlashMessageServiceInterface $flash,
+        FlashMessageServiceInterface $flash22,
         View $view,
         HttpFactory $httpFactory,
         ContainerInterface $container,
@@ -49,7 +48,7 @@ class HomeController extends Controller
     ) {
         parent::__construct(
             $route_params,
-            $flash,
+            $flash22,
             $view,
             $httpFactory,
             $container,
@@ -64,7 +63,7 @@ class HomeController extends Controller
      */
     public function indexAction(): ResponseInterface
     {
-        $this->flash->add('Welcome to the Home Page.');
+        $this->flash22->add('Welcome to the Home Page.');
 
         // Just a simple test.
         /** @xxxvar \Core\Services\UrlService */
@@ -86,7 +85,8 @@ class HomeController extends Controller
                 Url::CORE_HOME_TEST
             ),
         ];
-        return $this->view(Url::CORE_HOME->view(), $viewData);
+
+        return $this->view(Url::CORE_HOME->view(), $this->buildCommonViewData($viewData));
     }
 
     /**
@@ -127,12 +127,12 @@ class HomeController extends Controller
             'errorLinks' => $this->getErrorLinks(),
             'actionLinks' => $this->getActionLinks(
                 Url::CORE_HOME,
-                // Url::CORE_HOME_ROOT,
-                // Url::CORE_HOME_INDEX,
+                Url::CORE_HOME_ROOT,
+                Url::CORE_HOME_INDEX,
                 Url::CORE_HOME_TEST
             ),
         ];
-        return $this->view(Url::CORE_HOME_TEST->view(), $viewData);
+        return $this->view(Url::CORE_HOME_TEST->view(), $this->buildCommonViewData($viewData));
     }
 
 
@@ -308,10 +308,10 @@ class HomeController extends Controller
         // }
 
 
-        //$this->view(HomeConst::VIEW_HOME_INDEX, [
-        // return $this->view('home/index', [
-        return $this->view(Url::CORE_HOME->view(), [
+        $viewData = [
             'title' => 'Welcome Home'
-        ]);
+        ];
+
+        return $this->view(Url::CORE_HOME->view(), $this->buildCommonViewData($viewData));
     }
 }

@@ -5,9 +5,62 @@ declare(strict_types=1);
 namespace App\Helpers;
 
 use App\Enums\Url;
+use Core\Services\ThemeServiceInterface;
 
 class MyLinkHelper
 {
+    // Add ThemeService as a dependency (could be injected or fetched via a static accessor)
+    private static ?ThemeServiceInterface $themeService = null;
+
+    public static function setThemeService(ThemeServiceInterface $service): void
+    {
+        self::$themeService = $service;
+    }
+
+    private static function getIconHtml(string $icon): string
+    {
+        if (self::$themeService) {
+            return self::$themeService->getIconHtml($icon);
+        }
+        // Fallback to Font Awesome if no theme service is set
+        return '<i class="fa ' . htmlspecialchars($icon) . '"></i> ';
+    }
+
+
+
+    /**
+     * Create link from data array
+     *
+     * @param array{url: string, label: string, icon?: string|null} $linkData
+     * @param array<string, string> $attributes
+     * @return string
+     */
+    public static function renderUsingEnumUrl(array $linkData, array $attributes = []): string
+    {
+        /** @var \App\Enums\Url $enum */
+        $enum = $linkData['url'];
+
+        $href = $enum->url();
+        $text = $linkData['text'];
+        $icon = $enum->icon();
+
+        $attrString = self::buildAttributes($attributes);
+
+        $html = '<a href="' . htmlspecialchars($href) . '"' . $attrString . '>';
+
+        if ($icon) {
+            // $html .= '<i class="fa ' . htmlspecialchars($icon) . '"></i> ';
+            $html .= self::getIconHtml($icon);
+        }
+
+        $html .= htmlspecialchars($text ?? '') . '</a>';
+
+        return $html;
+    }
+
+
+
+
     /**
      * Create link from data array
      *
@@ -26,7 +79,8 @@ class MyLinkHelper
         $html = '<a href="' . htmlspecialchars($href) . '"' . $attrString . '>';
 
         if ($icon) {
-            $html .= '<i class="fa ' . htmlspecialchars($icon) . '"></i> ';
+            // $html .= '<i class="fa ' . htmlspecialchars($icon) . '"></i> ';
+            $html .= self::getIconHtml($icon);
         }
 
         $html .= htmlspecialchars($text) . '</a>';

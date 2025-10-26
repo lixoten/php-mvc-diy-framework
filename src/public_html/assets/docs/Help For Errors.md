@@ -27,30 +27,30 @@
     Reason:
         Odds are the Field in question does not exist in Page or in Entity or in base CONFIG file
         example:
-        Base : D:\xampp\htdocs\my_projects\mvclixo\src\Config\list_fields\base.php
         Page : D:\xampp\htdocs\my_projects\mvclixo\src\Config\list_fields\posts_list.php
         Entity: D:\xampp\htdocs\my_projects\mvclixo\src\Config\list_fields\posts.php
-
-## Error$ ERR-DEV89 =
-    - Message:
-        - Warning: Form Warning: Removed invalid fields from section __: ________ - ERR-DEV89
-    - File:
-        - AbstractFormType->validateAndFixLayoutFields($array $layout, array $availableFields)
-    - Reason:
-        - A value in the render_option>>layout>>>fields is invalid, meaning it does not match existing form_fields array.
-        - Check:
-          - Controller $options if you are using it. ELSE
-          - Check Config File in `view_options`
-          - D:\xampp\htdocs\my_projects\mvclixo\src\Config\`view_options`\_______edit.php
+        Base : D:\xampp\htdocs\my_projects\mvclixo\src\Config\list_fields\base.php
+    Fix:
+        in `form_layout` array or `form_hidden_fields` array in 'Page', but check others('Entity`, `Base`) too.
 ````php
-        'layout'        => [
+        'form_layout'        => [
             [
                 'title' => 'Your Message',
-                'fields' => ['title', 'favorite_ccword'], // SEE the TYPO in 'favorite_ccword'
+                'fields' => ['title', 'favorite_ccword'], // Fix: SEE the TYPO in 'favorite_ccword'
                 'divider' => true,
             ],
         ],
 ```
+or
+```php
+    'form_hidden_fields' => [
+        'testy_id',
+        'testy_user_id',
+        'testyddddddddddddddddd_user_id',
+    ]
+```
+
+
 
 
 Error$ ERR-DEV90 =

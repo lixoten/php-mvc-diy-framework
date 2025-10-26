@@ -13,6 +13,11 @@ class CreateRateLimitAttemptsTable extends Migration
      */
     public function up(): void
     {
+        // Idempotent guard: skip if table already exists
+        if ($this->schema->hasTable('rate_limit_attempts')) {
+            return;
+        }
+
         $this->create('rate_limit_attempts', function ($table) {
             $table->bigIncrements('id');
             $table->string('identifier', 255);     // Email, username, form name, etc.

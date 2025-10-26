@@ -10,40 +10,65 @@ namespace Core\Form\Field;
 class Field implements FieldInterface
 {
     protected string $name;
-    protected $value = null;
     protected string $label;
-    protected array $errors = [];
+    protected string $type;
+    protected mixed $value;
+
+    // /**
+    //  * @var callable|null Formatter closure for this field (backward compatibility)
+    //  */
+    protected $formatters = null;
+
+    // /**
+    //  * @var callable|null Formatter closure for this field (backward compatibility)
+    //  */
+    protected $validators = null;
+
+    /** @var array<string, mixed> */
     protected array $options = [];
+    /** @var array<string, mixed> */
     protected array $attributes = [];
+    /** @var array<int, string> */
+    protected array $errors = [];
+
 
     /**
      * Constructor
      *
-     * @param string $name Field name
-     * @param array $options Field options
-     * @param array $attributes Field attributes
+     * @param string $name
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $attributes
      */
     public function __construct(string $name, array $options = [], array $attributes = [])
     {
         $this->name = $name;
         $this->options = $options;
+        $this->attributes = $attributes;
 
-        // Extract common options
-        $this->label        = $options['label'] ?? ucfirst($name);
-        $this->attributes   = $attributes ?? [];
+        // // Extract common options
+        $this->label       = $options['label'] ?? ucfirst($name);
+        $this->type        = $options['type'] ?? 'text';
+        $this->value       = $options['value'] ?? null;
+        $this->formatters  = $options['formatters'] ?? null;
+        $this->validators  = $options['validators'] ?? [];
 
-        // Apply any other options as properties if setter exists
-        foreach ($options as $key => $value) {
-            if ($key === 'attributes') {
-                continue;
-            }
-            $setter = 'set' . ucfirst($key);
-            if (method_exists($this, $setter)) {
-                $this->$setter($value);
-            }
-        }
+        unset($this->options['label']); // no longer need so we unset
+        unset($this->options['type']); // no longer need so we unset
+        unset($this->options['formatters']); // no longer need so we unset
+        unset($this->options['validators']); // no longer need so we unset
+        unset($this->options['value']); // no longer need so we unset
+
+
+        // // Apply any other options as properties if setter exists
+        // foreach ($options as $key => $value) {
+        //     $setter = 'set' . ucfirst($key);
+        //     if (method_exists($this, $setter)) {
+        //         $this->$setter($value);
+        //     }
+        // }
     }
 
+    //-------------------------------------------------------------------------
     /**
      * {@inheritdoc}
      */
@@ -57,67 +82,123 @@ class Field implements FieldInterface
      */
     public function getType(): string
     {
-        return $this->attributes['type'];
+        return $this->type;
     }
 
+    //-------------------------------------------------------------------------
     /**
      * {@inheritdoc}
      */
-    public function getValue()
+    public function setType(string $type): self
     {
-        return $this->value;
+        $this->type = $type;
+        return $this;
+    }
+    // /**
+    //  * Set field type
+    //  *
+    //  * @param string $type
+    //  * @return self
+    //  */
+    // public function setType(string $type): self
+    // {
+    //     $this->attributes['type'] = $type;
+    //     return $this;
+    // }
+
+    //-------------------------------------------------------------------------
+    public function getLabel(): string
+    {
+        return $this->label ?? ucfirst($this->name);
+    }
+
+    public function setLabel(string $label): self
+    {
+        $this->label = $label;
+        return $this;
+    }
+
+    //-------------------------------------------------------------------------
+    /**
+     * {@inheritdoc}
+     */
+    public function getValue(): mixed
+    {
+        return $this->value ?? null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setValue($value): self
+    public function setValue(mixed $value): self
     {
         $this->value = $value;
         return $this;
     }
 
+    //-------------------------------------------------------------------------
     /**
      * {@inheritdoc}
      */
-    public function getLabel(): string
+    public function getFormatters(): null|callable|string|array
     {
-        return $this->label;
+        return $this->formatters ?? null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getErrors(): array
+    public function setFormatters(null|callable|string|array $formatters): self
     {
-        return $this->errors;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addError(string $message): self
-    {
-        $this->errors[] = $message;
+        $this->formatters = $formatters;
         return $this;
     }
 
+    //-------------------------------------------------------------------------
     /**
      * {@inheritdoc}
      */
-    public function hasError(): bool
+    public function getValidators(): null|callable|string|array
     {
-        return !empty($this->errors);
+        return $this->validators ?? null;
     }
 
     /**
      * {@inheritdoc}
+     */
+    public function setValidators(null|callable|string|array $validators): self
+    {
+        $this->validators = $validators;
+        return $this;
+    }
+
+
+
+
+
+    //-------------------------------------------------------------------------
+    /**
+     * @return array<string, mixed>
      */
     public function getOptions(): array
     {
         return $this->options;
     }
 
+    /**
+     * Set field options
+     *
+     * @param array $options
+     * @return self
+     */
+    public function setOptions(array $options): self
+    {
+        $this->options = $options;
+        return $this;
+    }
+
+
+    //-------------------------------------------------------------------------
     /**
      * {@inheritdoc}
      */
@@ -154,40 +235,7 @@ class Field implements FieldInterface
         return $attributeString;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function isRequired(): bool
-    {
-        return $this->getAttribute('required', false);
-    }
-
-
-    /**
-     * Set field type
-     *
-     * @param string $type
-     * @return self
-     */
-    public function setType(string $type): self
-    {
-        $this->attributes['type'] = $type;
-        return $this;
-    }
-
-    /**
-     * Set field required state
-     *
-     * @param bool $required
-     * @return self
-     */
-    public function setRequired(bool $required): self
-    {
-        $this->attributes['required'] = $required;
-        return $this;
-    }
-
-    /**
+    /** // fixme plural.. do we need?
      * Set field attributes
      *
      * @param array $attributes
@@ -199,18 +247,57 @@ class Field implements FieldInterface
         return $this;
     }
 
+
+    //-------------------------------------------------------------------------
     /**
-     * Set field options
+     * {@inheritdoc}
+     */
+    public function isRequired(): bool
+    {
+        return $this->getAttribute('required', false);
+    }
+
+    /** //fixme we need?
+     * Set field required state
      *
-     * @param array $options
+     * @param bool $required
      * @return self
      */
-    public function setOptions(array $options): self
+    public function setRequired(bool $required): self
     {
-        $this->options = $options;
+        $this->attributes['required'] = $required;
         return $this;
     }
 
+
+    //-------------------------------------------------------------------------
+    /**
+     * {@inheritdoc}
+     */
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function addError(string $message): self
+    {
+        $this->errors[] = $message;
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasError(): bool
+    {
+        return !empty($this->errors);
+    }
+
+
+    //-------------------------------------------------------------------------
     /**
      * Render the field as HTML
      *

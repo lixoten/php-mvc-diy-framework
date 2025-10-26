@@ -67,7 +67,7 @@ class SchemaBuilder
      * @param string $table Table name
      * @return bool
      */
-    public function hasTable(string $table): bool
+    public function xxhasTable(string $table): bool
     {
         $result = $this->connection->query(
             "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",
@@ -75,6 +75,21 @@ class SchemaBuilder
         );
         return !empty($result);
     }
+
+    /**
+     * Check if a table exists in the current database.
+     */
+    public function hasTable(string $table): bool
+    {
+        $rows = $this->connection->query(
+            'SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
+            [$table]
+        );
+
+        return !empty($rows) && (int) ($rows[0]['cnt'] ?? 0) > 0;
+    }
+
+
 
     /**
      * Check if a column exists in a table

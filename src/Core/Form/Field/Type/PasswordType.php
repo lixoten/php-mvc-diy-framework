@@ -26,16 +26,16 @@ class PasswordType extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'      => 'password',
-            'autocomplete' => 'current-password',
-            'minlength' => null,
-            'maxlength' => null,
-        ]);
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getDefaultAttributes(): array
+    // {
+    //     return array_merge(parent::getDefaultAttributes(), [
+    //         'type'      => 'password',
+    //         'autocomplete' => 'current-password',
+    //         'minlength' => null,
+    //         'maxlength' => null,
+    //     ]);
+    // }
 }

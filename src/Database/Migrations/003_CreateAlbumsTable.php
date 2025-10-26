@@ -13,6 +13,11 @@ class CreateAlbumsTable extends Migration
      */
     public function up(): void
     {
+        // Idempotent guard: skip if table already exists
+        if ($this->schema->hasTable('albums')) {
+            return;
+        }
+
         $this->create('albums', function ($table) {
             $table->bigIncrements('album_id');
             $table->bigInteger('album_store_id')->unsigned();

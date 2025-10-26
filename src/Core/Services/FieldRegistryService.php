@@ -34,22 +34,22 @@ class FieldRegistryService
         $this->configService    = $configService;
     }
 
-    public function setEntityName(string $entityName): void
-    {
-        $this->entityName = $entityName;
-    }
-    public function getEntityName(): string
-    {
-        return $this->entityName;
-    }
-    public function setPageName(string $pageName): void
-    {
-        $this->pageName = $pageName;
-    }
-    public function getLocalType(): string
-    {
-        return $this->pageName;
-    }
+    // public function setEntityName(string $entityName): void
+    // {
+    //     $this->entityName = $entityName;
+    // }
+    // public function getEntityName(): string
+    // {
+    //     return $this->entityName;
+    // }
+    // public function setPageName(string $pageName): void
+    // {
+    //     $this->pageName = $pageName;
+    // }
+    // public function getLocalType(): string
+    // {
+    //     return $this->pageName;
+    // }
 
     /**
      * Validate an array of field names against known schema.
@@ -59,12 +59,12 @@ class FieldRegistryService
      * @param array $fieldNames
      * @return array
      */
-    public function filterAndValidateFields(array $fieldNames): array
+    public function filterAndValidateFields(array $fieldNames, string $pageName, string $entityName): array
     {
         $invalidFields = [];
         $validFields   = [];
         foreach ($fieldNames as $name) {
-            if ($this->getFieldWithFallbacks($name) !== null) {
+            if ($this->getFieldWithFallbacks($name, $pageName, $entityName) !== null) {
                 $validFields[] = $name;
             } else {
                 $invalidFields[] = $name;
@@ -74,7 +74,7 @@ class FieldRegistryService
         if (!empty($invalidFields)) {
             if (($_ENV['APP_ENV'] ?? null) === 'development') {
                 $message = 'Removed invalid fields';
-                $message2 = "Page: {$this->pageName}, Entity: {$this->entityName} ";
+                $message2 = "Page: {$pageName}, Entity: {$entityName} ";
                 $string = implode(', ', $invalidFields);
                 $message .= ": $string";
                 $message .= "-- $message2";
@@ -95,28 +95,28 @@ class FieldRegistryService
      * @param string $fieldName   The field name (e.g. 'title')
      * @return array|null         The field definition or null if not found
      */
-    public function getFieldWithFallbacks(string $fieldName): ?array
+    public function getFieldWithFallbacks(string $fieldName, string $pageName, string $entityName): ?array
     {
         // 1. Page-Context-specific config: config/list_fields/posts.php
-        if (isset($this->pageName)) {
-            $listName = $this->pageName;
+        //if (isset($this->pageName)) {
+            $listName = $pageName;
             $field = $this->getField($fieldName, $listName);
             if ($field !== null) {
                 $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
                 return $field;
             }
-        }
+        //}
 
         // 2. Entity-specific config: config/list_fields/posts.php
-        if (isset($this->entityName)) {
-            $listName = $this->entityName; // e.g., 'posts'
+        //if (isset($this->entityName)) {
+            $listName = $entityName; // e.g., 'posts'
             //$field = $this->configService->get('list_fields/' . $entityName . "." . $fieldName); // loads "list_fields/posts.php"
             $field = $this->getField($fieldName, $listName);
             if ($field !== null) {
                 $field['label'] = '!' . $field['label'];
                 return $field;
             }
-        }
+        //}
 
 
         // 3. Base config: config/list_fields_base.php

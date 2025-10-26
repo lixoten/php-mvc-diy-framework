@@ -34,7 +34,7 @@ public function editAction(ServerRequestInterface $request): ResponseInterface
     }
     if (!$this->isUserAuthorized($post->getPostUserId())) {
         $this->flash->add("You don't have permission", FlashMessageType::Error);
-        return $this->redirect(Urls::STORE_POSTS);
+        return $this->redirect(Urls::STORE_POST);
     }
     // Actual business logic starts here...
 }
@@ -147,7 +147,7 @@ Consider these example routes:
 
 1. **Relationship Validation**: Ensure the entities are actually related (comment belongs to post)
 2. **Order of Resolution**: Resolve parent entities before children
-3. **Performance**: Avoid N+1 query problems 
+3. **Performance**: Avoid N+1 query problems
 4. **Error Handling**: Which error to show if multiple entities could be missing
 
 ## Solution Approaches
@@ -241,7 +241,7 @@ public function editAction(ServerRequestInterface $request): ResponseInterface
     $boundModels = $request->getAttribute('bound_models');
     $post = $boundModels['post'];
     $comment = $boundModels['comment'];
-    
+
     // Already verified that $comment belongs to $post
     // Business logic starts immediately...
 }

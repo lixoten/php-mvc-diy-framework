@@ -7,57 +7,74 @@ namespace App\Services;
 use App\Enums\Url;
 
 /**
- * A service that holds feature-specific metadata loaded from configuration.
+ * Holds metadata for a feature, such as URLs, owner keys, and redirect targets.
  *
- * This class acts as a structured data object, providing access to essential
- * metadata like URL enums and ownership keys required by controllers.
+ * @package App\Services
  */
 class FeatureMetadataService
 {
     /**
-     * @param Url $baseUrlEnum The base URL enum for the feature.
-     * @param Url $editUrlEnum The edit URL enum for the feature.
-     * @param string $ownerForeignKey The database column name for the owner's foreign key.
+     * Enum for base route (Url enum).
+     *
+     * @var \App\Enums\Url
+     */
+    public readonly Url $baseUrlEnum;
+
+    /**
+     * Enum for edit route (nullable).
+     *
+     * @var \App\Enums\Url|null
+     */
+    public readonly ?Url $editUrlEnum;
+    /**
+     * @var string
+     */
+    public readonly string $ownerForeignKey;
+
+    /**
+     * @var string|null
+     */
+    public readonly ?string $redirectAfterSave;
+
+    /**
+     * @var string|null
+     */
+    public readonly ?string $redirectAfterAdd;
+
+    /**
+     * @var string
+     */
+    public readonly string $pageName;
+
+    /**
+     * @var string
+     */
+    public readonly string $entityName;
+
+    /**
+     * @param Url $baseUrlEnum
+     * @param Url|null $editUrlEnum
+     * @param string $ownerForeignKey
+     * @param string|null $redirectAfterSave
+     * @param string|null $redirectAfterAdd
+     * @param string $pageName
+     * @param string $entityName
      */
     public function __construct(
-        public readonly Url $baseUrlEnum,
-        public readonly Url $editUrlEnum,
-        public readonly string $ownerForeignKey,
-        public readonly string $redirectAfterSave,
-        public readonly string $redirectAfterAdd,
-        // private readonly Url $baseUrlEnum,
-        // private readonly Url $editUrlEnum,
-        // private readonly string $ownerForeignKey
+        Url $baseUrlEnum,
+        ?Url $editUrlEnum,
+        string $ownerForeignKey,
+        ?string $redirectAfterSave,
+        ?string $redirectAfterAdd,
+        string $pageName,
+        string $entityName
     ) {
+        $this->baseUrlEnum = $baseUrlEnum;
+        $this->editUrlEnum = $editUrlEnum;
+        $this->ownerForeignKey = $ownerForeignKey;
+        $this->redirectAfterSave = $redirectAfterSave;
+        $this->redirectAfterAdd = $redirectAfterAdd;
+        $this->pageName   = $pageName;
+        $this->entityName = $entityName;
     }
-
-    // /**
-    //  * Gets the base URL enum for the feature.
-    //  *
-    //  * @return Url
-    //  */
-    // public function getBaseUrlEnum(): Url
-    // {
-    //     return $this->baseUrlEnum;
-    // }
-
-    // /**
-    //  * Gets the edit URL enum for the feature.
-    //  *
-    //  * @return Url
-    //  */
-    // public function getEditUrlEnum(): Url
-    // {
-    //     return $this->editUrlEnum;
-    // }
-
-    // /**
-    //  * Gets the owner's foreign key column name.
-    //  *
-    //  * @return string
-    //  */
-    // public function getOwnerForeignKey(): string
-    // {
-    //     return $this->ownerForeignKey;
-    // }
 }

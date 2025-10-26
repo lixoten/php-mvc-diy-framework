@@ -68,6 +68,12 @@ class ErrorHandler
      */
     public function handleException(Throwable $e, ?ServerRequestInterface $request = null): ResponseInterface
     {
+        // Clear all output buffers to avoid duplicated or partial output
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+
         // Important!!!// SEE NOTES BELLOW for list of all Exception (base class)
 
         // Determine status code based on exception type

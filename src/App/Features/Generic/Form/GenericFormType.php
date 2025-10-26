@@ -19,7 +19,7 @@ class GenericFormType extends AbstractFormType
     use CaptchaAwareTrait;
 
     private GenericFieldRegistry $fieldRegistry;
-    private CaptchaServiceInterface $captchaService;
+    protected CaptchaServiceInterface $captchaService;
 
     // Sensible framework defaults for render options
     private array $defaultRenderOptions = [

@@ -13,6 +13,11 @@ class CreateRememberTokensTable extends Migration
      */
     public function up(): void
     {
+        // Idempotent guard: skip if table already exists
+        if ($this->schema->hasTable('remember_tokens')) {
+            return;
+        }
+
         $this->create('remember_tokens', function ($table) {
             $table->bigIncrements('id');
             $table->bigInteger('user_id')->unsigned();

@@ -46,6 +46,28 @@ interface GenericDataServiceInterface
 
 
     /**
+     * Fetch selected fields for an entity by ID (generic).
+     *
+     * @param string $entityType
+     * @param int $entityId
+     * @param array<string> $fields
+     * @return array<string, mixed>|null
+     * @throws RuntimeException if repository lacks required methods
+     */
+    public function fetchEntityFieldsById(string $entityType, int $entityId, array $fields): ?array;
+
+    /**
+     * Generic update of selected fields for an entity by id.
+     *
+     * @param string $entityType
+     * @param int $entityId
+     * @param array<string, mixed> $fieldsToUpdate
+     * @return bool
+     */
+    public function updateEntityFields(string $entityType, int $entityId, array $fieldsToUpdate): bool;
+
+
+    /**
      * Create a new entity instance of the specified type
      *
      * @param string $entityType The entity type to create

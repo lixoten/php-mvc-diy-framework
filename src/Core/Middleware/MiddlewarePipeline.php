@@ -66,6 +66,9 @@ class MiddlewarePipeline implements RequestHandlerInterface
         // Take the first middleware from the stack
         $middleware = array_shift($this->middleware);
 
+        // dangerdanger
+        $sc = $_SERVER['SCRIPT_NAME'];
+        file_put_contents('exit.log', 'EXIT pipil  HIT: ' . date('c') . ' ' . $sc . ' '. ($_SERVER['REQUEST_URI'] ?? '') . PHP_EOL, FILE_APPEND);
         // Process the request through this middleware
         return $middleware->process($request, $this);
     }

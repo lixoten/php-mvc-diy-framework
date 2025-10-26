@@ -27,6 +27,7 @@ class CurrentContext
     private ?string $storeName = null;
 
     private ?string $pageKey = null; // e.g.,  , 'users' from route
+    private ?string $pageConfigKey = null;
     private ?int $entityId = null; // e.g., the ID from /edit/{id}
     private array $routeParams = [];
     private ?string $actionName = null; // e.g., 'index', 'edit'
@@ -226,16 +227,6 @@ class CurrentContext
 
 
     // --- Routing / Entity ---
-    public function setPageKey(?string $key): void
-    {
-        $this->pageKey = $key;
-    }
-
-    public function getPageKey(): ?string
-    {
-        return $this->pageKey;
-    }
-
     public function setEntityId(?int $id): void
     {
         $this->entityId = $id;
@@ -304,6 +295,29 @@ class CurrentContext
     {
         return $this->routeId;
     }
+
+
+    public function setPageKey(?string $pageKey): void
+    {
+        $this->pageKey = $pageKey;
+    }
+
+    public function getPageKey(): ?string
+    {
+        return $this->pageKey;
+    }
+
+
+    public function setPageConfigKey(?string $pageConfigKey): void
+    {
+        $this->pageConfigKey = $pageConfigKey;
+    }
+
+    public function getPageConfigKey(): ?string
+    {
+        return $this->pageConfigKey;
+    }
+
 
     // Add getters/setters for other properties if added
 

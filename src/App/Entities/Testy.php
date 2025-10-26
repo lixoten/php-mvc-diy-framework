@@ -13,7 +13,7 @@ class Testy
         nullable: true,
         label: 'Testy ID',
         primary: true,
-        name: 'testy_id',
+        name: 'id',
         enum: null,
     )]
     private ?int $testyId = null;
@@ -22,7 +22,7 @@ class Testy
         type: 'int',
         nullable: true,
         label: 'Store ID',
-        name: 'testy_store_id',
+        name: 'store_id',
         enum: null
     )]
     private ?int $testyStoreId = null;
@@ -31,7 +31,7 @@ class Testy
         type: 'int',
         nullable: false,
         label: 'User ID',
-        name: 'testy_user_id',
+        name: 'user_id',
         enum: null
     )]
     private int $testyUserId;
@@ -40,7 +40,7 @@ class Testy
         type: 'string',
         nullable: false,
         label: 'Status',
-        name: 'testy_status',
+        name: 'status',
         enum: ['P', 'D', 'A']
     )]
     private string $testyStatus;
@@ -76,28 +76,108 @@ class Testy
         type: 'string',
         nullable: false,
         label: 'Favorite Word',
-        name: 'favorite_word',
+        name: 'generic_text',
         enum: null
     )]
-    private string $favorite_word;
+    private string $generic_text;
 
     #[Field(
         type: 'date',
-        nullable: false,
+        nullable: true,
         label: 'Date of Birth',
         name: 'date_of_birth',
         enum: null
     )]
-    private string $date_of_birth;
+    private ?string $date_of_birth;
 
     #[Field(
         type: 'string',
-        nullable: false,
+        nullable: true,
         label: 'Telephone',
         name: 'telephone',
         enum: null
     )]
-    private string $telephone;
+    private ?string $telephone;
+
+
+    #[Field(
+        type: 'string',
+        nullable: true,
+        label: 'Gender Id',
+        name: 'gender_id',
+        enum: null
+    )]
+    private ?string $gender_id;
+
+    #[Field(
+        type: 'string',
+        nullable: true,
+        label: 'Gender Other',
+        name: 'gender_other',
+        enum: null
+    )]
+    private ?string $gender_other;
+
+
+    #[Field(
+        type: 'bool',
+        nullable: false,
+        label: 'Is Verified',
+        name: 'is_verified',
+        enum: null
+    )]
+    private bool $is_verified;
+
+
+
+
+    #[Field(
+        type: 'bool',
+        nullable: false,
+        label: 'Interest Soccer Ind',
+        name: 'interest_soccer_ind',
+        enum: null
+    )]
+    private bool $interest_soccer_ind;
+
+    #[Field(
+        type: 'bool',
+        nullable: false,
+        label: 'Interest Baseball Ind',
+        name: 'interest_baseball_ind',
+        enum: null
+    )]
+    private bool $interest_baseball_ind;
+
+    #[Field(
+        type: 'bool',
+        nullable: false,
+        label: 'Interest Football Ind',
+        name: 'interest_football_ind',
+        enum: null
+    )]
+    private bool $interest_football_ind;
+
+    #[Field(
+        type: 'bool',
+        nullable: false,
+        label: 'Interest Hockey Ind',
+        name: 'interest_hockey_ind',
+        enum: null
+    )]
+    private bool $interest_hockey_ind;
+
+
+    #[Field(
+        type: 'string',
+        nullable: true,
+        label: 'Profile Picture',
+        name: 'profile_picture',
+        enum: null
+    )]
+
+
+
 
     #[Field(
         type: 'string',
@@ -212,33 +292,140 @@ class Testy
 
     public function getFavoriteWord(): string
     {
-        return $this->favorite_word;
+        return $this->generic_text;
     }
-    public function setFavoriteWord(string $favorite_word): self
+    public function setFavoriteWord(string $generic_text): self
     {
-        $this->favorite_word = $favorite_word;
+        $this->generic_text = $generic_text;
         return $this;
     }
 
-    public function getDateOfBirth(): string
+    public function getDateOfBirth(): ?string
     {
         return $this->date_of_birth;
     }
-    public function setDateOfBirth(string $date_of_birth): self
+    public function setDateOfBirth(?string $date_of_birth): self
     {
         $this->date_of_birth = $date_of_birth;
         return $this;
     }
 
-    public function getTelephone(): string
+    public function getTelephone(): ?string
     {
         return $this->telephone;
     }
-    public function setTelephone(string $telephone): self
+    public function setTelephone(?string $telephone): self
     {
         $this->telephone = $telephone;
         return $this;
     }
+
+
+
+    public function getGenderId(): ?string
+    {
+        return $this->gender_id;
+    }
+    public function setGenderId(?string $gender_id): self
+    {
+        $this->gender_id = $gender_id;
+        return $this;
+    }
+
+    public function getGenderOther(): ?string
+    {
+        return $this->gender_other;
+    }
+    public function setGenderOther(?string $gender_other): self
+    {
+        $this->gender_other = $gender_other;
+        return $this;
+    }
+
+
+
+
+
+
+
+    public function getIsVerified(): bool
+    {
+        return $this->is_verified;
+    }
+    public function setIsVerified(int|bool $is_verified): self
+    {
+        $this->is_verified = (bool)$is_verified;
+        return $this;
+    }
+
+
+
+
+
+
+
+    public function getInterestSoccerInd(): bool
+    {
+        return $this->interest_soccer_ind;
+    }
+    public function setInterestSoccerInd(int|bool $interest_soccer_ind): self
+    {
+        $this->interest_soccer_ind = (bool)$interest_soccer_ind;
+        return $this;
+    }
+
+    public function getInterestBaseballInd(): bool
+    {
+        return $this->interest_baseball_ind;
+    }
+    public function setInterestBaseballInd(int|bool $interest_baseball_ind): self
+    {
+        $this->interest_baseball_ind = (bool)$interest_baseball_ind;
+        return $this;
+    }
+
+    public function getInterestFootballInd(): bool
+    {
+        return $this->interest_football_ind;
+    }
+    public function setInterestFootballInd(int|bool $interest_football_ind): self
+    {
+        $this->interest_football_ind = (bool)$interest_football_ind;
+        return $this;
+    }
+
+
+    public function getInterestHockeyInd(): bool
+    {
+        return $this->interest_hockey_ind;
+    }
+    public function setInterestHockeyInd(int|bool $interest_hockey_ind): self
+    {
+        $this->interest_hockey_ind = (bool)$interest_hockey_ind;
+        return $this;
+    }
+
+
+
+        private ?string $profile_picture = null;
+
+        public function getProfilePicture(): ?string
+        {
+            return $this->profile_picture;
+        }
+        public function setProfilePicture(?string $profile_picture): self
+        {
+            $this->profile_picture = $profile_picture;
+            return $this;
+        }
+
+
+
+
+
+
+
+
 
     public function getCreatedAt(): ?string
     {

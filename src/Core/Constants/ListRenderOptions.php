@@ -18,9 +18,7 @@ final class ListRenderOptions
     public const ADD_BUTTON_LABEL   = 'add_button_label';
     public const ADD_BUTTON_ICON    = 'add_button_icon';
     public const ADD_URL            = 'add_url';
-    
+
     public const PAGINATION_URL     = 'pagination_url';
-
-
     // ... and so on for other parts of your app
 }

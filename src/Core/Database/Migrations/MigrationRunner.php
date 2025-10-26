@@ -222,6 +222,75 @@ class MigrationRunner
             throw new \Exception("Migration class {$migrationClass} not found.");
         }
 
+        // Use the filename as the canonical migration name (matches run() behavior)
+        $name = $this->getFilenameWithoutExtension(basename($migrationFile));
+
+        // Ensure repository exists and get executed list
+        $this->repository->createRepository();
+        $executed = $this->repository->getMigratedFiles();
+
+        if (!$force && in_array($name, $executed, true)) {
+            // Already executed
+            return false;
+        }
+
+        // Capture declared classes before include to detect the class declared by the file
+        $before = get_declared_classes();
+        require_once $migrationFile;
+        $after = get_declared_classes();
+        $newClasses = array_diff($after, $before);
+
+        // Determine short class name and try to resolve FQCN
+        $parts = explode('\\', $migrationClass);
+        $shortClass = end($parts);
+        $fqcn = (strpos($migrationClass, '\\') === false)
+            ? $this->namespace . '\\' . $shortClass
+            : $migrationClass;
+
+        if (!class_exists($fqcn)) {
+            foreach ($newClasses as $declared) {
+                $declParts = explode('\\', $declared);
+                $declShort = end($declParts);
+                if ($declShort === $shortClass) {
+                    $fqcn = $declared;
+                    break;
+                }
+            }
+        }
+
+        if (!class_exists($fqcn)) {
+            throw new \Exception("Migration class {$migrationClass} not loaded.");
+        }
+
+        /** @var \Core\Database\Migrations\Migration $migration */
+        $migration = new $fqcn($this->db);
+
+        // If forcing, attempt to run down() first if it was previously executed
+        if ($force && in_array($name, $executed, true)) {
+            $migration->down();
+            $this->repository->delete($name);
+        }
+
+        $migration->up();
+
+        // Log using the filename-based name for consistency with run()
+        $batch = $this->repository->getLastBatchNumber() + 1;
+        $this->repository->log($name, $batch);
+
+        $this->log("Single migration executed: {$name}");
+
+        return true;
+    }
+
+
+    public function xxxxxrunSingleMigration(string $migrationClass, bool $force = false): bool
+    {
+        $migrationFile = $this->findMigrationFile($migrationClass);
+
+        if ($migrationFile === null) {
+            throw new \Exception("Migration class {$migrationClass} not found.");
+        }
+
         require_once $migrationFile;
 
         if (!class_exists($migrationClass)) {

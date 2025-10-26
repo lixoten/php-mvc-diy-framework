@@ -21,12 +21,6 @@ class RegexValidator extends AbstractValidator
             return null;
         }
 
-        // DebugRt::j('1', '', $options);
-        // // Skip validation if pattern is null or false (explicit disabling)
-        // if (isset($options['pattern']) && ($options['pattern'] === null || $options['pattern'] === false)) {
-        //     return null;
-        // }
-
         // Ensure a pattern is provided
         if (empty($options['pattern'])) {
             throw new \InvalidArgumentException('RegexValidator requires a "pattern" option.');
@@ -46,5 +40,34 @@ class RegexValidator extends AbstractValidator
     public function getName(): string
     {
         return 'regex';
+    }
+
+        protected function getDefaultOptions(): array
+    {
+        DebugRt::j('1', '', 'boom');
+        return [
+            'required'  => null,
+            'minlength'         => null,
+            'maxlength'         => null,
+            'pattern'           => null,
+
+            'forbidden_words'    => ['1234', 'password'],
+            'require_digit'     => false,
+            'require_uppercase' => false,
+            'require_lowercase' => false,
+            'require_special'   => false,
+
+
+            'required_message' => null,
+            'minlength_message'         => null,
+            'maxlength_message'         => null,
+            'pattern_message'           => null,
+
+            'forbidden_words_message'   => null,
+            'require_digit_message'     => null,
+            'require_uppercase_message' => null,
+            'require_lowercase_message' => null,
+            'invalid_message'           => null,
+        ];
     }
 }

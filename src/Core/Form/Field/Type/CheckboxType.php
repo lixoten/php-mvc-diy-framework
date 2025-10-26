@@ -26,15 +26,15 @@ class CheckboxType extends AbstractFieldType
         ]);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getDefaultAttributes(): array
-    {
-        return array_merge(parent::getDefaultAttributes(), [
-            'type'      => 'checkbox',
-            'checked'   => false,
-            'value'     => '1',
-        ]);
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getDefaultAttributes(): array
+    // {
+    //     return array_merge(parent::getDefaultAttributes(), [
+    //         'type'      => 'checkbox',
+    //         'checked'   => false,
+    //         'value'     => '1',
+    //     ]);
+    // }
 }

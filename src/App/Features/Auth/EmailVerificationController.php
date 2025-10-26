@@ -43,7 +43,7 @@ class EmailVerificationController extends Controller
         CurrentContext $scrap,
         UserRepositoryInterface $userRepository,
         EmailNotificationService $emailNotificationService,
-        LoggerInterface $logger,
+        ?LoggerInterface $logger,
         CaptchaServiceInterface $captchaService
     ) {
         parent::__construct(

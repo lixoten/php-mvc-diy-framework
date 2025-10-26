@@ -35,7 +35,6 @@ interface FormTypeInterface
      */
     public function getRenderOptions(): array;
 
-
     /**
      * Set the render options for the form.
      *
@@ -46,24 +45,39 @@ interface FormTypeInterface
 
 
     /**
-     * Get the fields for this list type.
-     *
-     * Should return an array of column keys (field names) to be displayed.
+     * Get the fields for this form type.
      *
      * @return array .
      */
-    public function getFormFields(): array;
+    public function getFields(): array;
+
+    /**
+     * set the fields for this form type
+     *
+     * @param array $fields Associative array of form fields.
+     * @return void
+     */
+    public function setFields(array $fields): void;
 
 
     /**
-     * Validates form fields and replaces then with giving set.
+     * set the fields for this form type
      *
-     * Any invalid fields names will be removed.
-     *
-     * @param array $listFields Associative array of list fields.
-     * @return void
+     * param array $fields Associative array of form fields.
+     * return void
      */
-    public function setFormFields(array $formFields): void;
+    public function setFocus(string $viewFocus2, string $viewName2 ): void;
+
+
+    /**
+     * Get the layout for this form type.
+     *
+     * @return array .
+     */
+    public function getLayout(): array;
+
+
+
 
     // /**
     //  * Get all options for the form.

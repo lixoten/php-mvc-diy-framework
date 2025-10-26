@@ -45,7 +45,7 @@ class ListRendererRegistry
     }
 
     /**
-     * Get a renderer by nameaaa
+     * Get a renderer by name
      *
      * @param string|null $name
      * @return ListRendererInterface

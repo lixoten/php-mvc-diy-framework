@@ -9,19 +9,40 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 
 ## Code Style and Best Practices
 
+## keep me happy
+- Also include a proposed file name with display code if the code if for me to use.
+    - if the code is a random sample no need for a file name.
+- Also include file name if you are sugdesting a fix or enhancement, and line number would also be nice.
+- my public folder is `public_html` NOT `public'
 
 ## Coding Style
 ### General Principles and Formatting
 - Line Length: Adhere to a maximum line length of 120 characters. Break long lines for improved readability.
-- Indentation: Use a consistent indentation style of 4 spaces for PHP and 2 spaces for HTML and JavaScript.
+- Indentation: Use a consistent indentation style of 4 spaces for PHP and 4 spaces for HTML and JavaScript.
 - Code Formatting: Keep tags, attributes, and content on logical lines.
 - Comments: Use clear, concise comments to explain complex sections or to add notes about specific functionality.
+
+
+### Adoption of a Consistent Singular Naming Convention
+- improve codebase consistency, we will now adopt a singular naming convention across all components: tables, controllers, models, and routes.
+
+- The new convention is as follows:
+    - Models: Singular (Post, Comment). This is standard practice.
+    - Tables: Singular (post, comment). A table is a collection of a single entity type, so we will use the singular name to represent it.
+    - Controllers: Singular (PostController, CommentController). This avoids confusion and emphasizes that the controller class is a single blueprint for handling a resource.
+    - Routes: Singular (/post, /comment). We will access resource collections via singular paths (e.g., GET /post).
+- Why this change?
+    - This decision prioritizes consistency above all else. Instead of asking "should this be singular or plural?", we will all follow one simple, unified rule: always use the singular form.
+    - This rule applies to all new features and components going forward. We will ALSO be refactoring existing code to this new standard. So please point this out if you see this rule not being followed
+
 
 ### PHP Conventions
 - Type Hinting: For PHPDoc array type hints, prefer the use of generics to specify both key and value types for clarity and static analysis.
     - Do not use Type[].
     - Do use array<KeyType, ValueType>.
 - Exceptions: Always include a declare(strict_types=1); statement at the top of every PHP file. Use custom exceptions for specific application errors, like the ValidatorNotFoundException.
+- Newline at end of file - PSR2.Files.EndFileNewline
+
 
 * **Maximum Line Length:** All code lines must not exceed 120 characters.
 * Do not use single-line if statements. Always use block syntax:
@@ -35,6 +56,29 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
   if ($condition) doSomething();
   ```
 
+### Database-Agnostic Design
+
+* **Data Types:** When defining database schema in code or comments, use portable, standard SQL data types (e.g., `VARCHAR`, `INTEGER`) and avoid database-specific types (e.g., Oracle's `NUMBER`, MySQL's `ENUM`).
+
+* **Constraints:** To enforce a limited set of values, describe the use of a **`CHECK` constraint** on a `VARCHAR` column, which is a standard SQL feature. Do not propose a database-specific `ENUM` data type.
+
+* **SQL Functions:** Avoid database-specific functions (e.g., `NOW()` or `SYSDATE`). Assume a framework or application service will handle these translations.
+
+### Forms and Input Elements
+
+* **Semantic Fields:** Always wrap `<input>` elements within a `<label>` tag or use the `for` attribute to associate a label with its input. This is crucial for accessibility.
+
+* **Input Types:** Use the most appropriate HTML5 input type (`email`, `tel`, `date`, `password`, etc.) to leverage built-in browser validation and improve the user experience.
+
+* **Required Fields:** Use the `required` attribute on inputs that are mandatory for form submission.
+
+* **Placeholders and Helpers:** Use the `placeholder` attribute to provide a hint to the user about the expected input format. Do not use placeholders as a substitute for labels.
+
+* **Accessibility:** Add ARIA attributes where necessary to improve accessibility, especially for complex form controls.
+
+## 5. Project Architecture and File Structure
+
+* **Assets:** All styling should be in a single `<style>` block within the HTML file. JavaScript logic should be placed in a `<script>` block.
 
 
 ## 1. General Principles and Language
@@ -51,8 +95,8 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - **Thin Type Classes:** ListType/FormType classes only set context (entity name, default columns/fields). All business logic resides in abstract base classes.
 - **Abstract Base Classes:** `AbstractListType` and `AbstractFormType` implement all shared logic for building, rendering, and field resolution.
 - **Field Registry Pattern:** `FieldRegistryService` centralizes field/column/field definition lookup with **layered fallbacks**:
-  1. Page/view context (e.g., `list_fields/local_posts.php`)
-  2. Entity/table context (e.g., `list_fields/posts.php`)
+  1. Page/view context (e.g., `list_fields/local_post.php`)
+  2. Entity/table context (e.g., `list_fields/post.php`)
   3. Base/global config (`list_fields/base.php`)
 - **Configuration System:** `ConfigService` supports dot notation and folder structure for per-entity overrides
 - **Dependency Injection:** All services injected via PHP-DI container defined in `src/dependencies.php`
@@ -75,7 +119,7 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 
 ### Field Definition Pattern
 ```php
-// Example from src/Config/list_fields/posts.php
+// Example from src/Config/list_fields/post.php
 'title' => [
     'label' => 'Post Title',
     'list' => [
@@ -193,7 +237,7 @@ vendor/bin/phpstan analyse src/
 
 ### Controller Pattern
 ```php
-class PostsController extends Controller {
+class PostController extends Controller {
     public function __construct(
         array $route_params,
         FlashMessageServiceInterface $flash,
@@ -210,9 +254,9 @@ class PostsController extends Controller {
 
 ### ListType Pattern
 ```php
-class PostsListType extends AbstractListType {
-    protected const LIST_TYPE = 'POSTS';
-    protected const LIST_NAME = 'posts_list';
+class PostListType extends AbstractListType {
+    protected const LIST_TYPE = 'POST';
+    protected const LIST_NAME = 'post_list';
 
     public function __construct(FieldRegistryService $fieldRegistryService) {
         $this->fieldRegistryService->setEntityName(static::LIST_TYPE);
@@ -223,7 +267,7 @@ class PostsListType extends AbstractListType {
 ```
 
 ### Config-Driven Fields
-See `src/Config/list_fields/posts.php` and `src/Config/list_fields_base.php` for field definition patterns with fallback hierarchy.
+See `src/Config/list_fields/post.php` and `src/Config/list_fields_base.php` for field definition patterns with fallback hierarchy.
 
 ---
 If any section is unclear or missing, please provide feedback to improve these instructions.

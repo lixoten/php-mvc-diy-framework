@@ -117,13 +117,13 @@ class NotesController extends Controller
         $routeType = $this->scrap->getRouteType();
         if ($routeType === 'account') {
             $filter = 'user';
-            $url = Url::ACCOUNT_POSTS;
+            $url = Url::ACCOUNT_POST;
         } elseif ($routeType === 'store') {
             $filter = 'store';
-            $url = Url::STORE_POSTS;
+            $url = Url::STORE_POST;
         } else {
             $filter = 'user';
-            $url = Url::CORE_POSTS;
+            $url = Url::CORE_POST;
         }
 
         $configService = $this->container->get('config');
@@ -254,7 +254,7 @@ class NotesController extends Controller
         // hack
         //if (!$this->isUserAuthorized($post->getPostUserId())) {
         //    $this->flash->add("You don't have permission to edit this post", FlashMessageType::Error);
-        //    return $this->redirect(Url::CORE_POSTS->url());
+        //    return $this->redirect(Url::CORE_POST->url());
         //}
         // hack
 
@@ -346,7 +346,7 @@ class NotesController extends Controller
 
             if ($success) {
                 $this->flash->add("Post updated successfully", FlashMessageType::Success);
-                return $this->redirect(Url::CORE_POSTS->url());
+                return $this->redirect(Url::CORE_POST->url());
             } else {
                 $form->addError('_form', 'Failed to update your post. Please try again.');
             }
@@ -361,7 +361,7 @@ class NotesController extends Controller
         ];
 
         // Create response with appropriate status code
-        $response = $this->view(Url::CORE_POSTS_EDIT->view(), $viewData);
+        $response = $this->view(Url::CORE_POST_EDIT->view(), $viewData);
 
         // Set 422 Unprocessable Entity status for form failures
         if ($form->hasErrors()) {

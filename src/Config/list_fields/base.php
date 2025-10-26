@@ -5,21 +5,21 @@ use App\Helpers\DebugRt;
 // DebugRt::j('0', '', 'BOOM on Config File');
 return [
     'id' => [
-        'label' => 'acrID',
+        'label' => 'base.acrID',
         'list' => [
             'sortable' => true,
             'formatter' => null,
         ],
     ],
     'user_id' => [
-        'label' => 'acrUserId',
+        'label' => 'base.acrUserId',
         'list' => [
             'sortable' => true,
             'formatter' => null,
         ],
     ],
     'title' => [
-        'label' => 'acrTitle',
+        'label' => 'base.acrTitle',
         'list' => [
             'sortable' => true,
             'formatter' => function ($value) {
@@ -30,7 +30,7 @@ return [
             'attributes' => [
                 'type' => 'text',
                 'id' => 'title',
-                'placeholder' => 'testys.title.placeholder', //.Enter a testy title'
+                'placeholder' => 'testy.title.placeholder', //.Enter a testy title'
                 'minlength' => 5,
                 'maxlength' => 12,
                 'data-char-counter' => 'title-counter',
@@ -39,7 +39,7 @@ return [
         ]
     ],
     'name' => [
-        'label' => 'acrName',
+        'label' => 'base.acrName',
         'list' => [
             'sortable' => true,
             'formatter' => function ($value) {
@@ -48,7 +48,7 @@ return [
         ],
     ],
     'status' => [
-        'label' => 'acrStatus',
+        'label' => 'base.acrStatus',
         'list' => [
             'sortable' => true,
             'formatter' => function ($value) {
@@ -61,7 +61,7 @@ return [
         ],
     ],
     'created_at' => [
-        'label' => 'posts.created_at---BaseField',
+        'label' => 'base.created_at',
         'list' => [
             'sortable' => true,
             'formatter' => function ($value) {
@@ -77,7 +77,7 @@ return [
         ],
     ],
     'updated_at' => [
-        'label' => 'acrUpdated At',
+        'label' => 'base.acrUpdated At',
         'list' => [
             'sortable' => true,
             'formatter' => function ($value) {
@@ -90,7 +90,7 @@ return [
     ],
     'testname1' => [
         'type' => 'text',
-        'label' => 'Testname1',
+        'label' => 'base.Testname1',
         'required' => true,
         'minlength' => 3,
         'maxlength' => 50,
@@ -103,7 +103,7 @@ return [
         'validators' => []
     ],
     'username' => [
-        'label' => 'Username.username222base',
+        'label' => 'base.Username.username222',
         // 'label' => 'Username or Emailxxx',
         'form' => [
             'type' => 'text',
@@ -117,7 +117,7 @@ return [
         ]
     ],
     'usernamexxx' => [
-        'label' => 'Username.username',
+        'label' => 'base.Username.username',
         'list' => [
             'sortable' => true,
             'formatter' => null,
@@ -141,7 +141,7 @@ return [
         ]
     ],
     'password' => [
-        'label' => 'Password',
+        'label' => 'base.Password',
         'form' => [
             'type' => 'password',
             'required' => true,
@@ -160,7 +160,7 @@ return [
         ]
     ],
     'captcha' => [
-        'label' => 'xxxSecurity Verification',
+        'label' => 'base.Security Verification',
         'form' => [
             'type' => 'captcha',
             'required' => true,

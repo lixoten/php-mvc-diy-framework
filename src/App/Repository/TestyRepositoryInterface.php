@@ -33,7 +33,7 @@ interface TestyRepositoryInterface
 
 
     /**
-     * Find all testys
+     * Find all testy
      *
      * @param array $criteria Optional filtering criteria
      * @param array $orderBy Optional sorting criteria
@@ -59,7 +59,7 @@ interface TestyRepositoryInterface
 
 
     /**
-     * Find testys by store ID
+     * Find testy by store ID
      */
     public function findByStoreId(
         int $storeId,
@@ -69,7 +69,7 @@ interface TestyRepositoryInterface
     ): array;
 
     /**
-     * Find testys by user ID
+     * Find testy by user ID
      *
      * @param int $userId The user ID to filter by
      * @param array $orderBy Optional sorting criteria
@@ -106,15 +106,15 @@ interface TestyRepositoryInterface
     public function delete(int $testyId): bool;
 
     /**
-     * Count total testys
+     * Count total testy
      *
      * @param array $criteria Optional filtering criteria
-     * @return int Total number of testys matching criteria
+     * @return int Total number of testy matching criteria
      */
     public function countBy(array $criteria = []): int;
 
     /**
-     * Counts testys associated with a specific store ID.
+     * Counts testy associated with a specific store ID.
      *
      * @param int $storeId
      * @return int
@@ -122,7 +122,7 @@ interface TestyRepositoryInterface
     public function countByStoreId(int $storeId): int;
 
     /**
-     * Counts testys associated with a specific user ID.
+     * Counts testy associated with a specific user ID.
      *
      * @param int $userId
      * @return int

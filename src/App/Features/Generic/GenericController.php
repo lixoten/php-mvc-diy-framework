@@ -67,14 +67,17 @@ class GenericController extends Controller
         HttpFactory $httpFactory,
         ContainerInterface $container,
         CurrentContext $scrap,
+        //-----------------------------------------
+        // private FeatureMetadataService $featureMetadataService,
         FormFactoryInterface $formFactory,
         FormHandlerInterface $formHandler,
         GenericFormType $genericFormType,
         GenericDataServiceInterface $dataService,
+
         ListFactory $listFactory,
         GenericListType $genericListType,
         GenericColumnRegistry $columnRegistry,
-        GenericFieldRegistry $fieldRegistry,
+        GenericFieldRegistry $fieldRegistry,//<<<<<<<<<<<<<<<<<<<<<
         PostRepositoryInterface $postRepository,
         RepositoryRegistryInterface $repositoryRegistry,
         AuthenticationServiceInterface $authService,
@@ -180,7 +183,7 @@ class GenericController extends Controller
                     'per_page' => $limit
                 ],
                 'render_options' => [ //dangerdanger posts hardcoded
-                    'pagination_url' => Url::STORE_POSTS->paginationUrl() // Example, adjust if needed // DANGER
+                    'pagination_url' => Url::STORE_POST->paginationUrl() // Example, adjust if needed // DANGER
                 ]
             ]
         );
@@ -226,7 +229,7 @@ class GenericController extends Controller
         if (method_exists($entity, 'getUserId') && !$this->isUserAuthorized($entity->getUserId())) {
             $this->flash->add("You don't have permission to edit this " . $entityType, FlashMessageType::Error);
             return $this->redirect($routePath . $entityType);
-       }
+        }
 
         // --- Prepare Initial Form Data ---
         // Get the list of fields expected for this entity's form
@@ -320,7 +323,7 @@ class GenericController extends Controller
 
         // DebugRt::j('1', '', 111);
         // Create response with appropriate status code
-        //$response = $this->view(Url::STORE_POSTS_EDIT->view(), $viewData);
+        //$response = $this->view(Url::STORE_POST_EDIT->view(), $viewData);
         // $response = $this->view('generic/edit', $viewData);
         $response = $this->view(Url::GENERIC_EDIT->view(), $viewData);
 
@@ -529,7 +532,7 @@ class GenericController extends Controller
 
         // DebugRt::j('1', '', 111);
         // Create response with appropriate status code
-        //$response = $this->view(Url::STORE_POSTS_EDIT->view(), $viewData);
+        //$response = $this->view(Url::STORE_POST_EDIT->view(), $viewData);
         // $response = $this->view('generic/edit', $viewData);
         $response = $this->view(Url::GENERIC_EDIT->view(), $viewData);
 
@@ -568,27 +571,27 @@ class GenericController extends Controller
     // }
 
 
-    /**
-     * Generate a slug from a string
-     */
-    private function generateSlug(string $text): string
-    {
-        // Convert to lowercase
-        $slug = strtolower($text);
+    // /**
+    //  * Generate a slug from a string
+    //  */
+    // private function generateSlug(string $text): string
+    // {
+    //     // Convert to lowercase
+    //     $slug = strtolower($text);
 
-        // Replace spaces with hyphens
-        $slug = str_replace(' ', '-', $slug);
+    //     // Replace spaces with hyphens
+    //     $slug = str_replace(' ', '-', $slug);
 
-        // Remove special characters
-        $slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
+    //     // Remove special characters
+    //     $slug = preg_replace('/[^a-z0-9\-]/', '', $slug);
 
-        // Remove multiple hyphens
-        $slug = preg_replace('/-+/', '-', $slug);
+    //     // Remove multiple hyphens
+    //     $slug = preg_replace('/-+/', '-', $slug);
 
-        // Trim hyphens from beginning and end
-        $slug = trim($slug, '-');
+    //     // Trim hyphens from beginning and end
+    //     $slug = trim($slug, '-');
 
-        return $slug;
-    }
+    //     return $slug;
+    // }
 }
 # 455 347 317
