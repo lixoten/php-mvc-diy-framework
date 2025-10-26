@@ -48,8 +48,8 @@ return [
                 // 'id' => 'titleID',
                 // 'name' => 'titleNAME',
                 // 'autocomplete' => "off",
-                // 'autocompletexxx' => "off",
-                // 'inputmode' => "ofxxf",
+                // 'autocomplete' => "off",
+                // 'inputmode' => "off",
                 // // 'placeholder' => 'testy.title.placeholder', //.Enter a testy title'
                 // 'required' => true,
                 // 'readonly' => false,
@@ -82,7 +82,8 @@ return [
         //     // ['name' => 'phone', 'options' => ['region' => 'PT']],
         //     ['name' => 'image',
         //         'options' => [
-        //             'base_url' => '/uploads/',  // Adjust to your server's web root or upload directory, e.g., '/uploads/' if files are in /uploads/pictures/
+        //             'base_url' => '/uploads/',  // Adjust to your server's web root or
+                                               // upload directory, e.g., '/uploads/' if files are in /uploads/pictures/
         //             'class' => 'img-fluid',
         //             'alt' => 'Picture of me',  // Optional: for accessibility
         //         ],
@@ -90,7 +91,8 @@ return [
         // ],
         'formatters' => [
             'image' => [
-                'base_url' => '/uploads/',  // Adjust to your server's web root or upload directory, e.g., '/uploads/' if files are in /uploads/pictures/
+                'base_url' => '/uploads/',  // Adjust to your server's web root or upload directory, e.g.,
+                                                                       // '/uploads/' if files are in /uploads/pictures/
                 'class' => 'img-fluid',
                 'alt' => 'Picture of me',  // Optional: for accessibility
             ],
@@ -191,7 +193,8 @@ return [
             // ],
 
         ],
-        // 'sanitize' => function ($value, $config, $data) { //fixme maybe???? inside the actually validators as inside "text"
+        // 'sanitize' => function ($value, $config, $data) {
+                                                      //fixme maybe???? inside the actually validators as inside "text"
         //         // Example: trim, remove HTML tags, and normalize to null if empty
         //         if (is_string($value)) {
         //             $value = trim($value);
@@ -396,7 +399,7 @@ return [
         'form' => [
             'type' => 'url',
             'attributes' => [
-                'placeholder' => 'seac....',
+                'placeholder' => 'sea....',
                 'maxlength' => 255,
             ],
         ],
@@ -651,7 +654,7 @@ return [
                 // 'step' => "0.00002",
                 // 'positive_only' => true,
                 //'negative_only' => true,
-                // 'invalid_message' => "ddddsssssssssssswwwwwwwwwwwwwsssssssssssddd",
+                // 'invalid_message' => "xxxxx",
             ],
         ]
     ],
@@ -696,9 +699,9 @@ return [
                 'list' => 'starticks',
                 'data-show-value' => true,
 
-                // 'custom_invalid_message' => "custom: fgdfil...",
-                // 'custom_min_message' => "custome: This value must be at least ___.",
-                // 'custom_max_message' => "custome: This value must not exceed ___.",
+                // 'custom_invalid_message' => "custom: fil...",
+                // 'custom_min_message' => "custom: This value must be at least ___.",
+                // 'custom_max_message' => "custom: This value must not exceed ___.",
             ],
             'tickmarks' => [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5],
         ],
