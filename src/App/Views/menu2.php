@@ -49,10 +49,10 @@ use Core\Services\ThemeConfigurationManagerService;
 echo $navigationRenderer->renderMainNavigation($navigationData, $currentPath);
 
 // Render sub-navigation if needed
-if ($navigationData->shouldShowSubNav()  && !empty($navigationData->getSubNavItems())) {
-    echo $navigationRenderer->renderSubNavigation(
-        $navigationData->getSubNavItems(),
-        $navigationData->getSubNavClass() ?? '',
-        $currentPath
-    );
-}
+// if ($navigationData->shouldShowSubNav()  && !empty($navigationData->getSubNavItems())) {
+//     echo $navigationRenderer->renderSubNavigation(
+//         $navigationData->getSubNavItems(),
+//         $navigationData->getSubNavClass() ?? '',
+//         $currentPath
+//     );
+// }

@@ -35,10 +35,35 @@ return [
         'form_heading' => "Login NOW",
         'submit_text' => "Submit Login",
         'layout'        => [],
-        'form_fields' => [
-            'username', 'password', 'remember'
-            // 'title',
-        ],
+        // 'form_fields' => [
+        //     'username', 'password', 'remember'
+        //     // 'title',
+        // ],
 
+    ],
+        'form_layout'            => [
+        [
+            'title'     => 'Your Title',
+            'fields'    => [
+                'username',
+                'password',
+                'remember',
+            ],
+            'divider'   => true
+        ],
+        // [
+        //     'title' => 'Your Favorite',
+        //     'fields' => [
+        //         'content',
+        //         // 'generic_text',
+        //         // 'telephone',
+        //         // 'date_of_birth',
+        //         // 'interest_soccer_ind',
+        //         // 'interest_baseball_ind',
+        //         // 'interest_football_ind',
+        //         // 'interest_hockey_ind',
+        //     ],
+        //     'divider' => true,
+        // ],
     ],
 ];

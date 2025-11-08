@@ -78,8 +78,8 @@ This document provides a detailed overview of the **Resend Verification Email** 
 #### **User**
 - Represents the user in the system.
 - Key Attributes:
-  - `activationToken`: Stores the activation token.
-  - `activationTokenExpiry`: Stores the expiry timestamp of the token.
+  - `activationToken`: Storethe activation token.
+  - `activationTokenExpiry`: Store the expiry timestamp of the token.
 - Key Methods:
   - `generateActivationToken(int $expireHours)`: Generates a secure activation token with an expiry.
 

@@ -14,6 +14,21 @@ use App\Enums\Url;
 class FeatureMetadataService
 {
     /**
+     * @var string
+     */
+    public readonly string $pageName;
+
+    /**
+     * @var string
+     */
+    public readonly string $entityName;
+
+    /**
+     * @var string
+     */
+    public readonly string $ownerForeignKey;
+
+    /**
      * Enum for base route (Url enum).
      *
      * @var \App\Enums\Url
@@ -26,10 +41,45 @@ class FeatureMetadataService
      * @var \App\Enums\Url|null
      */
     public readonly ?Url $editUrlEnum;
+
     /**
-     * @var string
+     * Enum for list route (nullable).
+     *
+     * @var \App\Enums\Url|null
      */
-    public readonly string $ownerForeignKey;
+    public readonly ?Url $listUrlEnum;
+
+    /**
+     * Enum for create route (nullable).
+     *
+     * @var \App\Enums\Url|null
+     */
+    public readonly ?Url $createUrlEnum;
+
+    /**
+     * Enum for view route (nullable).
+     *
+     * @var \App\Enums\Url|null
+     */
+    public readonly ?Url $viewUrlEnum;
+
+    /**
+     * Enum for delete route (nullable).
+     *
+     * @var \App\Enums\Url|null
+     */
+    public readonly ?Url $deleteUrlEnum; // Add this
+
+    /**
+     * Enum for delete confirmation route (nullable).
+     *
+     * @var \App\Enums\Url|null
+     */
+    public readonly ?Url $deleteConfirmUrlEnum; // Add this
+
+
+
+
 
     /**
      * @var string|null
@@ -41,40 +91,48 @@ class FeatureMetadataService
      */
     public readonly ?string $redirectAfterAdd;
 
-    /**
-     * @var string
-     */
-    public readonly string $pageName;
+
 
     /**
-     * @var string
-     */
-    public readonly string $entityName;
-
-    /**
-     * @param Url $baseUrlEnum
-     * @param Url|null $editUrlEnum
-     * @param string $ownerForeignKey
-     * @param string|null $redirectAfterSave
-     * @param string|null $redirectAfterAdd
      * @param string $pageName
      * @param string $entityName
+     * @param string $ownerForeignKey
+     * @param Url $baseUrlEnum
+     * @param Url|null $editUrlEnum
+     * @param Url|null $listUrlEnum
+     * @param Url|null $createUrlEnum
+     * @param Url|null $viewUrlEnum
+     * @param Url|null $deleteUrlEnum
+     * @param Url|null $deleteConfirmUrlEnum
+     * @param string|null $redirectAfterSave
+     * @param string|null $redirectAfterAdd
      */
     public function __construct(
+        string $pageName,
+        string $entityName,
+        string $ownerForeignKey,
         Url $baseUrlEnum,
         ?Url $editUrlEnum,
-        string $ownerForeignKey,
-        ?string $redirectAfterSave,
-        ?string $redirectAfterAdd,
-        string $pageName,
-        string $entityName
+        ?Url $listUrlEnum,
+        ?Url $createUrlEnum = null,
+        ?Url $viewUrlEnum = null,
+        ?Url $deleteUrlEnum = null, // Make nullable with default
+        ?Url $deleteConfirmUrlEnum = null, // Make nullable with default
+        ?string $redirectAfterSave = null,
+        ?string $redirectAfterAdd = null,
     ) {
-        $this->baseUrlEnum = $baseUrlEnum;
-        $this->editUrlEnum = $editUrlEnum;
-        $this->ownerForeignKey = $ownerForeignKey;
-        $this->redirectAfterSave = $redirectAfterSave;
-        $this->redirectAfterAdd = $redirectAfterAdd;
         $this->pageName   = $pageName;
         $this->entityName = $entityName;
+        $this->ownerForeignKey = $ownerForeignKey;
+        $this->baseUrlEnum = $baseUrlEnum;
+        $this->editUrlEnum = $editUrlEnum;
+        $this->listUrlEnum = $listUrlEnum;
+        $this->createUrlEnum = $createUrlEnum;
+        $this->viewUrlEnum = $viewUrlEnum;
+        $this->deleteUrlEnum = $deleteUrlEnum;
+        $this->deleteConfirmUrlEnum = $deleteConfirmUrlEnum;
+        $this->redirectAfterSave = $redirectAfterSave;
+        $this->redirectAfterAdd = $redirectAfterAdd;
+
     }
 }

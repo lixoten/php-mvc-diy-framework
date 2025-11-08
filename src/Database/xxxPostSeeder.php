@@ -21,15 +21,15 @@ class PostSeeder extends Seeder
         $userId = $users[0]['user_id'];
 
         // Get a store or create one if it doesn't exist
-        $stores = $this->db->query("SELECT store_id FROM stores WHERE store_user_id = :user_id LIMIT 1", [
+        $store = $this->db->query("SELECT store_id FROM store WHERE store_user_id = :user_id LIMIT 1", [
             ':user_id' => $userId
         ]);
 
         $storeId = null;
 
-        if (empty($stores)) {
+        if (empty($store)) {
             // Create a test store
-            $storeId = $this->db->insert('stores', [
+            $storeId = $this->db->insert('store', [
                 'store_user_id' => $userId,
                 'store_status' => 'A',
                 'slug' => 'test-store',
@@ -41,7 +41,7 @@ class PostSeeder extends Seeder
 
             echo "Created test store with ID: {$storeId}\n";
         } else {
-            $storeId = $stores[0]['store_id'];
+            $storeId = $store[0]['store_id'];
         }
 
 

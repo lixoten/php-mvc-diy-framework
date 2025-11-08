@@ -1,6 +1,7 @@
 Abbondanza
 abend
 activitusbar
+Architectu
 automagically
 badrequest
 badsite
@@ -37,6 +38,7 @@ friendsofphp
 Gert
 getenv
 giggsey
+girel
 greew
 Grekas
 hayageek
@@ -51,6 +53,7 @@ humy
 ignt
 imaskjs
 incase
+Inno
 instantiator
 Instantiator
 intelephense
@@ -119,6 +122,7 @@ Redirector
 reindentselectedlines
 Reinders
 REMOVEME
+repositoryinterface
 returnid
 roave
 rrudyi

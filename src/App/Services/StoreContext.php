@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Entities\Store;
-use App\Repository\StoreRepositoryInterface;
+use App\Features\Store\Store;
+use App\Features\Store\StoreRepositoryInterface;
 use Core\Auth\AuthenticationServiceInterface;
 use Core\Session\SessionManagerInterface;
 
@@ -42,7 +42,7 @@ class StoreContext
     public function getCurrentStoreId(): ?int
     {
         $store = $this->getCurrentStore();
-        return $store ? $store->getStoreId() : null;
+        return $store ? $store->getId() : null;
     }
 
     /**
@@ -131,7 +131,7 @@ class StoreContext
      */
     private function setStoreInSession(Store $store): void
     {
-        $this->session->set(self::SESSION_STORE_ID, $store->getStoreId());
+        $this->session->set(self::SESSION_STORE_ID, $store->getId());
         $this->session->set(self::SESSION_STORE_SLUG, $store->getSlug());
         $this->session->set(self::SESSION_STORE_NAME, $store->getName());
     }
@@ -152,10 +152,10 @@ class StoreContext
             return true;
         }
 
-        //$storeUserId = $store->getUserId();
-        //$userUserId = $user->getUserId();
+        //$storeUserId = $store->getId();
+        //$userUserId = $user->getId();
 
         // Check if user is the store owner
-        return $store->getUserId() === $user->getUserId();
+        return $store->getId() === $user->getId();
     }
 }

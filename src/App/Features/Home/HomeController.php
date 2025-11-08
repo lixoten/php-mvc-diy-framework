@@ -68,10 +68,10 @@ class HomeController extends Controller
         // Just a simple test.
         /** @xxxvar \Core\Services\UrlService */
         // $urlService = $this->container->get(UrlServiceInterface::class); // Creates new instance
-        // $test = $urlService->url('stores.posts');
-        // $test2 = $urlService->view('stores.posts');
-        // $test3 = $urlService->label('stores.posts');
-        // $test4 = $urlService->url('stores.posts.create');
+        // $test = $urlService->url('store.posts');
+        // $test2 = $urlService->view('store.posts');
+        // $test3 = $urlService->label('store.posts');
+        // $test4 = $urlService->url('store.posts.create');
         // $test5 = Url::ACCOUNT_PROFILE;
         // $test6 = Url::ACCOUNT_PROFILE->url();
         // $test62 = Url::ACCOUNT_PROFILE->label();

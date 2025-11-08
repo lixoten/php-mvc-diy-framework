@@ -7,8 +7,6 @@ namespace Core;
 use App\Enums\FlashMessageType;
 use App\Enums\PostFields2;
 use App\Enums\Url;
-use App\Features\Testy\Form\TestyFormType;
-use App\Repository\TestyRepositoryInterface;
 use App\Services\FeatureMetadataService;
 use Core\Context\CurrentContext;
 use Core\Controller;
@@ -57,7 +55,7 @@ abstract class AbstractCrudController extends Controller
         FormTypeInterface $formType, // Change to interface//dangerdanger
         private ListFactoryInterface $listFactory,
         private ListTypeInterface $listType,
-
+        //-----------------------------------------
         BaseRepositoryInterface $repository,
         protected TypeResolverService $typeResolver,
     ) {
@@ -91,15 +89,19 @@ abstract class AbstractCrudController extends Controller
         //var_dump($request);
         // $this->formType = $this->listType;
         //$tmpEnum = $this->feature->baseUrlEnum;
-        $pageConfigKey = $this->scrap->getPageConfigKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
         // $tmp = $tmpEnum->data()['view'];
-        $xpl = explode('_', $pageConfigKey);
+        $xpl = explode('_', $pageName);
         // $pageNm   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
 
         $this->listType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 
@@ -119,13 +121,13 @@ abstract class AbstractCrudController extends Controller
 
         $filter = (string)($request->getQueryParams()['filter'] ?? "DDDD");
 
-        $this->scrap->setRouteType('store');
-        $storeId = 4;// $this->scrap->getStoreId();//fixme
+        // $this->scrap->setRouteType('store');
+        // $storeId = $this->scrap->getStoreId();
 
 
         //$EE = $this->feature->baseUrlEnum;
 
-        $url = $this->feature->baseUrlEnum;
+        $url = $this->feature->listUrlEnum;
 
 
         $routeType = $this->scrap->getRouteType();
@@ -153,12 +155,14 @@ abstract class AbstractCrudController extends Controller
         $offset = ($page - 1) * $limit;
 
         ## todo introduce filters. At the moment we are not.
-        if ($filter === "user") {
+        // if ($filter === "user") {
+        if ($this->scrap->getRouteType() === "account") {
             $userId = $this->scrap->getUserId();
             // $records = $this->repository->findByUserId($userId,
             //                                              [$sortField => $sortDirection], $limit, $offset);
             $records = $this->repository->findByUserIdWithFields(
                 $userId,
+                $listFields,
                 [$sortField => $sortDirection],
                 $limit,
                 $offset
@@ -166,17 +170,32 @@ abstract class AbstractCrudController extends Controller
 
             $totalRecords = $this->repository->countByUserId($userId);
         } else {
-            //$recordsxx = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection], $limit, $offset);
-            $records = $this->repository->findByStoreIdWithFields(
-                $storeId,
-                $listFields,
-                [$sortField => $sortDirection],
-                $limit,
-                $offset
-            );
+            if ($entityNm === 'user' ) {
+                //$records = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection], $limit, $offset);
+                $records = $this->repository->findAllWithFields(
+                            $listFields,
+                            [$sortField => $sortDirection],
+                            $limit,
+                            $offset
+                        );
+
+                $totalRecords = $this->repository->countAll();
+            } else {
+                $storeId = $this->scrap->getStoreId();
+
+                //$records = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection], $limit, $offset);
+                $records = $this->repository->findByStoreIdWithFields(
+                    $storeId,
+                    $listFields,
+                    [$sortField => $sortDirection],
+                    $limit,
+                    $offset
+                );
 
 
-            $totalRecords = $this->repository->countByStoreId($storeId);
+                $totalRecords = $this->repository->countByStoreId($storeId);
+            }
+
         }
 
         $totalPages = ceil($totalRecords / $limit);
@@ -230,7 +249,8 @@ abstract class AbstractCrudController extends Controller
         // return $r;
         // exit();
 
-        return $this->view(Url::CORE_TESTY_LIST->view(), $this->buildCommonViewData($viewData));
+        // return $this->view(Url::CORE_TESTY_LIST->view(), $this->buildCommonViewData($viewData));
+        return $this->view($url->view(), $this->buildCommonViewData($viewData));
     }
 
 
@@ -256,13 +276,17 @@ abstract class AbstractCrudController extends Controller
         //     $entityNm
         // );
 
-        $pageConfigKey = $this->scrap->getPageConfigKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
-        $xpl = explode('_', $pageConfigKey);
+        $xpl = explode('_', $pageName);
         $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
 
         $this->formType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 
@@ -297,14 +321,18 @@ abstract class AbstractCrudController extends Controller
         $formFields = $this->formType->getFields();
 
         $ownerForeignKey = $this->feature->ownerForeignKey;
-        $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
+        if (isset($ownerForeignKey)) {
+            $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
+        }
 
         if ($request->getMethod() === 'GET') {
             // 2. Fetch the required data ONCE as an array.
             $recordArray = $this->repository->findByIdWithFields($recordId, $requiredFields);
 
             // 3. Check for existence and permissions using the fetched array.
-            $this->checkForEditPermissions($recordArray);
+            if (!$this->scrap->isAdmin()) {
+                $this->checkForEditPermissions($recordArray);
+            }
         } else {
             $recordArray = null;
         }
@@ -332,22 +360,25 @@ abstract class AbstractCrudController extends Controller
 
             $fullRecordObj = $this->repository->findById($recordId);
 
+            if (in_array('title', $formFields)) {
+                // Auto-update slug if needed (same logic as before)
+                $oldTitle = $fullRecordObj->getTitle() ?? null;
+                $oldSlug  = $fullRecordObj->getSlug() ?? null;
 
-            // Auto-update slug if needed (same logic as before)
-            $oldTitle = $fullRecordObj->getTitle() ?? null;
-            $oldSlug  = $fullRecordObj->getSlug() ?? null;
+                // Slug regeneration if needed
+                if (isset($data['title']) && $data['title'] !== $oldTitle) {
+                    // Only compute original-generated slug when title changed
+                    $generatedFromOld = $this->generateSlug((string)$oldTitle);
 
-
-            // Slug regeneration if needed
-            if (isset($data['title']) && $data['title'] !== $oldTitle) {
-                // Only compute original-generated slug when title changed
-                $generatedFromOld = $this->generateSlug((string)$oldTitle);
-
-                // Regenerate slug if the current slug was auto-generated before or no slug supplied
-                if (empty($data['slug']) || $oldSlug === $generatedFromOld) {
-                    $data['slug'] = $this->generateSlug((string)$data['title']);
+                    // Regenerate slug if the current slug was auto-generated before or no slug supplied
+                    if (empty($data['slug']) || $oldSlug === $generatedFromOld) {
+                        $data['slug'] = $this->generateSlug((string)$data['title']);
+                    }
                 }
             }
+
+
+
 
             // foreach ($data as $name => $field) {
             //     if ($field->getAttribute('type') === 'hidden' || $field->getAttribute('disabled')
@@ -382,7 +413,7 @@ abstract class AbstractCrudController extends Controller
             'title' => 'Edit Record',
             'form' => $form,
             'formTheme' => $form->getCssFormThemeFile(),
-            //'geo_region' => $regionCode, // <-- Add this line
+            //'geo_region' => $regionCode,
         ];
 
         $url = $this->feature->editUrlEnum;
@@ -407,13 +438,18 @@ abstract class AbstractCrudController extends Controller
     public function createAction(ServerRequestInterface $request): ResponseInterface
     {
         //$pageKey = $this->scrap->getPageKey();
-        $pageConfigKey = $this->scrap->getPageConfigKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
-        $xpl = explode('_', $pageConfigKey);
+
+        $xpl = explode('_', $pageName);
         $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
 
         $this->formType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 
@@ -454,21 +490,24 @@ abstract class AbstractCrudController extends Controller
 
             // Add owner foreign key for new records
             $currentUserId = $this->scrap->getUserId();
-            $currentUserId = 4; // Hack because not logged in
+            // $currentUserId = 4; // Hack because not logged in
             $data[$ownerForeignKey] = $currentUserId;
-            $data['store_id'] = $currentUserId; // Hack because not logged in
 
+            if ($this->scrap->getPageFeature() !== 'User') {
+               $data['store_id'] = $this->scrap->getStoreId(); // Hack because not logged in
+            }
 
+            if (array_key_exists('title', $data)) {
+                // Slug regeneration if needed
+                if (isset($data['title'])) {
+                    // Regenerate slug if the current slug was auto-generated before or no slug supplied
+                    $data['slug'] = $this->generateSlug((string)$data['title']);
+                } else {
+                    $data['title'] = $this->generateTitle(3, 6);
+                    // protected function generateTitle(int $wordCount = 2, int $wordLength = 6): string
 
-            // Slug regeneration if needed
-            if (isset($data['title'])) {
-                // Regenerate slug if the current slug was auto-generated before or no slug supplied
-                $data['slug'] = $this->generateSlug((string)$data['title']);
-            } else {
-                $data['title'] = $this->generateTitle(3, 6);
-                // protected function generateTitle(int $wordCount = 2, int $wordLength = 6): string
-
-                $data['slug'] = $this->generateSlug((string)$data['title']);
+                    $data['slug'] = $this->generateSlug((string)$data['title']);
+                }
             }
 
             // foreach ($data as $name => $field) {
@@ -576,6 +615,84 @@ abstract class AbstractCrudController extends Controller
     }
 
 
+
+    /**
+     * Handles deletion of a record.
+     *
+     * On GET request: Displays a confirmation page for deletion.
+     * On POST request: Performs the actual deletion after confirmation.
+     *
+     * @param ServerRequestInterface $request The incoming server request.
+     * @return ResponseInterface The response, either rendering the confirmation view,
+     *                           redirecting after deletion, or returning an error.
+     * @throws ForbiddenException If the user is not authorized, the record doesn't exist,
+     *                            or the CSRF token is invalid.
+     */
+    public function deleteAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
+        if ($recordId === null) {
+            $this->flash22->add("Invalid record ID.", FlashMessageType::Error);
+            return $this->redirect($this->feature->listUrlEnum->url());
+        }
+
+        // Fetch record to perform permission check and get display data
+        $ownerForeignKey = $this->feature->ownerForeignKey;
+        // For User, 'username' is a good descriptive field.
+        $recordArray = $this->repository->findByIdWithFields($recordId, ['id', 'username', $ownerForeignKey]);
+
+        // Check permissions (reusing checkForEditPermissions for ownership)
+        $this->checkForEditPermissions($recordArray); // Throws ForbiddenException if not allowed
+
+        // Determine record title for confirmation message
+        $recordTitle = $recordArray['username'] ?? 'this item'; // Use username for User entity
+
+        if ($request->getMethod() === 'GET') {
+            // Display confirmation page
+            $viewData = [
+                'title' => "Confirm Delete: " . htmlspecialchars((string)$recordTitle),
+                'recordId' => $recordId,
+                'recordTitle' => $recordTitle,
+                'deleteUrl' => $this->feature->deleteUrlEnum->url(['id' => $recordId]), // POST target
+                'cancelUrl' => $this->feature->listUrlEnum->url(),
+                'csrfToken' => $this->scrap->getCsrfToken(), // Get CSRF token for the form
+            ];
+            return $this->view($this->feature->deleteConfirmUrlEnum->view(), $this->buildCommonViewData($viewData));
+
+        } elseif ($request->getMethod() === 'POST') {
+            // Perform actual deletion
+            try {
+                // Manual CSRF protection for the delete form
+                $parsedBody = $request->getParsedBody();
+                $csrfToken = $parsedBody['csrf_token'] ?? '';
+                if (!$this->scrap->validateCsrfToken($csrfToken)) {
+                    throw new ForbiddenException("Invalid CSRF token.", 403);
+                }
+
+                if ($this->repository->delete($recordId)) {
+                    $this->flash22->add("Record '" . htmlspecialchars((string)$recordTitle) . "' deleted successfully", FlashMessageType::Success);
+                    return $this->redirect($this->feature->listUrlEnum->url());
+                } else {
+                    $this->flash22->add("Failed to delete record '" . htmlspecialchars((string)$recordTitle) . "'.", FlashMessageType::Error);
+                    return $this->redirect($this->feature->listUrlEnum->url());
+                }
+            } catch (ForbiddenException $e) {
+                $this->flash22->add($e->getMessage(), FlashMessageType::Error);
+                return $this->redirect($this->feature->listUrlEnum->url());
+            } catch (\Throwable $e) {
+                error_log("Error deleting record (ID: {$recordId}): " . $e->getMessage());
+                $this->flash22->add("An unexpected error occurred while deleting record '" . htmlspecialchars((string)$recordTitle) . "'.", FlashMessageType::Error);
+                return $this->redirect($this->feature->listUrlEnum->url());
+            }
+        }
+
+        // Should not reach here
+        return $this->redirect($this->feature->listUrlEnum->url());
+    }
+
+
+
+
     //abstract protected function processForm(ServerRequestInterface $request, ?array $recordArray): array;
 
     /**
@@ -671,7 +788,7 @@ abstract class AbstractCrudController extends Controller
 
         // 2. Get the ID of the currently logged-in user.
         $currentUserId = $this->scrap->getUserId();
-        $currentUserId = 4; //hack because i am not logged in
+        //$currentUserId = 4; //hack because i am not logged in
 
         // 3. Get the owner foreign key from the metadata service (e.g., 'user_id', 'user_id')
         $ownerForeignKey = $this->feature->ownerForeignKey;

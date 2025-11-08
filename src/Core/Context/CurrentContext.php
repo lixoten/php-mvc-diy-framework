@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Core\Context;
 
-use App\Entities\Store;
-use App\Entities\User;
+// use App\Entities\Store;
+// use App\Entities\User;
+use App\Features\Store\Store;
+use App\Features\User\User;
 use App\Enums\Url;
 
 /**
@@ -26,8 +28,12 @@ class CurrentContext
     private ?int $storeId = null;
     private ?string $storeName = null;
 
+    private ?string $pageName = null; // e.g.,  'testy_edit', 'testy_index', 'testy_etc...'
+    private ?string $pageFeature = null; // e.g.,  'testy', 'post', 'user', 'login'...
+    private ?string $pageEntity = null; // e.g.,  'testy', 'post', 'user'...
+
+
     private ?string $pageKey = null; // e.g.,  , 'users' from route
-    private ?string $pageConfigKey = null;
     private ?int $entityId = null; // e.g., the ID from /edit/{id}
     private array $routeParams = [];
     private ?string $actionName = null; // e.g., 'index', 'edit'
@@ -58,7 +64,7 @@ class CurrentContext
 
     public function getUserId(): ?int
     {
-        return $this->currentUser?->getUserId(); // Assumes getRecordId() method on User entity
+        return $this->currentUser?->getId(); // Assumes getRecordId() method on User entity
     }
 
     public function isLoggedIn(): bool
@@ -115,11 +121,11 @@ class CurrentContext
      *
      * @param int|null $id The store ID
      */
-    public function setStoreObj(?Store $obj): void // <-- Allow null
+    public function setStoreObj(?Store $obj): void
     {
         $this->storeObj = $obj;
     }
-    public function getStoreObj(): ?Store // <-- Return nullable
+    public function getStoreObj(): ?Store
     {
         return $this->storeObj;
     }
@@ -131,7 +137,7 @@ class CurrentContext
      *
      * @param int|null $id The store ID
      */
-    public function setStoreId(?int $id): void // <-- Allow null
+    public function setStoreId(?int $id): void
     {
         $this->storeId = $id;
     }
@@ -141,7 +147,7 @@ class CurrentContext
      *
      * @return int|null The store ID or null if not set
      */
-    public function getStoreId(): ?int // <-- Return nullable
+    public function getStoreId(): ?int
     {
         return $this->storeId;
     }
@@ -151,7 +157,7 @@ class CurrentContext
      *
      * @param string|null $name The store name
      */
-    public function setStoreName(?string $name): void // <-- Allow null
+    public function setStoreName(?string $name): void
     {
         $this->storeName = $name;
     }
@@ -161,7 +167,7 @@ class CurrentContext
      *
      * @return string|null The store name or null if not set
      */
-    public function getStoreName(): ?string // <-- Return nullable
+    public function getStoreName(): ?string
     {
         return $this->storeName;
     }
@@ -174,7 +180,7 @@ class CurrentContext
      *
      * @param string|null $name The store name
      */
-    public function setBoo(?string $boo): void // <-- Allow null
+    public function setBoo(?string $boo): void
     {
         $this->boo = $boo;
     }
@@ -184,7 +190,7 @@ class CurrentContext
      *
      * @return string|null The store name or null if not set
      */
-    public function getBoo(): ?string // <-- Return nullable
+    public function getBoo(): ?string
     {
         return $this->boo;
     }
@@ -194,7 +200,7 @@ class CurrentContext
      *
      * @return string|null The store name or null if not set
      */
-    public function printIt(): array // <-- Return nullable
+    public function printIt(): array
     {
         $arr = [];
         $arr['userObj'] = 'User object';
@@ -296,6 +302,46 @@ class CurrentContext
         return $this->routeId;
     }
 
+    /////////////////////////////////////////////////////////////////////
+    public function setPageName(?string $pageName): void
+    {
+        $this->pageName = $pageName;
+    }
+
+    public function getPageName(): ?string
+    {
+        return $this->pageName;
+    }
+
+    public function setPageFeature(?string $pageFeature): void
+    {
+        $this->pageFeature = $pageFeature;
+    }
+
+    public function getPageFeature(): ?string
+    {
+        return $this->pageFeature;
+    }
+
+    public function setPageEntity(?string $pageEntity): void
+    {
+        $this->pageEntity = $pageEntity;
+    }
+
+    public function getPageEntity(): ?string
+    {
+        return $this->pageEntity;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
     public function setPageKey(?string $pageKey): void
     {
@@ -307,16 +353,6 @@ class CurrentContext
         return $this->pageKey;
     }
 
-
-    public function setPageConfigKey(?string $pageConfigKey): void
-    {
-        $this->pageConfigKey = $pageConfigKey;
-    }
-
-    public function getPageConfigKey(): ?string
-    {
-        return $this->pageConfigKey;
-    }
 
 
     // Add getters/setters for other properties if added

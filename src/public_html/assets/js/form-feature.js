@@ -568,7 +568,7 @@
     //             data['csrf_token'] = csrfToken;
 
 
-    //             fetch('/testys/ajax-save-draft', {
+    //             fetch('/testy/ajax-save-draft', {
     //                 method: 'POST',
     //                 headers: {
     //                     'Content-Type': 'application/json',
@@ -593,7 +593,7 @@
     //                         var key = 'draft_' + (form.getAttribute('id') || form.getAttribute('name') || window.location.pathname);
     //                         localStorage.removeItem(key);
     //                     }
-    //                     // Optionally: window.location.href = '/testys'; // redirect
+    //                     // Optionally: window.location.href = '/testy'; // redirect
     //                 } else {
     //                     alert('Failed to save record.');
     //                 }

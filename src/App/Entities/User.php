@@ -9,7 +9,7 @@ use App\Helpers\DebugRt;
 
 class User
 {
-    private ?int $userId = null;
+    private ?int $id = null;
     private string $username;
     private string $email;
     private string $passwordHash;
@@ -25,17 +25,17 @@ class User
     /**
      * Get user ID
      */
-    public function getUserId(): ?int
+    public function getId(): ?int
     {
-        return $this->userId;
+        return $this->id;
     }
 
     /**
      * Set user ID
      */
-    public function setUserId(?int $userId): self
+    public function setId(?int $id): self
     {
-        $this->userId = $userId;
+        $this->id = $id;
         return $this;
     }
 

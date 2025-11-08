@@ -29,8 +29,9 @@ class FieldRegistryService
     protected ?string $pageName = null;
     protected ?string $entityName = null;
 
-    public function __construct(ConfigInterface $configService)
-    {
+    public function __construct(
+        ConfigInterface $configService,
+    ) {
         $this->configService    = $configService;
     }
 
@@ -97,37 +98,38 @@ class FieldRegistryService
      */
     public function getFieldWithFallbacks(string $fieldName, string $pageName, string $entityName): ?array
     {
-        // 1. Page-Context-specific config: config/list_fields/posts.php
-        //if (isset($this->pageName)) {
-            $listName = $pageName;
-            $field = $this->getField($fieldName, $listName);
-            if ($field !== null) {
-                $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
-                return $field;
-            }
-        //}
+        // Local  - field_testy_edit
+        // Entity - field_testy
+        // Base   - field_base
 
-        // 2. Entity-specific config: config/list_fields/posts.php
-        //if (isset($this->entityName)) {
-            $listName = $entityName; // e.g., 'posts'
-            //$field = $this->configService->get('list_fields/' . $entityName . "." . $fieldName); // loads "list_fields/posts.php"
-            $field = $this->getField($fieldName, $listName);
-            if ($field !== null) {
-                $field['label'] = '!' . $field['label'];
-                return $field;
-            }
-        //}
+        // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/field_{pageName}.php
+        // This assumes pageName for a feature is like 'testy_list' or 'testy_edit'
+        // and the config file is field_testy.php
+        //$featureEntityName = str_replace(['_list', '_edit'], '', $pageName); // Extract 'testy' from 'testy_list'
 
+        // fixme shit2 - ok
+        $field = $this->configService->getFromFeature($entityName, 'field_' . $pageName . ".$fieldName");
+        if ($field !== null) {
+            $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
+            return $field;
+        }
 
-        // 3. Base config: config/list_fields_base.php
-        $field = $this->getField($fieldName, 'base');
-        //$field = $this->configService->get('list_fields/base' . "." . $fieldName); // loads "list_fields/posts.php"
+        // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/field_{entityName}.php
+        // fixme shit2 - ok
+        $field = $this->configService->getFromFeature($entityName, 'field_' . $entityName . ".$fieldName");
+        if ($field !== null) {
+            $field['label'] = '!' . $field['label'];
+            return $field;
+        }
+
+        // 3. Base config: config/render/fields_base.php
+        $field = $this->configService->get('render/field_base' . '.' . $fieldName);
         if ($field !== null) {
             $field['label'] = '-' . $field['label'];
             return $field;
         }
 
-        // 3. Not found
+        // 4. Not found
         return null;
     }
 

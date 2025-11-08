@@ -1,3 +1,48 @@
+remove find store crap
+
+Add Store
+
+###
+
+### User Table
+- Does not have a Foreign key to stores
+
+### Store Table
+- A Store a Foreign key to User Table, the store owner
+
+
+
+- major problem
+    - testy seeder not populating table just one, the check for unique is wrong
+
+
+
+
+
+
+if account/
+    all testy records for a user
+    all user records for a user ----- should always be just 1
+    galleries
+    comments
+
+if store/ or nothing thus CORE
+    all testy records for a store regardless of user
+    all user records for a store regardless of user  --- danger danger - only storeowner and admin
+    galleries
+
+
+
+
+
+
+
+
+
+
+
+
+
 ## "Field Attribute Validation"
 In layman's term validate `Config\list_fields\testys_edit.php` and remove invalid and for Dev env, display an error and log it too.
 At the moment we are allowed to have attributes that make no sense in a field type. ex. Placeholder attr in a checkbox.

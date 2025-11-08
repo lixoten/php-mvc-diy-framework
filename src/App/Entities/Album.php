@@ -15,7 +15,7 @@ class Album
     private ?string $description = null;
     private ?string $createdAt = null;
     private ?string $updatedAt = null;
-    private ?string $username = null; // For joining with users table
+    private ?string $username = null; // For joining with user table
 
     // Getters and setters
     public function getAlbumId(): ?int

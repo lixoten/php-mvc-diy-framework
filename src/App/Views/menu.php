@@ -82,7 +82,7 @@ $navigation = $navigationService->buildNavigation($currentPath);
 <!-- Debug Bar -->
 <div class="debugbar">
     <?php $debug = $navigation->getDebugInfo(); ?>
-    Debug| Current Role: <?= $debug['role'] ?>
+    Debug| Current Rcccole: <?= $debug['role'] ?>
     <?php if ($debug['user_id']) : ?>
         | Current User: <?= $debug['user_id'] ?> - <?= htmlspecialchars($debug['username']) ?>
         <?php if (isset($debug['active_store_id']) && $debug['active_store_id']) : ?>

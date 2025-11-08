@@ -29,6 +29,6 @@ return [
     ],
     'logging' => [
         'enabled' => $_ENV['DB_LOG_QUERIES'] ?? false,
-        'slow_threshold' => $_ENV['DB_SLOW_QUERY_THRESHOLD'] ?? 1000, // milliseconds
+        'slow_threshold' => $_ENV['DB_SLOW_QUERY_THRESHOLD'] ?? 1001, // milliseconds
     ]
 ];

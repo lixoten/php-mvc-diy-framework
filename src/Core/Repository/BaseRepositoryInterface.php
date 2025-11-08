@@ -29,13 +29,13 @@ interface BaseRepositoryInterface
 
 
 
-    /**
-     * Find an entity by its primary ID.
-     *
-     * @param int $id The entity ID.
-     * @return object|null The entity object or null if not found.
-     */
-    public function findById(int $id): ?object;
+    // /**
+    //  * Find an entity by its primary ID.
+    //  *
+    //  * @param int $id The entity ID.
+    //  * @return object|null The entity object or null if not found.
+    //  */
+    // public function findById(int $id): ?object;
 
 
     public function findByStoreId(
@@ -114,19 +114,7 @@ interface BaseRepositoryInterface
         ?int $offset = null
     ): array;
 
-    /**
-     * Create a new entity in the database.
-     *
-     * @param object $entity The entity object to create.
-     * @return object
-     */
-    public function create(object $entity): object;
 
-    /**
-     * Update an existing entity in the database.
-     *
-     */
-    public function update(object $entity): bool;
 
     /**
      * Delete an entity by its primary ID.

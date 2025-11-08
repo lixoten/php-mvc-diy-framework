@@ -12,7 +12,7 @@ DebugRt::j('1', '', '111');
 
 <h1><?= $title ?></h1>
 
-<!-- account/stores/index.php -->
+<!-- account/store/index.php -->
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1><?= htmlspecialchars($store->getName()) ?> Dashboard</h1>
@@ -20,7 +20,7 @@ DebugRt::j('1', '', '111');
             <a href="/<?= htmlspecialchars($store->getSlug()) ?>" class="btn btn-outline-primary" target="_blank">
                 <i class="fas fa-external-link-alt me-2"></i> View Store
             </a>
-            <a href="/account/stores/edit" class="btn btn-secondary ms-2">
+            <a href="/account/store/edit" class="btn btn-secondary ms-2">
                 <i class="fas fa-cog me-2"></i> Settings
             </a>
         </div>
@@ -33,7 +33,7 @@ DebugRt::j('1', '', '111');
                 <div class="card-body">
                     <h2 class="display-4 text-primary"><?= $productCount ?></h2>
                     <p class="card-text">Products</p>
-                    <a href="/account/stores/products" class="btn btn-sm btn-outline-primary">Manage Products</a>
+                    <a href="/account/store/products" class="btn btn-sm btn-outline-primary">Manage Products</a>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@ DebugRt::j('1', '', '111');
                 <div class="card-body">
                     <h2 class="display-4 text-success"><?= $orderCount ?></h2>
                     <p class="card-text">Orders</p>
-                    <a href="/account/stores/orders" class="btn btn-sm btn-outline-success">View Orders</a>
+                    <a href="/account/store/orders" class="btn btn-sm btn-outline-success">View Orders</a>
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@ DebugRt::j('1', '', '111');
                 <div class="card-body">
                     <h2 class="display-4 text-info">0</h2>
                     <p class="card-text">Reviews</p>
-                    <a href="/account/stores/reviews" class="btn btn-sm btn-outline-info">View Reviews</a>
+                    <a href="/account/store/reviews" class="btn btn-sm btn-outline-info">View Reviews</a>
                 </div>
             </div>
         </div>
@@ -60,7 +60,7 @@ DebugRt::j('1', '', '111');
                 <div class="card-body">
                     <h2 class="display-4 text-warning">0</h2>
                     <p class="card-text">Messages</p>
-                    <a href="/account/stores/messages" class="btn btn-sm btn-outline-warning">View Messages</a>
+                    <a href="/account/store/messages" class="btn btn-sm btn-outline-warning">View Messages</a>
                 </div>
             </div>
         </div>
@@ -75,16 +75,16 @@ DebugRt::j('1', '', '111');
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-2 flex-wrap">
-                        <a href="/account/stores/products/create" class="btn btn-primary">
+                        <a href="/account/store/products/create" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i> Add Product
                         </a>
-                        <a href="/account/stores/edit" class="btn btn-outline-secondary">
+                        <a href="/account/store/edit" class="btn btn-outline-secondary">
                             <i class="fas fa-edit me-2"></i> Edit Store
                         </a>
-                        <a href="/account/stores/orders" class="btn btn-outline-success">
+                        <a href="/account/store/orders" class="btn btn-outline-success">
                             <i class="fas fa-shopping-cart me-2"></i> Process Orders
                         </a>
-                        <a href="/account/stores/promotion" class="btn btn-outline-warning">
+                        <a href="/account/store/promotion" class="btn btn-outline-warning">
                             <i class="fas fa-bullhorn me-2"></i> Create Promotion
                         </a>
                     </div>
@@ -99,7 +99,7 @@ DebugRt::j('1', '', '111');
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Recent Orders</h5>
-                    <a href="/account/stores/orders" class="btn btn-sm btn-link">View All</a>
+                    <a href="/account/store/orders" class="btn btn-sm btn-link">View All</a>
                 </div>
                 <div class="card-body p-0">
                     <?php if (count($recentOrders) > 0): ?>

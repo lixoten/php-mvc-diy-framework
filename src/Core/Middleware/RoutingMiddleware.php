@@ -56,7 +56,7 @@ class RoutingMiddleware implements MiddlewareInterface
             $request = $request->withAttribute('id', $routeParams['id'] ?? null);
 
             $request = $request->withAttribute('page_key', $routeParams['page_key'] ?? null);
-            $request = $request->withAttribute('page_config_key', $routeParams['page_config_key'] ?? null);
+            $request = $request->withAttribute('page_name', $routeParams['page_name'] ?? null);
             // notes-: 'page_name', We could but we do not set in '$this->router->add'
             // $tmpPageKey = strtolower($routeParams['controller'] . '_' . $routeParams['action']);
             // $request = $request->withAttribute('page_key', $tmpPageKey);

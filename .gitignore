@@ -32,8 +32,10 @@ composer.phar
 *copy.php
 *copy.md
 * copy.*
+*copy*
 * old.*
 *old.php
+*Database/temssssp.md*
 
 
 # Development notes and scratch files
@@ -93,3 +95,10 @@ _scrap
 # ols shit, saving just incase
 old_shit
 src/public_html/assets/js/aaaa.md
+
+src/Generated
+src/Database/temp.php
+src/Database/temp.md
+src/App/Repository/temp
+src_crap/
+

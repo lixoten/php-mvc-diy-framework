@@ -176,7 +176,7 @@ class GenericFormType extends AbstractFormType
         $builder->setLayout($validatedLayout);
 
         // --- 6. Store Final Render Options (needed by FormFactory/Form) ---
-        // The AbstractFormType stores $this->formRenderOptions automatically.
+        // The AbstractFormType store $this->formRenderOptions automatically.
         // Ensure any modifications needed *after* captcha check are applied.
         if ($captchaNeeded) {
             $this->formRenderOptions['captcha_required'] = true;

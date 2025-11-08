@@ -15,7 +15,6 @@ class Column
     private mixed $default = null;
     private ?string $comment = null;
     private array $attributes = [];
-    private ?string $check = null;
 
     public function __construct(string $name, string $type)
     {
@@ -154,20 +153,6 @@ class Column
             }
         }
 
-        // Add CHECK constraint if specified
-        if ($this->check !== null) {
-            $parts[] = "CHECK ({$this->check})";
-        }
-
         return implode(' ', $parts);
-    }
-
-    /**
-     * Add a CHECK constraint to the column
-     */
-    public function check(string $expression): self
-    {
-        $this->check = $expression;
-        return $this;
     }
 }

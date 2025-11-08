@@ -38,11 +38,19 @@ class FeatureMetadataFactoryService
      */
     public function createFor(string $viewKey): FeatureMetadataService
     {
-        $metadataConfig = $this->config->get('view_options/' . $viewKey . '.metadata', []);
+
+        // fixme shit2 - ok
+        $metadataConfig = $this->config->getFromFeature($viewKey, "metadata_{$viewKey}.metadata");
+
         $routeType = $this->currentContext->getRouteType();
+
 
         $routeMap = $metadataConfig['route_map'] ?? [];
         $routeDefaults = $routeMap[$routeType] ?? $routeMap['core'] ?? [];
+
+        $pageName = $metadataConfig['pageName'] ?? null;
+        $entityName = $metadataConfig['entityName'] ?? null;
+        $ownerForeignKey = (string) ($metadataConfig['owner_foreign_key'] ?? $routeDefaults['owner_foreign_key'] ?? 'id');
 
         $rawBase = $metadataConfig['base_url_enum'] ?? $routeDefaults['base_url_enum'] ?? Url::CORE_TESTY;
         $baseUrlEnum = $this->resolveUrlEnum($rawBase);
@@ -50,21 +58,41 @@ class FeatureMetadataFactoryService
         $rawEdit = $metadataConfig['edit_url_enum'] ?? $routeDefaults['edit_url_enum'] ?? null;
         $editUrlEnum = $rawEdit !== null ? $this->resolveUrlEnum($rawEdit) : null;
 
-        $ownerForeignKey = (string) ($metadataConfig['owner_foreign_key'] ?? $routeDefaults['owner_foreign_key'] ?? 'user_id');
+        $rawList = $metadataConfig['list_url_enum'] ?? $routeDefaults['list_url_enum'] ?? null;
+        $listUrlEnum = $rawList !== null ? $this->resolveUrlEnum($rawList) : null;
+
+        // --- MISSING CODE STARTS HERE ---
+        $rawCreate = $metadataConfig['create_url_enum'] ?? $routeDefaults['create_url_enum'] ?? null;
+        $createUrlEnum = $rawCreate !== null ? $this->resolveUrlEnum($rawCreate) : null;
+
+        $rawView = $metadataConfig['view_url_enum'] ?? $routeDefaults['view_url_enum'] ?? null;
+        $viewUrlEnum = $rawView !== null ? $this->resolveUrlEnum($rawView) : null;
+
+        $rawDelete = $metadataConfig['delete_url_enum'] ?? $routeDefaults['delete_url_enum'] ?? null;
+        $deleteUrlEnum = $rawDelete !== null ? $this->resolveUrlEnum($rawDelete) : null;
+
+        $rawDeleteConfirm = $metadataConfig['delete_confirm_url_enum'] ?? $routeDefaults['delete_confirm_url_enum']
+                                                                                                                ?? null;
+        $deleteConfirmUrlEnum = $rawDeleteConfirm !== null ? $this->resolveUrlEnum($rawDeleteConfirm) : null;
+        // --- MISSING CODE ENDS HERE ---
 
         $redirectAfterSave = $metadataConfig['redirect_after_save'] ?? null;
         $redirectAfterAdd = $metadataConfig['redirect_after_add'] ?? null;
-        $pageName = $metadataConfig['pageName'] ?? null;
-        $entityName = $metadataConfig['entityName'] ?? null;
+
 
         return new FeatureMetadataService(
+            $pageName,
+            $entityName,
+            $ownerForeignKey,
             $baseUrlEnum,
             $editUrlEnum,
-            $ownerForeignKey,
+            $listUrlEnum,
+            $createUrlEnum,
+            $viewUrlEnum,
+            $deleteUrlEnum,
+            $deleteConfirmUrlEnum,
             $redirectAfterSave,
             $redirectAfterAdd,
-            $pageName,
-            $entityName
         );
     }
 
@@ -72,7 +100,7 @@ class FeatureMetadataFactoryService
      * Convert a string or Url enum to a Url enum instance.
      *
      * Accepts an Url instance, an enum case name (e.g. 'CORE_TESTY'),
-     * a normalized name ('core_testy', 'core-testys'), or a backed value (future-proof).
+     * a normalized name ('core_testy', 'core-testy'), or a backed value (future-proof).
      *
      * @param string|Url $value
      * @return Url

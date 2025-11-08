@@ -55,7 +55,7 @@ return [
                 // Add other post-specific fields like 'category_id', 'tags', etc.
             ],
         ],
-        'stores' => [
+        'store => [
             // Fields to include in the 'posts' form
             // 'fields' => ['title', 'content', 'status'], // Add 'status' or other fields as needed
             // 'fields' => ['name', 'description', 'status'], // Add 'status' or other fields as needed

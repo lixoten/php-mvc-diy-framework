@@ -81,14 +81,25 @@ class MiddlewareFactory
         // These now rely on attributes set by RoutingMiddleware
         // Guest-only middleware for login/registration pages
         // 9.
-        $pipeline->pipe(new RoutePatternMiddleware('/login', $container->get(GuestOnlyMiddleware::class)));
+        // fixme  bypass temp
+        // $pipeline->pipe(new RoutePatternMiddleware('/login', $container->get(GuestOnlyMiddleware::class)));
         // 10.
-        $pipeline->pipe(new RoutePatternMiddleware('/registration', $container->get(GuestOnlyMiddleware::class)));
+        // fixme  bypass temp
+        // $pipeline->pipe(new RoutePatternMiddleware('/registration', $container->get(GuestOnlyMiddleware::class)));
         // 11.
-        $pipeline->pipe(new RoutePatternMiddleware('/forgot-password', $container->get(GuestOnlyMiddleware::class)));
+        // fixme  bypass temp
+        // $pipeline->pipe(new RoutePatternMiddleware('/forgot-password', $container->get(GuestOnlyMiddleware::class)));
 
         // ... other RoutePatternMiddleware for auth/roles ...
-        $storeContextPatterns = [
+        // Important!!!
+        // This is what allows us to use 'CORE' as i NOT 'STORE/' or 'ACCOUNT/' in urls and still populate STORE ID
+        // --- http://mvclixo.tv/testy/list             <<<<< CORE
+        // --- http://mvclixo.tv/store/testy/list       <<<<< STORE/
+        // --- http://mvclixo.tv/account/testy/list     <<<<< ACCOUNT/ ---- no store id needed
+        // Important!!!
+        $storeAccountContextPatterns = [
+            '/testy*', // dynamic-fix
+            '/image*', // dynamic-fix
             // '/posts*', // dynamic-fix
             // add more as needed
         ];
@@ -101,16 +112,16 @@ class MiddlewareFactory
         // 14.
         $pipeline->pipe(new RoutePatternMiddleware('/profile/*', $container->get(RequireAuthMiddleware::class)));
         // 15.
-        $pipeline->pipe(new RoutePatternMiddleware('/stores/*', $container->get(StoreContextMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/store/*', $container->get(StoreContextMiddleware::class)));
         //$pipeline->pipe(new RoutePatternMiddleware('/posts', $container->get(StoreContextMiddleware::class)));
-        foreach ($storeContextPatterns as $pattern) {
+        foreach ($storeAccountContextPatterns as $pattern) {
             $pipeline->pipe(new RoutePatternMiddleware($pattern, $container->get(RequireAuthMiddleware::class)));
             $pipeline->pipe(new RoutePatternMiddleware($pattern, $container->get(StoreContextMiddleware::class)));
         }
         // 16.
         $pipeline->pipe(new RoutePatternMiddleware('/admin/*', $container->get(RequireRoleMiddleware::class)));
         // 17.
-        $pipeline->pipe(new RoutePatternMiddleware('/users', $container->get(RequireRoleMiddleware::class)));
+        $pipeline->pipe(new RoutePatternMiddleware('/user', $container->get(RequireRoleMiddleware::class)));
 
 
         // 18. Context Population (runs after routing and auth checks)

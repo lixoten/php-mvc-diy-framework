@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Auth;
 
-use App\Entities\User;
+// use App\Entities\User;
+
+use App\Features\User\User;
 use Core\Auth\Exception\AuthenticationException;
 
 interface AuthenticationServiceInterface

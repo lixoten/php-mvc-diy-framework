@@ -21,7 +21,7 @@ Now that you've fixed the checkbox to be properly unchecked by default, here's a
 3. **Verify Database Token**
    - Check your database:
    ```sql
-   SELECT * FROM remember_tokens;
+   SELECT * FROM remember_token;
    ```
    - Verify a row exists for your user
 
@@ -34,9 +34,9 @@ Now that you've fixed the checkbox to be properly unchecked by default, here's a
 5. **Test Token Rotation**
     - Check database again:
     ```sql
-    SELECT * FROM remember_tokens;
+    SELECT * FROM remember_token;
     ```
-    - A new token should be generated each time you're auto-logged in. 
+    - A new token should be generated each time you're auto-logged in.
     - This is a security feature that helps prevent token theft
 
 6. **Test Logout**

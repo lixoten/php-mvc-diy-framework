@@ -77,6 +77,6 @@ trait AuthorizationTrait
             );
         }
 
-        return $currentUser->getUserId();
+        return $currentUser->getId();
     }
 }

@@ -21,7 +21,6 @@ use App\Enums\PostFields2;
 use App\Enums\Url;
 use App\Features\Post\Form\PostFormType;
 use App\Features\Testy\Form\TestyFormType;
-use App\Repository\TestyRepositoryInterface;
 use App\Services\Email\EmailNotificationService;
 use App\Services\FeatureMetadataService;
 use Core\Controller;
@@ -47,8 +46,6 @@ use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactory;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
-use Core\Logger;
-use Core\Repository\BaseRepositoryInterface;
 use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
 
@@ -92,7 +89,6 @@ class TestyController extends AbstractCrudController
         protected TypeResolverService $typeResolver,
         //-----------------------------------------
         ConfigInterface $config,
-
         protected LoggerInterface $logger,
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
@@ -153,6 +149,8 @@ class TestyController extends AbstractCrudController
      */
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
+
+
         return parent::listAction(request: $request);
     }
 
@@ -184,6 +182,16 @@ class TestyController extends AbstractCrudController
 
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
+        // $url = $this->feature->baseUrlEnum;
+        // $url = Url::CORE_TESTY;
+        // $rrr = $url->action();
+        // $rrr = $url->getSection('CORE');
+        // $rrr = $url->url();
+        // $rrr = $this->scrap();
+        // $rrr = $url->action();
+        // $rrr = $url->action();
+        // $rrr = $url->action();
+
         return parent::editAction(request: $request);
     }
 
@@ -502,75 +510,10 @@ class TestyController extends AbstractCrudController
 
 
         // 1. Get the base link data from the enum
-        $linkData1 = Url::STORE_ALBUMS->toLinkData([]);
+        $linkData1 = Url::CORE_ALBUMS->toLinkData([]);
         $linkData2 = Url::STORE_ALBUMS->toLinkData([]);
         $linkData5 = Url::STORE_ALBUMS->toLinkData([]);
         $linkDataButton = Url::STORE_ALBUMS->toLinkData([]);
-
-        $viewData = [
-            'title' => 'LinkDemo Action Page',
-            'actionLinks' => $this->getReturnActionLinks(),
-            'linkData1' => $linkData1,
-            'linkData2' => $linkData2,
-            'linkData5' => $linkData5,
-            'linkDataButton' => $linkDataButton,
-        ];
-
-        return $this->view(Url::CORE_TESTY_LINKDEMO->view(), $this->buildCommonViewData($viewData));
-    }
-
-
-    /**
-     * Show .....
-     *
-     * @param ServerRequestInterface $request The current request
-     * @return ResponseInterface
-     */
-    public function xxxlinkdemoAction(ServerRequestInterface $request): ResponseInterface
-    {
-        $linkDataFlash = Url::CORE_TESTY_LINKDEMO->toLinkData([], 'I am a link in flash');
-
-        $message = "a link embedded in flash message: ";
-        $this->flash22->add(
-            $message,
-            FlashMessageType::Warning,
-            false,
-            $linkDataFlash
-        );
-
-        $message = "flash message stack. this one has no embedded linked ";
-        $this->flash22->add(
-            $message,
-            FlashMessageType::Warning
-        );
-
-
-
-
-        // 1. Get the base link data from the enum
-        $linkData1 = Url::STORE_ALBUMS->toLinkData([]);
-        $linkData2 = Url::STORE_ALBUMS_EDIT->toLinkData(
-            ['id' => 456],
-            'I am a album with rec 465 link set in Action',
-        );
-        $linkData2['attributes'] = ['class' => 'fw-bold', 'style' => 'color: green;'];
-        // $linkData2 ['id' => 123],
-
-
-
-        $linkData5 = [
-          'href' => 'https://google.com',
-          'text' => 'Google',
-          'icon' => 'fab fa-google',
-          'attributes' => [
-              'style' => 'color: red;',
-              'target' => '_blank' // Good practice for external links.
-            ]
-        ];
-
-
-        // Prepare data for an indirect button link
-        $linkDataButton = Url::CORE_CONTACT->toLinkData([],'Contact Us Indirectly');
 
         $viewData = [
             'title' => 'LinkDemo Action Page',

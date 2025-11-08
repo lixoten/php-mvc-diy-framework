@@ -57,7 +57,7 @@ declare(strict_types=1);
     <div class="card-body text-center">
         <h4 class="card-title">Ready to start selling?</h4>
         <p class="card-text">Create your own store and reach customers worldwide.</p>
-        <a href="<?= BASE_URL ?>/account/stores/create" class="btn btn-lg btn-primary">
+        <a href="<?= BASE_URL ?>/account/store/create" class="btn btn-lg btn-primary">
             Create Your Store
         </a>
     </div>

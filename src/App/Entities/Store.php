@@ -4,80 +4,104 @@ declare(strict_types=1);
 
 namespace App\Entities;
 
+/**
+ * Generated File - Date: 20251102_134856zz
+ * Entity class for Store.
+ *
+ * @property-read array<string, mixed> $fields
+ */
 class Store
 {
-    private ?int $storeId = null;
-    private int $storeUserId;
-    private string $storeStatus = 'I';  // I=Inactive, A=Active, S=Suspended
+    /**
+     * @var int
+     */
+    private int $id;
+
+    /**
+     * @var int
+     */
+    private int $user_id;
+
+    /**
+     * @var string
+     */
+    private string $status;
+
+    /**
+     * @var string
+     */
     private string $slug;
+
+    /**
+     * @var string
+     */
     private string $name;
+
+    /**
+     * @var string|null
+     */
     private ?string $description = null;
-    private string $theme = 'default';
-    private ?string $createdAt = null;
-    private ?string $updatedAt = null;
-    private ?string $username = null;  // Joined from users table
 
     /**
-     * Get store ID
+     * @var string
      */
-    public function getStoreId(): ?int
+    private string $theme;
+    /**
+     * @return int
+     */
+    public function getId(): int
     {
-        return $this->storeId;
-    }
-
-
-    public function getRecordId(): ?int
-    {
-        return $this->storeId;
+        return $this->id;
     }
 
     /**
-     * Set store ID
+     * @param int $id
+     * @return self
      */
-    public function setStoreId(?int $storeId): self
+    public function setId(int $id): self
     {
-        $this->storeId = $storeId;
+        $this->id = $id;
         return $this;
     }
 
     /**
-     * Get store user ID (store owner)
+     * @return int
      */
     public function getUserId(): int
     {
-        return $this->storeUserId;
+        return $this->user_id;
     }
 
     /**
-     * Set user ID (store owner)
+     * @param int $user_id
+     * @return self
      */
-    public function setUserId(int $storeUserId): self
+    public function setUserId(int $user_id): self
     {
-        $this->storeUserId = $storeUserId;
+        $this->user_id = $user_id;
         return $this;
     }
 
-
     /**
-     * Get store status
+     * @return string
      */
     public function getStatus(): string
     {
-        return $this->storeStatus;
+        return $this->status;
     }
 
     /**
-     * Set store status
+     * @param string $status
+     * @return self
      */
-    public function setStoreStatus(string $storeStatus): self
+    public function setStatus(string $status): self
     {
-        $this->storeStatus = $storeStatus;
+        $this->status = $status;
         return $this;
     }
 
-
     /**
-     * Get store slug
+     * @return string
      */
     public function getSlug(): string
     {
@@ -85,7 +109,8 @@ class Store
     }
 
     /**
-     * Set store slug
+     * @param string $slug
+     * @return self
      */
     public function setSlug(string $slug): self
     {
@@ -94,7 +119,7 @@ class Store
     }
 
     /**
-     * Get store name
+     * @return string
      */
     public function getName(): string
     {
@@ -102,7 +127,8 @@ class Store
     }
 
     /**
-     * Set store name
+     * @param string $name
+     * @return self
      */
     public function setName(string $name): self
     {
@@ -111,7 +137,7 @@ class Store
     }
 
     /**
-     * Get store description
+     * @return ?string
      */
     public function getDescription(): ?string
     {
@@ -119,7 +145,8 @@ class Store
     }
 
     /**
-     * Set store description
+     * @param ?string $description
+     * @return self
      */
     public function setDescription(?string $description): self
     {
@@ -128,7 +155,7 @@ class Store
     }
 
     /**
-     * Get store theme
+     * @return string
      */
     public function getTheme(): string
     {
@@ -136,143 +163,12 @@ class Store
     }
 
     /**
-     * Set store theme
+     * @param string $theme
+     * @return self
      */
     public function setTheme(string $theme): self
     {
         $this->theme = $theme;
         return $this;
-    }
-
-    /**
-     * Get created timestamp
-     */
-    public function getCreatedAt(): ?string
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * Set created timestamp
-     */
-    public function setCreatedAt(?string $createdAt): self
-    {
-        $this->createdAt = $createdAt;
-        return $this;
-    }
-
-    /**
-     * Get updated timestamp
-     */
-    public function getUpdatedAt(): ?string
-    {
-        return $this->updatedAt;
-    }
-
-    /**
-     * Set updated timestamp
-     */
-    public function setUpdatedAt(?string $updatedAt): self
-    {
-        $this->updatedAt = $updatedAt;
-        return $this;
-    }
-
-    /**
-     * Get username of store owner
-     */
-    public function getUsername(): ?string
-    {
-        return $this->username;
-    }
-
-    /**
-     * Set username of store owner
-     */
-    public function setUsername(?string $username): self
-    {
-        $this->username = $username;
-        return $this;
-    }
-
-    /**
-     * Check if store is active
-     */
-    public function isActive(): bool
-    {
-        return $this->storeStatus === 'A';
-    }
-
-    /**
-     * Check if store is inactive
-     */
-    public function isInactive(): bool
-    {
-        return $this->storeStatus === 'I';
-    }
-
-    /**
-     * Check if store is suspended
-     */
-    public function isSuspended(): bool
-    {
-        return $this->storeStatus === 'S';
-    }
-
-    /**
-     * Activate the store
-     */
-    public function activate(): self
-    {
-        $this->storeStatus = 'A';
-        return $this;
-    }
-
-    /**
-     * Deactivate the store
-     */
-    public function deactivate(): self
-    {
-        $this->storeStatus = 'I';
-        return $this;
-    }
-
-    /**
-     * Suspend the store
-     */
-    public function suspend(): self
-    {
-        $this->storeStatus = 'S';
-        return $this;
-    }
-
-    /**
-     * Get store URL
-     */
-    public function getUrl(): string
-    {
-        return '/' . $this->slug;
-    }
-
-    /**
-     * Generate slug from store name
-     */
-    public function generateSlug(): string
-    {
-        $slug = strtolower($this->name);
-
-        // Replace non-alphanumeric characters with hyphens
-        $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
-
-        // Remove leading and trailing hyphens
-        $slug = trim($slug, '-');
-
-        // Ensure slug is not empty
-        if (empty($slug)) {
-            $slug = 'store-' . time();
-        }
-
-        $this->slug = $slug;
-        return $slug;
     }
 }

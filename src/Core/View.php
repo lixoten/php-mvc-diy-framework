@@ -75,7 +75,7 @@ class View
         //Debug::p($template);
 
         $feature = $this->convertToPath($template);
-        //                                     "stores/dashboard/index"
+        //                                     "store/dashboard/index"
         //"Account\Dashboard\Views\index.php" "account/dashboard/index"
 
         //Debug::p($feature);
@@ -87,7 +87,7 @@ class View
             DIRECTORY_SEPARATOR . $feature;
         }
         //Debug::p($path);
-        //"D:\xampp\htdocs\my_projects\mvclixo\src\Core..\..\App/Features\Stores\Views\dashboard\index.php"
+        //"D:\xampp\htdocs\my_projects\mvclixo\src\Core..\..\App/Features\Store\Views\dashboard\index.php"
         //"D:\xampp\htdocs\my_projects\mvclixo\src\Core..\..\App/Features\Account\Dashboard\Views\index.php"
         //"D:\xampp\htdocs\my_projects\mvclixo\src\Core..\..\App/Features\Testy\Views\edit.php"
         //"D:\xampp\htdocs\my_projects\mvclixo\src\Core..\..\App/Features\ Posts\Views\edit.php"
@@ -117,7 +117,7 @@ class View
         // Split the template into parts
         $parts = explode('/', $template);
 
-        // if (count($parts) >= 4 && strtolower($parts[1]) === 'stores') {
+        // if (count($parts) >= 4 && strtolower($parts[1]) === 'store') {
         //     // For admin templates like "admin/dashboard/index"
         //     // Take "admin" and the feature name together
         //     $accountPart = array_shift($parts); // Get "admin"
@@ -130,16 +130,18 @@ class View
         if (
             (count($parts) >= 3 && strtolower($parts[0]) === 'admin') ||
             strtolower($parts[0]) === 'account' ||
-            strtolower($parts[0]) === 'stores'
+            strtolower($parts[0]) === 'store'
         ) {
             // For admin templates like "admin/dashboard/index"
             // Take "admin" and the feature name together
             $adminPart = array_shift($parts); // Get "admin"
             $featurePart = array_shift($parts); // Get "dashboard"
             $feature = ucfirst($adminPart) . DIRECTORY_SEPARATOR . ucfirst($featurePart);
+        // } elseif (strtolower($parts[0]) === 'auth') {
+        //     // The first part is the feature (e.g., Home, Posts, Users)
+        //     // For regular templates like "home/index"
+        //     $feature = $template;
         } else {
-            // The first part is the feature (e.g., Home, Posts, Users)
-            // For regular templates like "home/index"
             $feature = ucfirst(array_shift($parts));
         }
 
@@ -149,8 +151,11 @@ class View
         $path = implode(DIRECTORY_SEPARATOR, $parts) . '.php';
 
         // Construct the full path within the feature
-        return $feature . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR
+        $rrr = $feature . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR
                                                         . $cssFramework . DIRECTORY_SEPARATOR . $path;
+        return $rrr;
+        // return $feature . DIRECTORY_SEPARATOR . 'Views' . DIRECTORY_SEPARATOR
+                                                        // . $cssFramework . DIRECTORY_SEPARATOR . $path;
     }
 
 

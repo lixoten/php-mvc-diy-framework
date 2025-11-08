@@ -66,7 +66,14 @@ interface FormTypeInterface
      * param array $fields Associative array of form fields.
      * return void
      */
-    public function setFocus(string $viewFocus2, string $viewName2 ): void;
+    public function setFocus(
+        string $pageName,
+        string $pageFeature,
+        string $pageEntity,
+        string $entityName
+        // string $viewFocus2,
+        // string $viewName2
+    ): void;
 
 
     /**

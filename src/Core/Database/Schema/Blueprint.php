@@ -8,7 +8,10 @@ class Blueprint
 {
     protected string $table;
     protected array $columns = [];
-    protected array $indexes = [];
+    /**
+     * @var array<Index|ForeignKey|CheckConstraint> A collection of all table-level constraints and indexes.
+     */
+    protected array $constraints = []; // Renamed from $indexes for clarity
     protected array $primaryKey = [];
     protected string $engine = 'InnoDB';
     protected string $charset = 'utf8mb4';
@@ -62,13 +65,6 @@ class Blueprint
         return $column;
     }
 
-    // public function float(string $name, int $precision = 8, int $scale = 2): Column
-    // {
-    //     $column = new Column($name, "FLOAT({$precision}, {$scale})");
-    //     $this->columns[] = $column;
-    //     return $column;
-    // }
-
     public function decimal(string $name, int $precision = 8, int $scale = 2): Column
     {
         $column = new Column($name, "DECIMAL({$precision}, {$scale})");
@@ -83,18 +79,8 @@ class Blueprint
         return $column;
     }
 
-    // public function enum(string $name, array $values): Column
-    // {
-    //     $escapedValues = array_map(fn($v) => "'" . addslashes($v) . "'", $values);
-    //     $valuesString = implode(', ', $escapedValues);
-    //     $column = new Column($name, "ENUM({$valuesString})");
-    //     $this->columns[] = $column;
-    //     return $column;
-    // }
-
     public function json(string $name): Column
     {
-        // Use JSON type if supported, otherwise TEXT
         $column = new Column($name, 'JSON');
         $this->columns[] = $column;
         return $column;
@@ -163,14 +149,14 @@ class Blueprint
     {
         $columns = is_array($columns) ? $columns : [$columns];
         $name = $name ?? "unique_{$this->table}_" . implode('_', $columns);
-        $this->indexes[] = new Index($name, $columns, 'UNIQUE');
+        $this->constraints[] = new Index($name, $columns, 'UNIQUE'); // Added to constraints
     }
 
     public function index(string|array $columns, ?string $name = null): void
     {
         $columns = is_array($columns) ? $columns : [$columns];
         $name = $name ?? "idx_{$this->table}_" . implode('_', $columns);
-        $this->indexes[] = new Index($name, $columns);
+        $this->constraints[] = new Index($name, $columns); // Added to constraints
     }
 
     // Schema modifiers
@@ -200,26 +186,19 @@ class Blueprint
             $columnDefinitions[] = "    " . $column->toSql();
         }
 
-        $indexDefinitions = [];
+        $constraintDefinitions = [];
 
-        // Add indexes from columns marked as 'unique'
-        foreach ($this->columns as $column) {
-            if (in_array('UNIQUE', $column->getAttributes())) {
-                $uniqueIndex = new Index(
-                    "unique_{$this->table}_{$column->getName()}",
-                    [$column->getName()],
-                    'UNIQUE'
-                );
-                $indexDefinitions[] = "    " . $uniqueIndex->toSql();
-            }
+        // Add explicit constraints (indexes, foreign keys, checks)
+        foreach ($this->constraints as $constraint) {
+            $constraintDefinitions[] = "    " . $constraint->toSql();
         }
 
-        // Add explicit indexes
-        foreach ($this->indexes as $index) {
-            $indexDefinitions[] = "    " . $index->toSql();
+        // Add primary key definition if set
+        if (!empty($this->primaryKey)) {
+            $constraintDefinitions[] = "    PRIMARY KEY (" . implode(', ', $this->primaryKey) . ")";
         }
 
-        $parts = array_merge($columnDefinitions, $indexDefinitions);
+        $parts = array_merge($columnDefinitions, $constraintDefinitions);
 
         $sql = "CREATE TABLE {$this->table} (\n";
         $sql .= implode(",\n", $parts);
@@ -242,9 +221,13 @@ class Blueprint
             $alterStatements[] = "ADD COLUMN " . $column->toSql();
         }
 
-        // Add indexes
-        foreach ($this->indexes as $index) {
-            $alterStatements[] = "ADD " . $index->toSql();
+        // Add constraints (indexes, foreign keys, checks)
+        foreach ($this->constraints as $constraint) {
+            if ($constraint instanceof Index) {
+                $alterStatements[] = "ADD " . $constraint->toSql(); // Index::toSql() includes 'INDEX' or 'UNIQUE'
+            } elseif ($constraint instanceof ForeignKey || $constraint instanceof CheckConstraint) {
+                $alterStatements[] = "ADD " . $constraint->toSql(); // These already include 'CONSTRAINT'
+            }
         }
 
         // Generate primary key if needed
@@ -271,23 +254,6 @@ class Blueprint
         return $column;
     }
 
-
-    // public function foreign(
-    //     string|array $columns,
-    //     string $table,
-    //     string|array $references = ['id'],
-    //     ?string $name = null
-    // ): void {
-    //     $columns = is_array($columns) ? $columns : [$columns];
-    //     $references = is_array($references) ? $references : [$references];
-    //     $name = $name ?? "fk_{$this->table}_" . implode('_', $columns);
-
-    //     $sql = "CONSTRAINT {$name} FOREIGN KEY (" . implode(', ', $columns) . ") " .
-    //         "REFERENCES {$table}(" . implode(', ', $references) . ")";
-
-    //     $this->indexes[] = new ForeignKey($name, $columns, $table, $references);
-    // }
-
     /**
      * Add a foreign key constraint
      *
@@ -295,7 +261,7 @@ class Blueprint
      * @param string $table Referenced table
      * @param string|array $references Referenced column(s)
      * @param string|null $name Constraint name
-     * @return void
+     * @return ForeignKey
      */
     public function foreign(
         string|array $columns,
@@ -308,13 +274,10 @@ class Blueprint
         $name = $name ?? "fk_{$this->table}_" . implode('_', $columns);
 
         $foreignKey = new ForeignKey($name, $columns, $table, $references);
-        $this->indexes[] = $foreignKey;
+        $this->constraints[] = $foreignKey; // Added to constraints
 
         return $foreignKey;
     }
-
-
-
 
     /**
      * Add an auto-incrementing ID column (shorthand for bigIncrements('id'))
@@ -323,7 +286,19 @@ class Blueprint
      */
     public function id(): Column
     {
-        //return $this->bigIncrements('id');
         return $this->increments('id');
+    }
+
+    /**
+     * Add a CHECK constraint to the table
+     *
+     * @param string $expression The CHECK constraint expression
+     * @param string|null $name Optional constraint name
+     * @return void
+     */
+    public function check(string $expression, ?string $name = null): void
+    {
+        $name = $name ?? "chk_{$this->table}_" . uniqid();
+        $this->constraints[] = new CheckConstraint($name, $expression); // Added to constraints
     }
 }

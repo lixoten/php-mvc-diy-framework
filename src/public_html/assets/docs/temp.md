@@ -1993,7 +1993,7 @@ Your **validator** and **formatter** classes in the MVC LIXO framework share sev
 | **Error Handling** | Custom exceptions for validation errors (e.g., `ValidatorNotFoundException`) | Custom exceptions for missing formatters (e.g., `FormatterNotFoundException`) |
 | **Config Options** | Validation rules: required, min/max, pattern, etc.  | Formatting rules: truncation, decimal places, etc.    |
 | **Usage Context** | Used during form submission and data entry           | Used during rendering/display of field values         |
-| **Registry Storage** | Stores validator instances                        | Stores formatter instances                            |
+| **Registry Storage** | Storevalidator instances                        | Store formatter instances                            |
 | **Extensibility** | Add new validators for new validation logic          | Add new formatters for new output formats             |
 
 ---

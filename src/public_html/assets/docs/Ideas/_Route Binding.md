@@ -221,8 +221,8 @@ For your young MVC framework, I recommend:
 In your FrontController, you'd add routes like:
 
 ```php
-$this->router->add("account/stores/posts/{postId:\d+}/comments/{commentId:\d+}/{action}", [
-    "namespace" => "Account\\Stores",
+$this->router->add("account/store/posts/{postId:\d+}/comments/{commentId:\d+}/{action}", [
+    "namespace" => "Account\\Store",
     "controller" => "Comments",
     "middleware" => ['Core\Middleware\ModelBindingMiddleware']
 ]);

@@ -49,4 +49,30 @@ enum UserStatus: string
     {
         return $this === self::ACTIVE;
     }
+
+    /**
+     * Returns an associative array suitable for populating an HTML <select> element.
+     * The keys are the enum values, and the values are their human-readable labels.
+     *
+     * @return array<string, string>
+     */
+    public static function toSelectArray(): array
+    {
+        $options = [];
+        foreach (self::cases() as $case) {
+            $options[$case->value] = $case->label();
+        }
+        return $options;
+    }
+
+    /**
+     * Returns an array of all enum values.
+     * Useful for validation (e.g., 'in_array' rule).
+     *
+     * @return array<string>
+     */
+    public static function values(): array
+    {
+        return array_map(fn(self $case) => $case->value, self::cases());
+    }
 }

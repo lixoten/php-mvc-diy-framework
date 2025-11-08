@@ -12,7 +12,7 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 ## keep me happy
 - Also include a proposed file name with display code if the code if for me to use.
     - if the code is a random sample no need for a file name.
-- Also include file name if you are sugdesting a fix or enhancement, and line number would also be nice.
+- Also include file name if you are suggesting a fix or enhancement, and line number would also be nice.
 - my public folder is `public_html` NOT `public'
 
 ## Coding Style
@@ -21,6 +21,16 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - Indentation: Use a consistent indentation style of 4 spaces for PHP and 4 spaces for HTML and JavaScript.
 - Code Formatting: Keep tags, attributes, and content on logical lines.
 - Comments: Use clear, concise comments to explain complex sections or to add notes about specific functionality.
+- PSR2 - Add newline at the end if none is found
+- PSR2 - Function closing brace must go on the next line following the body;
+- in my phpDI file, dependencies.php please use:
+    - autowire when ever possible and use fully qualified class name (FQCN)
+        - example:
+        ```php
+        \Core\Console\Commands\MakeMigrationCommand::class => \DI\autowire()
+            ->constructorParameter('migrationGenerator', \DI\get(Core\Console\Generators\MigrationGenerator::class))
+            ->constructorParameter('schemaLoaderService', \DI\get(Core\Services\SchemaLoaderService::class)),
+        ```
 
 
 ### Adoption of a Consistent Singular Naming Convention
@@ -58,7 +68,9 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 
 ### Database-Agnostic Design
 
-* **Data Types:** When defining database schema in code or comments, use portable, standard SQL data types (e.g., `VARCHAR`, `INTEGER`) and avoid database-specific types (e.g., Oracle's `NUMBER`, MySQL's `ENUM`).
+
+* **Data Types:** When defining database schema in code or comments, use portable, standard SQL data types (e.g., `VARCHAR`, `INTEGER`). **However, the framework's schema definition system *may* use `db_type: 'enum'` as an abstraction to represent a field that will be persisted as a portable `CHAR` or `VARCHAR` type with a `CHECK` constraint.** Avoid proposing other database-specific types (e.g., Oracle's `NUMBER`, MySQL's native `ENUM` type) for direct database use.
+
 
 * **Constraints:** To enforce a limited set of values, describe the use of a **`CHECK` constraint** on a `VARCHAR` column, which is a standard SQL feature. Do not propose a database-specific `ENUM` data type.
 

@@ -2,23 +2,33 @@
 
 declare(strict_types=1);
 
+use App\Features\Testy\TestyRepository;
+use App\Features\Testy\TestyRepositoryInterface;
+use App\Features\User\UserRepository;
+use App\Features\User\UserRepositoryInterface;
 use App\Helpers\DebugRt;
 use App\Repository\AlbumRepository;
 use App\Repository\AlbumRepositoryInterface;
+use App\Repository\ImageRepository;
+use App\Repository\ImageRepositoryInterface;
 use Core\Database\ConnectionInterface;
 use App\Repository\PostRepositoryInterface;
-use App\Repository\TestyRepositoryInterface;
 use App\Repository\RepositoryRegistry;
 use App\Repository\RepositoryRegistryInterface;
-use App\Repository\StoreRepositoryInterface;
-use App\Repository\UserRepositoryInterface;
+use App\Features\Store\StoreRepositoryInterface;
+use App\Features\Store\StoreRepository;
+use App\Features\User\UserService;
+// use App\Repository\UserRepositoryInterface;
 use App\Services\FeatureMetadataService;
 use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\Interfaces\GenericDataServiceInterface;
+use Core\Console\Generators\MigrationGenerator;
+use Core\Console\Generators\SeederGenerator;
 use Core\Constants\Consts;
 use Core\Context\CurrentContext;
+use Core\Database\Seeders\SeederRunnerService;
 use Core\FrontController;
 use Core\Router;
 use Core\Services\ConfigService;
@@ -38,6 +48,7 @@ use Core\Middleware\RoutingMiddleware;
 use Core\RouterInterface;
 use Core\Services\DataNormalizerService;
 use Core\Services\FormatterService;
+use Core\Services\SchemaLoaderService;
 use Core\Services\ThemeServiceInterface;
 use Psr\Log\LoggerInterface;
 
@@ -271,7 +282,7 @@ return [
     // Navigation Service
     'App\Services\NavigationService' => \DI\autowire()
         ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-        ->constructorParameter('storeRepository', \DI\get('App\Repository\StoreRepositoryInterface'))
+        ->constructorParameter('storeRepository', \DI\get(App\Features\Store\StoreRepositoryInterface::class))
         ->constructorParameter('context', \DI\get('Core\Context\CurrentContext')),
 
 
@@ -281,7 +292,8 @@ return [
         ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
 
     // Optionally, bind the interface to the Bootstrap implementation as the default
-    'Core\Navigation\NavigationRendererInterface' => \DI\get('Core\Navigation\Bootstrap\BootstrapNavigationRendererService'),
+    'Core\Navigation\NavigationRendererInterface' =>
+                                                \DI\get('Core\Navigation\Bootstrap\BootstrapNavigationRendererService'),
     //-----------------------------------------------------------------
 
 
@@ -318,7 +330,9 @@ return [
     //     );
     // },
 
-    'App\Repository\UserRepositoryInterface' => \DI\autowire(App\Repository\UserRepository::class),
+    // featureFoo //dangerdanger
+    // 'App\Repository\UserRepositoryInterface' => \DI\autowire(App\Repository\UserRepository::class),
+    //UserRepositoryInterface::class => \DI\autowire(UserRepository::class),
 
     'App\Repository\RememberTokenRepositoryInterface' => DI\autowire(App\Repository\RememberTokenRepository::class)
         ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
@@ -327,17 +341,20 @@ return [
     //     return $c->get('Core\Auth\SessionAuthenticationService');
     // },
 
-    // 'Core\Auth\SessionAuthenticationService' => DI\autowire()
-    //     ->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
-    //     ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
-    //     ->constructorParameter(
-    //         'rememberTokenRepository',
-    //         DI\get(App\Repository\RememberTokenRepositoryInterface::class)
-    //     )
-    //     ->constructorParameter(
-    //         'loginAttemptsRepository',
-    //         DI\get(App\Repository\LoginAttemptsRepositoryInterface::class)
-    //     )
+    'Core\Auth\SessionAuthenticationService' => DI\autowire()
+        // featureFoo //dangerdanger
+        //->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
+        ->constructorParameter('userRepository', DI\get(UserRepositoryInterface::class))
+        ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
+        ->constructorParameter(
+            'rememberTokenRepository',
+            DI\get(App\Repository\RememberTokenRepositoryInterface::class)
+        )
+        ->constructorParameter('config', DI\get('config'))
+        ->constructorParameter(
+            'storeRepository',
+            DI\get(App\Features\Store\StoreRepositoryInterface::class) // Corrected namespace
+        ),
     //     ->constructorParameter('config', DI\get('auth.config')),
 
 
@@ -390,17 +407,18 @@ return [
             ]
         ]),
 
-    'Core\Auth\SessionAuthenticationService' => DI\autowire()
-        ->constructorParameter('userRepository', DI\get(App\Repository\UserRepositoryInterface::class))
-        ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
-        ->constructorParameter(
-            'rememberTokenRepository',
-            DI\get(App\Repository\RememberTokenRepositoryInterface::class)
-        )
-        ->constructorParameter(
-            'storeRepository',
-            DI\get(App\Repository\StoreRepositoryInterface::class)
-        ),
+    // 'Core\Auth\SessionAuthenticationService' => DI\autowire()
+    //     ->constructorParameter('userRepository', DI\get(UserRepositoryInterface::class))
+    //     ->constructorParameter('session', DI\get(Core\Session\SessionManagerInterface::class))
+    //     ->constructorParameter(
+    //         'rememberTokenRepository',
+    //         DI\get(App\Repository\RememberTokenRepositoryInterface::class)
+    //     )
+    //     ->constructorParameter('config', DI\get('config'))
+    //     ->constructorParameter(
+    //         'storeRepository',
+    //         DI\get(App\Repository\StoreRepositoryInterface::class)
+    //     ),
         // foofee
         // ->constructorParameter('bruteForceProtection', DI\get('Core\Security\BruteForceProtectionService')),
 
@@ -541,13 +559,16 @@ return [
 
 
 
+    \Core\Services\DataTransformerService::class => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get(\Core\Services\FieldRegistryService::class)),
 
 
 
     // UserService
-    'App\Services\UserService' => \DI\autowire()
-        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
-        ->constructorParameter('tokenService', \DI\get('Core\Security\TokenServiceInterface')),
+    UserService::class => \DI\autowire()
+        ->constructorParameter('userRepository', \DI\get(UserRepositoryInterface::class))
+        ->constructorParameter('tokenService', \DI\get('Core\Security\TokenServiceInterface'))
+        ->constructorParameter('dataTransformer', \DI\get(\Core\Services\DataTransformerService::class)),
 
     // UserValidationService
     'App\Services\UserValidationService' => \DI\autowire(),
@@ -560,7 +581,7 @@ return [
     // StoreContext service
     'App\Services\StoreContext' => \DI\autowire()
         ->constructorParameter('session', \DI\get(Core\Session\SessionManagerInterface::class))
-        ->constructorParameter('storeRepository', \DI\get(App\Repository\StoreRepositoryInterface::class))
+        ->constructorParameter('storeRepository', \DI\get(App\Features\Store\StoreRepositoryInterface::class))
         ->constructorParameter('authService', \DI\get(Core\Auth\AuthenticationServiceInterface::class)),
 
     // Also register as a string alias for easier access
@@ -578,7 +599,7 @@ return [
 
     // RegistrationService
         'App\Services\RegistrationService' => \DI\autowire()
-            ->constructorParameter('userService', \DI\get('App\Services\UserService'))
+            ->constructorParameter('userService', \DI\get(UserService::class))
             ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
     // fffffffffffffffffffffffffffffffffffffffffffffffffffffffff
@@ -645,8 +666,8 @@ return [
     ) {
         return new \Core\Form\Renderer\BootstrapFormRenderer(
             // $container->get('Core\Services\ThemeServiceInterface'),
-            $container->get(ThemeServiceInterface::class),  // <-- First: ThemeService
-            $container->get(FormatterService::class),        // <-- Second: FormatterService
+            $container->get(ThemeServiceInterface::class),
+            $container->get(FormatterService::class),
             $container->get(LoggerInterface::class)
         );
     },
@@ -678,13 +699,13 @@ return [
     //-----------------------------------------------------------------
 
 
-    // Login field registry with inheritance
-    'App\Features\Auth\Field\LoginFieldRegistry' => \DI\autowire()
-        ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface')),
-        // ->constructorParameter('config', \DI\get('config'))
-        // ->constructorParameter('baseRegistry', \DI\get('Core\Registry\BaseFieldRegistry')),
+    // // Login field registry with inheritance
+    // 'App\Features\Auth\Field\LoginFieldRegistry' => \DI\autowire()
+    //     ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface')),
+    //     // ->constructorParameter('config', \DI\get('config'))
+    //     // ->constructorParameter('baseRegistry', \DI\get('Core\Registry\BaseFieldRegistry')),
 
-    //-----------------------------------------------------------------
+    // //-----------------------------------------------------------------
 
     'App\Features\Auth\Form\RegistrationFormFieldRegistry' => \DI\autowire()
         ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface')),
@@ -707,24 +728,42 @@ return [
 
     // LoginService
     'App\Services\LoginService' => \DI\autowire()
-        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+        ->constructorParameter('userRepository', \DI\get(UserRepositoryInterface::class))
         ->constructorParameter('loginAttemptsRepository', \DI\get('App\Repository\LoginAttemptsRepositoryInterface'))
         ->constructorParameter('rememberTokenRepository', \DI\get('App\Repository\RememberTokenRepositoryInterface'))
         ->constructorParameter('session', \DI\get('Core\Session\SessionManagerInterface')),
 
-    // Update LoginController to use LoginService
-    'App\Features\Auth\LoginController' => \DI\autowire()
+    // // Update LoginController to use LoginService
+    // 'App\Features\Auth\LoginController' => \DI\autowire()
+    //     ->constructorParameter('route_params', \DI\get('route_params'))
+    //     ->constructorParameter('flash', \DI\get('flash'))
+    //     ->constructorParameter('view', \DI\get('view'))
+    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
+    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
+    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
+    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
+    //     //->constructorParameter('loginService', \DI\get('App\Services\LoginService'))
+    //     ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
+    //     // ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
+    //     ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+    //     // ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+
+
+    // 'App\Features\Auth\LoginController' => \DI\autowire() // CHANGED: Namespace
+    'App\Features\Login\LoginController' => \DI\autowire() //
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
+        ->constructorParameter('scrap', \DI\get(CurrentContext::class)) // ADDED: CurrentContext
         ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-        //->constructorParameter('loginService', \DI\get('App\Services\LoginService'))
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType')) // CHANGED: formType and specific LoginFormType
         ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-        ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
-        // ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')), // ADDED: CaptchaService
+
+
 
 
     // Update RegistrationController to match current parameters
@@ -834,7 +873,7 @@ return [
         ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
-        ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
+        ->constructorParameter('userRepository', \DI\get(UserRepositoryInterface::class))
         ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService'))
         ->constructorParameter('logger', \DI\get('logger')),
 
@@ -881,7 +920,7 @@ return [
     //     // ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
     //     // ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
     //     ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
-    //     // ->constructorParameter('postFormType', \DI\get('App\Features\Stores\Post\Form\PostFormType')),
+    //     // ->constructorParameter('postFormType', \DI\get('App\Features\Store\Post\Form\PostFormType')),
 
     // Dynamic-me 3
     // Update GenericController definition to use the GenericDataService
@@ -904,7 +943,7 @@ return [
 
 
 
-    'App\Features\Stores\Dashboard\DashboardController' => \DI\autowire()
+    'App\Features\Store\Dashboard\DashboardController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('view', \DI\get('view'))
@@ -936,7 +975,7 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
         // Post
-    'App\Features\Stores\StoresController' => \DI\autowire()
+    'App\Features\Store\StoresController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('view', \DI\get('view'))
@@ -944,8 +983,8 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
         ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-        ->constructorParameter('storeRepository', \DI\get('App\Repository\StoreRepositoryInterface'))
-        ->constructorParameter('storesFormType', \DI\get('App\Features\Stores\Form\StoresFormType')),
+        ->constructorParameter('storeRepository', \DI\get(App\Features\Store\StoreRepositoryInterface::class))
+        ->constructorParameter('storesFormType', \DI\get('App\Features\Store\Form\StoresFormType')),
 
 
 
@@ -989,9 +1028,10 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // Pass the container itself
         ->constructorParameter('repositoryMap', [
             'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the Post repo service ID/interface
+            'image' => ImageRepositoryInterface::class, // Map 'image' string to the Post repo service ID/interface
             'post' => PostRepositoryInterface::class, // Map 'post' string to the Post repo service ID/interface
-            'stores' => StoreRepositoryInterface::class, // Ex: Map 'users' string to the User repo service ID/interface
-            'users' => UserRepositoryInterface::class, // Ex: Map 'users' string to the User repo service ID/interface
+            'store' => StoreRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
+            'user' => UserRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
             // *** Add mappings for all entity types you want the GenericDataService to handle ***
             // 'products' => ProductRepositoryInterface::class,
         ]),
@@ -1075,17 +1115,18 @@ return [
         }
     },
 
-    // Database connection
+    // Database connection ccc
     'Core\Database\ConnectionInterface' => function (ContainerInterface $c) {
         $config = $c->get('config.database');
         $connectionConfig = $config['connections'][$config['default']];
+        $configService = $c->get(\Core\Interfaces\ConfigInterface::class);
         $logger = null;
 
         if ($config['logging']['enabled'] ?? false) {
             $logger = $c->get('Psr\Log\LoggerInterface');
         }
 
-        return new \Core\Database\Connection($connectionConfig, $logger);
+        return new \Core\Database\Connection($connectionConfig, $configService, $logger);
     },
 
     // Add alias for convenience
@@ -1178,6 +1219,9 @@ return [
     'field.type.hidden' => \DI\autowire(\Core\Form\Field\Type\HiddenType::class)
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
+    'field.type.checkbox_group' => \DI\autowire(\Core\Form\Field\Type\CheckboxGroupType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
     'field.type.checkbox' => \DI\autowire(\Core\Form\Field\Type\CheckboxType::class)
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
     'field.type.radio' => \DI\autowire(\Core\Form\Field\Type\RadioType::class)
@@ -1218,6 +1262,7 @@ return [
             $c->get('field.type.textarea'),
             $c->get('field.type.select'),
             $c->get('field.type.display'),
+            $c->get('field.type.checkbox_group'),
             $c->get('field.type.checkbox'),
             $c->get('field.type.radio'),
             $c->get('field.type.captcha')
@@ -1256,12 +1301,14 @@ return [
 
     'validator.color' => \DI\autowire(\Core\Form\Validation\Rules\ColorValidator::class),
 
-    'validator.checkbox' => \DI\autowire(\Core\Form\Validation\Rules\CheckboxValidator::class),
+    'validator.checkbox_group' => \DI\autowire(\Core\Form\Validation\Rules\CheckboxGroupValidator::class),
+    'validator.checkbox'       => \DI\autowire(\Core\Form\Validation\Rules\CheckboxValidator::class),
     'validator.radio' => \DI\autowire(\Core\Form\Validation\Rules\RadioValidator::class),
     'validator.file' => \DI\autowire(\Core\Form\Validation\Rules\FileValidator::class),
 
     'validator.extratest' => \DI\autowire(\Core\Form\Validation\Rules\ExtraTestValidator::class),
     'validator.extratest2' => \DI\autowire(\Core\Form\Validation\Rules\ExtraTest2Validator::class),
+    'validator.select'     => \DI\autowire(\Core\Form\Validation\Rules\SelectValidator::class),
 
     'validator.regex' => function () {
         return new \Core\Form\Validation\Rules\RegexValidator();
@@ -1270,14 +1317,14 @@ return [
     // custom Single-Field Validators too, but with external content
     'validator.unique_username' => function (ContainerInterface $c) {
         return new \Core\Form\Validation\Rules\UniqueEntityValidator(
-            $c->get('App\Repository\UserRepositoryInterface'),
+            $c->get(UserRepositoryInterface::class),
             'username',
             'This username is already taken.'
         );
     },
     'validator.unique_email' => function (ContainerInterface $c) {
         return new \Core\Form\Validation\Rules\UniqueEntityValidator(
-            $c->get('App\Repository\UserRepositoryInterface'),
+            $c->get(UserRepositoryInterface::class),
             'email',
             'This email address is already registered.'
         );
@@ -1317,12 +1364,15 @@ return [
 
             $c->get('validator.color'),
 
+            $c->get('validator.checkbox_group'),
             $c->get('validator.checkbox'),
             $c->get('validator.radio'),
             $c->get('validator.file'),
 
             $c->get('validator.extratest'),
             $c->get('validator.extratest2'),
+            $c->get('validator.select'),
+
             $c->get('validator.forbidden_words'),
             $c->get('validator.regex'),
             $c->get('validator.unique_username'),
@@ -1470,15 +1520,157 @@ return [
     //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
+
+
+    'projectRoot' => function (ContainerInterface $container) {
+        // Assuming the project root is two directories up from src/dependencies.php
+        return dirname(__DIR__, 1);
+    },
+
+
+    \Core\Services\PathResolverService::class => \DI\autowire(\Core\Services\PathResolverService::class)
+        ->constructorParameter('projectRoot', \DI\get('projectRoot')),
+
+
+    Core\Database\Migrations\MigrationRunner::class => \DI\autowire()
+        ->constructorParameter('db', \DI\get(ConnectionInterface::class))
+        ->constructorParameter('repository', \DI\get(Core\Database\Migrations\MigrationRepository::class))
+        ->constructorParameter('path', \DI\factory(function (\Core\Services\PathResolverService $pathResolverService) {
+            return $pathResolverService->getDatabaseMigrationsPath();
+        }))
+        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
+        ->constructorParameter('namespace', 'Database\\Migrations')
+        ->constructorParameter('logger', \DI\get(LoggerInterface::class)),
+
+
+    // Core Console Services
+    SeederRunnerService::class => \DI\autowire(SeederRunnerService::class)
+        ->constructorParameter('db', \DI\get(ConnectionInterface::class))
+        ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
+
+
+
+    // Console Commands
+    \Core\Console\Commands\HelloCommand::class => \DI\autowire(),
+
+    \Core\Console\Commands\MigrateCommand::class => \DI\autowire(),
+
+    \Core\Console\Commands\MigrateOneCommand::class => \DI\autowire(),
+
+    \Core\Console\Commands\RollbackCommand::class => \DI\autowire(),
+
+
+    \Core\Console\Commands\SeedCommand::class => \DI\autowire(),
+
+
+    \Core\Console\Commands\MakeMigrationCommand::class => \DI\autowire()
+        ->constructorParameter('migrationGenerator', \DI\get(Core\Console\Generators\MigrationGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(Core\Services\SchemaLoaderService::class)),
+
+    \Core\Console\Commands\MakeSeederCommand::class => \DI\autowire()
+        ->constructorParameter('seederGenerator', \DI\get(Core\Console\Generators\SeederGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(\Core\Services\SchemaLoaderService::class)),
+
+    \Core\Console\Commands\MakeEntityCommand::class => \DI\autowire()
+        ->constructorParameter('entityGenerator', \DI\get(\Core\Console\Generators\EntityGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
+
+    \Core\Console\Commands\MakeRepositoryCommand::class => \DI\autowire()
+        ->constructorParameter('repositoryGenerator', \DI\get(\Core\Console\Generators\RepositoryGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
+
+    \Core\Console\Commands\MakeFieldConfigCommand::class => \DI\autowire()
+        ->constructorParameter('fieldConfigGenerator', \DI\get(\Core\Console\Generators\FieldConfigGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
+
+    \Core\Console\Commands\FeatureMoveCommand::class => \DI\autowire()
+        ->constructorParameter('pathResolverService', \DI\get(Core\Services\PathResolverService::class)),
+
+
+
+    // Register GeneratorOutputService
+    \Core\Console\Generators\GeneratorOutputService::class => \DI\autowire()
+        ->constructorParameter('config', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
+
+
+    // Register SchemaLoaderService
+    \Core\Services\SchemaLoaderService::class => \DI\autowire()
+        ->constructorParameter('config', \DI\get(\Core\Interfaces\ConfigInterface::class)),
+
+    // Register MigrationGenerator
+    \Core\Console\Generators\MigrationGenerator::class => \DI\autowire()
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+
+    // Register SeederGenerator
+    \Core\Console\Generators\SeederGenerator::class => \DI\autowire()
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+
+    // Register RepositoryGenerator
+    \Core\Console\Generators\RepositoryGenerator::class => \DI\autowire()
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+
+    // Register EntityGenerator
+    \Core\Console\Generators\EntityGenerator::class => \DI\autowire()
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+
+    // Register FieldConfigGenerator
+    \Core\Console\Generators\FieldConfigGenerator::class
+                                                   => \DI\autowire(\Core\Console\Generators\FieldConfigGenerator::class)
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
+
+
+
+
+
+    // Register FeatureGenerator
+    \Core\Console\Generators\FeatureGenerator::class => \DI\autowire()
+        ->constructorParameter('entityGenerator', \DI\get(\Core\Console\Generators\EntityGenerator::class))
+        ->constructorParameter('repositoryGenerator', \DI\get(\Core\Console\Generators\RepositoryGenerator::class))
+        ->constructorParameter('migrationGenerator', \DI\get(\Core\Console\Generators\MigrationGenerator::class))
+        ->constructorParameter('seederGenerator', \DI\get(\Core\Console\Generators\SeederGenerator::class)),
+
+
     //-------------------------------------------------------------------------
 
+    // // Line 192 - This will throw "Entry cannot be resolved"
+    // $schemaLoader = $container->get(SchemaLoaderService::class);
+
+    // featureFoo //dangerdanger
+    // 'App\Repository\UserRepositoryInterface' => \DI\autowire(App\Repository\UserRepository::class),
+    UserRepositoryInterface::class => \DI\autowire(UserRepository::class),
 
     // Testy the repository interface
-    'App\Repository\TestyRepositoryInterface' => \DI\get('App\Repository\TestyRepository'),
+    // \App\Features\Testy\TestyRepositoryInterface => \DI\get('App\Repository\TestyRepository'),
+    TestyRepositoryInterface::class =>  DI\autowire(TestyRepository::class),
 
     // Testy the concrete repository implementation
-    'App\Repository\TestyRepository' => \DI\autowire()
+    TestyRepository::class => \DI\autowire()
         ->constructorParameter('connection', \DI\get('db')),
+
+    // // Testy the repository interface
+    // 'App\Repository\TestyRepositoryInterface' => \DI\get('App\Repository\TestyRepository'),
+    // ImageRepositoryInterface::class => DI\autowire(ImageRepository::class),
+
+    // // Testy the concrete repository implementation
+    // 'App\Repository\TestyRepository' => \DI\autowire()
+    //     ->constructorParameter('connection', \DI\get('db')),
 
     // Post the repository interface
     'App\Repository\PostRepositoryInterface' => \DI\get('App\Repository\PostRepository'),
@@ -1495,10 +1687,10 @@ return [
         ->constructorParameter('connection', \DI\get('db')),
 
     // Store the repository interface
-    'App\Repository\StoreRepositoryInterface' => \DI\get('App\Repository\StoreRepository'),
+    App\Features\Store\StoreRepositoryInterface::class => \DI\autowire(App\Features\Store\StoreRepository::class),
 
     // Store the concrete repository implementation
-    'App\Repository\StoreRepository' => \DI\autowire()
+    App\Features\Store\StoreRepository::class => \DI\autowire()
         ->constructorParameter('connection', \DI\get('db')),
 
     //-------------------------------------------------------------------------
@@ -1525,10 +1717,10 @@ return [
         ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
 
-    'App\Features\Auth\Form\LoginFormType' => \DI\autowire()
-        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+    // 'App\Features\Auth\Form\LoginFormType' => \DI\autowire()
+    //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+    //     ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface'))
+    //     ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
 
     'App\Features\Auth\Form\RegistrationFormType' => \DI\autowire()
         ->constructorParameter('fieldRegistry', \DI\get('App\Features\Auth\Form\RegistrationFormFieldRegistry'))
@@ -1561,16 +1753,19 @@ return [
     'App\Features\Testy\List\TestyListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
         ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
 
     'App\Features\Post\List\PostListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
         ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
 
     // Generic List Type (Depends on GenericColumnRegistry and ConfigInterface)
     'App\Features\Admin\Generic\List\GenericListType' => \DI\autowire()
         ->constructorParameter('columnRegistry', \DI\get('App\Features\Admin\Generic\List\GenericColumnRegistry'))
         ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface'))
         ->constructorParameter('currentContext', \DI\get(CurrentContext::class)),
+        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
 
 
     // Section - Registry
@@ -1796,18 +1991,44 @@ return [
 
 
 
+    'App\Features\Image\ImageController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('image');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Repository\ImageRepositoryInterface')),
+
+    'App\Features\User\UserController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('user');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('userService', \DI\get(UserService::class)),
+
     'App\Features\Testy\TestyController' => \DI\autowire()
         ->constructorParameter(
             'featureMetadataService',
             \DI\factory(function (ContainerInterface $c) {
                 // Use the factory to create the correct metadata for this feature/view
                 return $c->get('App\Services\FeatureMetadataFactoryService')
-                    ->createFor('testy_edit');
+                    ->createFor('testy');
             })
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
-        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
-        ->constructorParameter('repository', \DI\get('App\Repository\TestyRepositoryInterface')),
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType')),
+        // ->constructorParameter('repository', \DI\get(\App\Features\Testy\TestyRepositoryInterface::class)),
         // ->constructorParameter('route_params', \DI\get('route_params'))
         // ->constructorParameter('flash22', \DI\get('flash'))
         // ->constructorParameter('view', \DI\get('view'))
@@ -1835,7 +2056,7 @@ return [
             \DI\factory(function (ContainerInterface $c) {
                 // Use the factory to create the correct metadata for this feature/view
                 return $c->get('App\Services\FeatureMetadataFactoryService')
-                    ->createFor('post_edit');
+                    ->createFor('post');
             })
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
@@ -1850,7 +2071,7 @@ return [
             \DI\factory(function (ContainerInterface $c) {
                 // Use the factory to create the correct metadata for this feature/view
                 return $c->get('App\Services\FeatureMetadataFactoryService')
-                    ->createFor('post_edit');
+                    ->createFor('post');
             })
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))

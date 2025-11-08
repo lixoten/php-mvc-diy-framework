@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\Url;
+use App\Features\Store\StoreRepositoryInterface;
 use App\Helpers\DebugRt;
 use App\Helpers\MenuBuilder;
-use App\Repository\StoreRepositoryInterface;
+
 use App\ValueObjects\NavigationData;
 use Core\Auth\AuthenticationServiceInterface;
 use Core\Context\CurrentContext;
@@ -29,6 +30,7 @@ class NavigationService
         // Build menu items as data arrays (not HTML)
         $publicItems = $this->buildPublicItems();
         $accountItems = $this->buildAccountItems();
+        $coreItems = $this->buildCoreItems();
         $storeItems = $this->buildStoreItems();
         $adminItems = $this->buildAdminItems();
         $guestItems = $this->buildGuestItems();
@@ -45,6 +47,7 @@ class NavigationService
         return new NavigationData(
             publicItems: $publicItems,
             accountItems: $accountItems,
+            coreItems: $coreItems,
             storeItems: $storeItems,
             adminItems: $adminItems,
             guestItems: $guestItems,
@@ -60,20 +63,21 @@ class NavigationService
     {
         return [
             'inAdminSection' => strpos($currentPath, '/admin/') === 0,
-            'inStoreSection' => strpos($currentPath, '/stores/') === 0,
+            'inStoreSection' => strpos($currentPath, '/store/') === 0,
             'inAccountSection' => strpos($currentPath, '/account/') === 0
         ];
     }
 
     private function buildPublicItems(): array
     {
-
+        $rrr = $this->context->getRouteType();
         return [
             Url::CORE_HOME->toLinkData(),
             Url::CORE_HOME_TEST->toLinkData(),
             Url::CORE_ABOUT->toLinkData(),
             Url::CORE_CONTACT->toLinkData(),
-            Url::CORE_TESTY->toLinkData(),
+            // Url::CORE_TESTY->toLinkData(),
+            Url::CORE_TESTY->toLinkData(routeType: $rrr),
         ];
         ## If you have set 'section' => 'PUBLIC' in your Url enum routeData:
         // return array_map(
@@ -82,7 +86,7 @@ class NavigationService
         // );
     }
 
-    private function buildAccountItems(): array
+    private function buildCoreItems(): array
     {
         if (!$this->authService->isAuthenticated()) {
             return [];
@@ -91,14 +95,40 @@ class NavigationService
 
         return [
             [
+                'label' => 'Core',
+                'items' => [
+                    Url::CORE_POST->toLinkData(),
+                    Url::CORE_TESTY->toLinkData(),
+                ],
+            ]
+        ];
+    }
+
+    private function buildAccountItems(): array
+    {
+        if (!$this->authService->isAuthenticated()) {
+            return [];
+        }
+        // fixme shit
+
+        $rrr = $this->context->getRouteType(); // routeType: $rrr
+
+        return [
+            [
                 'label' => 'User',
                 'items' => [
                     Url::ACCOUNT_DASHBOARD->toLinkData(),
                     Url::ACCOUNT_PROFILE->toLinkData(),
                     Url::ACCOUNT_MYNOTES->toLinkData(),
-                    Url::ACCOUNT_POST->toLinkData(),
-                    Url::ACCOUNT_ALBUMS->toLinkData(),
+                    // Url::ACCOUNT_POST->toLinkData(),
+                    Url::CORE_POST->toLinkData(routeType: 'account'),
+                    Url::CORE_ALBUMS->toLinkData(),
+                    // Url::ACCOUNT_TESTY->toLinkData(),
+                    Url::CORE_TESTY->toLinkData(routeType: 'account'),
                 ],
+
+
+
             ]
         ];
         // return [
@@ -120,6 +150,8 @@ class NavigationService
             return [];
         }
 
+        $rrr = $this->context->getRouteType(); // routeType: $rrr
+
         return [
             [
                 'label' => 'Store',
@@ -127,8 +159,11 @@ class NavigationService
                     Url::STORE_DASHBOARD->toLinkData(),
                     Url::STORE_PROFILE->toLinkData(),
                     Url::STORE_SETTINGS->toLinkData(),
-                    Url::STORE_POST->toLinkData(),
-                    Url::STORE_ALBUMS->toLinkData(),
+                    // Url::STORE_POST->toLinkData(),
+                    Url::CORE_POST->toLinkData(routeType: $rrr),
+                    Url::CORE_ALBUMS->toLinkData(),
+                    // Url::STORE_TESTY->toLinkData(),
+                    Url::CORE_TESTY->toLinkData(routeType: $rrr),
                 ]
             ]
         ];
@@ -179,17 +214,23 @@ class NavigationService
             return [[], '', false];
         }
 
+        $rrr = $this->context->getRouteType(); // routeType: $rrr
+
+
         if ($sections['inStoreSection'] && $this->authService->hasRole('store_owner')) {
             return [
                 [
                     Url::STORE_DASHBOARD->toLinkData(),
                     Url::STORE_PROFILE->toLinkData(),
                     Url::STORE_SETTINGS->toLinkData(),
-                    Url::STORE_POST->toLinkData(),
-                    Url::STORE_ALBUMS->toLinkData(),
+                    // Url::STORE_POST->toLinkData(),
+                    Url::CORE_POST->toLinkData(routeType: $rrr),
+                    Url::CORE_ALBUMS->toLinkData(),
+                    // Url::STORE_TESTY->toLinkData(),
+                    Url::CORE_TESTY->toLinkData(routeType: $rrr),
                 ],
                 'store-nav',
-                true
+                false // FIK - this turn on and off the submenu......at the oment it is hard coded
             ];
         }
 
@@ -202,7 +243,7 @@ class NavigationService
                     // Url::ADMIN_ALBUMS->toLinkData(),
                 ],
                 'admin-nav',
-                true
+                false // FIK - this turn on and off the submenu......at the oment it is hard coded
             ];
         }
 
@@ -212,11 +253,14 @@ class NavigationService
                 Url::ACCOUNT_DASHBOARD->toLinkData(),
                 Url::ACCOUNT_PROFILE->toLinkData(),
                 Url::ACCOUNT_MYNOTES->toLinkData(),
-                Url::ACCOUNT_POST->toLinkData(),
-                Url::ACCOUNT_ALBUMS->toLinkData(),
+                // Url::ACCOUNT_POST->toLinkData(),
+                Url::CORE_POST->toLinkData(routeType: $rrr),
+                Url::CORE_ALBUMS->toLinkData(),
+                // Url::ACCOUNT_TESTY->toLinkData(),
+                Url::CORE_TESTY->toLinkData(routeType: $rrr),
             ],
             'account-nav',
-            true
+            false // FIK - this turn on and off the submenu......at the oment it is hard coded
         ];
     }
 
@@ -227,7 +271,7 @@ class NavigationService
         }
 
         $currentUser = $this->authService->getCurrentUser();
-        $store = $this->storeRepository->findByUserId($currentUser->getUserId());
+        $store = $this->storeRepository->findByUserId($currentUser->getId());
 
         if (!$store) {
             return null;
@@ -235,10 +279,10 @@ class NavigationService
 
         //DebugRt::j('0', '', '$store->getId(), // dangerDanger');
         return [
-            'id' => $store->getStoreId(), // dangerDanger
-            'name' => $store->getName(),
-            'slug' => $store->getSlug(),
-            'url' => '/' . $store->getSlug(),
+            'id' => $store[0]->getId(), // dangerDanger // fixme
+            'name' => $store[0]->getName(),
+            'slug' => $store[0]->getSlug(),
+            'url' => '/' . $store[0]->getSlug(),
         ];
     }
 
@@ -262,7 +306,7 @@ class NavigationService
             }
 
             $debugInfo['role'] = $role;
-            $debugInfo['user_id'] = $currentUser->getUserId();
+            $debugInfo['user_id'] = $currentUser->getId();
             $debugInfo['username'] = $currentUser->getUsername();
 
             // Store info for store owners

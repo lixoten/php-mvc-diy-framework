@@ -52,8 +52,8 @@
 #### **User**
 - Represents the user in the system.
 - Key Attributes:
-  - `activationToken`: Stores the activation token.
-  - `activationTokenExpiry`: Stores the expiry timestamp of the token.
+  - `activationToken`: Store the activation token.
+  - `activationTokenExpiry`: Store the expiry timestamp of the token.
   - `status`: Tracks the user's status (`PENDING`, `ACTIVE`, etc.).
 - Key Methods:
   - `generateActivationToken(int $expireHours)`: Generates a secure activation token with an expiry.
@@ -135,4 +135,4 @@
 ---
 
 ## **6. Summary**
-The MVCLixo framework implements a secure and user-friendly activation process. It ensures that only verified users can access the system while providing clear feedback and options for users who 
+The MVCLixo framework implements a secure and user-friendly activation process. It ensures that only verified users can access the system while providing clear feedback and options for users who

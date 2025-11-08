@@ -28,7 +28,7 @@ class SessionManager implements SessionManagerInterface
     {
         $this->options = array_merge([
             'name' => 'mvc3_session',
-            'lifetime' => 7200,            // 2 hours in seconds
+            'lifetime' => 7202,            // 2 hours in seconds
             'path' => '/',
             'domain' => '',
             'secure' => false,             // Set to true in production with HTTPS

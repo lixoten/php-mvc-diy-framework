@@ -33,7 +33,7 @@ class StoreContextMiddleware implements MiddlewareInterface
         StoreContext $storeContext,
         ResponseFactory $responseFactory,
         CurrentContext $currentContext,
-        string $noStoreRedirectUrl = '/stores/stores/create'
+        string $noStoreRedirectUrl = '/store/store/create'
     ) {
         $this->flash = $flash;
         $this->storeContext = $storeContext;
@@ -53,8 +53,8 @@ class StoreContextMiddleware implements MiddlewareInterface
         $path = $request->getUri()->getPath();
 
         //if (
-        //    strpos($path, '/stores/') === 0 &&
-        //    strpos($path, '/stores/stores/create') !== 0
+        //    strpos($path, '/store/') === 0 &&
+        //    strpos($path, '/store/store/create') !== 0
         //) {
             // Get current store - this will find or create store context
             $store = $this->storeContext->getCurrentStore();
@@ -75,10 +75,10 @@ class StoreContextMiddleware implements MiddlewareInterface
             // scrap99 --------------------------------------------------------------------
             // Store exists, add it to request attributes for controllers
             // $request = $request->withAttribute('store', $store);
-            // $request = $request->withAttribute('store_id', $store->getStoreId());
+            // $request = $request->withAttribute('store_id', $store->getId());
             // $request = $request->withAttribute('store_name', $store->getName());
             $this->currentContext->setStoreObj($store);
-            $this->currentContext->setStoreId($store->getStoreId());
+            $this->currentContext->setStoreId($store->getId());
             $this->currentContext->setStoreName($store->getName());
 
             $this->currentContext->setBoo("BBBBBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");

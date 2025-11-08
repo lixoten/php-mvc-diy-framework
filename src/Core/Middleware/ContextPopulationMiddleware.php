@@ -60,7 +60,16 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         $controller =  $request->getAttribute('controller');
         $route_id   =  $request->getAttribute('route_id');
         $pageKey    =  $request->getAttribute('page_key');
-        $pageConfigKey =  $request->getAttribute('page_config_key');
+        $pageName   =  $request->getAttribute('page_name');
+
+        // $pageName    =  $pageKey ;
+        $pageFeature =  $controller;
+
+        if (in_array($controller, ['login', 'registration', 'logout'])) {
+            $pageEntity  =  null;
+        } else {
+            $pageEntity  =  strtolower($controller);
+        }
 
         // Add flash message if the flash service is available
         if (isset($this->flash)) {
@@ -71,9 +80,12 @@ class ContextPopulationMiddleware implements MiddlewareInterface
             }
         }
 
+        $this->currentContext->setPageName($pageName);
+        $this->currentContext->setPageFeature($pageFeature);
+        $this->currentContext->setPageEntity($pageEntity);
+
         // Set context values (null if attributes don't exist)
         $this->currentContext->setPageKey($pageKey);
-        $this->currentContext->setPageConfigKey($pageConfigKey);
         $this->currentContext->setEntityId($entityId !== null ? (int)$entityId : null);
         $this->currentContext->setActionName($actionName);
 
@@ -101,7 +113,7 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         if (strpos($path, '/admin/') === 0) {
             $this->currentContext->setRouteType('admin');
             $this->currentContext->setRouteType('admin');
-        } elseif (strpos($path, '/stores/') === 0) {
+        } elseif (strpos($path, '/store/') === 0) {
             $this->currentContext->setRouteType('store');
         } elseif (strpos($path, '/account/') === 0) {
             $this->currentContext->setRouteType('account');

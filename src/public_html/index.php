@@ -119,8 +119,15 @@ set_exception_handler(function ($exception) use ($container) {
     if (!headers_sent()) {
         http_response_code(500);
         echo "Server Error...";
-        DebugRt::p($exception);
-        // DebugRt::j('1', '', '111');
+        // DebugRt::p($exception);
+        $exceptionData = [
+            'message' => $exception->getMessage(),
+            'code' => $exception->getCode(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            // The 'trace' is intentionally omitted here for security/verbosity.
+        ];
+        DebugRt::j('0', 'exception', $exceptionData);
     }
 
     exit(1);

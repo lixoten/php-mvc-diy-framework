@@ -1,394 +1,65 @@
 <?php
 
-use Core\Database\Migrations\MigrationRepository;
-use Core\Database\Migrations\MigrationRunner;
-use App\Helpers\DebugRt;
+declare(strict_types=1);
 
-require_once __DIR__ . '/../vendor/autoload.php';
+use Core\Console\Commands\FeatureMoveCommand;
+use Core\Console\Commands\HelloCommand;
+use Core\Console\Commands\MakeEntityCommand;
+use Core\Console\Commands\MakeFieldConfigCommand;
+use Core\Console\Commands\MakeMigrationCommand;
+use Core\Console\Commands\MakeRepositoryCommand;
+use Core\Console\Commands\MakeSeederCommand;
+use Core\Console\Commands\MigrateCommand;
+use Core\Console\Commands\MigrateOneCommand;
+use Core\Console\Commands\RollbackCommand;
+use Core\Console\Commands\SeedCommand;
+use DI\ContainerBuilder;
+use Symfony\Component\Console\Application;
+
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+// Load environment variables
+$dotenv = Dotenv\Dotenv::createImmutable(dirname(__DIR__));
+$dotenv->load();
 
 // Set environment variable
-$environment = 'development';
+$environment = $_ENV['APP_ENV'] ?? 'development';
 
-// Load .env file if it exists
-if (file_exists(__DIR__ . '/../.env')) {
-    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-    $dotenv->load();
-    // Use environment from .env if defined
-    $environment = $_ENV['APP_ENV'] ?? $environment;
-}
+// Build DI Container
+$containerBuilder = new ContainerBuilder();
 
-// Initialize container
-$containerBuilder = new \DI\ContainerBuilder();
-// Define environment BEFORE loading dependencies.php
+// --- All definitions must be added BEFORE calling build() ---
 $containerBuilder->addDefinitions([
     'environment' => $environment,
+    'projectRoot' => dirname(__DIR__) // Correctly define 'projectRoot' here
 ]);
-$containerBuilder->addDefinitions(__DIR__ . '/../src/dependencies.php');
-$container = $containerBuilder->build();
+$containerBuilder->addDefinitions(dirname(__DIR__) . '/src/dependencies.php');
 
-// Get database connection
-$db = $container->get('db');
-$logger = $container->get('logger');
+$container = $containerBuilder->build(); // Build the container once
 
-// Parse command line arguments
-$command = $argv[1] ?? 'help';
-$arg = $argv[2] ?? null;
+// Create Console Application
+$application = new Application('MVC LIXO Console', '1.0.0');
 
-// Migration repository and runner
-$repository = new MigrationRepository($db);
-$runner = new MigrationRunner(
-    $db,
-    $repository,
-    __DIR__ . '/../src/Database/Migrations',
-    'Database\\Migrations',
-    $logger
-);
+// Register Commands
+// All commands will be retrieved from the DI container to ensure dependencies are injected
+$application->add($container->get(HelloCommand::class));
+$application->add($container->get(MigrateCommand::class));
+$application->add($container->get(MigrateOneCommand::class));
+$application->add($container->get(RollbackCommand::class));
+$application->add($container->get(SeedCommand::class));
 
-function getSeederFiles($seederPath) {
-    $files = scandir($seederPath);
-    $seeders = [];
-    foreach ($files as $file) {
-        if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-            $filename = pathinfo($file, PATHINFO_FILENAME);
+$application->add($container->get(MakeRepositoryCommand::class));
+$application->add($container->get(MakeEntityCommand::class));
+$application->add($container->get(MakeFieldConfigCommand::class));
+$application->add($container->get(MakeSeederCommand::class));
+$application->add($container->get(MakeMigrationCommand::class));
+$application->add($container->get(FeatureMoveCommand::class));
 
-            // Strip numeric prefix (001_, 002_, etc.)
-            $className = preg_replace('/^\d+_/', '', $filename);
-
-            $seeders[] = $className;
-        }
-    }
-    return $seeders;
-}
-
-
-echo "==== DEBUG INFO ====\n";
-
-// 1. Check if migrations table exists
 try {
-    // Better check for migrations table existence
-    $tableExists = $db->query("SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'migrations'");
-    $exists = $tableExists[0]['count'] > 0;
-    echo "Migrations table exists: " . ($exists ? "Yes" : "No") . "\n";
-
-    // Create table if it doesn't exist
-    if (!$exists) {
-        echo "Creating migrations table...\n";
-        $repository->createRepository();
-        echo "Table created.\n";
-    }
-} catch (\Exception $e) {
-    echo "Error checking migrations table: " . $e->getMessage() . "\n";
-    echo "Attempting to create migrations table...\n";
-    try {
-        $repository->createRepository();
-        echo "Migrations table created successfully.\n";
-    } catch (\Exception $createException) {
-        echo "Failed to create migrations table: " . $createException->getMessage() . "\n";
-    }
+    $application->run();
+} catch (Throwable $e) {
+    // Basic error handling for console commands
+    fwrite(STDERR, "Error: " . $e->getMessage() . PHP_EOL);
+    fwrite(STDERR, $e->getTraceAsString() . PHP_EOL);
+    exit(1);
 }
-
-// 2. Check available migration files
-echo "\nAvailable migration files:\n";
-$migrationPath = __DIR__ . '/../src/Database/Migrations';
-$files = scandir($migrationPath);
-foreach ($files as $file) {
-    if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-        echo "- $file\n";
-    }
-}
-
-// 3. Check tracked migrations
-try {
-    $executed = $repository->getMigratedFiles();
-    echo "\nAlready executed migrations: " . count($executed) . "\n";
-    foreach ($executed as $migration) {
-        echo "- $migration\n";
-    }
-} catch (\Exception $e) {
-    echo "Error getting executed migrations: " . $e->getMessage() . "\n";
-}
-
-echo "==================\n\n";
-
-// Execute command
-switch ($command) {
-    case 'migrate:one':
-        if (!$arg) {
-            echo "Usage: php bin/console.php migrate:one [MigrationClassName] [--force]\n";
-            break;
-        }
-
-        $migrationClass = $arg;
-        $force = in_array('--force', $argv, true);
-
-        try {
-            $executed = $runner->runSingleMigration($migrationClass, $force);
-
-            if ($executed) {
-                echo "Migration '{$migrationClass}' executed successfully.\n";
-            } else {
-                echo "Migration '{$migrationClass}' was not executed (already up to date or not found).\n";
-            }
-        } catch (\Throwable $e) {
-            echo "Error running migration '{$migrationClass}': " . $e->getMessage() . "\n";
-        }
-        break;
-
-    case 'migrate':
-        echo "Running migrations...\n";
-
-        // Check for --force flag
-        $force = in_array('--force', $argv) || in_array('-f', $argv);
-
-        $migrations = $runner->run($force);
-
-        if (empty($migrations)) {
-            echo "No migrations were executed.\n";
-        } else {
-            echo count($migrations) . " migrations executed:\n";
-            foreach ($migrations as $migration) {
-                echo "- $migration\n";
-            }
-        }
-        break;
-
-    case 'show:fk':
-        $table = $arg ?? null;
-        if (!$table) {
-            echo "Please specify a table name\n";
-            exit(1);
-        }
-
-        $result = $db->query(
-            "SELECT
-                rc.CONSTRAINT_NAME,
-                kcu.TABLE_NAME,
-                kcu.COLUMN_NAME,
-                kcu.REFERENCED_TABLE_NAME,
-                kcu.REFERENCED_COLUMN_NAME,
-                rc.DELETE_RULE
-            FROM information_schema.REFERENTIAL_CONSTRAINTS rc
-            JOIN information_schema.KEY_COLUMN_USAGE kcu
-                ON kcu.CONSTRAINT_NAME = rc.CONSTRAINT_NAME
-            WHERE kcu.TABLE_NAME = ?",
-            [$table]
-        );
-
-        if (empty($result)) {
-            echo "No foreign keys found for table '$table'\n";
-        } else {
-            foreach ($result as $row) {
-                echo "Constraint: {$row['CONSTRAINT_NAME']}\n";
-                echo "  Column: {$row['COLUMN_NAME']}\n";
-                echo "  References: {$row['REFERENCED_TABLE_NAME']}({$row['REFERENCED_COLUMN_NAME']})\n";
-                echo "  On Delete: {$row['DELETE_RULE']}\n";
-                echo "\n";
-            }
-        }
-        break;
-
-    case 'rollback':
-        $steps = $arg ? (int) $arg : 1;
-        echo "Rolling back {$steps} batch(es)...\n";
-        $migrations = $runner->rollback($steps);
-        echo count($migrations) . " migrations rolled back.\n";
-        break;
-
-    case 'seed':
-        $seederPath = __DIR__ . '/../src/Database/Seeders';
-
-        if (!$arg) {
-            // Show available seeders instead of requiring name
-            echo "Available seeders:\n";
-            $availableSeeders = getSeederFiles($seederPath);
-            foreach ($availableSeeders as $seeder) {
-                echo "- $seeder\n";
-            }
-            echo "\nUsage: php bin/console.php seed [seeder_name]\n";
-            echo "       php bin/console.php seed --all\n";
-            break;
-        }
-
-        if ($arg === '--all') {
-            echo "Running all seeders...\n";
-            $allSeeders = getSeederFiles($seederPath);
-            foreach ($allSeeders as $seederName) {
-                // Find the actual file (with prefix)
-                $files = scandir($seederPath);
-                $actualFile = null;
-                foreach ($files as $file) {
-                    if (strpos($file, $seederName . '.php') !== false) {
-                        $actualFile = $file;
-                        break;
-                    }
-                }
-
-                if ($actualFile) {
-                    // LOAD FILE DIRECTLY like migrations do
-                    require_once $seederPath . '/' . $actualFile;
-
-                    $seederClass = 'Database\\Seeders\\' . $seederName;
-                    echo "Running: $seederName\n";
-                    $seeder = new $seederClass($db);
-                    $seeder->run();
-                }
-            }
-        } else {
-            // Single seeder: support short name, numeric-prefixed filename, or FQCN
-            $classArg = (string) $arg;
-
-            // Normalize short name: strip namespace and any leading digits + underscore
-            $shortName = basename(str_replace('\\', '/', $classArg));
-            $shortName = preg_replace('/^\d+_/', '', $shortName);
-
-            // Determine FQCN we will try to instantiate
-            $seederClass = (strpos($classArg, '\\') === false)
-                ? 'Database\\Seeders\\' . $shortName
-                : $classArg;
-
-            // Find the actual file (with possible numeric prefix)
-            $files = scandir($seederPath);
-            $actualFile = null;
-            foreach ($files as $file) {
-                if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
-                    $filename = pathinfo($file, PATHINFO_FILENAME);
-                    $strippedName = preg_replace('/^\d+_/', '', $filename);
-                    if ($strippedName === $shortName || $filename === $classArg) {
-                        $actualFile = $file;
-                        break;
-                    }
-                }
-            }
-
-            // If file found, include it to support non-autoloaded classes
-            if ($actualFile) {
-                require_once $seederPath . '/' . $actualFile;
-            }
-
-            // Resolve class: prefer exact FQCN, otherwise scan declared classes for short name
-            $foundClass = null;
-            if (class_exists($seederClass)) {
-                $foundClass = $seederClass;
-            } else {
-                foreach (get_declared_classes() as $declared) {
-                    $declShort = basename(str_replace('\\', '/', $declared));
-                    if ($declShort === $shortName && str_starts_with($declared, 'Database\\Seeders\\')) {
-                        $foundClass = $declared;
-                        break;
-                    }
-                }
-                if ($foundClass === null && class_exists('Database\\Seeders\\' . $shortName)) {
-                    $foundClass = 'Database\\Seeders\\' . $shortName;
-                }
-            }
-
-            if ($foundClass !== null) {
-                echo "Running seeder: {$foundClass}\n";
-                $seeder = new $foundClass($db);
-                $seeder->run();
-                echo "Seeding completed.\n";
-            } else {
-                echo "Seeder class not found for: {$classArg}\n";
-            }
-        }
-        break;
-    // case 'seedxxxxxx':
-    //     $seederPath = __DIR__ . '/../src/Database/Seeders';
-
-    //     // if (!$arg) {
-    //     //     echo "Error: Seeder name is required\n";
-    //     //     echo "Usage: php bin/console.php seed [seeder_name]\n";
-    //     //     break;
-    //     // }
-
-
-    //     if (!$arg) {
-    //         // Show available seeders instead of requiring name
-    //         echo "Available seeders:\n";
-    //         $availableSeeders = getSeederFiles($seederPath);
-    //         foreach ($availableSeeders as $seeder) {
-    //             echo "- $seeder\n";
-    //         }
-    //         echo "\nUsage: php bin/console.php seed [seeder_name]\n";
-    //         echo "       php bin/console.php seed --all\n";
-    //         break;
-    //     }
-
-    //     if ($arg === '--all') {
-    //         echo "Running all seeders...\n";
-    //         $allSeeders = getSeederFiles($seederPath);
-    //         foreach ($allSeeders as $seederName) {
-    //             // Find the actual file (with prefix)
-    //             $files = scandir($seederPath);
-    //             $actualFile = null;
-    //             foreach ($files as $file) {
-    //                 if (strpos($file, $seederName . '.php') !== false) {
-    //                     $actualFile = $file;
-    //                     break;
-    //                 }
-    //             }
-
-    //             if ($actualFile) {
-    //                 // LOAD FILE DIRECTLY like migrations do
-    //                 require_once $seederPath . '/' . $actualFile;
-
-    //                 $seederClass = 'Database\\Seeders\\' . $seederName;
-    //                 echo "Running: $seederName\n";
-    //                 $seeder = new $seederClass($db);
-    //                 $seeder->run();
-    //             }
-    //         }
-    //     }
-
-
-
-
-    //     //print_r(get_declared_classes());
-
-
-    //     // if ($arg === 'UsersSeeder' || $arg === 'Database\\Seeders\\UsersSeeder') {
-    //     //     // Direct execution of UsersSeeder
-    //     //     //D:\xampp\htdocs\my_projects\mvclixo\src\Database\Seeder\UsersSeeder.php
-    //     //     $seeder = new UsersSeeder();
-    //     //     $seeder->run($db);
-    //     //     echo "UsersSeeder executed successfully!\n";
-    //     // } else {
-    //     $className = $arg ?? 'DatabaseSeeder';
-
-    //     $seederClass = (strpos($className, '\\') === false)
-    //     ? 'Database\\Seeders\\' . $className  // Add namespace when needed
-    //     : $className;
-    //     // Debug::p($seederClass);
-    //     echo "Running seeder: {$seederClass}\n";
-    //     // "Database\Seeders\007_TestSeeder"
-    //     // "Database\Seeders\TestySeeder"
-
-    //     if (class_exists($seederClass)) {
-    //         //Debug::p(111);
-    //         $seeder = new $seederClass($db);
-    //         $seeder->run();
-    //         echo "Seeding completed.\n";
-    //     } else {
-    //         echo "Seeder class not found: {$seederClass}\n";
-    //     }
-    //     // }
-    //     break;
-
-    case 'help':
-    default:
-        echo "Migration Commands:\n";
-        echo "  migrate           Run pending migrations\n";
-        echo "                    php bin/console.php migrate\n";
-        echo "  migrate:one       Run single migration\n";
-        echo "                    php bin/console.php migrate:one 'Database\Migrations\CreateStoresTable'\n";
-        echo "                    php bin/console.php migrate:one 'CreateStoresTable'\n";
-        echo "  rollback [steps]  Roll back the last batch or specific number of batches\n";
-        echo "  seed [class]      Run database seeders\n";
-        echo "  seed [class]      Run database seeders\n";
-        echo "                    php bin/console.php seed --all 'CreateStoresTable'\n";
-        echo "  seed -- all]      Run single database seeder\n";
-        echo "                    php bin/console.php seed  'TestysSeeder'\n";
-        break;
-}
-
-

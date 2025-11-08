@@ -1,8 +1,8 @@
 <?php
 
 // INCLUDE Also Review these files:
-// INCLUDE src\App\Features\Stores\Albums\List\AlbumsColumnRegistry.php
-// INCLUDE src\App\Features\Stores\Albums\AlbumsController.php
+// INCLUDE src\App\Features\Store\Albums\List\AlbumsColumnRegistry.php
+// INCLUDE src\App\Features\Store\Albums\AlbumsController.php
 
 declare(strict_types=1);
 
@@ -84,7 +84,7 @@ class AlbumsListType extends AbstractListType
         // DebugRt::j('1', '', $urlType);
         // Add actions
         // $builder->addAction('view', [
-        //     // 'url' => '/account/stores/albums/view/{id}',
+        //     // 'url' => '/account/store/albums/view/{id}',
         //     'url' => $urlType . 'albums/view/{id}',
         //     'title' => 'View Album',
         //     'icon' => '<i class="fas fa-eye"></i>',
@@ -99,7 +99,7 @@ class AlbumsListType extends AbstractListType
         );
 
         // $builder->addAction('edit', [
-        //     // 'url' => '/account/stores/albums/edit/{id}',
+        //     // 'url' => '/account/store/albums/edit/{id}',
         //     'url' => $urlType . 'albums/edit/{id}',
         //     'title' => 'Edit Album',
         //     'icon' => '<i class="fas fa-edit"></i>',
@@ -112,8 +112,8 @@ class AlbumsListType extends AbstractListType
             )
         );
         // $builder->addAction('delete', [
-        //     // 'url' => '/account/stores/albums/delete/{id}',
-        //     // 'url' => '/account/stores/albums/delete',
+        //     // 'url' => '/account/store/albums/delete/{id}',
+        //     // 'url' => '/account/store/albums/delete',
         //     'url' => '#', // URL doesn't matter for modal buttons
         //     'title' => 'Delete Album',
         //     'icon' => '<i class="fas fa-trash"></i>',
@@ -125,7 +125,7 @@ class AlbumsListType extends AbstractListType
         //         'album-title' => '{title}'
         //     ],
         //     'modal_title' => 'Delete Album',
-        //     'form_action' => '/account/stores/albums/delete'
+        //     'form_action' => '/account/store/albums/delete'
         // ]);
         $builder->addAction(
             'delete',

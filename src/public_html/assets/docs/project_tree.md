@@ -20,7 +20,8 @@ MVCLIXO/ (project-root)
 ├── src/
 │   ├── App/
 │   │   ├── Entities/
-│   │   │   └── User.php
+│   │   │   ├── Store.php                   (entity)
+│   │   │   └── User.php                    (entity)
 │   │   │
 │   │   ├── Enums/
 │   │   │   └── FlashMessageType.php
@@ -53,15 +54,49 @@ MVCLIXO/ (project-root)
 │   │   │   │       ├── index.php
 │   │   │   │       └── test.php
 │   │   │   │
-│   │   │   └── Testy/
-│   │   │       ├── TestyConst.php
-│   │   │       ├── TestyController.php
-│   │   │       ├── Form/
-│   │   │       │   └── ContactFormType.php
-│   │   │       └── Views/
-│   │   │           ├── index.php
-│   │   │           └── testlogger.php
+│   │   │   ├── Testy/                              -- Stand Alone Feature
+│   │   │   │    ├── Config/
+│   │   │   │    │   ├── schema_testy.php           <-- Moved here       // Schema used by Generators
+│   │   │   │    │   ├── field_testy.php            <-- To be moved here // Fields, most will map to table elements
+│   │   │   │    │   ├── view_testy_edit.php        <-- To be moved here // View Render Options for a page with a form
+│   │   │   │    │   └── view_testy_list.php        <-- To be moved here // View Render Options for a page with a list
+│   │   │   │    ├── Views/
+│   │   │   │    │   └── Bootstrap/
+│   │   │   │    │       ├── create.php
+│   │   │   │    │       ├── edit.php
+│   │   │   │    │       ├── index.php
+│   │   │   │    │       └── list.php
+│   │   │   │    ├── Testy.php                       (entity)
+│   │   │   │    ├── TestyRepository.php
+│   │   │   │    ├── TestyRepositoryInterface.php
+│   │   │   │    └── TestyController.php
+│   │   │   │
+│   │   │   │
+│   │   │   ├── Store/                              (shared feature)
+│   │   │   │    ├── Config/
+│   │   │   │    │   ├── schema_testy.php           // Schema used by Generators
+│   │   │   │    │   ├── field_testy.php            // Fields, most will map to table elements
+│   │   │   │    │   ├── view_testy_edit.php        // View Render Options for a page with a form
+│   │   │   │    │   └── view_testy_list.php        // View Render Options for a page with a list
+│   │   │   │    ├── Views/
+│   │   │   │    │   └── Bootstrap/
+│   │   │   │    │       ├── create.php
+│   │   │   │    │       ├── edit.php
+│   │   │   │    │       ├── index.php
+│   │   │   │    │       └── list.php
+│   │   │   │    └── StoreController.php
 │   │   │
+│   │   ├── Repository/
+│   │   │   ├── UserRepository.php
+│   │   │   ├── UserRepositoryInterface.php
+│   │   │   ├── StoreRepository.php
+│   │   │   ├── StoreRepositoryInterface.php
+│   │   │   └── ... (other core/shared repositories)
+│   │   └── Services/
+│   │       ├── GeoLocationService.php
+│   │       └── FeatureMetadataFactoryService.php
+
+
 │   │   ├── Helpers/
 │   │   │   ├── DebugRt.php
 │   │   │   ├── HtmlHelper.php
@@ -129,6 +164,13 @@ MVCLIXO/ (project-root)
 │   │   │       ├── Seeder.php             # Base seeder class
 │   │   │       └── TableSeeder.php        # Table seeder
 │   │   │
+│   │   ├── Console/
+│   │   │   ├── Commands/
+│   │   │   └── Generators/
+│   │   │       ├── GeneratorOutputService.php
+│   │   │       ├── RepositoryGenerator.php
+│   │   │       └── SeederGenerator.php
+
 │   │   ├── Errors/
 │   │   │   ├── ErrorsController.php
 │   │   │   └── Views/
@@ -251,7 +293,7 @@ MVCLIXO/ (project-root)
 │   │   ├── Migrations/                    # Migration files
 │   │   │   ├── CreateRateLimitAttemptsTable.php
 │   │   │   ├── CreateTestTable.php
-│   │   │   └── CreateUsersTable.php
+│   │   │   └── CreateUserTable.php
 │   │   │
 │   │   └── Seeders/                       # Database seeders
 │   │       └── TestSeeder.php             # Test data seeder

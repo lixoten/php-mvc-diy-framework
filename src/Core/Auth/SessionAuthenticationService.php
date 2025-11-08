@@ -4,12 +4,20 @@ declare(strict_types=1);
 
 namespace Core\Auth;
 
-use App\Entities\User;
+// use App\Entities\User;
+// use App\Repository\StoreRepositoryInterface;
+use App\Features\User\UserRepositoryInterface;
+// use App\Repository\UserRepositoryInterface;
+// use App\Features\User\User;
+// use App\Features\Store\StoreRepositoryInterface;
+// use App\Features\Store\UserRepositoryInterface;
+//////////----------------
 use App\Enums\UserStatus;
+use App\Features\User\User;
 use App\Repository\RememberTokenRepository;
-use App\Repository\StoreRepositoryInterface;
-use App\Repository\UserRepositoryInterface;
+use App\Features\Store\StoreRepositoryInterface;
 use Core\Auth\Exception\AuthenticationException;
+use Core\Interfaces\ConfigInterface;
 // use Core\Security\BruteForceProtectionService; // foofee
 use Core\Session\SessionManagerInterface;
 
@@ -45,9 +53,9 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
     private ?User $currentUser = null;
 
     /**
-     * @var array
+     * @var ConfigInterface
      */
-    private array $config;
+    private ConfigInterface $config;
 
     /**
      * Constructor
@@ -56,21 +64,48 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         UserRepositoryInterface $userRepository,
         SessionManagerInterface $session,
         protected RememberTokenRepository $rememberTokenRepository,
-        protected ?StoreRepositoryInterface $storeRepository = null,
+        ConfigInterface $config,
+        protected ?StoreRepositoryInterface $storeRepository = null
         // protected BruteForceProtectionService $bruteForceProtection, // foofee
-        array $config = []
     ) {
         $this->userRepository = $userRepository;
         $this->session = $session;
-        $this->config = array_merge([
-            'session_lifetime' => 7200, // 2 hours
-            'secure_cookie' => false, // Set to true in production
-            'cookie_path' => '/',
-            'cookie_domain' => '',
-        ], $config);
+        $this->config = $config;
+
+        //$defaultLifetime = $this->config->get('session.lifetime', 120); // minutes
+
+
+        // $defaultLifetime = 7200; // 2 hours
+        // if (isset($config['session']['lifetime'])) {
+        //     // Support nested config as in config/app.php
+        //     $defaultLifetime = (int)$config['session']['lifetime'] * 60; // convert minutes to seconds
+        // }
+        // $this->config = array_merge([
+        //     'session_lifetime' => $defaultLifetime,
+        //     // Fik - override debugger hack so sessions will not expire
+        //     // 'session_lifetime' => 86400, // 24 hours // hack
+        //     'secure_cookie' => false, // Set to true in production
+        //     'cookie_path' => '/',
+        //     'cookie_domain' => '',
+        // ], $config);
 
         // Start session if not already started
         $this->session->start();
+
+        // Auto-login test user in development
+        // if ($_ENV['APP_ENV'] === 'development' && empty($this->session->get(self::SESSION_USER_ID))) {
+        if ($_ENV['APP_ENV'] === 'development') {
+            // Replace 1 with your test user ID
+            // fik - FAKE LOGIN with fakeUserId
+            $fakeUserId = 1; // hack
+            $testUser = $this->userRepository->findById($fakeUserId);
+            if ($testUser) {
+                $this->storeUserInSession($testUser);
+                $this->setupStoreContext($testUser);
+                $this->currentUser = $testUser;
+            }
+        }
+
 
         // Auto-login from remember me cookie if available
         $this->attemptRememberMeLogin();
@@ -137,7 +172,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         if ($this->isAuthenticated()) {
             $user = $this->getCurrentUser();
             if ($user) {
-                $userId = $user->getUserId();
+                $userId = $user->getId();
             }
         }
 
@@ -178,13 +213,13 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
             }
 
             // Get user's store from repository
-            $store = $this->storeRepository->findByUserId($user->getUserId());
+            $store = $this->storeRepository->findByUserId($user->getId());
 
             if ($store) {
-                // Store the active store information in session
-                $this->session->set('active_store_id', $store->getStoreId());
-                $this->session->set('active_store_slug', $store->getSlug());
-                $this->session->set('active_store_name', $store->getName());
+                // Store the active store information in session //fixme //dangerdanger bi no no... can a user have multi-store?
+                $this->session->set('active_store_name', $store[0]->getName());
+                $this->session->set('active_store_slug', $store[0]->getSlug());
+                $this->session->set('active_store_id', $store[0]->getId());
             }
         }
     }
@@ -287,7 +322,11 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         $lastActivity = $this->session->get(self::SESSION_LAST_ACTIVITY, 0);
         $timeSinceActivity = time() - $lastActivity;
 
-        return $timeSinceActivity < $this->config['session_lifetime'];
+        // $sessionLifetime = (int)$this->config->get('session.lifetime', 120) * 60;
+        $sessionLifetime = (int)$this->config->get('app.session.lifetime', 120) * 60;
+        // $sessionLifetime = (int)$this->config->getConfigValue('app', 'session.lifetime', 120) * 60;
+        return $timeSinceActivity < $sessionLifetime;
+        //return $timeSinceActivity < $this->config['session_lifetime'];
     }
 
     /**
@@ -303,7 +342,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
      */
     private function storeUserInSession(User $user): void
     {
-        $this->session->set(self::SESSION_USER_ID, $user->getUserId());
+        $this->session->set(self::SESSION_USER_ID, $user->getId());
         $this->session->set(self::SESSION_USER_ROLES, $user->getRoles());
         $this->session->set(self::SESSION_AUTH_TIME, time());
         $this->session->set(self::SESSION_LAST_ACTIVITY, time());
@@ -331,9 +370,12 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
             $token,
             [
                 'expires' => $expires,
-                'path' => $this->config['cookie_path'],
-                'domain' => $this->config['cookie_domain'],
-                'secure' => $this->config['secure_cookie'],
+                // 'path' => $this->config['cookie_path'],
+                // 'domain' => $this->config['cookie_domain'],
+                // 'secure' => $this->config['secure_cookie'],
+                'path' => $this->config->get('app.session.cookie_path', '/'),
+                'domain' => $this->config->get('app.session.cookie_domain', ''),
+                'secure' => $this->config->get('app.session.secure_cookie', false),
                 'httponly' => true,
                 'samesite' => 'Lax'
             ]
@@ -342,7 +384,7 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // Store token in database with expiration date
         $expiresAt = date('Y-m-d H:i:s', $expires);
         $this->rememberTokenRepository->create(
-            $user->getUserId(),
+            $user->getId(),
             $selector,
             $hashedValidator,
             $expiresAt
@@ -360,9 +402,12 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
             '',
             [
                 'expires' => 1, // Expired
-                'path' => $this->config['cookie_path'],
-                'domain' => $this->config['cookie_domain'],
-                'secure' => $this->config['secure_cookie'],
+                // 'path' => $this->config['cookie_path'],
+                // 'domain' => $this->config['cookie_domain'],
+                // 'secure' => $this->config['secure_cookie'],
+                'path' => $this->config->get('app.session.cookie_path', '/'),
+                'domain' => $this->config->get('app.session.cookie_domain', ''),
+                'secure' => $this->config->get('app.session.secure_cookie', false),
                 'httponly' => true,
                 'samesite' => 'Lax'
             ]

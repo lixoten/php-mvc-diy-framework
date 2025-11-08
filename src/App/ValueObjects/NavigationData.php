@@ -9,6 +9,7 @@ class NavigationData
     public function __construct(
         private array $publicItems = [],
         private array $accountItems = [],
+        private array $coreItems = [],
         private array $storeItems = [],
         private array $adminItems = [],
         private array $guestItems = [],
@@ -22,6 +23,7 @@ class NavigationData
     // Getters
     public function getPublicItems(): array { return $this->publicItems; }
     public function getAccountItems(): array { return $this->accountItems; }
+    public function getCoreItems(): array { return $this->coreItems; }
     public function getStoreItems(): array { return $this->storeItems; }
     public function getAdminItems(): array { return $this->adminItems; }
     public function getGuestItems(): array { return $this->guestItems; }

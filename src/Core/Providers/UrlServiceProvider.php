@@ -7,6 +7,7 @@ namespace Core\Providers;
 use Core\Interfaces\ConfigInterface;
 use Core\Services\UrlServiceInterface;
 
+// fixme we might not need this class at all
 class UrlServiceProvider
 {
     public function register(

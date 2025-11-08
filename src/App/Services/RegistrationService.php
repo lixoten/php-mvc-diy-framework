@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Features\User\UserService;
 use App\Services\Email\EmailNotificationService;
 use Psr\Http\Message\UriInterface;
 

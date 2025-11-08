@@ -157,15 +157,19 @@ class GenController extends AbstractGenCrudController
 
 
         $tmpEnum = $this->feature->baseUrlEnum;
-        $pageConfigKey = $this->scrap->getPageConfigKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
         $tmp = $tmpEnum->data()['view'];
-        $xpl = explode('/', $pageConfigKey);
-        $pageConfigKey   = $xpl[0] . '_' . $xpl[1];
+        $xpl = explode('/', $pageName);
+        // $pageName   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->listType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 
@@ -199,7 +203,7 @@ class GenController extends AbstractGenCrudController
         $filter = (string)($request->getQueryParams()['filter'] ?? "DDDD");
 
         $this->scrap->setRouteType('store');
-        $storeId = 4;// $this->scrap->getStoreId();//fixme
+        // $storeId = 4;// $this->scrap->getStoreId();//fixme
 
         $routeType = $this->scrap->getRouteType();
         if ($routeType === 'account') {

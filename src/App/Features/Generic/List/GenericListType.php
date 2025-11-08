@@ -1,8 +1,8 @@
 <?php
 
 // INCLUDE Also Review these files:
-// INCLUDE src\App\Features\Stores\Generic\List\GenericColumnRegistry.php
-// INCLUDE src\App\Features\Stores\Generic\GenericController.php
+// INCLUDE src\App\Features\Store\Generic\List\GenericColumnRegistry.php
+// INCLUDE src\App\Features\Store\Generic\GenericController.php
 
 declare(strict_types=1);
 

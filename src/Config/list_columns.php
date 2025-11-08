@@ -50,10 +50,10 @@ return [
                 // 'id', 'status', 'created_at' will use definitions from AbstractFieldRegistry::getCommonColumn
             ],
         ],
-        'stores' => [
-            // Columns to display for 'stores' list
+        'store => [
+            // Columns to display for 'store list
             'display' => ['id', 'name', 'username', 'status', 'created_at'],
-            // Specific column definitions for 'stores'
+            // Specific column definitions for 'store
             'columns' => [
                 'name' => [ // Overrides default if needed, inherits 'sortable' from default
                     'label' => 'Store Name',

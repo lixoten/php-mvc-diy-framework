@@ -16,7 +16,7 @@ use Psr\Http\Server\RequestHandlerInterface;
  * Processes middleware in FIFO (First In, First Out) order and delegates
  * to a fallback handler when the middleware stack is empty.
  */
-class MiddlewarePipeline implements RequestHandlerInterface
+class   MiddlewarePipeline implements RequestHandlerInterface
 {
     /**
      * @var MiddlewareInterface[] Array of middleware instances

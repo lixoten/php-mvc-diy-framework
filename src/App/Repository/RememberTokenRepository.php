@@ -27,7 +27,7 @@ class RememberTokenRepository implements RememberTokenRepositoryInterface
      */
     public function create(int $userId, string $selector, string $hashedValidator, string $expiresAt): bool
     {
-        $sql = "INSERT INTO remember_tokens (user_id, selector, hashed_validator, expires_at, created_at, updated_at)
+        $sql = "INSERT INTO remember_token (user_id, selector, hashed_validator, expires_at, created_at, updated_at)
                 VALUES (:user_id, :selector, :hashed_validator, :expires_at, NOW(), NOW())";
 
         $stmt = $this->connection->prepare($sql);
@@ -44,7 +44,7 @@ class RememberTokenRepository implements RememberTokenRepositoryInterface
      */
     public function findBySelector(string $selector): ?RememberToken
     {
-        $sql = "SELECT * FROM remember_tokens WHERE selector = :selector";
+        $sql = "SELECT * FROM remember_token WHERE selector = :selector";
         $stmt = $this->connection->prepare($sql);
         $stmt->execute(['selector' => $selector]);
 
@@ -62,7 +62,8 @@ class RememberTokenRepository implements RememberTokenRepositoryInterface
      */
     public function deleteByUserId(int $userId): bool
     {
-        $sql = "DELETE FROM remember_tokens WHERE user_id = :user_id";
+        // $sql = "DELETE FROM remember_token WHERE user_id = :user_id";
+        $sql = "DELETE FROM remember_token WHERE expires_at < NOW()"; // FIXED: Added table name
         $stmt = $this->connection->prepare($sql);
         return $stmt->execute(['user_id' => $userId]);
     }
@@ -72,7 +73,7 @@ class RememberTokenRepository implements RememberTokenRepositoryInterface
      */
     public function deleteExpired(): int
     {
-        $sql = "DELETE FROM remember_tokens WHERE expires_at < NOW()";
+        $sql = "DELETE FROM  WHERE expires_at < NOW()";
         $stmt = $this->connection->prepare($sql);
         $stmt->execute();
 
@@ -84,7 +85,7 @@ class RememberTokenRepository implements RememberTokenRepositoryInterface
      */
     public function deleteBySelector(string $selector): bool
     {
-        $sql = "DELETE FROM remember_tokens WHERE selector = :selector";
+        $sql = "DELETE FROM remember_token WHERE selector = :selector";
         $stmt = $this->connection->prepare($sql);
         return $stmt->execute(['selector' => $selector]);
     }

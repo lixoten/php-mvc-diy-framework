@@ -13,20 +13,20 @@ return [
             'dashboard' => ['/account/dashboard', 'Dashboard'],
             'profile' => ['/account/profile', 'Profile']
         ],
-        'stores' => [
-            'dashboard' => ['/stores/dashboard', 'Store Dashboard'],
+        'store' => [
+            'dashboard' => ['/store/dashboard', 'Store Dashboard'],
             'posts' => [
-                'url' => '/stores/posts',
+                'url' => '/store/posts',
                 'view' => 'Account/Stores/Posts/index',
                 'label' => 'Posts'
             ],
             'posts.create' => [
-                'url' => '/stores/posts/create',
+                'url' => '/store/posts/create',
                 'view' => 'Account/Stores/Posts/create',
                 'label' => 'Create Post'
             ],
             'posts.edit' => [
-                'url' => '/stores/posts/edit/{id}',
+                'url' => '/store/posts/edit/{id}',
                 'view' => 'Account/Stores/Posts/edit',
                 'label' => 'Edit Post'
             ]

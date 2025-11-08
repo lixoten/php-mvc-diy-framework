@@ -219,7 +219,7 @@ class GenericController extends Controller
         }
 
         // --- Get Entity using GenericDataService ---
-        $entity = $this->dataService->fetchEntityById($entityType, $entityId); // Use the service
+        $entity = $this->dataService->fetchEntityById($entityType, $entityId);
         if (!$entity) {
             $this->throwEntityNotFound($entityType, $entityId);
         }
@@ -357,7 +357,7 @@ class GenericController extends Controller
         //}
 
         // --- Get Entity using GenericDataService ---
-        //$entity = $this->dataService->fetchEntityById($entityType, $entityId); // Use the service
+        //$entity = $this->dataService->fetchEntityById($entityType, $entityId);
         //if (!$entity) {
         //    $this->throwEntityNotFound($entityType, $entityId);
         //}

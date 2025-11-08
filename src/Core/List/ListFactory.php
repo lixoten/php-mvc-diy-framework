@@ -75,7 +75,7 @@ class ListFactory implements ListFactoryInterface
 
 
         // Create list instance
-        $list = new ListView($listType->pageConfigKey);
+        $list = new ListView($listType->pageName);
 
         // Create list builder
         $builder = new ListBuilder($list, $this->fieldTypeRegistry);

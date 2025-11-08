@@ -30,11 +30,15 @@ abstract class Migration
     abstract public function down(): void;
 
     /**
-     * Create a new table
+     * Create a new table.
+     *
+     * @param string $tableName
+     * @param \Closure(\Core\Database\Schema\Blueprint $table): void $callback // Updated PHPDoc for better IDE inference
+     * @return void
      */
-    protected function create(string $table, \Closure $callback): void
+    protected function create(string $tableName, \Closure $callback): void
     {
-        $this->schema->create($table, $callback);
+        $this->schema->create($tableName, $callback);
     }
 
     /**

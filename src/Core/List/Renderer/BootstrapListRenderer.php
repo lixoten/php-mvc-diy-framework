@@ -21,13 +21,14 @@ class BootstrapListRenderer extends AbstractListRenderer
     ) {
         parent::__construct($themeService);
 
-        // Fik - List View Default - GRID TABLE LIST
         // Bootstrap-specific default options
         $this->defaultOptions = array_merge($this->defaultOptions, [
-            // 'view_type' => self::VIEW_GRID,
+            'view_type' => self::VIEW_GRID,
             'view_type' => self::VIEW_TABLE,
-            // 'view_type' => self::VIEW_LIST, //Importantx!!! Shit
+            'view_type' => self::VIEW_LIST,
         ]);
+        // Fik - Override List View Default - GRID TABLE LIST
+        $this->defaultOptions['view_type'] = self::VIEW_TABLE;
     }
 
     /**
@@ -383,7 +384,7 @@ class BootstrapListRenderer extends AbstractListRenderer
 
             $title = $actionOptions['title'] ?? ucfirst($name);
 
-            if ($name === 'delete') {
+            if ($name === 'deletexxx') {
                 // Delete button code with modal trigger
                 $output .= '<button type="button" ';
                 $output .= 'class="' . $class . ' delete-item-btn" ';
@@ -533,6 +534,7 @@ class BootstrapListRenderer extends AbstractListRenderer
      * @param ListInterface $list
      * @return string
      */
+    // future maybe once we have js?
     public function renderDeleteModal(ListView $list): string
     {
         if (!$list->hasActions() || !isset($list->getActions()['delete'])) {

@@ -15,7 +15,7 @@ interface RouterInterface
      * @param ServerRequestInterface $request The request object
      * @return array|null The matched route parameters or null if no match
      */
-    public function matchRequest(ServerRequestInterface $request): ?array; // <-- Add this method
+    public function matchRequest(ServerRequestInterface $request): ?array; 
 
     /**
      * Dispatch the route for the given request

@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Core;
 
 use App\Enums\FlashMessageType;
-use App\Enums\Url;
-use App\Features\Testy\Form\TestyFormType;
-use App\Repository\TestyRepositoryInterface;
 use App\Services\FeatureMetadataService;
 use Core\Context\CurrentContext;
 use Core\Controller;
@@ -34,8 +31,6 @@ abstract class AbstractGenCrudController extends Controller
     protected FeatureMetadataService $feature;
     protected FormFactoryInterface $formFactory;
     protected FormHandlerInterface $formHandler;
-    // protected TestyFormType $formType;//dangerdanger
-    // protected TestyRepositoryInterface $repository;
     protected FormTypeInterface $formType;
     protected GenericDataServiceInterface $dataService;
     protected BaseRepositoryInterface $repository;
@@ -85,17 +80,20 @@ abstract class AbstractGenCrudController extends Controller
     {
         $tmpEnum = $this->feature->editUrlEnum;
 
-        $pageConfigKey = $this->scrap->getPageConfigKey();
-
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
 
         $tmp = $tmpEnum->data()['view'];
         $xpl = explode('/', $tmp);
-        $pageConfigKey   = $xpl[0] . '_' . $xpl[1];
+        $pageName   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->formType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 
@@ -155,17 +153,6 @@ abstract class AbstractGenCrudController extends Controller
 
 
 
-
-
-
-            // // --- Get Entity using GenericDataService ---
-            // $entity = $this->dataService->fetchEntityById($entityType, $entityId); // Use the service
-            // if (!$entity) {
-            //     $this->throwEntityNotFound($entityType, $entityId);
-            // }
-
-
-
             // 1. Define all columns needed for this request (form fields + permission fields).
             // $formFields = $this->formType->getFields();
             $formFields = $this->formType->getFields();
@@ -175,7 +162,7 @@ abstract class AbstractGenCrudController extends Controller
 
 
             // --- Get Entity using GenericDataService ---
-            $entity = $this->dataService->fetchEntityFieldsById($entityType, $entityId, $requiredFields); // Use the service
+            $entity = $this->dataService->fetchEntityFieldsById($entityType, $entityId, $requiredFields);
             if (!$entity) {
                 $this->throwEntityNotFound($entityType, $entityId);
             }
@@ -244,7 +231,7 @@ abstract class AbstractGenCrudController extends Controller
 
             $fullRecordObjxxx = $this->repository->findById($recordId);
             // --- Get Entity using GenericDataService ---
-            $fullRecordObj = $this->dataService->fetchEntityById($entityType, $recordId); // Use the service
+            $fullRecordObj = $this->dataService->fetchEntityById($entityType, $recordId);
             if (!$fullRecordObj) {
                 $this->throwEntityNotFound($entityType, $entityId);
             }
@@ -300,7 +287,7 @@ abstract class AbstractGenCrudController extends Controller
             'title' => 'Edit Record',
             'form' => $form,
             'formTheme' => $form->getCssFormThemeFile(),
-            //'geo_region' => $regionCode, // <-- Add this line
+            //'geo_region' => $regionCode,
         ];
 
         // $response = $this->view(Url::CORE_TESTY_EDIT->view(), $viewData);
@@ -328,17 +315,21 @@ abstract class AbstractGenCrudController extends Controller
         // $formType2 = $this->typeResolver->resolveFormType('testy');
         // $this->formType = $formType2;
 
-        $pageConfigKey = $this->scrap->getPageConfigKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
 
 
         //$tmp = $tmpEnum->data()['view'];
-        $xpl = explode('/', $pageConfigKey);
-        $pageConfigKey   = $xpl[0] . '_' . $xpl[1];
+        $xpl = explode('/', $pageName);
+        // $pageName   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->formType->setFocus(
-            $pageConfigKey,
+            $pageName,
+            $pageFeature,
+            $pageEntity,
             $entityNm
         );
 

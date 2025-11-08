@@ -18,13 +18,13 @@ class SchemaBuilder
     /**
      * Create a new table
      *
-     * @param string $table Table name
-     * @param \Closure $callback Blueprint configuration function
+     * @param string $tableName Table name
+     * @param \Closure(\Core\Database\Schema\Blueprint $table): void $callback Blueprint configuration function
      * @return void
      */
-    public function create(string $table, \Closure $callback): void
+    public function create(string $tableName, \Closure $callback): void
     {
-        $blueprint = new Blueprint($table);
+        $blueprint = new Blueprint($tableName);
         $callback($blueprint);
 
         $sql = $blueprint->toSql();
@@ -67,7 +67,7 @@ class SchemaBuilder
      * @param string $table Table name
      * @return bool
      */
-    public function xxhasTable(string $table): bool
+    public function xxxHasTable(string $table): bool //fixme remove old class
     {
         $result = $this->connection->query(
             "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",

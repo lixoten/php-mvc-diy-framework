@@ -9,9 +9,11 @@ declare(strict_types=1);
 // ... etc ...
 
 use App\Entities\Post;
-use App\Entities\Store;
+// use App\Entities\Store;
+use App\Features\Store\Store;
 use App\Repository\PostRepositoryInterface;
-use App\Repository\StoreRepositoryInterface;
+// use App\Repository\StoreRepositoryInterface;
+use App\Features\Store\StoreRepositoryInterface;
 
 // use App\Features\Notes\Entity\Note; // Example for another type
 // use App\Features\Notes\Repository\NoteRepositoryInterface; // Example for another type
@@ -90,12 +92,12 @@ return [
             ]
         ],
     ],
-    'stores' => [
+    'store=> [
         'repository' => StoreRepositoryInterface::class,
         'entity' => Store::class,
         'label' => 'Store', // Singular label
-        'label_plural' => 'Stores', // Plural label
-        'base_route' => '/content/stores', // Base URL segment for routing
+        'label_plural' => 'Store', // Plural label
+        'base_route' => '/content/store // Base URL segment for routing
 
         // Field definitions for GenericFormType
         'fields' => [

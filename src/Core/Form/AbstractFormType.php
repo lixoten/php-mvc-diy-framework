@@ -25,7 +25,10 @@ abstract class AbstractFormType implements FormTypeInterface
     // protected array $urlEnumArray;
     protected array $options = [];
 
-    public readonly string $pageConfigKey;
+    public readonly string $pageName;
+    public readonly string $pageFeature;
+    public readonly string $pageEntity;
+
     public readonly string $entityName;
 
     /**
@@ -44,10 +47,16 @@ abstract class AbstractFormType implements FormTypeInterface
     }
 
     /** {@inheritdoc} */
-    public function setFocus(string $pageConfigKey, string $entityName ): void
-    {
-        $this->pageConfigKey   = $pageConfigKey;
-        $this->entityName = $entityName;
+    public function setFocus(
+        string $pageName,
+        string $pageFeature,
+        string $pageEntity,
+        string $entityName
+    ): void {
+        $this->pageName      = $pageName;
+        $this->pageFeature   = $pageFeature;
+        $this->pageEntity    = $pageEntity;
+        $this->entityName    = $entityName;
 
         $this->init();
     }
@@ -220,7 +229,7 @@ abstract class AbstractFormType implements FormTypeInterface
         // 3. Filter and Validate ALL Fields
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageConfigKey,
+            $this->pageName,
             $this->entityName
         );
 
@@ -321,7 +330,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageConfigKey,
+            $this->pageName,
             $this->entityName
         );
 
@@ -353,7 +362,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
         // Process each field
         foreach ($fieldNames as $name) {
-            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($name, $this->pageConfigKey, $this->entityName);
+            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($name, $this->pageName, $this->entityName);
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
                 if (isset($columnDef['label'])) {
@@ -456,14 +465,40 @@ abstract class AbstractFormType implements FormTypeInterface
         ///////////////////////////////////////////////////////////////////////
         // Retrieve View Config values
         ///////////////////////////////////////////////////////////////////////
-        // Form View Defaults - These will be applied on top of the Form Defaults
-        $pageConfigKey  = $this->pageConfigKey;
-        $viewConfig  = $this->configService->get('view_options/' . $pageConfigKey); // loads "list_fields/posts.php"
+        // // Form View Defaults - These will be applied on top of the Form Defaults
+        // $pageName  = $this->pageName;
+        // $viewConfig  = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
+        // if ($viewConfig === null) {
+        //     throw new \RuntimeException(
+        //         "Fatal error: Required config file \"view_options/{$pageName}.php\" is missing."
+        //     );
+        // }
+        ///////////////////////////////////////////////////////////////////////
+        // Retrieve View Config values
+        ///////////////////////////////////////////////////////////////////////
+        $pageName = $this->pageName;
+        $pageFeature = $this->pageFeature;
+
+        // fixme shit2 ok
+        // ✅ Get entire config file
+        $viewConfig = $this->configService->getFromFeature($pageFeature, 'view_' . $pageName);
+
+        // // ✅ Get nested value with dot notation
+        // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
+
+        // // ✅ Get deeply nested value
+        // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
+
+        // $viewConfig = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
         if ($viewConfig === null) {
             throw new \RuntimeException(
-                "Fatal error: Required config file \"view_options/{$pageConfigKey}.php\" is missing."
+                "Fatal error: Required config file \"App\Features/Config/view_{$pageName}.php\" is missing."
             );
         }
+        //D:\xampp\htdocs\my_projects\mvclixo\src\App\Features\Auth\Config\view_user_login.php
+
+
+
 
         $viewRenderOptions  = $viewConfig['render_options'] ?? [];
         $viewLayout         = $viewConfig['form_layout'] ?? [];

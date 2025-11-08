@@ -99,6 +99,13 @@ return [
         'step'          => null, // not applicable
         //End Global set to null
     ],
+    'hidden' => [
+        // Global Like if not applicable set to null
+        'min'           => null, // not applicable
+        'max'           => null, // not applicable
+        'step'          => null, // not applicable
+        //End Global set to null
+    ],
     'text' => [
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
@@ -830,24 +837,33 @@ return [
         'min'           => null, // not applicable
         'max'           => null, // not applicable
         'step'          => null, // not applicable
-        'step'          => null, // not applicable
-        'autocomplete'          => null, // not applicable
-        'inputmode'          => null, // not applicable
-        'step'          => null, // not applicable
-        'step'          => null, // not applicable
-        'step'          => null, // not applicable
+        'autocomplete'  => null, // not applicable
+        'inputmode'     => null, // not applicable
         'readonly'      => null, // not applicable
+        'maxlength'     => null, // not applicable
+        'minlength'     => null, // not applicable
+        'spellcheck'    => null, // not applicable
+        'dirname'       => null, // not applicable
+        'pattern'       => null, // not applicable
+        'placeholder'   => null, // not applicable
+        'value'         => null, // not applicable
         //End Global set to null
 
-        'id'        => ['default' => 'foofoo',  'values' => 'string'],
-        'style'     => ['default' => "feestyprr",  'values' => 'string'],
+        'multiple'      => ['default' => false, 'values' => 'bool'],
+        'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
         'val_fields' => [
-            'required_message'         => ['values' => 'string', 'default' => null],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease ???.'],
+            'ignore_allowed'           => ['values' => 'bool', 'default' => true],
+            'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
+            'allowed'                  => ['values' => 'array', 'default' => []],
+            'forbidden'                => ['values' => 'array', 'default' => []],
+
+            'required_message'         => ['values' => 'string', 'default' => 'zzThis field is required.'],
+            'invalid_message'          => ['values' => 'string', 'default' => 'zzPlease select a valid option.'],
+            'allowed_message'          => ['values' => 'string', 'default' => 'zzThe selected option is not allowed.'],
+            'forbidden_message'        => ['values' => 'string', 'default' => 'zzThe selected option is forbidden.'],
         ],
     ],
-
 
 
     'file' => [

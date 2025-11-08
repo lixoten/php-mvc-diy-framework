@@ -20,7 +20,7 @@ use function PHPUnit\Framework\isNull;
  */
 class BootstrapFormRenderer implements FormRendererInterface
 {
-    private ThemeServiceInterface $themeService; 
+    private ThemeServiceInterface $themeService;
     private FormatterService $formatterService;
     private LoggerInterface $logger;
 
@@ -28,7 +28,7 @@ class BootstrapFormRenderer implements FormRendererInterface
      * @param FormatterService $formatterService
      */
     public function __construct(
-        ThemeServiceInterface $themeService,  // <-- Change from FormatterService
+        ThemeServiceInterface $themeService,
         FormatterService $formatterService,
         LoggerInterface $logger
     ) {
@@ -620,6 +620,34 @@ class BootstrapFormRenderer implements FormRendererInterface
                 $output .= $errorHTML;
                 $output .= '</div>';
                 break;
+
+            case 'checkbox_group':
+                $output .= '<label class="form-label">' . $label . '</label>';
+                $choices = $field->getOptions()['choices'] ?? [];
+                $inline = $field->getOptions()['inline'] ?? false;
+                $currentValue = is_array($field->getValue()) ? $field->getValue() : [];
+
+                $containerClass = $inline ? 'form-check form-check-inline' : 'form-check';
+
+                foreach ($choices as $choiceValue => $choiceLabel) {
+                    $checked = in_array($choiceValue, $currentValue) ? ' checked' : '';
+                    $choiceId = $id . '_' . $choiceValue;
+
+                    $output .= '<div class="' . $containerClass . '">';
+                    $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '" ';
+                    $output .= 'id="' . $choiceId . '" ';
+                    $output .= 'name="' . $name . '[]" ';
+                    $output .= 'value="' . htmlspecialchars((string)$choiceValue) . '"' . $checked . '>';
+                    $output .= '<label class="form-check-label" for="' . $choiceId . '">';
+                    $output .= htmlspecialchars($choiceLabel);
+                    $output .= '</label>';
+                    $output .= '</div>';
+                }
+
+                $output .= $errorHTML;
+                break;
+
+
 
             case 'radio':
                 $output .= '<label>' . $label . '</label>';

@@ -133,7 +133,7 @@ class AlbumsController extends Controller
         // Get current route context
         $path = $_SERVER['REQUEST_URI'];
         $isAdminRoute = strpos($path, '/admin/') === 0;
-        $isStoreRoute = strpos($path, '/stores/') === 0;
+        $isStoreRoute = strpos($path, '/store/') === 0;
         $isAccountRoute = strpos($path, '/account/') === 0 && !$isStoreRoute;
 
         // Set default criteria - no filtering
@@ -199,9 +199,9 @@ class AlbumsController extends Controller
                     'per_page' => $limit
                 ],
                 'render_options' => [
-                    'pagination_url' => BASE_URL . '/stores/albums/page/{page}',
-                    'pagination_url3333' => BASE_URL . '/stores/albums/page/{page}',
-                    'add_url' => '/stores/albums/add333',
+                    'pagination_url' => BASE_URL . '/store/albums/page/{page}',
+                    'pagination_url3333' => BASE_URL . '/store/albums/page/{page}',
+                    'add_url' => '/store/albums/add333',
                     'test_value' => 'high',             // RemoveMe remove This was for me later for testing
                     'test_value_only_high' => 'high'    // RemoveMe remove This was for me later for testing
                 ]
@@ -373,7 +373,7 @@ class AlbumsController extends Controller
                     $this->flash->add("Your album has been created successfully", FlashMessageType::Success);
 
                     // Redirect to the album list
-                    // return $this->redirect('/stores/posts');
+                    // return $this->redirect('/store/posts');
                     return $this->redirect(Url::STORE_ALBUMS->url());
                 } else {
                     // Handle failed insertion
@@ -514,7 +514,7 @@ class AlbumsController extends Controller
                     $this->flash->add("Your album has been published successfully", FlashMessageType::Success);
 
                     // Redirect to the albums list
-                    // return $this->redirect('/stores/albums');
+                    // return $this->redirect('/store/albums');
                     return $this->redirect(Url::STORE_ALBUMS->url());
                 } else {
                     // Handle failed insertion

@@ -55,10 +55,10 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
                     </ul>
 
                     <ul class="navbar-nav mb-2 mb-lg-0">
-                            <!-- <div class="last-items-container"> -->
-
+                        <!-- <div class="last-items-container"> -->
                         {$this->renderMenuItems($navigationData->getGuestItems(), $currentPath)}
-                <!-- </div> -->
+                        <!-- </div> -->
+                        {$this->renderNestedItems($navigationData->getCoreItems(), $currentPath)}
                         {$this->renderNestedItems($navigationData->getAccountItems(), $currentPath)}
                         {$this->renderNestedItems($navigationData->getStoreItems(), $currentPath)}
                         {$this->renderNestedItems($navigationData->getAdminItems(), $currentPath)}
@@ -216,7 +216,7 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
             $html .= <<<HTML
             <li class="nav-item">
                 <a href="{$url}" class="nav-link px-2{$activeClass}"{$ariaCurrent}>
-                    {$label}
+                    xxx {$label}
                 </a>
             </li>
             HTML;

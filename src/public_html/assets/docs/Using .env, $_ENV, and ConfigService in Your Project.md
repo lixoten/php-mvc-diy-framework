@@ -135,7 +135,7 @@ $emailConfig = $this->config->get('email');
 ---
 
 ## **5. Summary**
-- **`.env`**: Stores environment-specific values securely.
+- **`.env`**: Storenvironment-specific values securely.
 - **`$_ENV`**: Used to access environment variables but should be limited to configuration files and dependencies.php.
 - **`ConfigService`**: Centralizes configuration management and ensures consistency across the application.
 

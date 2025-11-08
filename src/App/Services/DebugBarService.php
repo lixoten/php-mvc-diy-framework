@@ -6,10 +6,6 @@ namespace App\Services;
 
 use Core\Auth\AuthenticationServiceInterface;
 use Core\Context\CurrentContext;
-// use App\Services\AuthService;
-
-
-
 
 class DebugBarService
 {
@@ -33,19 +29,25 @@ class DebugBarService
 
         if ($this->authService->isAuthenticated()) {
             $currentUser = $this->authService->getCurrentUser();
+            // $currentUser = $this->authService->getCurrentUser();
 
-            $role = 'user';
+            $role = '';
             if ($this->authService->hasRole('admin')) {
-                $role = 'admin';
-            } elseif ($this->authService->hasRole('store_owner')) {
-                $role = 'store_owner';
+                $role .= ' admin';
+            }
+
+            if ($this->authService->hasRole('store_owner')) {
+                $role .= ' store_owner';
             }
 
             $debugInfo['role'] = $role;
-            $debugInfo['user_id'] = $currentUser->getUserId();
+            $debugInfo['user_id'] = $currentUser->getId();
+            // $debugInfo['store_id'] = $currentUser->getS;
             $debugInfo['username'] = $currentUser->getUsername();
 
-            if ($role === 'store_owner') {
+            //$roles = $this->context->getCurrentUserRoles();
+            // if ($role === 'store_owner') {
+            if ($this->authService->hasRole('store_owner')) {
                 $debugInfo['active_store_id'] = $_SESSION['active_store_id'] ?? null;
                 $debugInfo['active_store_name'] = $_SESSION['active_store_name'] ?? 'Unknown';
             }

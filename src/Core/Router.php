@@ -44,7 +44,8 @@ class Router implements RouterInterface
         // Convert variables with custom regular expressions e.g. {id:\d+}
         // Dynamic-me
         //..$route = preg_replace('/\{([a-z]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
-        $route = preg_replace('/\{([a-z_]+):([^\}]+)\}/', '(?P<\1>\2)', $route); // Allow underscore in name {content_type}
+        $route = preg_replace('/\{([a-z_]+):([^\}]+)\}/', '(?P<\1>\2)', $route);
+                                                                              // Allow underscore in name {content_type}
 
         // Add start and end delimiters, and case-insensitive flag
         //$route = '/^' . $route . '$/i';
@@ -74,6 +75,7 @@ class Router implements RouterInterface
         // if (isset($urlParts['query'])) {
             // parse_str($urlParts['query'], $queryParams);
         // }
+        // FindEntry - Router Match
         //Debug::p($url,0);
         foreach ($this->routes as $route => $params) {
             if (preg_match($route, $url, $matches)) {
@@ -104,13 +106,13 @@ class Router implements RouterInterface
 
 
                 $params["url"] = $url;
-
+                // bee903-dynfully - 584
 
                 $params['page_key'] = $params['controller'] . '_' . $params['action'];
                 if ($params['action'] === 'create') {
-                    $params['page_config_key'] = $params['controller'] . '_edit';
+                    $params['page_name'] = $params['controller'] . '_edit';
                 } else {
-                    $params['page_config_key'] = $params['controller'] . '_' . $params['action'];
+                    $params['page_name'] = $params['controller'] . '_' . $params['action'];
                 }
 
 
@@ -153,7 +155,7 @@ class Router implements RouterInterface
                     $this->params['controller'] === 'Dasxxxxxhboard' ||
                     $this->params['namespace'] === 'Admin' ||
                     $this->params['namespace'] === 'Account' ||
-                    $this->params['namespace'] === 'Stores'
+                    $this->params['namespace'] === 'Store'
                 ) {
                     $qualifiedNamespace .= $this->params['controller'] . '\\';
                 }
@@ -196,7 +198,7 @@ class Router implements RouterInterface
         //         if (
         //             $this->params['namespace'] === 'Admin' ||
         //             $this->params['namespace'] === 'Account' ||
-        //             $this->params['namespace'] === 'Stores'
+        //             $this->params['namespace'] === 'Store
         //         ) {
         //             $qualifiedNamespace .= $this->params['controller'] . '\\';
         //         }

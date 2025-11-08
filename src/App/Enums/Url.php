@@ -50,19 +50,24 @@ enum Url
     case CORE_CONTACT;
     case CORE_CONTACT_DIRECT;
 
+    case CORE_USER;
+    case CORE_USER_LIST;
+    case CORE_USER_CREATE;
+    case CORE_USER_EDIT;
+    case CORE_USER_VIEW;
+    case CORE_USER_DELETE;
+    case CORE_USER_DELETE_CONFIRM;
+
+    // - 6
     case CORE_TESTY;
     case CORE_TESTY_LIST;
     case CORE_TESTY_CREATE;
     case CORE_TESTY_EDIT;
-
-    // case CORE_TESTYS;
-    // case CORE_TESTYS_CREATE;
-    // case CORE_TESTYS_EDIT;
     case CORE_TESTY_VIEW;
     case CORE_TESTY_DELETE;
+    case CORE_TESTY_DELETE_CONFIRM;
 
-
-
+    //--
     case CORE_TESTY_PLACEHOLDER;
     case CORE_TESTY_LINKDEMO;
     case CORE_TESTY_TESTLOGGER;
@@ -70,6 +75,52 @@ enum Url
     case CORE_TESTY_TESTDATABASE;
     case CORE_TESTY_EMAILTEST;
     case CORE_TESTY_PAGINATION_TEST;
+
+    // 6
+    // case ACCOUNT_TESTY;
+    // case ACCOUNT_TESTY_LIST;
+    // case ACCOUNT_TESTY_CREATE;
+    // case ACCOUNT_TESTY_EDIT;
+    // case ACCOUNT_TESTY_VIEW;
+    // case ACCOUNT_TESTY_DELETE;
+
+    // // 6
+    // case STORE_TESTY;
+    // case STORE_TESTY_LIST;
+    // case STORE_TESTY_CREATE;
+    // case STORE_TESTY_EDIT;
+    // case STORE_TESTY_VIEW;
+    // case STORE_TESTY_DELETE;
+
+
+    // - 6
+    case CORE_IMAGE;
+    case CORE_IMAGE_LIST;
+    case CORE_IMAGE_CREATE;
+    case CORE_IMAGE_EDIT;
+    case CORE_IMAGE_VIEW;
+    case CORE_IMAGE_DELETE;
+
+    // 6
+    // case ACCOUNT_IMAGE;
+    // case ACCOUNT_IMAGE_LIST;
+    // case ACCOUNT_IMAGE_CREATE;
+    // case ACCOUNT_IMAGE_EDIT;
+    // case ACCOUNT_IMAGE_VIEW;
+    // case ACCOUNT_IMAGE_DELETE;
+
+    // 6
+    // case STORE_IMAGE;
+    // case STORE_IMAGE_LIST;
+    // case STORE_IMAGE_CREATE;
+    // case STORE_IMAGE_EDIT;
+    // case STORE_IMAGE_VIEW;
+    // case STORE_IMAGE_DELETE;
+
+
+
+
+
     case CORE_MYNOTES;
     case CORE_GENPOST;
 
@@ -87,21 +138,17 @@ enum Url
     case ACCOUNT_PROFILE;
     case ACCOUNT_MYNOTES;
 
-    case ACCOUNT_POST;
-    case ACCOUNT_POST_CREATE;
-    case ACCOUNT_POST_EDIT;
-    case ACCOUNT_POST_VIEW;
-    case ACCOUNT_POST_DELETE;
-
-    case ACCOUNT_TESTYS;
-    case ACCOUNT_TESTYS_CREATE;
-    case ACCOUNT_TESTYS_EDIT;
-    case ACCOUNT_TESTYS_VIEW;
-    case ACCOUNT_TESTYS_DELETE;
+    // case ACCOUNT_POST;
+    // case ACCOUNT_POST_CREATE;
+    // case ACCOUNT_POST_EDIT;
+    // case ACCOUNT_POST_VIEW;
+    // case ACCOUNT_POST_DELETE;
 
 
 
-    case ACCOUNT_ALBUMS;
+
+
+    // case ACCOUNT_ALBUMS;
 
 
     case GENERIC;
@@ -116,24 +163,27 @@ enum Url
     case STORE_SETTINGS;
     case STORE_CREATE;
 
-    case STORE_POST;
-    case STORE_POST_CREATE;
-    case STORE_POST_EDIT;
-    case STORE_POST_VIEW;
-    case STORE_POST_DELETE;
+    // case STORE_POST;
+    // case STORE_POST_CREATE;
+    // case STORE_POST_EDIT;
+    // case STORE_POST_VIEW;
+    // case STORE_POST_DELETE;
 
-    case STORE_TESTYS;
-    case STORE_TESTYS_CREATE;
-    case STORE_TESTYS_EDIT;
-    case STORE_TESTYS_VIEW;
-    case STORE_TESTYS_DELETE;
 
-    case STORE_ALBUMS;
-    case STORE_ALBUMS_CREATE;
-    case STORE_ALBUMS_EDIT;
-    case STORE_ALBUMS_VIEW;
-    case STORE_ALBUMS_DELETE;
+
+    case CORE_ALBUMS;
+    case CORE_ALBUMS_CREATE;
+    case CORE_ALBUMS_EDIT;
+    case CORE_ALBUMS_VIEW;
+    case CORE_ALBUMS_DELETE;
     case STORE_VIEW_PUBLIC; // TODO confirm we need for future use
+
+    // case STORE_ALBUMS;
+    // case STORE_ALBUMS_CREATE;
+    // case STORE_ALBUMS_EDIT;
+    // case STORE_ALBUMS_VIEW;
+    // case STORE_ALBUMS_DELETE;
+    // case STORE_VIEW_PUBLIC; // TODO confirm we need for future use
 
 
     // Admin URLs
@@ -167,8 +217,8 @@ enum Url
                 ''
             ),
             self::BASE_STORE => $this->routeData(
-                'stores/',
-                'stores/',
+                'store/',
+                'store/',
                 'index',
                 ''
             ),
@@ -181,7 +231,7 @@ enum Url
             ),
             self::LOGIN => $this->routeData(
                 'login',
-                'login',
+                'login/login',
                 'index',
                 'Login'
                 // section, requiresAuth, roles omitted (public)
@@ -417,48 +467,101 @@ enum Url
                 [],
             ),
 
-            self::ACCOUNT_POST => $this->routeData(
-                'account/post/list',
-                'post/list',
-                // 'account/post/index',
-                // 'post/index',
+            // self::ACCOUNT_POST => $this->routeData(
+            //     'account/post/list',
+            //     'post/list',
+            //     // 'account/post/index',
+            //     // 'post/index',
+            //     'index',
+            //     'Post',
+            //     [],
+            // ),
+            // self::ACCOUNT_POST_CREATE => $this->routeData(
+            //     'account/post/create',
+            //     'post/create',
+            //     'index',
+            //     'Create Post',
+            //     [],
+            // ),
+            // self::ACCOUNT_POST_EDIT => $this->routeData(
+            //     'account/post/edit/{id}',
+            //     'post/edit',
+            //     'edit',
+            //     'Edit Post',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_POST_VIEW => $this->routeData(
+            //     'account/post/view/{id}',
+            //     'post/view',
+            //     'view',
+            //     'VIEW Post',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_POST_DELETE => $this->routeData(
+            //     'account/post/delete/{id}',
+            //     'post/delete',
+            //     'delete',
+            //     'Delete Post',
+            //     ['id'],
+            // ),
+
+
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            self::CORE_USER => $this->routeData(
+                'user',
+                'user/index',
                 'index',
-                'Post',
+                'User',
                 [],
             ),
-            self::ACCOUNT_POST_CREATE => $this->routeData(
-                'account/post/create',
-                'post/create',
-                'index',
-                'Create Post',
+            self::CORE_USER_LIST => $this->routeData(
+                'user/list',
+                'user/list',
+                'list',
+                'User',
                 [],
             ),
-            self::ACCOUNT_POST_EDIT => $this->routeData(
-                'account/post/edit/{id}',
-                'post/edit',
+            self::CORE_USER_CREATE => $this->routeData(
+                'user/create',
+                'user/create',
+                'create',
+                'Create User',
+                [],
+            ),
+            self::CORE_USER_EDIT => $this->routeData(
+                'user/edit/{id}',
+                'user/edit',
                 'edit',
-                'Edit Post',
+                'Edit User',
                 ['id'],
             ),
-            self::ACCOUNT_POST_VIEW => $this->routeData(
-                'account/post/view/{id}',
-                'post/view',
+
+            self::CORE_USER_VIEW => $this->routeData(
+                'user/view/{id}',
+                'user/view',
                 'view',
-                'VIEW Post',
+                'VIEW User',
                 ['id'],
             ),
-            self::ACCOUNT_POST_DELETE => $this->routeData(
-                'account/post/delete/{id}',
-                'post/delete',
+            self::CORE_USER_DELETE => $this->routeData(
+                'user/delete/{id}',
+                'user/delete',
                 'delete',
-                'Delete Post',
+                'Delete User',
+                ['id'],
+            ),
+            self::CORE_USER_DELETE_CONFIRM => $this->routeData(
+                'user/delete/{id}/confirm',
+                'user/delete_confirm',
+                'deleteConfirm',
+                'Confirm Delete User',
                 ['id'],
             ),
 
-
-            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             self::CORE_TESTY => $this->routeData(
@@ -504,6 +607,318 @@ enum Url
                 'Delete Testy',
                 ['id'],
             ),
+            self::CORE_TESTY_DELETE_CONFIRM => $this->routeData(
+                'testy/delete/{id}/confirm',
+                'testy/delete_confirm',
+                'deleteConfirm',
+                'Confirm Delete Testy',
+                ['id'],
+            ),
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            self::CORE_ALBUMS => $this->routeData(
+                'albums',
+                'albums/index',
+                'index',
+                'Testy',
+                [],
+            ),
+            // self::CORE_ALBUMS_LIST => $this->routeData(
+            //     'testy/list',
+            //     'testy/list',
+            //     'list',
+            //     'Testy',
+            //     [],
+            // ),
+            self::CORE_ALBUMS_CREATE => $this->routeData(
+                'albums/create',
+                'albums/create',
+                'create',
+                'Create Testy',
+                [],
+            ),
+            self::CORE_ALBUMS_EDIT => $this->routeData(
+                'albums/edit/{id}',
+                'albums/edit',
+                'edit',
+                'Edit Testy',
+                ['id'],
+            ),
+
+            self::CORE_ALBUMS_VIEW => $this->routeData(
+                'albums/view/{id}',
+                'albums/view',
+                'view',
+                'VIEW Testy',
+                ['id'],
+            ),
+            self::CORE_ALBUMS_DELETE => $this->routeData(
+                'albums/delete/{id}',
+                'albums/delete',
+                'albums',
+                'Delete album',
+                ['id'],
+            ),
+
+
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            // self::ACCOUNT_TESTY => $this->routeData(
+            //     'account/testy/list',
+            //     'testy/list',
+            //     'index',
+            //     'Testy',
+            //     [],
+            // ),
+            // self::ACCOUNT_TESTY_LIST => $this->routeData(
+            //     'account/testy/list',
+            //     'testy/list',
+            //     'list',
+            //     'List Testy',
+            //     [],
+            // ),
+            // self::ACCOUNT_TESTY_CREATE => $this->routeData(
+            //     'account/testy/create',
+            //     'testy/create',
+            //     'create',
+            //     'Create Testy',
+            //     [],
+            // ),
+            // self::ACCOUNT_TESTY_EDIT => $this->routeData(
+            //     'account/testy/edit/{id}',
+            //     'testy/edit',
+            //     'edit',
+            //     'Edit Testy',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_TESTY_VIEW => $this->routeData(
+            //     'account/testy/view/{id}',
+            //     'testy/view',
+            //     'view',
+            //     'VIEW Testy',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_TESTY_DELETE => $this->routeData(
+            //     'account/testy/delete/{id}',
+            //     'testy/delete',
+            //     'delete',
+            //     'Delete Testy',
+            //     ['id'],
+            // ),
+
+
+
+            // //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            // self::STORE_TESTY => $this->routeData(
+            //     'store/testy/list',
+            //     'testy/list',
+            //     'index',
+            //     'Testy',
+            //     [],
+            // ),
+            // self::STORE_TESTY_LIST => $this->routeData(
+            //     'store/testy/list',
+            //     'testy/list',
+            //     'list',
+            //     'List Testy',
+            //     [],
+            // ),
+            // self::STORE_TESTY_CREATE => $this->routeData(
+            //     'store/testy/create',
+            //     'testy/create',
+            //     'create',
+            //     'Create Testy',
+            //     [],
+            // ),
+            // self::STORE_TESTY_EDIT => $this->routeData(
+            //     'store/testy/edit/{id}',
+            //     'testy/edit',
+            //     'edit',
+            //     'Edit Testy',
+            //     ['id'],
+            // ),
+            // self::STORE_TESTY_VIEW => $this->routeData(
+            //     'store/testy/view/{id}',
+            //     'testy/view',
+            //     'view',
+            //     'VIEW Testy',
+            //     ['id'],
+            // ),
+            // self::STORE_TESTY_DELETE => $this->routeData(
+            //     'store/testy/delete/{id}',
+            //     'testy/delete',
+            //     'delete',
+            //     'Delete Testy',
+            //     ['id'],
+            // ),
+
+
+
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            /// IMAGE /////////////////////////////////////////////////////////////////////
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            self::CORE_IMAGE => $this->routeData(
+                'image',
+                'image/index',
+                'index',
+                'Image',
+                [],
+            ),
+            self::CORE_IMAGE_LIST => $this->routeData(
+                'image/list',
+                'image/list',
+                'list',
+                'Image',
+                [],
+            ),
+            self::CORE_IMAGE_CREATE => $this->routeData(
+                'image/create',
+                'image/create',
+                'create',
+                'Create Image',
+                [],
+            ),
+            self::CORE_IMAGE_EDIT => $this->routeData(
+                'image/edit/{id}',
+                'image/edit',
+                'edit',
+                'Edit Image',
+                ['id'],
+            ),
+
+            self::CORE_IMAGE_VIEW => $this->routeData(
+                'image/view/{id}',
+                'image/view',
+                'view',
+                'VIEW Image',
+                ['id'],
+            ),
+            self::CORE_IMAGE_DELETE => $this->routeData(
+                'image/delete/{id}',
+                'image/delete',
+                'delete',
+                'Delete Image',
+                ['id'],
+            ),
+
+
+            //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            // self::ACCOUNT_IMAGE => $this->routeData(
+            //     'account/image/list',
+            //     'image/list',
+            //     'index',
+            //     'Image',
+            //     [],
+            // ),
+            // self::ACCOUNT_IMAGE_LIST => $this->routeData(
+            //     'account/image/list',
+            //     'image/list',
+            //     'list',
+            //     'List Image',
+            //     [],
+            // ),
+            // self::ACCOUNT_IMAGE_CREATE => $this->routeData(
+            //     'account/image/create',
+            //     'image/create',
+            //     'create',
+            //     'Create Image',
+            //     [],
+            // ),
+            // self::ACCOUNT_IMAGE_EDIT => $this->routeData(
+            //     'account/image/edit/{id}',
+            //     'image/edit',
+            //     'edit',
+            //     'Edit Image',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_IMAGE_VIEW => $this->routeData(
+            //     'account/image/view/{id}',
+            //     'image/view',
+            //     'view',
+            //     'VIEW Image',
+            //     ['id'],
+            // ),
+            // self::ACCOUNT_IMAGE_DELETE => $this->routeData(
+            //     'account/image/delete/{id}',
+            //     'image/delete',
+            //     'delete',
+            //     'Delete Image',
+            //     ['id'],
+            // ),
+
+
+
+            // //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+            // self::STORE_IMAGE => $this->routeData(
+            //     'store/image/list',
+            //     'image/list',
+            //     'index',
+            //     'Image',
+            //     [],
+            // ),
+            // self::STORE_IMAGE_LIST => $this->routeData(
+            //     'store/image/list',
+            //     'image/list',
+            //     'list',
+            //     'List Image',
+            //     [],
+            // ),
+            // self::STORE_IMAGE_CREATE => $this->routeData(
+            //     'store/image/create',
+            //     'image/create',
+            //     'create',
+            //     'Create Image',
+            //     [],
+            // ),
+            // self::STORE_IMAGE_EDIT => $this->routeData(
+            //     'store/image/edit/{id}',
+            //     'image/edit',
+            //     'edit',
+            //     'Edit Image',
+            //     ['id'],
+            // ),
+            // self::STORE_IMAGE_VIEW => $this->routeData(
+            //     'store/image/view/{id}',
+            //     'image/view',
+            //     'view',
+            //     'VIEW Image',
+            //     ['id'],
+            // ),
+            // self::STORE_IMAGE_DELETE => $this->routeData(
+            //     'store/image/delete/{id}',
+            //     'image/delete',
+            //     'delete',
+            //     'Delete Image',
+            //     ['id'],
+            // ),
+
+
+
+            /// IMAGE /////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -563,81 +978,6 @@ enum Url
 
 
 
-            self::ACCOUNT_TESTYS => $this->routeData(
-                'account/testy/list',
-                'testy/list',
-                'index',
-                'Testy',
-                [],
-            ),
-            self::ACCOUNT_TESTYS_CREATE => $this->routeData(
-                'account/testy/create',
-                'testy/create',
-                'index',
-                'Create Testy',
-                [],
-            ),
-            self::ACCOUNT_TESTYS_EDIT => $this->routeData(
-                'account/testy/edit/{id}',
-                'testy/edit',
-                'edit',
-                'Edit Testy',
-                ['id'],
-            ),
-            self::ACCOUNT_TESTYS_VIEW => $this->routeData(
-                'account/testy/view/{id}',
-                'testy/view',
-                'view',
-                'VIEW Testy',
-                ['id'],
-            ),
-            self::ACCOUNT_TESTYS_DELETE => $this->routeData(
-                'account/testy/delete/{id}',
-                'testy/delete',
-                'delete',
-                'Delete Testy',
-                ['id'],
-            ),
-
-
-
-            self::STORE_TESTYS => $this->routeData(
-                'stores/testy/list',
-                'testy/list',
-                'index',
-                'Testy',
-                [],
-            ),
-            self::STORE_TESTYS_CREATE => $this->routeData(
-                'stores/testy/create',
-                'testy/create',
-                'create',
-                'Create Testy',
-                [],
-            ),
-            self::STORE_TESTYS_EDIT => $this->routeData(
-                'stores/testy/edit/{id}',
-                'testy/edit',
-                'edit',
-                'Edit Testy',
-                ['id'],
-            ),
-            self::STORE_TESTYS_VIEW => $this->routeData(
-                'stores/testy/view/{id}',
-                'testy/view',
-                'view',
-                'VIEW Testy',
-                ['id'],
-            ),
-            self::STORE_TESTYS_DELETE => $this->routeData(
-                'stores/testy/delete/{id}',
-                'testy/delete',
-                'delete',
-                'Delete Testy',
-                ['id'],
-            ),
-
-
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
             //////MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
@@ -647,13 +987,13 @@ enum Url
 
 
 
-            self::ACCOUNT_ALBUMS => $this->routeData(
-                'account/albums',
-                'albums/index',
-                'index',
-                'Albums',
-                [],
-            ),
+            // self::ACCOUNT_ALBUMS => $this->routeData(
+            //     'account/albums',
+            //     'albums/index',
+            //     'index',
+            //     'Albums',
+            //     [],
+            // ),
             // self::ACCOUNT_ALBUMS_CREATE => $this->routeData(
             //     'account/albums/create',
             //     'albums/create',
@@ -677,7 +1017,7 @@ enum Url
             // self::ACCOUNT_ALBUMS => $this->routeData(
             //     'account/albums',
             //     // 'albums/index',
-            //     'stores/albums/index',
+            //     'store/albums/index',
             //     'Albums',
             //     [],
             // ),
@@ -686,49 +1026,49 @@ enum Url
             ######################################################################
             // Store URLs
             self::STORE_DASHBOARD => $this->routeData(
-                'stores/dashboard/index',
-                'stores/dashboard/index',
+                'store/dashboard/index',
+                'store/dashboard/index',
                 'index',
-                'Store Dashboard',
+                'Store Dashboard2',
                 [],
             ),
             self::STORE_PROFILE => $this->routeData(
-                'stores/profile/index',
-                'stores/profile/index',
+                'store/profile/index',
+                'store/profile/index',
                 'index',
                 'Profile',
                 [],
             ),
             self::STORE_SETTINGS => $this->routeData(
-                'stores/settings/index',
-                'stores/settings/index',
+                'store/settings/index',
+                'store/settings/index',
                 'index',
                 'Settings',
                 [],
             ),
             self::STORE_CREATE => $this->routeData(
-                'stores/profile/create',
-                'stores/profile/create',
+                'store/profile/create',
+                'store/profile/create',
                 'index',
                 'Create Store',
                 [],
             ),
             // self::STORE_POST => $this->routeData(
-            //     'stores/post/index',
+            //     'store/post/index',
             //     'post/index',
                 // 'index',
             //     'Post',
             //     [],
             // ),
             // self::STORE_POST_CREATE => $this->routeData(
-            //     'stores/post/create',
+            //     'store/post/create',
             //     'post/create',
                 // 'index',
             //     'Create Post',
             //     [],
             // ),
             // self::STORE_POST_EDIT => $this->routeData(
-            //     'stores/post/edit/{id}',
+            //     'store/post/edit/{id}',
             //     'post/edit',
                 // 'index',
             //     'Edit Post',
@@ -736,43 +1076,43 @@ enum Url
             // ),
 
 
-            self::STORE_POST => $this->routeData(
-                'stores/post/list',
-                'post/list',
-                // 'stores/post/index',
-                // 'post/index',
-                'index',
-                'Post',
-                [],
-            ),
-            self::STORE_POST_CREATE => $this->routeData(
-                'stores/post/create',
-                'post/create',
-                'create',
-                'Create Post',
-                [],
-            ),
-            self::STORE_POST_EDIT => $this->routeData(
-                'stores/post/edit/{id}',
-                'post/edit',
-                'edit',
-                'Edit Post',
-                ['id'],
-            ),
-            self::STORE_POST_VIEW => $this->routeData(
-                'stores/post/view/{id}',
-                'post/view',
-                'view',
-                'VIEW Post',
-                ['id'],
-            ),
-            self::STORE_POST_DELETE => $this->routeData(
-                'stores/post/delete/{id}',
-                'post/delete',
-                'delete',
-                'Delete Post',
-                ['id'],
-            ),
+            // self::STORE_POST => $this->routeData(
+            //     'store/post/list',
+            //     'post/list',
+            //     // 'store/post/index',
+            //     // 'post/index',
+            //     'index',
+            //     'Post',
+            //     [],
+            // ),
+            // self::STORE_POST_CREATE => $this->routeData(
+            //     'store/post/create',
+            //     'post/create',
+            //     'create',
+            //     'Create Post',
+            //     [],
+            // ),
+            // self::STORE_POST_EDIT => $this->routeData(
+            //     'store/post/edit/{id}',
+            //     'post/edit',
+            //     'edit',
+            //     'Edit Post',
+            //     ['id'],
+            // ),
+            // self::STORE_POST_VIEW => $this->routeData(
+            //     'store/post/view/{id}',
+            //     'post/view',
+            //     'view',
+            //     'VIEW Post',
+            //     ['id'],
+            // ),
+            // self::STORE_POST_DELETE => $this->routeData(
+            //     'store/post/delete/{id}',
+            //     'post/delete',
+            //     'delete',
+            //     'Delete Post',
+            //     ['id'],
+            // ),
 
 
 
@@ -781,41 +1121,41 @@ enum Url
 
 
 
-            self::STORE_ALBUMS => $this->routeData(
-                'stores/albums',
-                'albums/index',
-                'index',
-                'Albums',
-                [],
-            ),
-            self::STORE_ALBUMS_CREATE => $this->routeData(
-                'stores/albums/create',
-                'albums/create',
-                'create',
-                'Create Album',
-                [],
-            ),
-            self::STORE_ALBUMS_EDIT => $this->routeData(
-                'stores/albums/edit/{id}',
-                'albums/edit',
-                'edit',
-                'Edit Album',
-                ['id'],
-            ),
-            self::STORE_ALBUMS_VIEW => $this->routeData(
-                'stores/albums/view/{id}',
-                'albums/view',
-                'view',
-                'VIEW Album',
-                ['id'],
-            ),
-            self::STORE_ALBUMS_DELETE => $this->routeData(
-                'stores/albums/delete/{id}',
-                'albums/delete',
-                'delete',
-                'Delete Album',
-                ['id'],
-            ),
+            // self::STORE_ALBUMS => $this->routeData(
+            //     'store/albums',
+            //     'albums/index',
+            //     'index',
+            //     'Albums',
+            //     [],
+            // ),
+            // self::STORE_ALBUMS_CREATE => $this->routeData(
+            //     'store/albums/create',
+            //     'albums/create',
+            //     'create',
+            //     'Create Album',
+            //     [],
+            // ),
+            // self::STORE_ALBUMS_EDIT => $this->routeData(
+            //     'store/albums/edit/{id}',
+            //     'albums/edit',
+            //     'edit',
+            //     'Edit Album',
+            //     ['id'],
+            // ),
+            // self::STORE_ALBUMS_VIEW => $this->routeData(
+            //     'store/albums/view/{id}',
+            //     'albums/view',
+            //     'view',
+            //     'VIEW Album',
+            //     ['id'],
+            // ),
+            // self::STORE_ALBUMS_DELETE => $this->routeData(
+            //     'store/albums/delete/{id}',
+            //     'albums/delete',
+            //     'delete',
+            //     'Delete Album',
+            //     ['id'],
+            // ),
 
 
 
@@ -839,8 +1179,8 @@ enum Url
                 [],
             ),
             self::ADMIN_USERS => $this->routeData(
-                'admin/users/index',
-                'admin/users/index',
+                'admin/user/index',
+                'admin/user/index',
                 'index',
                 'Manage Users',
                 [],
@@ -955,7 +1295,7 @@ enum Url
     }
 
 
-    public function url(array $params = []): string
+    public function url(array $params = [], string $routeType = null): string
     {
         $data = $this->data();
 
@@ -998,6 +1338,12 @@ enum Url
             $url .= '?' . http_build_query($queryParams);
         }
 
+        // fixme shit
+
+        if (isset($routeType) && ($routeType === 'account' || $routeType === 'store')) {
+            // return $routeType . '/' . $url;
+            return '/' . $routeType . $url;
+        }
         return $url;
     }
 
@@ -1038,10 +1384,11 @@ enum Url
         // string $action = null,
         ?string $label = null,
         ?array $attributes = null,
-        ?array $action = null
+        ?array $action = null,
+        string $routeType = null
     ): array {
         return [
-            'url' => $this->url($params),
+            'url' => $this->url($params, $routeType),
             // 'action' => $action ?? $this->action(),
             'label' => $label ?? $this->label(),
             'attributes' => $attributes ?? $this->attributes(),
@@ -1095,7 +1442,7 @@ enum Url
 
         return $paginationUrl;
     }
-    // Returns: /account/stores/post/page/{page}
+    // Returns: /account/store/post/page/{page}
 
     /**
      * Get pagination URL and label as an array suitable for pagination controls
@@ -1121,4 +1468,4 @@ enum Url
         return $data['attributes'] ?? null;
     }
 }
-// 1257 1123
+// 1257 1123 1404

@@ -22,9 +22,15 @@ return [
 
     // Session
     'session' => [
-        'lifetime' => $_ENV['SESSION_LIFETIME'] ?? 120, // minutes
-        'secure' => filter_var($_ENV['SESSION_SECURE_COOKIE'] ?? false, FILTER_VALIDATE_BOOLEAN),
-        'same_site' => $_ENV['SESSION_SAME_SITE'] ?? 'lax',
+        // 'foo'           => [
+            // 'fee' => 111,
+            // 'fee2' => '2222',
+        // ],
+        'lifetime'      => $_ENV['SESSION_LIFETIME'] ?? 120, // minutes
+        'same_site'     => $_ENV['SESSION_SAME_SITE'] ?? 'lax',
+        'cookie_path'   => $_ENV['SESSION_COOKIE_PATH'] ?? '/',
+        'cookie_domain' => $_ENV['SESSION_COOKIE_DOMAIN'] ?? '',
+        'secure_cookie' => filter_var($_ENV['SESSION_SECURE_COOKIE'] ?? false, FILTER_VALIDATE_BOOLEAN),
     ],
 
     // Error handling

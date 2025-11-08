@@ -29,11 +29,11 @@ class PostsController {
     public function __construct(ContextRegistry $contextRegistry) {
         $this->contextRegistry = $contextRegistry;
     }
-    
+
     public function indexAction(): Response {
         $storeId = $this->contextRegistry->getCurrentId('store');
         $userId = $this->contextRegistry->getCurrentId('user');
-        
+
         // Use the IDs...
     }
 }
@@ -71,7 +71,7 @@ $contextRegistry->setCurrentId('user', $user->getUserId());
 
 // If user has a store, set that too
 if ($store) {
-    $contextRegistry->setCurrentId('store', $store->getStoreId());
+    $contextRegistry->setCurrentId('store', $store->getId());
 }
 ```
 
@@ -82,11 +82,11 @@ public function viewAction(): ResponseInterface
 {
     $postId = (int)$this->route_params['id'];
     $post = $this->postRepository->findById($postId);
-    
+
     // Add to context registry
     $contextRegistry = $this->container->get(ContextRegistry::class);
     $contextRegistry->setCurrentId('post', $postId);
-    
+
     // Continue with view logic...
 }
 ```
@@ -108,11 +108,11 @@ Any controller can now access the current context IDs:
 public function someAction(): ResponseInterface
 {
     $contextRegistry = $this->container->get(ContextRegistry::class);
-    
+
     $userId = $contextRegistry->getCurrentId('user');
     $storeId = $contextRegistry->getCurrentId('store');
     $postId = $contextRegistry->getCurrentId('post');
-    
+
     // Use IDs as needed...
 }
 ```
@@ -124,7 +124,7 @@ public function someAction(): ResponseInterface
    ```php
    // Step 1: Select a product
    $contextRegistry->setCurrentId('product', $productId);
-   
+
    // Step 2: Configure options (product ID still available)
    $productId = $contextRegistry->getCurrentId('product');
    ```
@@ -133,7 +133,7 @@ public function someAction(): ResponseInterface
    ```php
    // User switches to a specific store view
    $contextRegistry->setCurrentId('active_store', $storeId);
-   
+
    // All dashboard widgets now show data for this store
    ```
 

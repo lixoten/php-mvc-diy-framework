@@ -15,7 +15,7 @@ use Core\Services\FieldRegistryService;
  *
  * Handles list configuration, rendering options, and column definitions.
  * Uses FieldRegistryService for field/column definitions with fallback logic:
- *   1. Page/view context (set via setPageConfigKey)
+ *   1. Page/view context (set via setpageName)
  *   2. Entity/table context (set via setEntityName)
  *   3. Base/global config
  */
@@ -25,7 +25,10 @@ abstract class AbstractListType implements ListTypeInterface
     public string $routeType = 'root';
     protected array $urlEnumArray;
 
-    public readonly string $pageConfigKey;
+    public readonly string $pageName;
+    public readonly string $pageFeature;
+    public readonly string $pageEntity;
+
     public readonly string $entityName;
 
     // protected FieldRegistryService $fieldRegistryService;
@@ -77,11 +80,16 @@ abstract class AbstractListType implements ListTypeInterface
 
 
     /** {@inheritdoc} */
-    public function setFocus(string $pageConfigKey, string $entityName ) : void
-    {
-        $this->pageConfigKey = $pageConfigKey;
-        $this->entityName = $entityName;
-
+    public function setFocus(
+        string $pageName,
+        string $pageFeature,
+        string $pageEntity,
+        string $entityName
+    ) : void {
+        $this->pageName      = $pageName;
+        $this->pageFeature   = $pageFeature;
+        $this->pageEntity    = $pageEntity;
+        $this->entityName    = $entityName;
         $this->init();
     }
 
@@ -122,7 +130,7 @@ abstract class AbstractListType implements ListTypeInterface
     {
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageConfigKey,
+            $this->pageName,
             $this->entityName
         );
         $this->options['fields'] = $validFields;
@@ -144,11 +152,17 @@ abstract class AbstractListType implements ListTypeInterface
     /** {@inheritdoc} */
     public function setUrlDependentRenderOptions(): void
     {
-        if ($this->routeType === 'public') {
-            $prefix = strtoupper('core' . '_' . $this->entityName);
-        } else {
-            $prefix = strtoupper($this->routeType . '_' . $this->entityName);
-        }
+        // if ($this->routeType === 'public') {
+        //     $prefix = strtoupper('core' . '_' . $this->entityName);
+        // } else {
+        //     $prefix = strtoupper($this->routeType . '_' . $this->entityName);
+        // }
+        // fixme shit
+        $prefix = strtoupper('core' . '_' . $this->entityName);
+
+
+
+
         $this->urlEnumArray = Url::getSection($prefix);
         // if ($this->routeType === 'account') {
             // $this->urlEnumArray = Url::getSection('ACCOUNT_' . $rrr);
@@ -175,12 +189,13 @@ abstract class AbstractListType implements ListTypeInterface
      *
      * Can be overridden by child classes to provide custom attributes.
      *
-     * @return array Associative array of attributes.
+     * @return array<string, string> Associative array of attributes.
      */
     protected function getDeleteActionAttributes(): array
     {
         return [];
     }
+
 
 
 
@@ -194,16 +209,26 @@ abstract class AbstractListType implements ListTypeInterface
     {
         // Todo this is where the logic for Toggle Status button add goes
         // Add actions
-        $builder->addAction('view', $this->urlEnumArray['view']->toLinkData(['id' => '{id}']));
+        //$rrr = $this->context->getRouteType(); // routeType: $rrr
+
+        // fixme shit
+
+
+        $builder->addAction('view', $this->urlEnumArray['view']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
         if ($this->options['render_options']['show_action_edit']) {
-            $builder->addAction('edit', $this->urlEnumArray['edit']->toLinkData(['id' => '{id}']));
+            $builder->addAction('edit', $this->urlEnumArray['edit']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
         }
-        $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(
-            ['id' => '{id}'],
-            // icon: null
-            // label: 'Delete Post',
-            attributes: $this->getDeleteActionAttributes()
-        ));
+        if ($this->options['render_options']['show_action_del']) {
+
+            $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
+
+            // $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(
+            //     ['id' => '{id}'],
+            //     // icon: null
+            //     // label: 'Delete Post',
+            //     attributes: $this->getDeleteActionAttributes()
+            // ));
+        }
     }
 
 
@@ -215,7 +240,7 @@ abstract class AbstractListType implements ListTypeInterface
 
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageConfigKey,
+            $this->pageName,
             $this->entityName
         );
 
@@ -241,7 +266,7 @@ abstract class AbstractListType implements ListTypeInterface
             //$columnDef = $this->fieldRegistryService->getFieldWithFallbacks($columnName, $this);
             $columnDef = $this->fieldRegistryService->getFieldWithFallbacks(
                 $name,
-                $this->pageConfigKey,
+                $this->pageName,
                 $this->entityName
             );
             if ($columnDef && isset($columnDef['list'])) {
@@ -296,13 +321,23 @@ abstract class AbstractListType implements ListTypeInterface
         ///////////////////////////////////////////////////////////////////////
         // Retrieve View Config values
         ///////////////////////////////////////////////////////////////////////
-        $pageConfigKey = $this->pageConfigKey;
-        //$pageConfigKey = 'testy_list'; // dangerdanger
+        $pageName = $this->pageName;
+        $pageFeature = $this->pageFeature;
 
-        $viewConfig = $this->configService->get('view_options/' . $pageConfigKey); // loads "list_fields/posts.php"
+        // fixme shit2 ok
+        // ✅ Get entire config file
+        $viewConfig = $this->configService->getFromFeature($pageFeature, 'view_' . $pageName);
+
+        // // ✅ Get nested value with dot notation
+        // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
+
+        // // ✅ Get deeply nested value
+        // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
+
+        // $viewConfig = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
         if ($viewConfig === null) {
             throw new \RuntimeException(
-                "Fatal error: Required config file \"view_options/{$pageConfigKey}.php\" is missing."
+                "Fatal error: Required config file \"view_options/{$pageName}.php\" is missing."
             );
         }
 

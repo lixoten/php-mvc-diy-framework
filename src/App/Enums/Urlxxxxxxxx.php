@@ -376,8 +376,8 @@ enum Url
             ),
 
             self::ADMIN_USERS => $this->routeData(
-                'admin/users/index',
-                'admin/users/index',
+                'admin/user/index',
+                'admin/user/index',
                 'Manage Users'
             ),
             self::ADMIN_POSTS => $this->routeData(

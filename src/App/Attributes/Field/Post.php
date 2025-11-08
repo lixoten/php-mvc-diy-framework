@@ -31,7 +31,7 @@ class Post
         name: 'store_id',
         index: true,
         unsigned: true,
-        foreign: ['table' => 'stores', 'column' => 'store_id', 'onDelete' => 'CASCADE']
+        foreign: ['table' => 'store', 'column' => 'store_id', 'onDelete' => 'CASCADE']
     )]
     private ?int $postStoreId = null;
 
@@ -42,7 +42,7 @@ class Post
         name: 'user_id',
         index: true,
         unsigned: true,
-        foreign: ['table' => 'users', 'column' => 'user_id', 'onDelete' => 'CASCADE']
+        foreign: ['table' => 'user', 'column' => 'user_id', 'onDelete' => 'CASCADE']
     )]
     private int $postUserId;
 

@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Database\Migrations;
 
-echo "Including migration file: $migrationFile\n";
-
 use Core\Database\ConnectionInterface;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class MigrationRunner
 {
@@ -27,7 +26,7 @@ class MigrationRunner
     ) {
         $this->db = $db;
         $this->repository = $repository;
-        $this->path = $path;
+        $this->path = rtrim($path, '/\\'); // Ensure no trailing slash
         $this->namespace = $namespace;
         $this->logger = $logger;
     }
@@ -37,7 +36,7 @@ class MigrationRunner
      * Run all pending migrations
      *
      * @param bool $force Force run migrations even if already executed
-     * @return array List of executed migrations
+     * @return array<int, string> List of executed migrations
      */
     public function run(bool $force = false): array
     {
@@ -45,9 +44,6 @@ class MigrationRunner
         $this->repository->createRepository();
 
         // Now it's safe to get migrated files
-
-
-
         $files = $this->getMigrationFiles();
         $executedFiles = $this->repository->getMigratedFiles();
 
@@ -68,6 +64,7 @@ class MigrationRunner
         echo "DEBUG - Pending: " . count($pendingFiles) . "\n";
 
         if (empty($pendingFiles)) {
+            $this->log("No pending migrations to run.", 'info');
             return [];
         }
 
@@ -137,27 +134,39 @@ class MigrationRunner
     }
 
     /**
-     * Get all migration files from directory
+     * Get all migration files from directory, sorted by their prefix.
      *
-     * @return array List of all migration file names
+     * @return array<int, string> List of all migration file names
      */
     protected function getMigrationFiles(): array
     {
         if (!is_dir($this->path)) {
+            $this->log("Migration path does not exist: {$this->path}", 'error'); // Added logging
             return [];
         }
 
-        $files = scandir($this->path);
-        if ($files === false) {
-            return [];
-        }
-
-        $files = array_filter($files, function ($file) {
+        $files = array_filter(scandir($this->path), function ($file) {
             return !in_array($file, ['.', '..']) && pathinfo($file, PATHINFO_EXTENSION) === 'php';
         });
 
-        sort($files);
-        return $files;
+        // --- START CHANGE 1: Custom sorting for migration files ---
+        // Sort files based on their numeric or timestamp prefix
+        usort($files, function (string $a, string $b): int {
+            // Extract the prefix (e.g., "005" or "20251102_084221")
+            // This regex captures the leading digits until an underscore or end of string
+            preg_match('/^(\d+)(_|$)/', $a, $matchesA);
+            $prefixA = $matchesA[1] ?? '';
+
+            preg_match('/^(\d+)(_|$)/', $b, $matchesB);
+            $prefixB = $matchesB[1] ?? '';
+
+            // Compare prefixes as integers to ensure correct numerical and chronological order
+            // This handles both NNN_ and YYYYMMDD_HHMMSS_ prefixes correctly as numbers
+            return (int)$prefixA <=> (int)$prefixB;
+        });
+        // --- END CHANGE 1 ---
+
+        return array_values($files); // Re-index the array
     }
 
     protected function runMigration(string $file, int $batch): ?string
@@ -165,13 +174,15 @@ class MigrationRunner
         $name = $this->getFilenameWithoutExtension($file);
         $class = $this->getMigrationClass($name);
 
+        $filePath = $this->path . DIRECTORY_SEPARATOR . $file;
+
         $this->log("Migrating: {$name}");
         echo "DEBUG - Looking for class: $class\n";
-        echo "DEBUG - File path: " . $this->path . '/' . $file . "\n";
+        echo "DEBUG - File path: {$filePath}\n";
 
         try {
             // Include the file explicitly before checking the class
-            require_once $this->path . '/' . $file;
+            require_once $filePath;
 
             if (!class_exists($class)) {
                 echo "DEBUG - Class not found even after including file: $class\n";
@@ -198,164 +209,92 @@ class MigrationRunner
     }
 
 
-    /**
-     * Run a single migration by class name.
+     /**
+     * Run a single migration by its identifier (filename without .php extension).
      *
-     * @param string $migrationClass
-     * @param bool $force
-     * @return bool True if migration executed, false if not found or already executed
-     * @throws \Core\Exceptions\MigrationException
+     * @param string $migrationIdentifier The unique identifier of the migration (e.g., "20251101_135245_CreateTestyTable").
+     * @param bool $force Whether to force the migration to run even if already migrated.
+     * @return bool True if the migration was executed, false if not found or already executed.
+     * @throws \Exception If the migration file is not found or execution fails.
      */
-   /**
-     * Run a single migration by class name.
-     *
-     * @param string $migrationClass
-     * @param bool $force
-     * @return bool True if migration executed, false if not found or already executed
-     * @throws \Exception
-     */
-    public function runSingleMigration(string $migrationClass, bool $force = false): bool
+    public function runSingleMigration(string $migrationIdentifier, bool $force = false): bool // MODIFIED
     {
-        $migrationFile = $this->findMigrationFile($migrationClass);
+        $this->repository->createRepository(); // Ensure migrations table exists
 
-        if ($migrationFile === null) {
-            throw new \Exception("Migration class {$migrationClass} not found.");
+        //$filePath = $this->path . '/' . $migrationIdentifier . '.php';
+        $filePath = $this->path . DIRECTORY_SEPARATOR . $migrationIdentifier . '.php';
+
+        if (!file_exists($filePath)) {
+            throw new \Exception("Migration file '{$migrationIdentifier}.php' not found at '{$this->path}'.");
         }
 
-        // Use the filename as the canonical migration name (matches run() behavior)
-        $name = $this->getFilenameWithoutExtension(basename($migrationFile));
+        // Get the fully qualified class name using the existing helper
+        // This correctly strips the timestamp and adds the namespace.
+        $fqcn = $this->getMigrationClass($migrationIdentifier); // MODIFIED: Use migrationIdentifier directly
 
-        // Ensure repository exists and get executed list
-        $this->repository->createRepository();
+        // Check if already executed
         $executed = $this->repository->getMigratedFiles();
-
-        if (!$force && in_array($name, $executed, true)) {
-            // Already executed
+        if (!$force && in_array($migrationIdentifier, $executed, true)) {
+            $this->log("Migration '{$migrationIdentifier}' already executed. Skipping.", 'info');
             return false;
         }
 
-        // Capture declared classes before include to detect the class declared by the file
-        $before = get_declared_classes();
-        require_once $migrationFile;
-        $after = get_declared_classes();
-        $newClasses = array_diff($after, $before);
-
-        // Determine short class name and try to resolve FQCN
-        $parts = explode('\\', $migrationClass);
-        $shortClass = end($parts);
-        $fqcn = (strpos($migrationClass, '\\') === false)
-            ? $this->namespace . '\\' . $shortClass
-            : $migrationClass;
+        // Include the file explicitly to make the class available
+        require_once $filePath;
 
         if (!class_exists($fqcn)) {
-            foreach ($newClasses as $declared) {
-                $declParts = explode('\\', $declared);
-                $declShort = end($declParts);
-                if ($declShort === $shortClass) {
-                    $fqcn = $declared;
-                    break;
-                }
-            }
-        }
-
-        if (!class_exists($fqcn)) {
-            throw new \Exception("Migration class {$migrationClass} not loaded.");
+            throw new \Exception("Migration class '{$fqcn}' not found in file '{$filePath}'. Check namespace and class name.");
         }
 
         /** @var \Core\Database\Migrations\Migration $migration */
         $migration = new $fqcn($this->db);
 
         // If forcing, attempt to run down() first if it was previously executed
-        if ($force && in_array($name, $executed, true)) {
-            $migration->down();
-            $this->repository->delete($name);
-        }
-
-        $migration->up();
-
-        // Log using the filename-based name for consistency with run()
-        $batch = $this->repository->getLastBatchNumber() + 1;
-        $this->repository->log($name, $batch);
-
-        $this->log("Single migration executed: {$name}");
-
-        return true;
-    }
-
-
-    public function xxxxxrunSingleMigration(string $migrationClass, bool $force = false): bool
-    {
-        $migrationFile = $this->findMigrationFile($migrationClass);
-
-        if ($migrationFile === null) {
-            throw new \Exception("Migration class {$migrationClass} not found.");
-        }
-
-        require_once $migrationFile;
-
-        if (!class_exists($migrationClass)) {
-            throw new \Exception("Migration class {$migrationClass} not loaded.");
-        }
-
-        // Check if already migrated unless --force
-        if (!$force && $this->repository->getMigratedFiles() && in_array($migrationClass, $this->repository->getMigratedFiles(), true)) {
-            return false;
-        }
-
-        /** @var \Core\Database\Migrations\Migration $migration */
-        $migration = new $migrationClass($this->db);
-
-        if ($force) {
-            $migration->down();
-        }
-
-        $migration->up();
-
-        // Log migration with next batch number
-        $batch = $this->repository->getLastBatchNumber() + 1;
-        $this->repository->log($migrationClass, $batch);
-
-        $this->log("Single migration executed: {$migrationClass}");
-
-        return true;
-    }
-
-    /**
-     * Find the migration file for a given class name.
-     *
-     * @param string $migrationClass
-     * @return string|null
-     */
-    private function findMigrationFile(string $migrationClass): ?string
-    {
-        $files = glob($this->path . '/*.php');
-
-        foreach ($files as $file) {
-            $contents = file_get_contents($file);
-
-            // Look for "class ClassName"
-            // if (preg_match('/class\s+' . preg_quote($migrationClass, '/') . '\b/', $contents)) {
-                // return $file;
-            // }
-            $parts = explode('\\', $migrationClass);
-            $shortClass = end($parts);
-
-            if (preg_match('/class\s+' . preg_quote($shortClass, '/') . '\b/', $contents)) {
-                return $file;
+        if ($force && in_array($migrationIdentifier, $executed, true)) {
+            $this->log("Forcing re-run of '{$migrationIdentifier}'. Rolling back first.", 'info');
+            try {
+                $migration->down();
+                $this->repository->delete($migrationIdentifier); // Remove old log entry
+            } catch (Throwable $e) {
+                $this->log("Forced rollback of '{$migrationIdentifier}' failed: " . $e->getMessage(), 'error');
+                throw new \Exception("Forced rollback failed for '{$migrationIdentifier}': " . $e->getMessage(), 0, $e);
             }
         }
 
-        return null;
-    }
+        $this->log("Running single migration: {$migrationIdentifier}");
+        try {
+            $migration->up();
+        } catch (Throwable $e) {
+            $this->log("Migration '{$migrationIdentifier}' failed: " . $e->getMessage(), 'error');
+            throw new \Exception("Migration '{$migrationIdentifier}' failed: " . $e->getMessage(), 0, $e);
+        }
 
+        // Log the migration
+        $batch = $this->repository->getLastBatchNumber() + 1;
+        $this->repository->log($migrationIdentifier, $batch);
+
+        $this->log("Single migration '{$migrationIdentifier}' executed successfully.");
+
+        return true;
+    }
 
     protected function rollbackMigration(string $name): bool
     {
         $class = $this->getMigrationClass($name);
+        $filePath = $this->path . DIRECTORY_SEPARATOR . $name . '.php'; // ADDED: Construct file path
 
         $this->log("Rolling back: {$name}");
 
         try {
+            if (!class_exists($class, false)) {
+                require_once $filePath;
+            }
+
+            if (!class_exists($class)) {
+                $this->log("Class {$class} not found for rollback even after including file: {$filePath}", 'error'); // ADDED: Log message
+                throw new \RuntimeException("Migration class {$class} not found for rollback.");
+            }
+
             // Create migration instance
             $instance = new $class($this->db);
 
@@ -371,6 +310,10 @@ class MigrationRunner
             return true;
         } catch (\Throwable $e) {
             $this->log("Rollback failed: {$name} - {$e->getMessage()}", 'error');
+            // CHANGED: Re-throw if continueOnError is false, or if it's a critical error
+            if (!$this->continueOnError) {
+                throw $e;
+            }
             return false;
         }
     }
@@ -383,8 +326,12 @@ class MigrationRunner
     protected function getMigrationClass(string $name): string
     {
         // Strip timestamp prefix if present (format: YYYYMMDDHHMMSS_ClassName)
-        if (preg_match('/^\d+_(.+)$/', $name, $matches)) {
-            $name = $matches[1];
+        // if (preg_match('/^\d+_(.+)$/', $name, $matches)) {
+        //if (preg_match('/^\d{8}_\d{6}_(.+)$/', $name, $matches)) {
+        if (preg_match('/^(\d{8}_\d{6}_|\d+_)(.+)$/', $name, $matches)) { // Line 233
+
+
+            $name = $matches[2];
         }
 
         return $this->namespace . '\\' . $name;

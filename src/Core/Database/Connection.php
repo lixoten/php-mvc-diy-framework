@@ -6,19 +6,25 @@ namespace Core\Database;
 
 use Core\Exceptions\ConnectionException;
 use Core\Exceptions\QueryException;
+use Core\Interfaces\ConfigInterface;
 use Psr\Log\LoggerInterface;
 
 class Connection implements ConnectionInterface
 {
     protected \PDO $pdo;
-    protected array $config;
+    protected array $connectionConfig;
+    protected ConfigInterface $configService;
     protected ?LoggerInterface $logger;
     protected int $transactionLevel = 0;
     protected int $defaultFetchMode;
 
-    public function __construct(array $config, ?LoggerInterface $logger = null)
-    {
-        $this->config = $config;
+    public function __construct(
+        array $connectionConfig,
+        ConfigInterface $configService,
+        ?LoggerInterface $logger = null,
+    ) {
+        $this->connectionConfig = $connectionConfig;
+        $this->configService = $configService;
         $this->logger = $logger;
         $this->connect();
     }
@@ -27,24 +33,24 @@ class Connection implements ConnectionInterface
     {
         try {
             // Create DSN based on driver
-            $dsn = $this->createDsn($this->config);
+            $dsn = $this->createDsn($this->connectionConfig);
 
             // Extract username, password, and options
-            $username = $this->config['username'] ?? null;
-            $password = $this->config['password'] ?? null;
-            $options = $this->config['options'] ?? [];
+            $username = $this->connectionConfig['username'] ?? null;
+            $password = $this->connectionConfig['password'] ?? null;
+            $options = $this->connectionConfig['options'] ?? [];
 
             // Create PDO instance
             $this->pdo = new \PDO($dsn, $username, $password, $options);
 
-            $timezone = date_default_timezone_get();
-            $offset = (new \DateTime('now', new \DateTimeZone($timezone)))->format('P');
-            $this->pdo->exec("SET time_zone = '$offset'");
+            $appTimezone = $this->configService->get('app.timezone', date_default_timezone_get());
+            $offset = (new \DateTime('now', new \DateTimeZone($appTimezone)))->format('P');
+             $this->pdo->exec("SET time_zone = '$offset'");
         } catch (\PDOException $e) {
             throw new ConnectionException(
                 "Failed to connect to database: {$e->getMessage()}",
-                $this->config['driver'] ?? 'unknown',
-                $this->config,
+                $this->connectionConfig['driver'] ?? 'unknown',
+                $this->connectionConfig,
                 (string)$e->getCode(),   // Cast to string to match parameter type
                 0,
                 $e
@@ -99,6 +105,7 @@ class Connection implements ConnectionInterface
     public function execute(string $sql, array $params = []): int
     {
         try {
+            $this->logger->warning("Slowaaaaaaaaa query: {$sql}");
             $statement = $this->executeLogged($sql, $params);
             return $statement->rowCount();
         } catch (\PDOException $e) {
@@ -189,21 +196,7 @@ class Connection implements ConnectionInterface
         }
     }
 
-    protected function logQuery(string $sql, array $params, float $start): void
-    {
-        if (!$this->logger || !($this->config['logging']['enabled'] ?? false)) {
-            return;
-        }
 
-        $time = (microtime(true) - $start) * 1000;
-        $threshold = $this->config['logging']['slow_threshold'] ?? 1000;
-
-        if ($time > $threshold) {
-            $this->logger->warning("Slow query: {$sql} ({$time}ms)", ['params' => $params]);
-        } else {
-            $this->logger->debug("Query: {$sql} ({$time}ms)", ['params' => $params]);
-        }
-    }
 
     protected function convertException(\PDOException $e, string $sql, array $params): QueryException
     {
@@ -319,6 +312,25 @@ class Connection implements ConnectionInterface
     }
 
 
+    protected function logQuery(string $sql, array $params, float $start): void
+    {
+        $loggingEnabled = $this->configService->get('database.logging.enabled', false);
+        $slowThreshold  = $this->configService->get('database.logging.slow_threshold', 1000);
+
+        if (!$this->logger || !$loggingEnabled) {
+            return;
+        }
+
+        $time = (microtime(true) - $start) * 1000;
+        $logParams = $this->sanitizeParams($params);
+
+        if ($time > $slowThreshold) {
+            $this->logger->warning("Slow query: {$sql} ({$time}ms)", ['params' => $logParams]);
+        } else {
+            $this->logger->debug("Query: {$sql} ({$time}ms)", ['params' => $logParams]);
+        }
+    }
+
     /**
      * Execute a query with logging
      *
@@ -330,18 +342,9 @@ class Connection implements ConnectionInterface
     {
         $startTime = microtime(true);
         $stmt = $this->executeStatement($sql, $params);
-        $endTime = microtime(true);
-        $executionTime = ($endTime - $startTime) * 1000; // in ms
 
-        if ($this->logger) {
-            $logParams = $this->sanitizeParams($params);
-            $this->logger->debug("SQL: {$sql} | Params: " . json_encode($logParams) . " | Time: {$executionTime}ms");
-
-            // Log slow queries with warning level
-            if ($executionTime > ($this->config['slow_threshold'] ?? 1000)) {
-                $this->logger->warning("SLOW QUERY: {$sql} | Time: {$executionTime}ms");
-            }
-        }
+        // The logQuery method will calculate the time based on $startTime
+        $this->logQuery($sql, $params, $startTime);
 
         return $stmt;
     }

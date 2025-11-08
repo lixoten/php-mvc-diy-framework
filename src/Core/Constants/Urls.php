@@ -11,11 +11,11 @@ class Urls
 {
     // public const HOME = '/home';
     // public const USER_DASHBOARD = '/account/dashboard';
-    // public const STORE_DASHBOARD = '/account/stores/dashboard';
-    // public const STORE_PRODUCTS = '/account/stores/products';
-    // public const STORE_PROFILE = '/account/stores/profile';
-    // public const STORE_CREATE = '/account/stores/profile/create';
+    // public const STORE_DASHBOARD = '/account/store/dashboard';
+    // public const STORE_PRODUCTS = '/account/store/products';
+    // public const STORE_PROFILE = '/account/store/profile';
+    // public const STORE_CREATE = '/account/store/profile/create';
     // public const NO_STORES = '/account/dashboard';
-    // public const STORE_POST = '/account/stores/posts';
-    // public const STORE_POST_ADD = '/account/stores/posts/create';
+    // public const STORE_POST = '/account/store/posts';
+    // public const STORE_POST_ADD = '/account/store/posts/create';
 }

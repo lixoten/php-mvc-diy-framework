@@ -13,7 +13,7 @@ use InvalidArgumentException;
 /** xxx
  * Registry for managing formatter instances
  *
- * Stores and retrieves formatter strategy instances, supporting both
+ * Store and retrieves formatter strategy instances, supporting both
  * eager and lazy loading patterns.
  */
 class FormatterRegistry

@@ -90,6 +90,7 @@ return [
                 // 'date_of_birth',
                 // 'favorite_week_day',
                 'content',
+                // 'store_id',
 
                 // 'is_boodddddvssssserified',
                 // 'gender_id',
@@ -120,6 +121,7 @@ return [
     'metadata' => [
         'base_url_enum' => Url::CORE_TESTY,
         'edit_url_enum' => Url::CORE_TESTY_EDIT,
+        'list_url_enum' => Url::CORE_TESTY_LIST,
         'owner_foreign_key' => 'user_id',
         'redirect_after_save' => 'edit', // or 'edit'
         'redirect_after_add' => 'list', // or 'edit'
@@ -128,7 +130,7 @@ return [
     ],
     'form_hidden_fields' => [
         // 'id',
-        // 'user_id',
+        // 'store_id',
         // 'testyddddddddddddddddd_user_id',
     ]
 ];

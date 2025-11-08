@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Form\Validation\Rules;
 
-use App\Repository\UserRepositoryInterface;
+
+// use App\Repository\UserRepositoryInterface;
+use App\Features\User\UserRepositoryInterface;
 
 /**
  * Validator for checking uniqueness of user attributes like email or username
