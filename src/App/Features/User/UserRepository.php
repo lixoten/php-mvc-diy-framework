@@ -162,7 +162,7 @@ class UserRepository extends AbstractMultiTenantRepository implements UserReposi
      * @param array<string, mixed> $data Database row data
      * @return User Fully hydrated User entity
      */
-    private function mapToEntity(array $data): User
+    protected function mapToEntity(array $data): User
     {
         $user = new User();
 

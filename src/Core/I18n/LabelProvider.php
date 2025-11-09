@@ -19,22 +19,31 @@ class LabelProvider
     public function get(string $key): string
     {
         $parts = explode('.', $key);
-        $value = $this->labels;
+        $currentValue = $this->labels;
+        $foundSpecific = true; // Flag to track if the full specific key was found
+
         foreach ($parts as $part) {
-            if (isset($value[$part])) {
-                $value = $value[$part];
+            if (isset($currentValue[$part])) {
+                $currentValue = $currentValue[$part];
             } else {
-                // // Fallback to common labels
-                // // $common = include __DIR__ . '/common.php';
-                // $common = include dirname(__DIR__, 3) . '/lang/en/common.php';
-                // return $common[$part] ?? $key;
-                // Fallback to common labels if available
-                if (isset($this->labels['common'][$part])) {
-                    return $this->labels['common'][$part];
-                }
-                return $key;
+                $foundSpecific = false; // A part was not found, so the specific key isn't fully resolved
+                break; // Stop traversing
             }
         }
-        return is_string($value) ? $value : $key;
+
+        // If the full specific key was found and it's a string, return it
+        if ($foundSpecific && is_string($currentValue)) {
+            return $currentValue;
+        }
+
+        // If the specific key was not fully found, or the resolved value wasn't a string,
+        // try to find the last part of the key in the 'common' labels.
+        $lastPart = end($parts); // Get the last segment of the original key
+        if (isset($this->labels['common'][$lastPart])) {
+            return $this->labels['common'][$lastPart];
+        }
+
+        // If no specific or common label found, return the key itself
+        return $key;
     }
 }

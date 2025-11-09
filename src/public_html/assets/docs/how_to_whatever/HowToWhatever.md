@@ -161,14 +161,72 @@ Understanding Settings.json
 ## [MVC Migrations - Complete Reference Guide](<MVC Migrations - Complete Reference Guide.md>)
 ### Quick Steps to create a new field recreate ble with new data
 1. Make sure database is exists.  `mvclixo`
-1. Update Create Table
+    - HeidiSQL
+        - drop DB and recreate it with collation `utf8mb4_unicode_ci`
+2. Prep Folder and Files
+    - in `src\Database\Migrations`
+        - **do not delete**
+            - `20251101_000003_CreateRateLimitAttemptsTable.php`
+            - `99999999_999999_CreateRememberTokenTable.php`
+        - Delete all others as in create testy, user, store
+    - delete folder 'Generated', it will be recreated automatically
+3. Edit all the file u need as in create, seed and schema
+
+4. Lets create migration files... ex: `20251108_103708_CreateUserTable.php`
+    - Run all:
+        - `php bin/console.php make:migration user`
+        - `php bin/console.php make:migration store`
+        - `php bin/console.php make:migration testy`
+    - outputs to:
+        - `src\Generated\User\20251108_110116_CreateUserTable.php`
+        - `src\Generated\Store\20251108_110135_CreateStoreTable.php`
+        - `src\Generated\Testy\20251108_110142_CreateTestyTable.php`
+
+5. Lets create seeder files... ex: `20251108_110524_UserSeeder`
+    - Run all:
+        - `php bin/console.php make:seeder user`
+        - `php bin/console.php make:seeder store`
+        - `php bin/console.php make:seeder testy`
+    - outputs to:
+        - `src\Generated\User\20251108_110524_UserSeeder.php`
+        - `src\Generated\User\20251108_110713_StoreSeeder.php`
+        - `src\Generated\User\20251108_110737_TestySeeder.php`
+
+6. Lets move the files... ex: `20251`
+    - Run all:
+        - `php bin/console.php feature:move user`
+        - `php bin/console.php feature:move store`
+        - `php bin/console.php feature:move testy`
+    - It moves the files"
+        - From: `src/Generated/User/` <<<< User, Store, Testy
+        - To:   `src/Database/Migrations/`
+        - To:   `src/Database/Seeders\/`
+
+7. Next we nee to run `migrate` or `migrate:one`
+    - `php bin/console.php migrate`
+        - This will rum all migration files,..... will run the creates to create tables
+    - `php bin/console.php migrate:one 20251102_084221_CreateUserTable`
+        - This will run a SINGLE migration files. You will need full file name.
+        - if you use 'one' make sure to run the rest individually too
+
+
+8. Lets create migration files... ex: `20251`
+    - Run all:
+        - `php`
+    - outputs to:
+        - `srcGenerat`
+        - `srcGenerat`
+        - `srcGenerat`
+
+
+5. Update Create Table
     - I modified `src\Database\Migrations\004_CreateTestysTable.php`
         - In this case i added 2 new columns
 ```php
 $table->date('date_of_birth')->nullable()->comment('Date of Birth');
 $table->string('telephone', 30)->nullable()->comment('Telephone number');
 ```
-2. Update Seeder
+1. Update Seeder
     - I modified `src\Database\Seeders\Test
         - In this case for each record i added the 2 columns for, i created data
         - If adding new make sure slug is unique
@@ -177,9 +235,9 @@ $table->string('telephone', 30)->nullable()->comment('Telephone number');
 'date_of_birth' => '1990-01-01',
 ```
 
-3. I backed up my table....just incase
+1. I backed up my table....just incase
 
-4. Open Terminal and run
+2. Open Terminal and run
     - Run to populate data. this drops the table and recreates it
         - `php bin/console.php migrate:one 'Database\Migrations\CreateTestysTable' --force`
     - Run to populate data in seeder.

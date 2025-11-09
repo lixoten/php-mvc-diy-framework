@@ -12,7 +12,7 @@ return [
     'entity' => [
         'name' => 'Testy',
         'table' => 'testy',
-        'timestamps' => true,
+        'timestamps' => false,
     ],
 
     // Field Definitions
@@ -55,7 +55,8 @@ return [
             'db_type' => 'string',
             'length' => 100,
             'nullable' => false,
-            'comment' => 'SEO-friendly slug',
+            'unique' => true, // From migration
+            'comment' => 'Unique SEO-friendly slug for the testy',
         ],
         'title' => [
             'db_type' => 'string',

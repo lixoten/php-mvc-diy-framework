@@ -96,8 +96,8 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // if ($_ENV['APP_ENV'] === 'development' && empty($this->session->get(self::SESSION_USER_ID))) {
         if ($_ENV['APP_ENV'] === 'development') {
             // Replace 1 with your test user ID
-            // fik - FAKE LOGIN with fakeUserId
-            $fakeUserId = 1; // hack
+            // FikHack - FAKE LOGIN with fakeUserId
+            $fakeUserId = 2; // hack
             $testUser = $this->userRepository->findById($fakeUserId);
             if ($testUser) {
                 $this->storeUserInSession($testUser);

@@ -38,7 +38,6 @@ class FeatureMetadataFactoryService
      */
     public function createFor(string $viewKey): FeatureMetadataService
     {
-
         // fixme shit2 - ok
         $metadataConfig = $this->config->getFromFeature($viewKey, "metadata_{$viewKey}.metadata");
 
@@ -50,7 +49,8 @@ class FeatureMetadataFactoryService
 
         $pageName = $metadataConfig['pageName'] ?? null;
         $entityName = $metadataConfig['entityName'] ?? null;
-        $ownerForeignKey = (string) ($metadataConfig['owner_foreign_key'] ?? $routeDefaults['owner_foreign_key'] ?? 'id');
+        $ownerForeignKey = (string) ($metadataConfig['owner_foreign_key'] ?? $routeDefaults['owner_foreign_key']
+                                                                                                               ?? 'id');
 
         $rawBase = $metadataConfig['base_url_enum'] ?? $routeDefaults['base_url_enum'] ?? Url::CORE_TESTY;
         $baseUrlEnum = $this->resolveUrlEnum($rawBase);

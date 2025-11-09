@@ -170,7 +170,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                     }
                 }
             }
-        } elseif ($layout_type === 'sequentiaxxxl' && !empty($layout)) {
+        } elseif ($layout_type === 'sequentialXxxxxxxxxx' && !empty($layout)) {
             // Sequential layout rendering
             foreach ($layout as $setId => $set) {
                 foreach ($set['fields'] as $fieldName) {
@@ -301,12 +301,10 @@ class BootstrapFormRenderer implements FormRendererInterface
                 if (is_int($key) && is_string($formatter)) {
                     // Simple string: 'phone'
                     $currentValue = $this->formatterService->format($formatter, $currentValue, []);
-
                 } elseif (is_int($key) && is_callable($formatter)) {
                     $aaa = new ClosureFormatterService();
                     // $currentValue = $this->formatterService->formatClosure($formatter, $currentValue, []);
                     $currentValue = $aaa->format($formatter, $currentValue, []);
-
                 } elseif (is_string($key)) {
                     // Associative array: 'phone' => [options] or closure //xx
                     if (is_callable($formatter)) {
@@ -539,16 +537,10 @@ class BootstrapFormRenderer implements FormRendererInterface
                 //     }
                 // }
 
-                $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' . $attrString . '>';
+                $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
+                                                                   $name . '"' . $attrString . '>';
                 $output .= $errorHTML;
                 break;
-
-
-                // $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
-                // $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' . $attrString . '>';
-                // $output .= $errorHTML;
-                // break;
-
 
             case 'checkbox':
                 // $checked = $field->getValue() ? ' checked' : '';
@@ -844,30 +836,32 @@ class BootstrapFormRenderer implements FormRendererInterface
                 }
 
                 if (!empty($attributes['data-show-value'])) {
-                    $output .= '<output for="' . $id . '" id="' . $id . '_output">' . htmlspecialchars($value) . '</output>';
+                    $output .= '<output for="' . $id . '" id="' . $id . '_output">'
+                                                                      . htmlspecialchars($value) . '</output>';
                 }
                 $output .= $errorHTML;
                 break;
 
             case 'range':
                 $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
-                $output .= '<input type="range" class="' . $class . ' form-control-range-custom' . $errorClass . '" id="' . $id .
+                $output .= '<input type="range" class="' . $class . ' form-control-range-custom' . $errorClass
+                                                                                                 . '" id="' . $id .
                     '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
                 // Render datalist for tick marks if configured
-                 if (!empty($attributes['list']) && !empty($fieldOptions['tickmarks'])) {
+                if (!empty($attributes['list']) && !empty($fieldOptions['tickmarks'])) {
                     // if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
                     $listId = htmlspecialchars($attributes['list']);
                     $output .= '<datalist id="' . $listId . '">';
                     foreach ($fieldOptions['tickmarks'] as $tick) {
-                        // $output .= '<option value="' . htmlspecialchars($tick) . '"></option>';
-                        // $output .= "<option value=\"' . htmlspecialchars((string)$tick) . '\" label=\"{$tick}\" ></option>";
-                        $output .= '<option value="' . htmlspecialchars((string)$tick) . '" label="' . htmlspecialchars((string)$tick) . '"></option>';
+                        $output .= '<option value="' . htmlspecialchars((string)$tick) . '" label="'
+                                                     . htmlspecialchars((string)$tick) . '"></option>';
                     }
                     $output .= '</datalist>';
                 }
 
                 if (!empty($attributes['data-show-value'])) {
-                    $output .= '<output for="' . $id . '" id="' . $id . '_output">' . htmlspecialchars($value) . '</output>';
+                    $output .= '<output for="' . $id . '" id="' . $id . '_output">' . htmlspecialchars($value)
+                                                                                    . '</output>';
                 }
                 $output .= $errorHTML;
                 break;
@@ -892,7 +886,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
 
             default:
-                DebugRt::j('1', '', 'BOOOOMMMM');
+                DebugRt::j('1', '', 'BOOM');
                 $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
                 $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
                     $name . '" value="' . $value . '"' . $attrString . '>';

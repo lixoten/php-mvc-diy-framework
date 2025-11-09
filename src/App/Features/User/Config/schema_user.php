@@ -182,7 +182,7 @@ return [
             'username' => 'mary.store',
             'email' => 'mary.store@example.com',
             'password_hash' => $defaultPassword,
-            'roles' => '["store_owner",]',
+            'roles' => '["store_owner"]',
             'status' => 'A',
             'activation_token' => 'some_activation_token_1234567890abcdef',
             'reset_token' => null,

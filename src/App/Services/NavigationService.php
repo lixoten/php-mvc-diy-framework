@@ -8,7 +8,6 @@ use App\Enums\Url;
 use App\Features\Store\StoreRepositoryInterface;
 use App\Helpers\DebugRt;
 use App\Helpers\MenuBuilder;
-
 use App\ValueObjects\NavigationData;
 use Core\Auth\AuthenticationServiceInterface;
 use Core\Context\CurrentContext;
@@ -121,6 +120,9 @@ class NavigationService
                     Url::ACCOUNT_PROFILE->toLinkData(),
                     Url::ACCOUNT_MYNOTES->toLinkData(),
                     // Url::ACCOUNT_POST->toLinkData(),
+                    Url::CORE_USER_LIST->toLinkData(),
+                    Url::CORE_USER_LIST->toLinkData(routeType: 'account'),
+                    Url::CORE_USER_LIST->toLinkData(routeType: 'store'),
                     Url::CORE_POST->toLinkData(routeType: 'account'),
                     Url::CORE_ALBUMS->toLinkData(),
                     // Url::ACCOUNT_TESTY->toLinkData(),
@@ -230,7 +232,7 @@ class NavigationService
                     Url::CORE_TESTY->toLinkData(routeType: $rrr),
                 ],
                 'store-nav',
-                false // FIK - this turn on and off the submenu......at the oment it is hard coded
+                false // FIK - this turn on and off the submenu......at the moment it is hard coded
             ];
         }
 
@@ -243,7 +245,7 @@ class NavigationService
                     // Url::ADMIN_ALBUMS->toLinkData(),
                 ],
                 'admin-nav',
-                false // FIK - this turn on and off the submenu......at the oment it is hard coded
+                false // FIK - this turn on and off the submenu......at the moment it is hard coded
             ];
         }
 
@@ -260,7 +262,7 @@ class NavigationService
                 Url::CORE_TESTY->toLinkData(routeType: $rrr),
             ],
             'account-nav',
-            false // FIK - this turn on and off the submenu......at the oment it is hard coded
+            false // FIK - this turn on and off the submenu......at the moment it is hard coded
         ];
     }
 

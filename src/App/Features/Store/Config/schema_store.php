@@ -77,11 +77,11 @@ return [
             'type' => 'index',
         ],
         // 'slug' is already unique, so an additional index might be redundant but included for consistency if desired
-        [
-            'name' => 'idx_slug',
-            'columns' => ['slug'],
-            'type' => 'index',
-        ],
+        // [
+        //     'name' => 'idx_slug',
+        //     'columns' => ['slug'],
+        //     'type' => 'index',
+        // ],
         [
             'name' => 'idx_status',
             'columns' => ['status'],
@@ -191,7 +191,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-10 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'A',
             'slug' => 'artisan-crafts-co',
             'name' => 'Artisan Crafts Co.',
@@ -201,7 +201,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-12 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'A',
             'slug' => 'bookworm-haven',
             'name' => 'Bookworm Haven',
@@ -211,7 +211,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-15 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'S',
             'slug' => 'fashion-forward-hub',
             'name' => 'Fashion Forward Hub',
@@ -221,7 +221,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-18 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'A',
             'slug' => 'pet-paradise-store',
             'name' => 'Pet Paradise Store',
@@ -231,7 +231,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-20 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'I',
             'slug' => 'gourmet-food-emporium',
             'name' => 'Gourmet Food Emporium',
@@ -241,7 +241,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-22 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'A',
             'slug' => 'home-decor-delights',
             'name' => 'Home Decor Delights',
@@ -251,7 +251,7 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-25 days')),
         ],
         [
-            'user_id' => rand(1, 10),
+            'user_id' => 4,
             'status' => 'A',
             'slug' => 'fitness-gear-pro',
             'name' => 'Fitness Gear Pro',

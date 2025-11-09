@@ -339,5 +339,4 @@ class User
         $this->generic_code = $generic_code;
         return $this;
     }
-
 }

@@ -8,7 +8,7 @@ use Core\Database\Seeders\Seeder;
 use Core\Database\ConnectionInterface;
 
 /**
- * Generated File - Date: 20251102_091429
+ * Generated File - Date: 20251108_110524
  * Seeder for 'user' table.
  *
  * @package   MVC LIXO Framework
@@ -37,52 +37,76 @@ class UserSeeder extends Seeder
 
         $records = [
             [
-                'username' => 'john.store',
-                'email' => 'john.store@example.com',
-                'password_hash' => '$2y$10$8ypg7psjo4naut.0j9wTw.5oKrY.L6acNRtRHi1q3XFFWnXbJeCoi',
-                'roles' => '["store_owner", "admin", "user"]',
-                'status' => 'A',
-                'activation_token' => 'some_activation_token_1234567890abcdef',
-                'reset_token' => null,
-                'reset_token_expiry' => null,
-                'created_at' => '2025-10-31 09:14:29',
-                'updated_at' => '2025-10-31 09:14:29',
-            ],
-            [
                 'username' => 'admin',
                 'email' => 'admin@example.com',
-                'password_hash' => '$2y$10$8ypg7psjo4naut.0j9wTw.5oKrY.L6acNRtRHi1q3XFFWnXbJeCoi',
-                'roles' => '["store_owner", "user"]',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
+                'roles' => '["admin"]',
                 'status' => 'A',
                 'activation_token' => null,
                 'reset_token' => null,
                 'reset_token_expiry' => null,
-                'created_at' => '2025-11-02 09:14:29',
-                'updated_at' => '2025-11-02 09:14:29',
+                'created_at' => '2025-11-08 11:05:24',
+                'updated_at' => '2025-11-08 11:05:24',
+            ],
+            [
+                'username' => 'john.store',
+                'email' => 'john.store@example.com',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
+                'roles' => '["store_owner", "admin"]',
+                'status' => 'A',
+                'activation_token' => 'some_activation_token_1234567890abcdef',
+                'reset_token' => null,
+                'reset_token_expiry' => null,
+                'created_at' => '2025-11-06 11:05:24',
+                'updated_at' => '2025-11-06 11:05:24',
+            ],
+            [
+                'username' => 'mary.store',
+                'email' => 'mary.store@example.com',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
+                'roles' => '["store_owner"]',
+                'status' => 'A',
+                'activation_token' => 'some_activation_token_1234567890abcdef',
+                'reset_token' => null,
+                'reset_token_expiry' => null,
+                'created_at' => '2025-11-06 11:05:24',
+                'updated_at' => '2025-11-06 11:05:24',
             ],
             [
                 'username' => 'john.doe',
                 'email' => 'john.doe@example.com',
-                'password_hash' => '$2y$10$8ypg7psjo4naut.0j9wTw.5oKrY.L6acNRtRHi1q3XFFWnXbJeCoi',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
                 'roles' => '["store_owner"]',
                 'status' => 'A',
                 'activation_token' => null,
                 'reset_token' => null,
                 'reset_token_expiry' => null,
-                'created_at' => '2025-11-01 09:14:29',
-                'updated_at' => '2025-11-01 09:14:29',
+                'created_at' => '2025-11-07 11:05:24',
+                'updated_at' => '2025-11-07 11:05:24',
             ],
             [
-                'username' => 'jane.smith',
-                'email' => 'jane.smith@example.com',
-                'password_hash' => '$2y$10$8ypg7psjo4naut.0j9wTw.5oKrY.L6acNRtRHi1q3XFFWnXbJeCoi',
-                'roles' => '["store_owner"]',
+                'username' => 'jane.doe',
+                'email' => 'jane.doe@example.com',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
+                'roles' => '["user"]',
                 'status' => 'P',
                 'activation_token' => 'some_activation_token_1234567890abcdef',
                 'reset_token' => null,
                 'reset_token_expiry' => null,
-                'created_at' => '2025-10-31 09:14:29',
-                'updated_at' => '2025-10-31 09:14:29',
+                'created_at' => '2025-11-06 11:05:24',
+                'updated_at' => '2025-11-06 11:05:24',
+            ],
+            [
+                'username' => 'joe.guest',
+                'email' => 'joe.guest@guest.com',
+                'password_hash' => '$2y$10$.d7ThTlIagAN3IzvD8YzI.TFF0sb9gPCPOhuxJjl0keyLSk4K4gWa',
+                'roles' => '["guest"]',
+                'status' => 'A',
+                'activation_token' => 'some_activation_token_1234567890abcdef',
+                'reset_token' => null,
+                'reset_token_expiry' => null,
+                'created_at' => '2025-11-06 11:05:24',
+                'updated_at' => '2025-11-06 11:05:24',
             ]
         ];
 

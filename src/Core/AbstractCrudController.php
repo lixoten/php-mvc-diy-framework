@@ -7,6 +7,7 @@ namespace Core;
 use App\Enums\FlashMessageType;
 use App\Enums\PostFields2;
 use App\Enums\Url;
+use App\Features\Testy\TestyRepositoryInterface;
 use App\Services\FeatureMetadataService;
 use Core\Context\CurrentContext;
 use Core\Controller;
@@ -56,7 +57,8 @@ abstract class AbstractCrudController extends Controller
         private ListFactoryInterface $listFactory,
         private ListTypeInterface $listType,
         //-----------------------------------------
-        BaseRepositoryInterface $repository,
+        BaseRepositoryInterface $repository, // shitload
+        // TestyRepositoryInterface $repository, // shitload
         protected TypeResolverService $typeResolver,
     ) {
         parent::__construct($route_params, $flash, $view, $httpFactory, $container, $scrap);
@@ -158,8 +160,6 @@ abstract class AbstractCrudController extends Controller
         // if ($filter === "user") {
         if ($this->scrap->getRouteType() === "account") {
             $userId = $this->scrap->getUserId();
-            // $records = $this->repository->findByUserId($userId,
-            //                                              [$sortField => $sortDirection], $limit, $offset);
             $records = $this->repository->findByUserIdWithFields(
                 $userId,
                 $listFields,
@@ -170,20 +170,18 @@ abstract class AbstractCrudController extends Controller
 
             $totalRecords = $this->repository->countByUserId($userId);
         } else {
-            if ($entityNm === 'user' ) {
-                //$records = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection], $limit, $offset);
+            if ($entityNm === 'user') {
                 $records = $this->repository->findAllWithFields(
-                            $listFields,
-                            [$sortField => $sortDirection],
-                            $limit,
-                            $offset
-                        );
+                    $listFields,
+                    [$sortField => $sortDirection],
+                    $limit,
+                    $offset
+                );
 
                 $totalRecords = $this->repository->countAll();
             } else {
                 $storeId = $this->scrap->getStoreId();
 
-                //$records = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection], $limit, $offset);
                 $records = $this->repository->findByStoreIdWithFields(
                     $storeId,
                     $listFields,
@@ -192,10 +190,8 @@ abstract class AbstractCrudController extends Controller
                     $offset
                 );
 
-
                 $totalRecords = $this->repository->countByStoreId($storeId);
             }
-
         }
 
         $totalPages = ceil($totalRecords / $limit);
@@ -494,7 +490,7 @@ abstract class AbstractCrudController extends Controller
             $data[$ownerForeignKey] = $currentUserId;
 
             if ($this->scrap->getPageFeature() !== 'User') {
-               $data['store_id'] = $this->scrap->getStoreId(); // Hack because not logged in
+                $data['store_id'] = $this->scrap->getStoreId(); // Hack because not logged in
             }
 
             if (array_key_exists('title', $data)) {
@@ -657,8 +653,8 @@ abstract class AbstractCrudController extends Controller
                 'cancelUrl' => $this->feature->listUrlEnum->url(),
                 'csrfToken' => $this->scrap->getCsrfToken(), // Get CSRF token for the form
             ];
-            return $this->view($this->feature->deleteConfirmUrlEnum->view(), $this->buildCommonViewData($viewData));
 
+            return $this->view($this->feature->deleteConfirmUrlEnum->view(), $this->buildCommonViewData($viewData));
         } elseif ($request->getMethod() === 'POST') {
             // Perform actual deletion
             try {
@@ -670,18 +666,25 @@ abstract class AbstractCrudController extends Controller
                 }
 
                 if ($this->repository->delete($recordId)) {
-                    $this->flash22->add("Record '" . htmlspecialchars((string)$recordTitle) . "' deleted successfully", FlashMessageType::Success);
+                    $this->flash22->add("Record '" . htmlspecialchars((string)$recordTitle)
+                                                   . "' deleted successfully", FlashMessageType::Success);
+
                     return $this->redirect($this->feature->listUrlEnum->url());
                 } else {
-                    $this->flash22->add("Failed to delete record '" . htmlspecialchars((string)$recordTitle) . "'.", FlashMessageType::Error);
+                    $this->flash22->add("Failed to delete record '" . htmlspecialchars((string)$recordTitle)
+                                                                    . "'.", FlashMessageType::Error);
+
                     return $this->redirect($this->feature->listUrlEnum->url());
                 }
             } catch (ForbiddenException $e) {
                 $this->flash22->add($e->getMessage(), FlashMessageType::Error);
+
                 return $this->redirect($this->feature->listUrlEnum->url());
             } catch (\Throwable $e) {
                 error_log("Error deleting record (ID: {$recordId}): " . $e->getMessage());
-                $this->flash22->add("An unexpected error occurred while deleting record '" . htmlspecialchars((string)$recordTitle) . "'.", FlashMessageType::Error);
+                $this->flash22->add("An unexpected error occurred while deleting record '"
+                                              . htmlspecialchars((string)$recordTitle) . "'.", FlashMessageType::Error);
+
                 return $this->redirect($this->feature->listUrlEnum->url());
             }
         }
@@ -762,10 +765,10 @@ abstract class AbstractCrudController extends Controller
     protected function getRedirectUrlAfterSave(int $recordId): string
     {
         if ($this->feature->redirectAfterSave === 'list') {
-            return $this->feature->baseUrlEnum->url();
+            return $this->feature->listUrlEnum->url(routeType: $this->scrap->getRouteType());
         }
 
-        return $this->feature->editUrlEnum->url(['id' => $recordId]);
+        return $this->feature->editUrlEnum->url(['id' => $recordId], $this->scrap->getRouteType());
     }
 
 

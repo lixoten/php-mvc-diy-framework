@@ -60,7 +60,7 @@ declare(strict_types=1);
 namespace Database\Migrations;
 
 use Core\Database\Migrations\Migration;
-use Core\Database\Schema\Blueprint; // Added for type hinting
+use Core\Database\Schema\Blueprint;
 
 /**
  * Generated File - Date: {$generatedTimestamp}
@@ -129,7 +129,8 @@ PHP;
         }
 
         // Add CHECK constraints from field definitions
-        $checkConstraints = $this->generateCheckConstraints($fields);
+        //$checkConstraints = $this->generateCheckConstraints($fields);
+        $checkConstraints = $this->generateCheckConstraints($fields, $schema['entity']['table'] ?? '');
         if (!empty($checkConstraints)) {
             $lines[] = "";
             $lines[] = "            // CHECK Constraints";
@@ -366,15 +367,18 @@ PHP;
      * Generate CHECK constraints from field definitions.
      *
      * @param array<string, array<string, mixed>> $fields
+     * @param string $tableName The name of the table for which constraints are being generated.
      * @return array<string>
      */
-    protected function generateCheckConstraints(array $fields): array
+    protected function generateCheckConstraints(array $fields, string $tableName = ''): array
     {
         $constraints = [];
 
         foreach ($fields as $fieldName => $field) {
             if (isset($field['check'])) {
-                $constraintName = "chk_{$fieldName}";
+                // Use the provided constraint name if available, otherwise generate a default one
+                // Default to chk_{tableName}_{fieldName} if tableName is available, else chk_{fieldName}
+                $constraintName = $field['check_name'] ?? ($tableName ? "chk_{$tableName}_{$fieldName}" : "chk_{$fieldName}");
                 $expression = addslashes($field['check']);
                 $constraints[] = "            \$table->check('{$expression}', '{$constraintName}');";
             }

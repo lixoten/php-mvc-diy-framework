@@ -1,6 +1,44 @@
-remove find store crap
+SessionAuthenticationService needs to use `UserService` to get rig of errors
+
+
+we need to fix `MigrationGenerator.php`
+```php
+// currently it generated this:
+            $table->array('roles')
+                    ->nullable(false)
+                    ->comment('JSON encoded array of user roles/permissions');
+            $table->enum('status')
+                    ->default('A')
+                    ->comment('P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted');
+// INSTEAD OF this:
+            $table->json('roles') // CHANGED: Replaced array() with json()
+                    ->nullable(false)
+                    ->comment('JSON encoded array of user roles/permissions');
+            $table->char('status', 1) // This was previously changed from enum()
+                    ->default('A')
+                    ->comment('P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted');
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Add Store
+
 
 ###
 
@@ -9,6 +47,22 @@ Add Store
 
 ### Store Table
 - A Store a Foreign key to User Table, the store owner
+
+
+So far
+Users:
+- We can edit/update a user
+- We can add/insert a new user
+
+Testy:
+- We can edit/update a user
+- We can add/insert a new user
+
+
+
+
+
+
 
 
 

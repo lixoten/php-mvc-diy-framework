@@ -522,7 +522,7 @@ enum Url
                 'user/list',
                 'user/list',
                 'list',
-                'User',
+                'User List',
                 [],
             ),
             self::CORE_USER_CREATE => $this->routeData(

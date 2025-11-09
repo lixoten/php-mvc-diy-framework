@@ -22,6 +22,7 @@ use Core\Repository\BaseRepositoryInterface;
  * @implements BaseRepositoryInterface
  */
 class StoreRepository extends AbstractMultiTenantRepository implements StoreRepositoryInterface, BaseRepositoryInterface
+// class StoreRepository extends AbstractMultiTenantRepository implements StoreRepositoryInterface
 {
     // Notes-: this 3 are used by abstract class
     protected string $tableName = 'store';
@@ -214,7 +215,7 @@ class StoreRepository extends AbstractMultiTenantRepository implements StoreRepo
      * @param array<string, mixed> $data Database row data
      * @return Store Fully hydrated Store entity
      */
-    private function mapToEntity(array $data): Store
+    protected function mapToEntity(array $data): Store
     {
         $store = new Store();
 

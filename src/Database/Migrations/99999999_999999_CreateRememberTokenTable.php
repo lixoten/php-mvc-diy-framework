@@ -21,7 +21,7 @@ class CreateRememberTokenTable extends Migration
 
         $this->create('remember_token', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->bigInteger('user_id')->unsigned()->nullable(false); 
+            $table->bigInteger('user_id')->unsigned()->nullable(false);
             $table->string('selector', 64);
             $table->string('hashed_validator', 64);
             $table->dateTime('expires_at');

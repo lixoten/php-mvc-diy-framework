@@ -33,7 +33,7 @@ abstract class Migration
      * Create a new table.
      *
      * @param string $tableName
-     * @param \Closure(\Core\Database\Schema\Blueprint $table): void $callback // Updated PHPDoc for better IDE inference
+     * @param \Closure(\Core\Database\Schema\Blueprint $table): void $callback - Updated PHPDoc for better IDE inference
      * @return void
      */
     protected function create(string $tableName, \Closure $callback): void

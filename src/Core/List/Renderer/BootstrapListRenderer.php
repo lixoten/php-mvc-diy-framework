@@ -7,19 +7,24 @@ namespace Core\List\Renderer;
 use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\ThemeServiceInterface;
+use Core\I18n\LabelProvider;
 
 /**
  * Bootstrap list renderer
  */
 class BootstrapListRenderer extends AbstractListRenderer
 {
+    protected LabelProvider $labelProvider;
+
     /**
      * Constructor
      */
     public function __construct(
-        ThemeServiceInterface $themeService
+        ThemeServiceInterface $themeService,
+        LabelProvider $labelProvider
     ) {
         parent::__construct($themeService);
+        $this->labelProvider = $labelProvider;
 
         // Bootstrap-specific default options
         $this->defaultOptions = array_merge($this->defaultOptions, [
@@ -122,7 +127,9 @@ class BootstrapListRenderer extends AbstractListRenderer
         // Render table header
         $output .= '<thead><tr>';
         foreach ($list->getColumns() as $name => $column) {
-            $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
+            // $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
+            $temp = htmlspecialchars($this->labelProvider->get($column['label']));
+            $output .= '<th>' . $temp . '</th>';
         }
 
         // Add actions column if needed

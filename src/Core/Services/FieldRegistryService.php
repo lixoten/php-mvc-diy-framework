@@ -110,7 +110,8 @@ class FieldRegistryService
         // fixme shit2 - ok
         $field = $this->configService->getFromFeature($entityName, 'field_' . $pageName . ".$fieldName");
         if ($field !== null) {
-            $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
+            // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
+            $field['label'] = $field['label'];//fixme - t/he "*" is mine indicator
             return $field;
         }
 
@@ -118,7 +119,8 @@ class FieldRegistryService
         // fixme shit2 - ok
         $field = $this->configService->getFromFeature($entityName, 'field_' . $entityName . ".$fieldName");
         if ($field !== null) {
-            $field['label'] = '!' . $field['label'];
+            // $field['label'] = '!' . $field['label'];
+            $field['label'] = $field['label'];
             return $field;
         }
 
@@ -144,7 +146,7 @@ class FieldRegistryService
      */
     public function getField(string $fieldName, string $listName): ?array
     {
-        $field = $this->configService->get('list_fields/' . $listName . "." . $fieldName); // loads "list_fields/posts.php"
+        $field = $this->configService->get('list_fields/' . $listName . "." . $fieldName);
         if ($field !== null) {
             return $field;
         }

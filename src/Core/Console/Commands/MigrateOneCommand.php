@@ -42,7 +42,11 @@ class MigrateOneCommand extends Command
     {
         $this
             ->setName(static::$defaultName) // Explicitly set the command name here
-            ->addArgument('migrationClass', InputArgument::REQUIRED, 'The class name of the migration to run (e.g., "CreateUsersTable").')
+            ->addArgument(
+                'migrationClass',
+                InputArgument::REQUIRED,
+                'The class name of the migration to run (e.g., "CreateUsersTable").'
+            )
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Force the migration to run even if already migrated.');
     }
 

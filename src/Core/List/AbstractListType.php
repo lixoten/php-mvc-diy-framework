@@ -15,7 +15,7 @@ use Core\Services\FieldRegistryService;
  *
  * Handles list configuration, rendering options, and column definitions.
  * Uses FieldRegistryService for field/column definitions with fallback logic:
- *   1. Page/view context (set via setpageName)
+ *   1. Page/view context (set via setPageName)
  *   2. Entity/table context (set via setEntityName)
  *   3. Base/global config
  */
@@ -85,7 +85,7 @@ abstract class AbstractListType implements ListTypeInterface
         string $pageFeature,
         string $pageEntity,
         string $entityName
-    ) : void {
+    ): void {
         $this->pageName      = $pageName;
         $this->pageFeature   = $pageFeature;
         $this->pageEntity    = $pageEntity;
@@ -214,13 +214,23 @@ abstract class AbstractListType implements ListTypeInterface
         // fixme shit
 
 
-        $builder->addAction('view', $this->urlEnumArray['view']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
-        if ($this->options['render_options']['show_action_edit']) {
-            $builder->addAction('edit', $this->urlEnumArray['edit']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
-        }
-        if ($this->options['render_options']['show_action_del']) {
+        $builder->addAction(
+            'view',
+            $this->urlEnumArray['view']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
+        );
 
-            $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(['id' => '{id}'], routeType: $this->routeType));
+        if ($this->options['render_options']['show_action_edit']) {
+            $builder->addAction(
+                'edit',
+                $this->urlEnumArray['edit']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
+            );
+        }
+
+        if ($this->options['render_options']['show_action_del']) {
+            $builder->addAction(
+                'delete',
+                $this->urlEnumArray['delete']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
+            );
 
             // $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(
             //     ['id' => '{id}'],

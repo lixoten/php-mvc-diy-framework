@@ -500,13 +500,13 @@ return [
 
 
     'Core\I18n\LabelProvider' => function () {
-        $post = include dirname(__DIR__) . '/lang/en/post.php';
-        $albums = include dirname(__DIR__) . '/lang/en/albums.php';
+        $testy = include dirname(__DIR__) . '/lang/en/testy.php';
+        // $albums = include dirname(__DIR__) . '/lang/en/albums.php';
         $common = include dirname(__DIR__) . '/lang/en/common.php';
         // Merge post and common for the provider
         $labels = [
-            'post' => $post,
-            'albums' => $albums,
+            'testy' => $testy,
+            // 'albums' => $albums,
             'common' => $common,
         ];
         return new \Core\I18n\LabelProvider($labels);
@@ -651,14 +651,7 @@ return [
     // Convenience alias
     'theme.manager' => \DI\get('Core\Services\ThemeConfigurationManagerService'),
 
-    // List renderer with theme service
-    'Core\List\Renderer\ListRendererInterface' => function (
-        \Psr\Container\ContainerInterface $container
-    ) {
-        return new \Core\List\Renderer\BootstrapListRenderer(
-            $container->get('Core\Services\ThemeServiceInterface')
-        );
-    },
+
 
     // Form renderer with theme service
     'Core\Form\Renderer\FormRendererInterface' => function (
@@ -749,19 +742,19 @@ return [
     //     // ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
 
-    // 'App\Features\Auth\LoginController' => \DI\autowire() // CHANGED: Namespace
-    'App\Features\Login\LoginController' => \DI\autowire() //
+    // 'App\Features\Auth\LoginController' => \DI\autowire()
+    'App\Features\Login\LoginController' => \DI\autowire()
         ->constructorParameter('route_params', \DI\get('route_params'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('view', \DI\get('view'))
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class))
-        ->constructorParameter('scrap', \DI\get(CurrentContext::class)) // ADDED: CurrentContext
+        ->constructorParameter('scrap', \DI\get(CurrentContext::class))
         ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
         ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType')) // CHANGED: formType and specific LoginFormType
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')), // ADDED: CaptchaService
+        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
 
 
@@ -1894,13 +1887,20 @@ return [
     }),
 
 
+    // List renderer with theme service
+    'Core\List\Renderer\ListRendererInterface' => function (
+        \Psr\Container\ContainerInterface $container
+    ) {
+        // Get the ListRendererRegistry and ask it for the currently active renderer
+        return $container->get(\Core\List\Renderer\ListRendererRegistry::class)->getRenderer();
+    },
 
 
-
-    // List Renderers
+    // List Renderers - Keep this as it's used by the ListRendererRegistry
     'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\List\Renderer\BootstrapListRenderer(
-            $c->get('Core\Services\ThemeServiceInterface')
+            $c->get('Core\Services\ThemeServiceInterface'),
+            $c->get('Core\I18n\LabelProvider')
         );
     }),
 
