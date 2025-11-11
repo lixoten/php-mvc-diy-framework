@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-// namespace App\Entities;
 namespace App\Features\Store;
 
+
 /**
- * Generated File - Date: 20251102_134856zz
+ * Generated File - Date: 20251109_203227
  * Entity class for Store.
  *
  * @property-read array<string, mixed> $fields
@@ -16,37 +16,37 @@ class Store
     /**
      * @var int
      */
-    private int $id;
+    private int $id = 0;
 
     /**
      * @var int
      */
-    private int $user_id;
+    private int $user_id = 0;
 
     /**
      * @var string
      */
-    private string $status;
+    private string $status = '';
 
     /**
      * @var string
      */
-    private string $slug;
+    private string $slug = '';
 
     /**
      * @var string
      */
-    private string $name;
+    private string $name = '';
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $description = null;
 
     /**
      * @var string
      */
-    private string $theme;
+    private string $theme = '';
     /**
      * @return int
      */

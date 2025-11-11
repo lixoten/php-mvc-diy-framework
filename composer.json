@@ -39,7 +39,7 @@
 
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "^3.11",
+        "squizlabs/php_codesniffer": "^4.0",
         "phpunit/phpunit": "^9.5",
         "phpstan/phpstan": "^1.10"
     }

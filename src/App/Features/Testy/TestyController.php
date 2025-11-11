@@ -17,19 +17,13 @@ namespace App\Features\Testy;
 use Core\Services\FormatterService;
 use App\Helpers\DebugRt;
 use App\Enums\FlashMessageType;
-use App\Enums\PostFields2;
 use App\Enums\Url;
-use App\Features\Post\Form\PostFormType;
-use App\Features\Testy\Form\TestyFormType;
 use App\Services\Email\EmailNotificationService;
 use App\Services\FeatureMetadataService;
-use Core\Controller;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\PaginationService;
 use Core\AbstractCrudController;
 use Core\Context\CurrentContext;
-use Core\Enum\SortDirection;
-use Core\Exceptions\ForbiddenException;
 use Core\Services\ConfigService;
 use stdClass;
 use Core\Http\HttpFactory;
@@ -40,14 +34,12 @@ use Psr\Http\Message\ServerRequestInterface;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\FormTypeInterface;
-use Core\Form\ZzzzFormType;
-use Core\Formatters\PhoneNumberFormatter;
 use Core\Interfaces\ConfigInterface;
-use Core\List\ListFactory;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
 use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
+use Core\List\Renderer\ListRendererInterface;
 
 /**
  * Testy controller
@@ -55,21 +47,7 @@ use Psr\Log\LoggerInterface;
  */
 class TestyController extends AbstractCrudController
 {
-    protected ConfigService $config;
-    protected ?ServerRequestInterface $request = null; // Declare correctly with proper type
-
-    // private FormFactoryInterface $formFactory;
-    // private FormHandlerInterface $formHandler;
-    // private TestyRepositoryInterface $repository;
-    // private TestyFormType $formType;
-    // private ListFactory $listFactory;
-    // private TestyListType $listType;
-
-    // protected Logger $logger;
-    // protected EmailNotificationService $emailNotificationService;
-    // private PaginationService $paginationService;
-    //protected FormTypeInterface $formType; // Change from TestyFormType to FormTypeInterface
-    //protected BaseRepositoryInterface $repository; // Change from TestyRepositoryInterface to BaseRepositoryInterface
+    protected ?ServerRequestInterface $request = null;
 
     public function __construct(
         array $route_params,
@@ -79,16 +57,17 @@ class TestyController extends AbstractCrudController
         ContainerInterface $container,
         CurrentContext $scrap,
         //-----------------------------------------
-        private FeatureMetadataService $featureMetadataService,
-        protected FormFactoryInterface $formFactory,
-        protected FormHandlerInterface $formHandler,
-        FormTypeInterface $formType,//dangerdanger // 10
-        private ListFactoryInterface $listFactory,
-        private ListTypeInterface $listType,
+        FeatureMetadataService $featureMetadataService,
+        FormFactoryInterface $formFactory,
+        FormHandlerInterface $formHandler,
+        FormTypeInterface $formType,
+        ListFactoryInterface $listFactory,
+        ListTypeInterface $listType,
         TestyRepositoryInterface $repository,
-        protected TypeResolverService $typeResolver,
+        TypeResolverService $typeResolver,
+        ListRendererInterface $listRenderer,
         //-----------------------------------------
-        ConfigInterface $config,
+        protected ConfigInterface $config,
         protected LoggerInterface $logger,
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
@@ -110,19 +89,9 @@ class TestyController extends AbstractCrudController
             $listType,
             $repository,
             $typeResolver,
+            $listRenderer,
         );
-        $this->config = $config;
-        // $this->formFactory = $formFactory;
-        // $this->formHandler = $formHandler;
-        // $this->repository = $repository;
-        // $this->formType = $formType;
-        // $this->listFactory = $listFactory;
-        // $this->listType = $listType;
-        $this->listType->routeType = $scrap->getRouteType();
-        $this->logger = $logger;
-        $this->emailNotificationService = $emailNotificationService;
-        $this->paginationService = $paginationService;
-        $this->formatter = $formatter;
+        // constructor uses promotion php8+
     }
 
     /**
@@ -130,14 +99,15 @@ class TestyController extends AbstractCrudController
      *
      * @return ResponseInterface
      */
-    public function indexAction(): ResponseInterface
+    public function indexAction(ServerRequestInterface $request): ResponseInterface
     {
-        $viewData = [
-            'title' => 'Testy Index Action',
-            'actionLinks' => $this->getReturnActionLinks(),
-        ];
+        return parent::listAction(request: $request);
+        // $viewData = [
+        //     'title' => 'Testy Index Action',
+        //     'actionLinks' => $this->getReturnActionLinks(),
+        // ];
 
-        return $this->view(Url::CORE_TESTY->view(), $this->buildCommonViewData($viewData));
+        // return $this->view(Url::CORE_TESTY->view(), $this->buildCommonViewData($viewData));
     }
 
 

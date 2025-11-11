@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Features\Testy\TestyRepository;
 use App\Features\Testy\TestyRepositoryInterface;
+use App\Features\Gallery\GalleryRepository;
+use App\Features\Gallery\GalleryRepositoryInterface;
 use App\Features\User\UserRepository;
 use App\Features\User\UserRepositoryInterface;
 use App\Helpers\DebugRt;
@@ -426,12 +428,16 @@ return [
     // 'App\Repository\LoginAttemptsRepositoryInterface' => DI\autowire(App\Repository\LoginAttemptsRepository::class)
     //     ->constructorParameter('connection', DI\get('Core\Database\ConnectionInterface')),
 
+    //-----------------------------------------------------------------
+    // SECTION: UrlService (Ensure these are present as per previous steps)
+    //-----------------------------------------------------------------
 
     'Core\Services\UrlServiceInterface' => \DI\autowire('Core\Services\UrlService'),
         // ->lazy(), // FUTURE - in needed
-
     // Register URL Service implementation
     'Core\Services\UrlService' => \DI\autowire(),
+
+
 
     // URL Service Provider
     'Core\Providers\UrlServiceProvider' => \DI\autowire(),
@@ -460,15 +466,6 @@ return [
         ->constructorParameter('httpFactory', \DI\get('httpFactory'))
         ->constructorParameter('flash', \DI\get('flash'))
         ->constructorParameter('configService', DI\get('Core\Interfaces\ConfigInterface')),
-        // ->constructorParameter('configPathMapp', [
-        //     'path_mappings' => [
-        //         '/registration' => 'registration',
-        //         '/login' => 'login',
-        //         '/forgot-password' => 'password_reset',
-        //         '/verify-email/resend' => 'activation_resend',
-        //         '/verify-email/verify' => 'email_verification'
-        //     ]
-        // ]),
 
     'Core\Security\Captcha\CaptchaServiceInterface' => \DI\factory(function (ContainerInterface $c) {
         $config = $c->get('config');
@@ -500,12 +497,16 @@ return [
 
 
     'Core\I18n\LabelProvider' => function () {
-        $testy = include dirname(__DIR__) . '/lang/en/testy.php';
+        $testy  = include dirname(__DIR__) . '/lang/en/testy.php';
+        $gallery  = include dirname(__DIR__) . '/lang/en/gallery.php';
+        $user   = include dirname(__DIR__) . '/lang/en/user.php';
         // $albums = include dirname(__DIR__) . '/lang/en/albums.php';
         $common = include dirname(__DIR__) . '/lang/en/common.php';
         // Merge post and common for the provider
         $labels = [
             'testy' => $testy,
+            'gallery' => $gallery,
+            'user' => $user,
             // 'albums' => $albums,
             'common' => $common,
         ];
@@ -1021,6 +1022,7 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // Pass the container itself
         ->constructorParameter('repositoryMap', [
             'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the Post repo service ID/interface
+            'gallery' => GalleryRepositoryInterface::class, // Map 'gallery' string to the Post repo service ID/interface
             'image' => ImageRepositoryInterface::class, // Map 'image' string to the Post repo service ID/interface
             'post' => PostRepositoryInterface::class, // Map 'post' string to the Post repo service ID/interface
             'store' => StoreRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
@@ -1573,7 +1575,7 @@ return [
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
     \Core\Console\Commands\MakeFieldConfigCommand::class => \DI\autowire()
-        ->constructorParameter('fieldConfigGenerator', \DI\get(\Core\Console\Generators\FieldConfigGenerator::class))
+        ->constructorParameter('ConfigFieldsGenerator', \DI\get(\Core\Console\Generators\ConfigFieldsGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
     \Core\Console\Commands\FeatureMoveCommand::class => \DI\autowire()
@@ -1619,9 +1621,9 @@ return [
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
         ),
 
-    // Register FieldConfigGenerator
-    \Core\Console\Generators\FieldConfigGenerator::class
-                                                   => \DI\autowire(\Core\Console\Generators\FieldConfigGenerator::class)
+    // Register ConfigFieldsGenerator
+    \Core\Console\Generators\ConfigFieldsGenerator::class
+                                                   => \DI\autowire(\Core\Console\Generators\ConfigFieldsGenerator::class)
         ->constructorParameter(
             'generatorOutputService',
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
@@ -1655,6 +1657,11 @@ return [
 
     // Testy the concrete repository implementation
     TestyRepository::class => \DI\autowire()
+        ->constructorParameter('connection', \DI\get('db')),
+
+    GalleryRepositoryInterface::class =>  DI\autowire(GalleryRepository::class),
+
+    GalleryRepository::class => \DI\autowire()
         ->constructorParameter('connection', \DI\get('db')),
 
     // // Testy the repository interface
@@ -1736,12 +1743,24 @@ return [
 
     //-----------------------------------------------------------------
 
+    //-----------------------------------------------------------------
+    // SECTION: List Configuration Service
+    //-----------------------------------------------------------------
+
+    \Core\Services\ListConfigurationService::class => \DI\autowire()
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+
+    //-----------------------------------------------------------------
+
     // Section - List types
 
     // 'App\Features\Testy\List\ZzzzListType' => \DI\autowire()
     'Core\List\ZzzzListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('listConfigService', \DI\get(\Core\Services\ListConfigurationService::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
 
     'App\Features\Testy\List\TestyListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
@@ -1831,8 +1850,8 @@ return [
     // 1.Bind the Interface to the Implementation
     ListFactoryInterface::class => \DI\autowire(\Core\List\ListFactory::class)
         ->constructorParameter('csrfToken', \DI\get('Core\Form\CSRF\CSRFToken'))
-        ->constructorParameter('fieldTypeRegistry', \DI\get('Core\Form\Field\Type\FieldTypeRegistry'))
-        ->constructorParameter('listRendererRegistry', \DI\get('Core\List\Renderer\ListRendererRegistry')),
+        ->constructorParameter('fieldTypeRegistry', \DI\get('Core\Form\Field\Type\FieldTypeRegistry')),
+        // ->constructorParameter('listRendererRegistry', \DI\get('Core\List\Renderer\ListRendererRegistry')),
     // //----------------------------------------------------------------------
     // // Notes-: Aliases and shortcuts are optional.
     // // 2. Alias the Concrete Class to the Interface
@@ -1963,25 +1982,6 @@ return [
         ->constructorParameter('config', \DI\get('Core\Interfaces\ConfigInterface'))
         ->constructorParameter('currentContext', \DI\get(Core\Context\CurrentContext::class)),
 
-    // Autowiring with a Factory Override. a hybrid approach
-    // 'App\Features\Testy\TestyController' => \DI\autowire()
-    //     ->constructorParameter(
-    //         'featureMetadataService',
-    //         \DI\factory(function (ContainerInterface $c) {
-    //             // This factory creates the service just for this controller
-    //             $config = $c->get(ConfigInterface::class);
-    //             $metadataConfig = $config->get('view_options/testy_edit.metadata');
-
-    //             return new FeatureMetadataService(
-    //                 baseUrlEnum: $metadataConfig['base_url_enum'],
-    //                 editUrlEnum: $metadataConfig['edit_url_enum'],
-    //                 ownerForeignKey: $metadataConfig['owner_foreign_key'],
-    //                 redirectAfterSave: $metadataConfig['redirect_after_save'],
-    //                 redirectAfterAdd: $metadataConfig['redirect_after_add'],
-    //             );
-    //         })
-    //     )
-
     'App\Features\Home\HomeController' => \DI\autowire(),
         // ->constructorParameter('route_params', \DI\get('route_params'))
         // ->constructorParameter('flash', \DI\get('flash'))
@@ -2015,6 +2015,8 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Features\User\UserRepositoryInterface'))
+        ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface'))
         ->constructorParameter('userService', \DI\get(UserService::class)),
 
     'App\Features\Testy\TestyController' => \DI\autowire()
@@ -2027,7 +2029,13 @@ return [
             })
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
-        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType')),
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('repository', \DI\get('App\Features\Testy\TestyRepositoryInterface'))
+        ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface')),
+
+
+
+
         // ->constructorParameter('repository', \DI\get(\App\Features\Testy\TestyRepositoryInterface::class)),
         // ->constructorParameter('route_params', \DI\get('route_params'))
         // ->constructorParameter('flash22', \DI\get('flash'))
@@ -2046,7 +2054,17 @@ return [
         // ->constructorParameter('logger', \DI\get('logger'))
         // ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
-
+    'App\Features\Gallery\GalleryController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('gallery');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType')),
 
     // dynamic-fix
     // Autowiring with a Factory Override. a hybrid approach
@@ -2079,4 +2097,4 @@ return [
         ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface')),
 
 ];
-// 1435 1395
+// 1435 1395 2119

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Features\Testy;
 
+
 /**
- * Generated File - Date: 2025-10-30 20:01
+ * Generated File - Date: 20251109_203444
  * Entity class for Testy.
  *
  * @property-read array<string, mixed> $fields
@@ -15,187 +16,197 @@ class Testy
     /**
      * @var int
      */
-    private int $id;
+    private int $id = 0;
 
     /**
-     * @var int|null
+     * @var int
      */
     private ?int $store_id = null;
 
     /**
      * @var int
      */
-    private int $user_id;
+    private int $user_id = 0;
 
     /**
      * @var string
      */
-    private string $status;
+    private string $status = '';
 
     /**
      * @var string
      */
-    private string $slug;
+    private string $slug = '';
 
     /**
      * @var string
      */
-    private string $title;
+    private string $title = '';
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $content = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_text = null;
 
     /**
-     * @var int|null
+     * @var int
      */
     private ?int $image_count = null;
 
     /**
-     * @var int|null
+     * @var int
      */
     private ?int $cover_image_id = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $date_of_birth = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_date = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_month = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_week = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_time = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_datetime = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $telephone = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $gender_id = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $gender_other = null;
 
     /**
      * @var bool
      */
-    private bool $is_verified;
+    private bool $is_verified = false;
 
     /**
      * @var bool
      */
-    private bool $interest_soccer_ind;
+    private bool $interest_soccer_ind = false;
 
     /**
      * @var bool
      */
-    private bool $interest_baseball_ind;
+    private bool $interest_baseball_ind = false;
 
     /**
      * @var bool
      */
-    private bool $interest_football_ind;
+    private bool $interest_football_ind = false;
 
     /**
      * @var bool
      */
-    private bool $interest_hockey_ind;
+    private bool $interest_hockey_ind = false;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $primary_email = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $secret_code_hash = null;
 
     /**
      * @var float
      */
-    private float $balance;
+    private float $balance = 0.0;
 
     /**
-     * @var float|null
+     * @var float
      */
     private ?float $generic_decimal = null;
 
     /**
-     * @var int|null
+     * @var int
      */
     private ?int $volume_level = null;
 
     /**
-     * @var float|null
+     * @var float
      */
     private ?float $start_rating = null;
 
     /**
      * @var int
      */
-    private int $generic_number;
+    private int $generic_number = 0;
 
     /**
      * @var int
      */
-    private int $generic_num;
+    private int $generic_num = 0;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $generic_color = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $wake_up_time = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $favorite_week_day = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $online_address = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $profile_picture = null;
+
+    /**
+     * @var string
+     */
+    private string $created_at = '';
+
+    /**
+     * @var string
+     */
+    private string $updated_at = '';
     /**
      * @return int
      */
@@ -859,6 +870,42 @@ class Testy
     public function setProfilePicture(?string $profile_picture): self
     {
         $this->profile_picture = $profile_picture;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCreatedAt(): string
+    {
+        return $this->created_at;
+    }
+
+    /**
+     * @param string $created_at
+     * @return self
+     */
+    public function setCreatedAt(string $created_at): self
+    {
+        $this->created_at = $created_at;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getUpdatedAt(): string
+    {
+        return $this->updated_at;
+    }
+
+    /**
+     * @param string $updated_at
+     * @return self
+     */
+    public function setUpdatedAt(string $updated_at): self
+    {
+        $this->updated_at = $updated_at;
         return $this;
     }
 }

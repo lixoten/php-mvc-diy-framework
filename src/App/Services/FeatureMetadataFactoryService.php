@@ -39,7 +39,7 @@ class FeatureMetadataFactoryService
     public function createFor(string $viewKey): FeatureMetadataService
     {
         // fixme shit2 - ok
-        $metadataConfig = $this->config->getFromFeature($viewKey, "metadata_{$viewKey}.metadata");
+        $metadataConfig = $this->config->getFromFeature($viewKey, "{$viewKey}_metadata.metadata");
 
         $routeType = $this->currentContext->getRouteType();
 

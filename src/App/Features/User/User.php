@@ -7,7 +7,7 @@ namespace App\Features\User;
 use App\Enums\UserStatus;
 
 /**
- * Generated File - Date: 20251102_232227
+ * Generated File - Date: 20251109_201441
  * Entity class for User.
  *
  * @property-read array<string, mixed> $fields
@@ -17,63 +17,77 @@ class User
     /**
      * @var int
      */
-    private int $id;
+    private int $id = 0;
 
     /**
      * @var string
      */
-    private string $username;
+    private string $username = '';
 
     /**
      * @var string
      */
-    private string $email;
+    private string $email = '';
 
     /**
      * @var string
      */
-    private string $password_hash;
+    private string $password_hash = '';
 
+    /**
+     * @var array<string>
+     */
     private array $roles = [];
-    private array $my_colors = [];
 
     /**
-     * @var string
+     * @var UserStatus
      */
     private UserStatus $status = UserStatus::PENDING;
 
-    private string $generic_code;
-    private bool $is_green;
-    private bool $is_blue;
-    private bool $is_red;
-
-
-
-
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $activation_token = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $reset_token = null;
 
     /**
-     * @var string|null
+     * @var string
      */
     private ?string $reset_token_expiry = null;
 
     /**
-     * @var string
+     * @var bool
      */
-    private string $created_at;
+    private bool $is_green = false;
+
+    /**
+     * @var bool
+     */
+    private bool $is_blue = false;
+
+    /**
+     * @var bool
+     */
+    private bool $is_red = false;
 
     /**
      * @var string
      */
-    private string $updated_at;
+    private string $generic_code = '';
+
+    /**
+     * @var string
+     */
+    private string $created_at = '';
+
+    /**
+     * @var string
+     */
+    private string $updated_at = '';
     /**
      * @return int
      */
@@ -165,7 +179,7 @@ class User
     }
 
     /**
-     * Get user status
+     * @return UserStatus
      */
     public function getStatus(): UserStatus
     {
@@ -173,7 +187,8 @@ class User
     }
 
     /**
-     * Set user status
+     * @param UserStatus $status
+     * @return self
      */
     public function setStatus(UserStatus $status): self
     {
@@ -236,6 +251,78 @@ class User
     }
 
     /**
+     * @return bool
+     */
+    public function getIsGreen(): bool
+    {
+        return $this->is_green;
+    }
+
+    /**
+     * @param bool $is_green
+     * @return self
+     */
+    public function setIsGreen(bool $is_green): self
+    {
+        $this->is_green = $is_green;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsBlue(): bool
+    {
+        return $this->is_blue;
+    }
+
+    /**
+     * @param bool $is_blue
+     * @return self
+     */
+    public function setIsBlue(bool $is_blue): self
+    {
+        $this->is_blue = $is_blue;
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsRed(): bool
+    {
+        return $this->is_red;
+    }
+
+    /**
+     * @param bool $is_red
+     * @return self
+     */
+    public function setIsRed(bool $is_red): self
+    {
+        $this->is_red = $is_red;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGenericCode(): string
+    {
+        return $this->generic_code;
+    }
+
+    /**
+     * @param string $generic_code
+     * @return self
+     */
+    public function setGenericCode(string $generic_code): self
+    {
+        $this->generic_code = $generic_code;
+        return $this;
+    }
+
+    /**
      * @return string
      */
     public function getCreatedAt(): string
@@ -268,75 +355,6 @@ class User
     public function setUpdatedAt(string $updated_at): self
     {
         $this->updated_at = $updated_at;
-        return $this;
-    }
-
-
-
-    public function getIsGreen(): bool
-    {
-        return $this->is_green;
-    }
-    public function setIsGreen(int|bool $is_green): self
-    {
-        $this->is_green = (bool)$is_green;
-        return $this;
-    }
-
-    public function getIsBlue(): bool
-    {
-        return $this->is_blue;
-    }
-    public function setIsBlue(int|bool $is_blue): self
-    {
-        $this->is_blue = (bool)$is_blue;
-        return $this;
-    }
-
-    public function getIsRed(): bool
-    {
-        return $this->is_red;
-    }
-    public function setIsRed(int|bool $is_red): self
-    {
-        $this->is_red = (bool)$is_red;
-        return $this;
-    }
-
-    /**
-     * @return array
-     */
-    public function getMyColors(): array
-    {
-        return $this->my_colors;
-    }
-
-    /**
-     * @param array $my_colors
-     * @return self
-     */
-    public function setMyColors(array $my_colors): self
-    {
-        $this->my_colors = $my_colors;
-        return $this;
-    }
-
-
-    /**
-     * @return array
-     */
-    public function getGenericCode(): string
-    {
-        return $this->generic_code;
-    }
-
-    /**
-     * @param string $generic_code
-     * @return self
-     */
-    public function setGenericCodes(string $generic_code): self
-    {
-        $this->generic_code = $generic_code;
         return $this;
     }
 }

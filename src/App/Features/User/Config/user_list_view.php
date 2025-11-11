@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Enums\Url;
+
 /*
 * Options for PostsListType:
 'default_sort_direction' => 'ASC', // 'ASC', 'DESC'
@@ -37,10 +39,10 @@ return [
         'show_action_add'       => true,
         'show_action_edit'      => true,
         'show_action_del'       => true,
+        'show_action_view'      => true,
         'show_action_status'    => false,
     ],
     'list_fields' => [
-        // 'id', 'title',  'content', 'generic_text', 'status', 'created_at'
-        'id', 'store_id', 'user_id', 'title',  'content', 'status', 'created_at'
+        'id', 'username', 'email', 'status', 'roles', 'created_at'
     ],
 ];

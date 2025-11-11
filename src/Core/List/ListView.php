@@ -19,7 +19,7 @@ class ListView implements ListInterface
     private array $pagination = [];
     private array $options = [];
     private array $renderOptions = [];
-    private ?ListRendererInterface $renderer = null;
+    // private ?ListRendererInterface $renderer = null;
     private ?string $csrfToken = null;
 
     /**
@@ -194,34 +194,34 @@ class ListView implements ListInterface
         return $this->pagination;
     }
 
-    /**
-     * Set the list renderer
-     */
-    public function setRenderer(ListRendererInterface $renderer): self
-    {
-        $this->renderer = $renderer;
-        return $this;
-    }
+    // /**
+    //  * Set the list renderer
+    //  */
+    // public function setRenderer(ListRendererInterface $renderer): self
+    // {
+    //     $this->renderer = $renderer;
+    //     return $this;
+    // }
 
-    /**
-     * Get the list renderer
-     */
-    public function getRenderer(): ListRendererInterface
-    {
-        return $this->renderer;
-    }
+    // /**
+    //  * Get the list renderer
+    //  */
+    // public function getRenderer(): ListRendererInterface
+    // {
+    //     return $this->renderer;
+    // }
 
-    /**
-     * Render the list
-     */
-    public function render(array $options = []): string
-    {
-        if ($this->renderer === null) {
-            throw new \RuntimeException('Renderer not set for list: ' . $this->name);
-        }
-        $mergedOptions = array_merge($this->renderOptions, $options);
-        return $this->renderer->renderList($this, $mergedOptions);
-    }
+    // /**
+    //  * Render the list
+    //  */
+    // public function render(array $options = []): string
+    // {
+    //     if ($this->renderer === null) {
+    //         throw new \RuntimeException('Renderer not set for list: ' . $this->name);
+    //     }
+    //     $mergedOptions = array_merge($this->renderOptions, $options);
+    //     return $this->renderer->renderList($this, $mergedOptions);
+    // }
 
     /**
      * Set list rendering options

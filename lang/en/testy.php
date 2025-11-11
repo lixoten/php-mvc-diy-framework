@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 return [
-    'id' => 'ID',
+    'id' => 'tID',
     'store_id' => 'StoreID',
     'user_id' => 'UserID',
     'title---ent' => 'Title',

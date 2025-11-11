@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Core\List\Renderer;
 
+use App\Helpers\DebugRt;
+use Core\Constants\Urls;
 use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\ThemeServiceInterface;
 use Core\I18n\LabelProvider;
+use App\Enums\Url;
 
 /**
  * Bootstrap list renderer
@@ -27,13 +30,15 @@ class BootstrapListRenderer extends AbstractListRenderer
         $this->labelProvider = $labelProvider;
 
         // Bootstrap-specific default options
-        $this->defaultOptions = array_merge($this->defaultOptions, [
-            'view_type' => self::VIEW_GRID,
-            'view_type' => self::VIEW_TABLE,
-            'view_type' => self::VIEW_LIST,
-        ]);
+        // $this->defaultOptions = array_merge($this->defaultOptions, [
+        //     'view_type' => self::VIEW_GRID,
+        //     'view_type' => self::VIEW_TABLE,
+        //     'view_type' => self::VIEW_LIST,
+        // ]);
+        $this->defaultOptions['view_type'] = self::VIEW_TABLE; // Line 33: Assuming VIEW_TABLE is the desired default for Bootstrap lists
+
         // Fik - Override List View Default - GRID TABLE LIST
-        $this->defaultOptions['view_type'] = self::VIEW_TABLE;
+        // $this->defaultOptions['view_type'] = self::VIEW_TABLE;
     }
 
     /**
@@ -52,12 +57,13 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '<h2>' . htmlspecialchars($list->getTitle()) . '</h2>';
 
         // Add "Add New" button if URL is provided
-        if (!empty($options['add_url'])) {
-            $output .= '<a href="' . $options['add_url'] . '" class="' . $addButtonClass . '">';
+        if (($options['show_action_add'] ?? false) && !empty($options['add_url'])) {
+            $output .= '<a href="' . htmlspecialchars($options['add_url'] ?? '') . '" class="' . $addButtonClass . '">';
             $output .= $this->themeService->getIconHtml('add') . ' ' .
-                htmlspecialchars($options['add_button_label']);
+                htmlspecialchars($options['add_button_label'] ?? '');
             $output .= '</a>';
         }
+
 
         $output .= '</div>';
 
@@ -69,9 +75,8 @@ class BootstrapListRenderer extends AbstractListRenderer
      */
     protected function renderViewToggle(ListInterface $list, array $options = []): string
     {
-        $baseUrl = $options['toggle_url_base'] ?? $_SERVER['REQUEST_URI'];
-        $baseUrl = strtok($baseUrl, '?'); // Remove existing query string
-        $currentView = $options['view_type'];
+        $currentView = $options['view_type'] ?? self::VIEW_TABLE; // Default if not set
+        $currentQueryParams = $options['current_query_params'] ?? []; // ✅ NEW: Get ALL current query parameters
 
         $cardBodyClass = $this->themeService->getElementClass('card.body');
         $toggleClass = $this->themeService->getElementClass('view.toggle');
@@ -79,23 +84,47 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output = '<div class="' . $cardBodyClass . ' pt-0">';
         $output .= '<div class="' . $toggleClass . '" role="group" aria-label="View options">';
 
-        // Table view button
-        $activeClass = ($currentView === self::VIEW_TABLE) ? ' active' : '';
-        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_TABLE . '" ';
-        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="Table View">';
-        $output .= $this->themeService->getIconHtml('table') . '</a>';
 
-        // Grid view button
-        $activeClass = ($currentView === self::VIEW_GRID) ? ' active' : '';
-        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_GRID . '" ';
-        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="Grid View">';
-        $output .= $this->themeService->getIconHtml('grid') . '</a>';
 
-        // List view button
-        $activeClass = ($currentView === self::VIEW_LIST) ? ' active' : '';
-        $output .= '<a href="' . $baseUrl . '?view=' . self::VIEW_LIST . '" ';
-        $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="List View">';
-        $output .= $this->themeService->getIconHtml('list') . '</a>';
+        $viewTypes = [self::VIEW_TABLE, self::VIEW_GRID, self::VIEW_LIST];
+        $viewIcons = [
+            self::VIEW_TABLE => 'table',
+            self::VIEW_GRID => 'grid',
+            self::VIEW_LIST => 'list',
+        ];
+        $viewTitles = [
+            self::VIEW_TABLE => 'Table View',
+            self::VIEW_GRID => 'Grid View',
+            self::VIEW_LIST => 'List View',
+        ];
+
+        // ✅ Get the list URL enum and route type from options
+        $listUrlEnum = $options['url_enums']['list'] ?? null;
+        $routeType = $options['route_type'] ?? 'core';
+
+        if (!$listUrlEnum instanceof Url) {
+            // Log an error or throw an exception if the listUrlEnum is not properly set
+            // $this->logger->error('BootstrapListRenderer: listUrlEnum not provided or invalid for view toggle.');
+            // FUCK no logger you idiot.
+            DebugRt::j('0', '$listUrlEnum', $listUrlEnum);
+            return ''; // Return empty string to prevent rendering broken links
+        }
+
+        foreach ($viewTypes as $viewType) {
+            $activeClass = ($currentView === $viewType) ? ' active' : '';
+
+            // Start with all current query parameters
+            $toggleParams = $currentQueryParams;
+            // Override/set the 'view' parameter for this specific toggle button
+            $toggleParams['view'] = $viewType;
+
+            // ✅ Generate the URL using the Url enum, which handles path and query parameters
+            $toggleUrl = $listUrlEnum->url($toggleParams, $routeType);
+
+            $output .= '<a href="' . htmlspecialchars($toggleUrl) . '" ';
+            $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="' . htmlspecialchars($viewTitles[$viewType]) . '">';
+            $output .= $this->themeService->getIconHtml($viewIcons[$viewType]) . '</a>';
+        }
 
         $output .= '</div>';
         $output .= '</div>';
@@ -375,17 +404,8 @@ class BootstrapListRenderer extends AbstractListRenderer
                 }
             }
 
-            // $class = $actionOptions['class'] ?? $this->getActionButtonClass($name);
             $class = $this->getActionButtonClass($name);
 
-
-
-            // Get the icon HTML from theme service
-            // $iconHtml = isset($actionOptions['icon'])
-            //     ? $actionOptions['icon']
-            //     : $this->themeService->getIconHtml($name);
-
-            // $name = 'dd';
             $iconHtml = $this->themeService->getIconHtml($name);
 
 
@@ -394,7 +414,7 @@ class BootstrapListRenderer extends AbstractListRenderer
             if ($name === 'deletexxx') {
                 // Delete button code with modal trigger
                 $output .= '<button type="button" ';
-                $output .= 'class="' . $class . ' delete-item-btn" ';
+                $output .= 'class="' . htmlspecialchars($class) . ' delete-item-btn" '; // CRITICAL: Add defensive check
 
                 // Add data attributes for the delete confirmation modal
                 if (isset($actionOptions['attributes']) && is_array($actionOptions['attributes'])) {
@@ -405,7 +425,7 @@ class BootstrapListRenderer extends AbstractListRenderer
                                 $val = str_replace('{' . $key . '}', (string)$value, $val);
                             }
                         }
-                        $output .= ' data-' . htmlspecialchars($attr) . '="' . htmlspecialchars($val) . '"';
+                        $output .= ' data-' . htmlspecialchars($attr ?? '') . '="' . htmlspecialchars($val ?? '') . '"'; // CRITICAL: Add defensive check
                     }
                 }
 
@@ -413,18 +433,18 @@ class BootstrapListRenderer extends AbstractListRenderer
                 $titleValue = $record['title'] ?? ($record['name'] ?? 'this item');
                 $confirmMsg = str_replace('{title}', htmlspecialchars((string)$titleValue), $confirmMsg);
 
-                $output .= 'data-confirm="' . htmlspecialchars($confirmMsg) . '" ';
+                $output .= 'data-confirm="' . htmlspecialchars($confirmMsg) . '" '; // CRITICAL: Add defensive check
                 $output .= 'data-bs-toggle="modal" data-bs-target="#deleteItemModal" ';
                 $output .= 'title="' . htmlspecialchars((string)$title) . '">';
+
                 // CRITICAL: Use the HTML directly (not escaping)
                 $output .= $iconHtml;
                 $output .= '</button>';
             } else {
                 // Regular link for other actions
-                $output .= '<a href="' . $url . '" ';
-                $output .= 'class="' . $class . '" ';
-                $output .= 'title="' . htmlspecialchars((string)$title) . '">';
-                // CRITICAL: Use the HTML directly (not escaping)
+                $output .= '<a href="' . htmlspecialchars($url) . '" '; // CRITICAL: Add defensive check
+                $output .= 'class="' . htmlspecialchars($class) . '" '; // CRITICAL: Add defensive check
+                $output .= 'title="' . htmlspecialchars((string)$title) . '">'; // CRITICAL: Add defensive check
                 $output .= $iconHtml;
                 $output .= '</a>';
             }
@@ -446,42 +466,84 @@ class BootstrapListRenderer extends AbstractListRenderer
         return $this->themeService->getElementClass('button.' . $actionName);
     }
 
+
     /**
      * Render pagination
      */
     public function renderPagination(ListInterface $list, array $options = []): string
     {
-        $pagination = $list->getPagination();
+        $paginationData = $list->getPagination();
 
-        if (empty($pagination) || $pagination['total_pages'] <= 1) {
+        // $paginationData['showPagination'] = true; //hack - LEAVE THKIS COMMNET ALONE
+
+        if (empty($paginationData) || !($paginationData['showPagination'] ?? false)) { // CRITICAL: Add defensive check
             return '';
         }
 
-        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
         $paginationClass = $this->themeService->getElementClass('pagination');
-
         $output = '<nav aria-label="Page navigation"><ul class="' . $paginationClass . '">';
 
-        $baseUrl = $options['pagination_url'] ?? '';
-        $currentPage = $pagination['current_page'];
-        $totalPages = $pagination['total_pages'];
+        // Render "Previous" button
+        if ($paginationData['hasPrevious'] ?? false) {
+            $output .= '<li class="page-item">';
+            $output .= '<a class="page-link" href="' . htmlspecialchars($paginationData['previous']['href']) . '">' .
+                       htmlspecialchars($paginationData['previous']['text'] ?? 'Previous') . '</a>';
+            $output .= '</li>';
+        } else {
+            $output .= '<li class="page-item disabled">';
+            $output .= '<span class="page-link">Previous</span>';
+            $output .= '</li>';
+        }
 
-        // Add view type to pagination URLs if it exists
-        if (!empty($options['view_type']) && $options['view_type'] !== self::VIEW_TABLE) {
-            $viewParam = 'view=' . $options['view_type'];
-            if (strpos($baseUrl, '?') !== false) {
-                $baseUrl .= '&' . $viewParam;
-            } else {
-                $baseUrl .= '?' . $viewParam;
+        // Render first page if not in window
+        if (isset($paginationData['showFirstPage']) && $paginationData['showFirstPage']) {
+            $firstPageLink = $paginationData['firstPageLink'] ?? null;
+            if ($firstPageLink) {
+                $output .= '<li class="page-item">';
+                $output .= '<a class="page-link" href="' . htmlspecialchars($firstPageLink['href']) . '">' .
+                           htmlspecialchars($firstPageLink['text'] ?? '1') . '</a>';
+                $output .= '</li>';
+            }
+            if (($paginationData['windowStart'] ?? 1) > 2) { // Add ellipsis if there's a gap between 1 and window start
+                $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
             }
         }
 
-        for ($i = 1; $i <= $totalPages; $i++) {
-            $active = ($i === $currentPage) ? ' active' : '';
-            $url = str_replace('{page}', (string)$i, $baseUrl);
+        // Render page numbers from the structured data (windowed pages)
+        foreach ($paginationData['pages'] as $page) {
+            $active = ($page['active'] ?? false) ? ' active' : '';
+            $disabled = ($page['disabled'] ?? false) ? ' disabled' : '';
+            $output .= '<li class="page-item' . $active . $disabled . '">';
+            $output .= '<a class="page-link" href="' . htmlspecialchars($page['href']) . '">' .
+                       htmlspecialchars($page['text'] ?? (string)($page['number'])) . '</a>';
+            $output .= '</li>';
+        }
 
-            $output .= '<li class="page-item' . $active . '">';
-            $output .= '<a class="page-link" href="' . $url . '">' . (string)$i . '</a>';
+
+        // Render last page if not in window
+        if (isset($paginationData['showLastPage']) && $paginationData['showLastPage']) {
+            if (($paginationData['windowEnd'] ?? 0) < ($paginationData['total'] ?? 0) - 1) { // Add ellipsis if there's a gap
+                $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
+            }
+            $lastPageLink = $paginationData['lastPageLink'] ?? null;
+            if ($lastPageLink) {
+                $output .= '<li class="page-item">';
+                $output .= '<a class="page-link" href="' . htmlspecialchars($lastPageLink['href']) . '">' .
+                           htmlspecialchars($lastPageLink['text'] ?? (string)($paginationData['total'] ?? '')) . '</a>';
+                $output .= '</li>';
+            }
+        }
+
+
+        // Render "Next" button
+        if ($paginationData['hasNext'] ?? false) {
+            $output .= '<li class="page-item">';
+            $output .= '<a class="page-link" href="' . htmlspecialchars($paginationData['next']['href']) . '">' .
+                       htmlspecialchars($paginationData['next']['text'] ?? 'Next') . '</a>';
+            $output .= '</li>';
+        } else {
+            $output .= '<li class="page-item disabled">';
+            $output .= '<span class="page-link">Next</span>';
             $output .= '</li>';
         }
 
@@ -489,6 +551,50 @@ class BootstrapListRenderer extends AbstractListRenderer
 
         return $output;
     }
+
+    // /**
+    //  * Render pagination
+    //  */
+    // public function renderPagination_Old(ListInterface $list, array $options = []): string
+    // {
+    //     $pagination = $list->getPagination();
+
+    //     if (empty($pagination) || $pagination['total_pages'] <= 1) {
+    //         return '';
+    //     }
+
+    //     $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+    //     $paginationClass = $this->themeService->getElementClass('pagination');
+
+    //     $output = '<nav aria-label="Page navigation"><ul class="' . $paginationClass . '">';
+
+    //     $baseUrl = $options['pagination_url'] ?? '';
+    //     $currentPage = $pagination['current_page'];
+    //     $totalPages = $pagination['total_pages'];
+
+    //     // Add view type to pagination URLs if it exists
+    //     if (!empty($options['view_type']) && $options['view_type'] !== self::VIEW_TABLE) {
+    //         $viewParam = 'view=' . $options['view_type'];
+    //         if (strpos($baseUrl, '?') !== false) {
+    //             $baseUrl .= '&' . $viewParam;
+    //         } else {
+    //             $baseUrl .= '?' . $viewParam;
+    //         }
+    //     }
+
+    //     for ($i = 1; $i <= $totalPages; $i++) {
+    //         $active = ($i === $currentPage) ? ' active' : '';
+    //         $url = str_replace('{page}', (string)$i, $baseUrl);
+
+    //         $output .= '<li class="page-item' . $active . '">';
+    //         $output .= '<a class="page-link" href="' . $url . '">' . (string)$i . '</a>';
+    //         $output .= '</li>';
+    //     }
+
+    //     $output .= '</ul></nav>';
+
+    //     return $output;
+    // }
 
     /**
      * Helper method to get image URL from record
@@ -549,8 +655,8 @@ class BootstrapListRenderer extends AbstractListRenderer
         }
 
         $options = $list->getActions()['delete'];
-        $title = $options['modal_title'] ?? 'Confirm Delete';
-        $formAction = $options['form_action'] ?? '';
+        $title = htmlspecialchars($options['modal_title'] ?? 'Confirm Delete');
+        $formAction = htmlspecialchars($options['form_action'] ?? '');
 
         $csrfField = '';
         if ($list->hasCsrfProtection()) {

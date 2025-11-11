@@ -167,6 +167,24 @@ PHP;
     {
         $dbType = $field['db_type'] ?? 'string';
 
+        // Map 'array' db_type to 'json' Blueprint method
+        if ($dbType === 'array') {
+            $dbType = 'json';
+        }
+
+        // Map 'enum' db_type to 'char' Blueprint method with length from schema
+        // Per instructions: "the framework's schema definition system *may* use `db_type: 'enum'`
+        // as an abstraction to represent a field that will be persisted as a portable `CHAR` or `VARCHAR`
+        // type with a `CHECK` constraint."
+        if ($dbType === 'enum') {
+            $dbType = 'char';
+            // If length is not explicitly provided for enum, default to 1 (common for single-char status codes)
+            if (!isset($field['length'])) {
+                $field['length'] = 1;
+            }
+        }
+
+
         if (in_array($dbType, ['bigIncrements', 'increments'])) {
             return "{$dbType}('{$fieldName}');";  // No additional constraints needed
         }
@@ -299,7 +317,12 @@ PHP;
                 foreach ($schemaIndexes as $sIndex) {
                     if (
                         (isset($sIndex['type']) && $sIndex['type'] === 'unique') &&
-                        (isset($sIndex['columns']) && is_array($sIndex['columns']) && count($sIndex['columns']) === 1 && $sIndex['columns'][0] === $fieldName)
+                        (
+                            isset($sIndex['columns']) &&
+                            is_array($sIndex['columns']) &&
+                            count($sIndex['columns']) === 1 &&
+                            $sIndex['columns'][0] === $fieldName
+                        )
                     ) {
                         $explicitUniqueExists = true;
                         break;
@@ -320,7 +343,12 @@ PHP;
                 foreach ($schemaIndexes as $sIndex) {
                     if (
                         (isset($sIndex['type']) && $sIndex['type'] === 'index') &&
-                        (isset($sIndex['columns']) && is_array($sIndex['columns']) && count($sIndex['columns']) === 1 && $sIndex['columns'][0] === $fieldName)
+                        (
+                            isset($sIndex['columns']) &&
+                            is_array($sIndex['columns']) &&
+                            count($sIndex['columns']) === 1 &&
+                            $sIndex['columns'][0] === $fieldName
+                        )
                     ) {
                         $explicitFkIndexExists = true;
                         break;
@@ -378,7 +406,9 @@ PHP;
             if (isset($field['check'])) {
                 // Use the provided constraint name if available, otherwise generate a default one
                 // Default to chk_{tableName}_{fieldName} if tableName is available, else chk_{fieldName}
-                $constraintName = $field['check_name'] ?? ($tableName ? "chk_{$tableName}_{$fieldName}" : "chk_{$fieldName}");
+                $constraintName = $field['check_name'] ?? (
+                    $tableName ? "chk_{$tableName}_{$fieldName}" : "chk_{$fieldName}"
+                );
                 $expression = addslashes($field['check']);
                 $constraints[] = "            \$table->check('{$expression}', '{$constraintName}');";
             }

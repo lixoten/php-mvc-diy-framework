@@ -32,6 +32,8 @@ class CurrentContext
     private ?string $pageFeature = null; // e.g.,  'testy', 'post', 'user', 'login'...
     private ?string $pageEntity = null; // e.g.,  'testy', 'post', 'user'...
 
+    private ?array $pageQueryParms = null;
+    private ?string $pageListViewType = null;
 
     private ?string $pageKey = null; // e.g.,  , 'users' from route
     private ?int $entityId = null; // e.g., the ID from /edit/{id}
@@ -333,6 +335,27 @@ class CurrentContext
         return $this->pageEntity;
     }
 
+    /////////////////////////////////////////////////////////////////////
+
+    public function setPageQueryParms(?array $pageQueryParms): void
+    {
+        $this->pageQueryParms = $pageQueryParms;
+    }
+
+    public function getPageQueryParms(): ?array
+    {
+        return $this->pageQueryParms;
+    }
+
+    public function setPageListViewType(?string $pageListViewType): void
+    {
+        $this->pageListViewType = $pageListViewType;
+    }
+
+    public function getPageListViewType(): ?string
+    {
+        return $this->pageListViewType;
+    }
     /////////////////////////////////////////////////////////////////////
 
 

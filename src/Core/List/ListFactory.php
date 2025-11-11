@@ -8,6 +8,7 @@ use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
 use Core\List\Renderer\ListRendererRegistry;
+use App\Services\PaginationService;
 
 //use Core\Form\Validation\Validator;
 
@@ -18,7 +19,8 @@ class ListFactory implements ListFactoryInterface
 {
     private CSRFToken $csrfToken;
     private FieldTypeRegistry $fieldTypeRegistry;
-    private ?ListRendererRegistry $listRendererRegistry = null;
+    private PaginationService $paginationService;
+    // private ?ListRendererRegistry $listRendererRegistry = null;
     // private ?Validator $validator;
 
    /**
@@ -26,18 +28,21 @@ class ListFactory implements ListFactoryInterface
      *
      * @param CSRFToken $csrf
      * @param FieldTypeRegistry $fieldTypeRegistry
+     * @param PaginationService $paginationService
      * @param ListRendererRegistry|null $listRendererRegistry
      *
      */
     public function __construct(
         CSRFToken $csrfToken,
         FieldTypeRegistry $fieldTypeRegistry,
-        ?ListRendererRegistry $listRendererRegistry = null,
+        PaginationService $paginationService,
+        // ?ListRendererRegistry $listRendererRegistry = null,
         //?Validator $validator = null,
     ) {
         $this->csrfToken = $csrfToken;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
-        $this->listRendererRegistry = $listRendererRegistry;
+        $this->paginationService = $paginationService;
+        // $this->listRendererRegistry = $listRendererRegistry;
         // $this->validator = $validator;
     }
 
@@ -50,30 +55,6 @@ class ListFactory implements ListFactoryInterface
         array $data = [],
         array $options = [],
     ): ListInterface {
-        // // Merge Options - List options and options set in controller
-        // $finalOptions           = array_merge($listType->getOptions(), $options['options']);
-        // $finalPagination        = array_merge($listType->getPaginationOptions(), $options['pagination']);
-        // $finalRenderOptions     = array_merge($listType->getRenderOptions(), $options['render_options']);
-        // $fields =  $options['list_fields'];
-        // if (!isset($fields) || !is_array($fields) || empty($fields)) {
-        //     $finalListFields    = $listType->getFields();
-        // } else {
-        //     $finalListFields    =  $options['list_fields'];
-        // }
-        // $listType->setOptions($finalOptions);
-        // $listType->setPaginationOptions($finalPagination);
-        // $listType->setRenderOptions($finalRenderOptions);
-        // $listType->setFields($finalListFields);
-        $listType->setPaginationOptions($options['pagination']);
-
-        $listType->setUrlDependentRenderOptions();
-        ///////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////
-        ///////////////////////////////////////////////////////////////////////
-
-
         // Create list instance
         $list = new ListView($listType->pageName);
 
@@ -83,14 +64,31 @@ class ListFactory implements ListFactoryInterface
         // Built it
         $listType->buildList($builder);
 
+        // Beg Process pagination data using PaginationService ---
+        $paginationOptions = $listType->getPaginationOptions();
 
-        // Set form renderer if available
-        if ($this->listRendererRegistry) {
-            $rendererName = $finalOptions['renderer'] ?? 'bootstrap';
-            $renderer = $this->listRendererRegistry->getRenderer($rendererName);
-            $list->setRenderer($renderer);
+        if (
+            $paginationOptions['listUrlEnum'] &&
+            !empty($paginationOptions['total_pages']) &&
+            $paginationOptions['total_pages'] > 1
+        ) {
+            $baseUrlEnum = $paginationOptions['listUrlEnum'];
+            $currentPage = $paginationOptions['current_page'] ?? 1;
+            $totalPages  = (int) $paginationOptions['total_pages'];
+            $windowSize  = $paginationOptions['window_size'] ?? 2;
+            $urlParams   = $listType->getRenderOptions()['current_query_params'] ?? [];
+
+            // Use the service to get structured pagination data
+            $structuredPaginationData = $this->paginationService->getPaginationDataWithWindow(
+                $baseUrlEnum,
+                $currentPage,
+                $totalPages,
+                $windowSize,
+                $urlParams,
+            );
+            $list->setPagination($structuredPaginationData);
         }
-
+        // --- Beg Process pagination ---
 
         // Set data and CSRF
         $builder->setListData($data);

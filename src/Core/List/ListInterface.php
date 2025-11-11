@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\List;
 
-use Core\List\Renderer\ListRendererInterface;
+// use Core\List\Renderer\ListRendererInterface;
 
 /**
  * Interface for lists
@@ -73,6 +73,8 @@ interface ListInterface
     // public function setPagination(int $currentPage, int $totalPages, int $totalItems, int $perPage): self;
     public function setPagination(array $pagination): self;
 
+
+
     /**
      * Get pagination data
      */
@@ -81,20 +83,20 @@ interface ListInterface
 
     public function setOptions(array $options): self;
 
-    /**
-     * Set the list renderer
-     */
-    public function setRenderer(ListRendererInterface $renderer): self;
+    // /**
+    //  * Set the list renderer
+    //  */
+    // public function setRenderer(ListRendererInterface $renderer): self;
 
-    /**
-     * Get the list renderer
-     */
-    public function getRenderer(): ListRendererInterface;
+    // /**
+    //  * Get the list renderer
+    //  */
+    // public function getRenderer(): ListRendererInterface;
 
-    /**
-     * Render the list
-     */
-    public function render(array $options = []): string;
+    // /**
+    //  * Render the list
+    //  */
+    // public function render(array $options = []): string;
 
     /**
      * Set list rendering options

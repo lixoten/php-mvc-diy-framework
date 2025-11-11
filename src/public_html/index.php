@@ -70,7 +70,7 @@ $dotenv->required([
     'SMTP_PASSWORD',
     'MAILGUN_API_KEY',
     'MAILGUN_DOMAIN'
-])->notEmpty(); // TODO add all $ENV valiables to here
+])->notEmpty(); // TODO add all $ENV variables to here
 
 // Validate specific values
 $dotenv->required('MAIL_API_DEFAULT')->allowedValues(['smtp', 'mailgun']);

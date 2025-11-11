@@ -81,7 +81,7 @@ class StoreContextMiddleware implements MiddlewareInterface
             $this->currentContext->setStoreId($store->getId());
             $this->currentContext->setStoreName($store->getName());
 
-            $this->currentContext->setBoo("BBBBBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
+            $this->currentContext->setBoo("Store Context BBBBBOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO");
             // scrap99 --------------------------------------------------------------------
         //}
 

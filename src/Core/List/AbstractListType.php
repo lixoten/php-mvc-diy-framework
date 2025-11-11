@@ -7,122 +7,106 @@ namespace Core\List;
 use App\Enums\Url;
 use App\Helpers\DebugRt;
 use Core\Interfaces\ConfigInterface;
-use Core\Services\ConfigService;
+use Core\Services\ListConfigurationService;
 use Core\Services\FieldRegistryService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Abstract base class for list types.
  *
  * Handles list configuration, rendering options, and column definitions.
  * Uses FieldRegistryService for field/column definitions with fallback logic:
- *   1. Page/view context (set via setPageName)
- *   2. Entity/table context (set via setEntityName)
+ *   1. Page/view context (set via setFocus)
+ *   2. Entity/table context
  *   3. Base/global config
  */
 abstract class AbstractListType implements ListTypeInterface
 {
+    // ✅ Simple, flat property structure
     protected array $options = [];
-    public string $routeType = 'root';
-    protected array $urlEnumArray;
+    protected array $paginationOptions = [];
+    protected array $renderOptions = [];
+    protected array $fields = [];
 
     public readonly string $pageName;
     public readonly string $pageFeature;
     public readonly string $pageEntity;
 
-    public readonly string $entityName;
-
-    // protected FieldRegistryService $fieldRegistryService;
-
-
-    // /**
-    //  * Parent options that can be overridden by child classes.
-    //  * @var array
-    //  */
-    // private const PARENT_OPTIONS = [
-    //     'default_sort_key' => 'created_at',
-    //     'default_sort_direction' => 'DESC',
-    //     'pagination' => [
-    //         'per_page' => 3
-    //     ],
-    //     'render_options' => [
-    //         'title' => 'list.posts.title 333',
-    //         'show_actions' => true,
-    //         'show_action_add' => true,
-    //         'show_action_edit' => true,
-    //         'show_action_del' => true,
-    //         'show_action_status' => false,
-    //         'list_columns' => [
-    //             'id', 'title', 'status', 'created_at'
-    //         ]
-    //     ]
-    // ];
-
-
     /**
      * Constructor.
      *
-     * @param FieldRegistryService $fieldRegistryService Service for field/column definitions.
+     * @param FieldRegistryService $fieldRegistryService Service for field/column definitions
+     * @param ConfigInterface $configService Configuration service
+     * @param ListConfigurationService $listConfigService List configuration service
+     * @param LoggerInterface $logger Logger instance
      */
     public function __construct(
         protected FieldRegistryService $fieldRegistryService,
         protected ConfigInterface $configService,
+        protected ListConfigurationService $listConfigService,
+        protected LoggerInterface $logger,
     ) {
-        $this->fieldRegistryService = $fieldRegistryService;
-        $this->configService = $configService;
-
-        // $this->init();
-
-        //$this->options = array_replace_recursive(self::PARENT_OPTIONS, $this->options);
-        // Merge parent and child render options
-        //$this->initializeOptions($this->options);
+        // No manual property assignments - handled by 'protected' promotion
     }
-
-
 
     /** {@inheritdoc} */
     public function setFocus(
         string $pageName,
         string $pageFeature,
         string $pageEntity,
-        string $entityName
     ): void {
-        $this->pageName      = $pageName;
-        $this->pageFeature   = $pageFeature;
-        $this->pageEntity    = $pageEntity;
-        $this->entityName    = $entityName;
-        $this->init();
-    }
+        $this->pageName = $pageName;
+        $this->pageFeature = $pageFeature;
+        $this->pageEntity = $pageEntity;
 
+        // ✅ Delegate configuration loading to service
+        $config = $this->listConfigService->loadConfiguration(
+            $pageName,
+            $pageFeature,
+            $pageEntity,
+        );
+
+        // ✅ Apply loaded configuration to flat properties
+        $this->options = $config['options'];
+        $this->paginationOptions = $config['pagination'];
+        $this->renderOptions = $config['render_options'];
+        $this->fields = $config['list_fields'];
+    }
 
     /** {@inheritdoc} */
     public function getOptions(): array
     {
-        return $this->options['options'] ?? [];
+        return $this->options;
     }
+
     /** {@inheritdoc} */
     public function setOptions(array $options): void
     {
-        $this->options['options'] = $options;
+        $this->options = $options;
     }
-
-
 
     /** {@inheritdoc} */
     public function getRenderOptions(): array
     {
-        return $this->options['render_options'];
+        return $this->renderOptions;
     }
+
     /** {@inheritdoc} */
     public function setRenderOptions(array $renderOptions): void
     {
-        $this->options['render_options'] = $renderOptions;
+        $this->renderOptions = $renderOptions;
     }
 
+    /** {@inheritdoc} */
+    public function mergeRenderOptions(array $renderOptions): void
+    {
+        $this->renderOptions = array_merge($this->renderOptions, $renderOptions);
+    }
 
     /** {@inheritdoc} */
     public function getFields(): array
     {
-        return $this->options['fields'];
+        return $this->fields;
     }
 
     /** {@inheritdoc} */
@@ -131,249 +115,247 @@ abstract class AbstractListType implements ListTypeInterface
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
             $this->pageName,
-            $this->entityName
+            $this->pageEntity
         );
-        $this->options['fields'] = $validFields;
+        $this->fields = $validFields;
     }
-
 
     /** {@inheritdoc} */
     public function getPaginationOptions(): array
     {
-        return $this->options['pagination'];
+        return $this->paginationOptions;
     }
+
     /** {@inheritdoc} */
     public function setPaginationOptions(array $paginationOptions): void
     {
-        $this->options['pagination'] = $paginationOptions;
+        $this->paginationOptions = $paginationOptions;
     }
 
+
+    // /**
+    //  * Get the base URL for pagination links.
+    //  *
+    //  * @return Url|null The URL enum for the base URL, or null if not set
+    //  */
+    // public function getPaginationBaseUrl(): ?Url
+    // {
+    //     // ⚠️ TEMPORARY: This is a hack for Phase 2
+    //     // Will be properly handled by UrlService in Phase 3
+    //     return $this->renderOptions['pagination_url'] ?? $this->paginationBaseUrl;
+    // }
 
     /** {@inheritdoc} */
-    public function setUrlDependentRenderOptions(): void
+    public function buildList(ListBuilderInterface $builder): void
     {
-        // if ($this->routeType === 'public') {
-        //     $prefix = strtoupper('core' . '_' . $this->entityName);
-        // } else {
-        //     $prefix = strtoupper($this->routeType . '_' . $this->entityName);
+        $builder->setListTitle($this->renderOptions['title'] ?? 'List');
+        $builder->setOptions($this->options);
+        $builder->setRenderOptions($this->renderOptions);
+
+        // Add columns from field definitions
+        foreach ($this->fields as $fieldName) {
+            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks(
+                $fieldName,
+                $this->pageName,
+                $this->pageEntity
+            );
+
+            if ($columnDef && isset($columnDef['list'])) {
+                $builder->addColumn($fieldName, $columnDef['label'], $columnDef['list']);
+            } else {
+                $this->logger->warning('AbstractListType: Field definition not found', [
+                    'fieldName' => $fieldName,
+                    'pageName' => $this->pageName,
+                    'pageEntity' => $this->pageEntity,
+                ]);
+            }
+        }
+
+        // // ✅ FIXED: Check if ANY action is enabled instead of requiring 'show_actions' flag
+        // $hasActions = ($this->renderOptions['show_action_edit'] ?? false)
+        //     || ($this->renderOptions['show_action_del'] ?? false)
+        //     || ($this->renderOptions['show_action_view'] ?? false);
+
+        // if ($hasActions) {
+        //     $this->addActions($builder);
         // }
-        // fixme shit
-        $prefix = strtoupper('core' . '_' . $this->entityName);
 
 
-
-
-        $this->urlEnumArray = Url::getSection($prefix);
-        // if ($this->routeType === 'account') {
-            // $this->urlEnumArray = Url::getSection('ACCOUNT_' . $rrr);
-        // } elseif ($this->routeType === 'store') {
-            // $this->urlEnumArray = Url::getSection('STORE_POST');
-        // } else {
-            // $this->urlEnumArray = Url::getSection('CORE_POST');
-        // }
-
-        $this->options['render_options']['add_button_label']    = $this->urlEnumArray['create']->label();
-        //$this->options['render_options']['add_button_icon']     = $this->urlEnumArray['create']->icon();
-        $this->options['render_options']['add_url']             = $this->urlEnumArray['create']->url();
-        $this->options['render_options']['pagination_url']      = $this->urlEnumArray['index']->paginationUrl();
+        $this->addActions($builder);
     }
 
 
-
-
-
-
-
     /**
-     * Get additional attributes for the delete action.
+     * Add action columns (edit, delete, view) based on render options and Url enums
      *
-     * Can be overridden by child classes to provide custom attributes.
-     *
-     * @return array<string, string> Associative array of attributes.
-     */
-    protected function getDeleteActionAttributes(): array
-    {
-        return [];
-    }
-
-
-
-
-    /**
-     * Add action columns (view, edit, delete) to the list builder.
-     *
-     * @param ListBuilderInterface $builder The list builder instance.
-     * @return void
+     * @param ListBuilderInterface $builder
      */
     private function addActions(ListBuilderInterface $builder): void
     {
-        // Todo this is where the logic for Toggle Status button add goes
-        // Add actions
-        //$rrr = $this->context->getRouteType(); // routeType: $rrr
+        $renderOptions = $this->getRenderOptions();
 
-        // fixme shit
+        // ✅ Get URL enums and route type from render_options (set by controller)
+        $urlEnums = $renderOptions['url_enums'] ?? [];
+        $routeType = $renderOptions['route_type'] ?? 'core';
 
+        // ✅ DEBUG: Log what we extracted
+        // $this->logger->debug('AbstractListType::addActions() URL enums extracted', [
+        //     'url_enums_count' => count($urlEnums),
+        //     'url_enums_keys' => array_keys($urlEnums),
+        //     'route_type' => $routeType,
+        // ]);
 
-        $builder->addAction(
-            'view',
-            $this->urlEnumArray['view']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
-        );
-
-        if ($this->options['render_options']['show_action_edit']) {
-            $builder->addAction(
-                'edit',
-                $this->urlEnumArray['edit']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
-            );
+        if (empty($urlEnums)) {
+            $this->logger->warning('AbstractListType: No URL enums configured, skipping action columns', [
+                'all_render_options' => $renderOptions,
+            ]);
+            return;
         }
 
-        if ($this->options['render_options']['show_action_del']) {
-            $builder->addAction(
-                'delete',
-                $this->urlEnumArray['delete']->toLinkData(['id' => '{id}'], routeType: $this->routeType)
-            );
+        // ✅ Track number of actions added
+        $actionsAdded = 0;
 
-            // $builder->addAction('delete', $this->urlEnumArray['delete']->toLinkData(
-            //     ['id' => '{id}'],
-            //     // icon: null
-            //     // label: 'Delete Post',
-            //     attributes: $this->getDeleteActionAttributes()
-            // ));
+        // ✅ Edit action
+        $showEdit = $renderOptions['show_action_edit'] ?? false;
+        $hasEditEnum = isset($urlEnums['edit']);
+
+        // $this->logger->debug('AbstractListType::addActions() Checking edit action', [
+        //     'show_action_edit' => $showEdit,
+        //     'has_edit_url_enum' => $hasEditEnum,
+        //     'will_add' => $showEdit && $hasEditEnum,
+        // ]);
+
+        if ($showEdit && $hasEditEnum) {
+            /** @var Url $editUrl */
+            $editUrl = $urlEnums['edit'];
+            $generatedUrl = $editUrl->url(['id' => '{id}'], $routeType);
+
+            // $this->logger->debug('AbstractListType::addActions() Adding edit action', [
+            //     'enum_name' => $editUrl->name,
+            //     'generated_url' => $generatedUrl,
+            // ]);
+
+            $builder->addAction('edit', [
+                'url' => $generatedUrl,
+                'label' => 'Edit',
+                'icon' => 'pencil',
+            ]);
+            $actionsAdded++;
+        }
+
+        // ✅ Delete action
+        $showDel = $renderOptions['show_action_del'] ?? false;
+        $hasDelEnum = isset($urlEnums['delete']);
+
+        // $this->logger->debug('AbstractListType::addActions() Checking delete action', [
+        //     'show_action_del' => $showDel,
+        //     'has_delete_url_enum' => $hasDelEnum,
+        //     'will_add' => $showDel && $hasDelEnum,
+        // ]);
+
+        if ($showDel && $hasDelEnum) {
+            /** @var Url $deleteUrl */
+            $deleteUrl = $urlEnums['delete'];
+            $generatedUrl = $deleteUrl->url(['id' => '{id}'], $routeType);
+
+            // $this->logger->debug('AbstractListType::addActions() Adding delete action', [
+            //     'enum_name' => $deleteUrl->name,
+            //     'generated_url' => $generatedUrl,
+            // ]);
+
+            $builder->addAction('delete', [
+                'url' => $generatedUrl,
+                'label' => 'Delete',
+                'icon' => 'trash',
+                'attributes' => $this->getDeleteActionAttributes(),
+            ]);
+            $actionsAdded++;
+        }
+
+        // ✅ View action
+        $showView = $renderOptions['show_action_view'] ?? false;
+        $hasViewEnum = isset($urlEnums['view']);
+
+        // $this->logger->debug('AbstractListType::addActions() Checking view action', [
+        //     'show_action_view' => $showView,
+        //     'has_view_url_enum' => $hasViewEnum,
+        //     'will_add' => $showView && $hasViewEnum,
+        // ]);
+
+        if ($showView && $hasViewEnum) {
+            /** @var Url $viewUrl */
+            $viewUrl = $urlEnums['view'];
+            $generatedUrl = $viewUrl->url(['id' => '{id}'], $routeType);
+
+            // $this->logger->debug('AbstractListType::addActions() Adding view action', [
+            //     'enum_name' => $viewUrl->name,
+            //     'generated_url' => $generatedUrl,
+            // ]);
+
+            $builder->addAction('view', [
+                'url' => $generatedUrl,
+                'label' => 'View',
+                'icon' => 'eye',
+            ]);
+            $actionsAdded++;
         }
     }
 
 
+    /**
+     * Get delete action attributes (e.g., data attributes for JS confirmation)
+     *
+     * Override in child classes to customize delete behavior
+     *
+     * @return array<string, mixed>
+     */
+    abstract protected function getDeleteActionAttributes(): array;
+
+
+
+    /**
+     * Validate that the configured fields exist and are accessible
+     *
+     * @param array<string> $fields Array of field names to validate
+     * @return array<string> Array of valid field names
+     */
     public function validateFields(array $fields): array
     {
-        if (!isset($fields) || !is_array($fields) || empty($fields)) {
-            $this->logWarning("No Fields/Columns found. - ERR-DEV85");
-        }
+        $validFields = [];
 
-        $validFields = $this->fieldRegistryService->filterAndValidateFields(
-            $fields,
-            $this->pageName,
-            $this->entityName
-        );
+        foreach ($fields as $fieldName) {
+            $fieldDef = $this->fieldRegistryService->getFieldWithFallbacks(
+                $fieldName,
+                $this->pageName,
+                $this->pageEntity
+            );
+
+            if ($fieldDef !== null) {
+                $validFields[] = $fieldName;
+            } else {
+                $this->logger->warning('AbstractListType: Invalid field configured', [
+                    'fieldName' => $fieldName,
+                    'pageName' => $this->pageName,
+                    'pageEntity' => $this->pageEntity,
+                ]);
+            }
+        }
 
         return $validFields;
     }
 
 
-    /** {@inheritdoc} */
-    public function buildList(ListBuilderInterface $builder): void
-    {
-        $builder->setListTitle($this->options['render_options']['title'] ?? 'list.posts.title');
-
-        $flattenOptions = $this->options;
-        unset($flattenOptions['pagination']);
-        unset($flattenOptions['render_options']);
-        $builder->setOptions($flattenOptions);
-
-        $builder->setRenderOptions($this->getRenderOptions());
-        $builder->setPagination($this->getPaginationOptions() ?? []);
-
-        $columns = $this->getFields();
-        foreach ($columns as $name) {
-            //$columnDef = $this->fieldRegistryService->getFieldWithFallbacks($columnName, $this);
-            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks(
-                $name,
-                $this->pageName,
-                $this->entityName
-            );
-            if ($columnDef && isset($columnDef['list'])) {
-                $builder->addColumn($name, $columnDef['label'], $columnDef['list']);
-            }
-        }
-
-        if (!empty($this->options['render_options']['show_actions'])) {
-            $this->addActions($builder);
-        }
-    }
-
-
     /**
      * Log a warning message in development mode
+     *
+     * @param string $message Warning message
+     * @return void
      */
     private function logWarning(string $message): void
     {
         if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("Form Warning: {$message}", E_USER_WARNING);
+            trigger_error("List Warning: {$message}", E_USER_WARNING);
         }
-
-        // Always log to system log
-        error_log("Form Warning: {$message}");
-    }
-
-
-    private function init(): void
-    {
-        $securityConfig = $this->configService->get('security');
-        if ($securityConfig === null) {
-            throw new \RuntimeException('Fatal error: Required config file "security.php" is missing.');
-        }
-        $forceCaptcha = $securityConfig['captcha']['force_captcha'] ?? false;
-
-        ///////////////////////////////////////////////////////////////////////
-        // Retrieve Default Config values
-        ///////////////////////////////////////////////////////////////////////
-        $defaultConfig = $this->configService->get('view.list', []);
-        //$formTheme              = $defaultConfig['default_form_theme'] ?? "christmas";
-
-        //$defaultConfig2 = $this->configService->get('view.form', []); // fix - temp shit, safe to remove
-
-
-        $defaultOptions         = $defaultConfig['options'];
-        $defaultPagination      = $defaultConfig['pagination'];
-        $defaultRenderOptions   = $defaultConfig['render_options'];
-        $defaultListFields      = $defaultConfig['list_fields'];
-        ///////////////////////////////////////////////////////////////////////
-
-
-        ///////////////////////////////////////////////////////////////////////
-        // Retrieve View Config values
-        ///////////////////////////////////////////////////////////////////////
-        $pageName = $this->pageName;
-        $pageFeature = $this->pageFeature;
-
-        // fixme shit2 ok
-        // ✅ Get entire config file
-        $viewConfig = $this->configService->getFromFeature($pageFeature, 'view_' . $pageName);
-
-        // // ✅ Get nested value with dot notation
-        // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
-
-        // // ✅ Get deeply nested value
-        // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
-
-        // $viewConfig = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
-        if ($viewConfig === null) {
-            throw new \RuntimeException(
-                "Fatal error: Required config file \"view_options/{$pageName}.php\" is missing."
-            );
-        }
-
-        $viewOptions         = $viewConfig['options'];
-        $viewPagination      = $viewConfig['pagination'];
-        $viewRenderOptions   = $viewConfig['render_options'];
-        $viewListFields      = $viewConfig['list_fields'];
-        ///////////////////////////////////////////////////////////////////////
-
-
-        ///////////////////////////////////////////////////////////////////////
-        // Merge default and view Config values
-        // Except for List_field values, they replace if set
-        ///////////////////////////////////////////////////////////////////////
-        $finalOptions          = array_merge($defaultOptions, $viewOptions);
-        $finalPagination       = array_merge($defaultPagination, $viewPagination);
-        $finalRenderOptions    = array_merge($defaultRenderOptions, $viewRenderOptions);
-        if (!isset($viewListFields) || !is_array($viewListFields) || empty($viewListFields)) {
-            $finalListFields   = $defaultListFields;
-        } else {
-            $finalListFields   = $viewListFields;
-        }
-
-        $this->setOptions($finalOptions);
-        $this->setPaginationOptions($finalPagination);
-        $this->setRenderOptions($finalRenderOptions);
-        $this->setFields($finalListFields);
+        error_log("List Warning: {$message}");
     }
 }

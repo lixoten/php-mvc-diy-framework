@@ -75,7 +75,7 @@ class Router implements RouterInterface
         // if (isset($urlParts['query'])) {
             // parse_str($urlParts['query'], $queryParams);
         // }
-        // FindEntry - Router Match
+        // FindIt - Router Match
         //Debug::p($url,0);
         foreach ($this->routes as $route => $params) {
             if (preg_match($route, $url, $matches)) {

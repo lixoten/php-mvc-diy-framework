@@ -48,7 +48,12 @@ class FeatureMoveCommand extends Command
             ->setName(static::$defaultName)
             ->setDescription(static::$defaultDescription)
             ->addArgument('entity', InputArgument::REQUIRED, 'The name of the entity (e.g., "Testy").')
-            ->addArgument('type', InputArgument::OPTIONAL, 'The type of files to move (all, entity, repository, seeder, migration).', 'all');
+            ->addArgument(
+                'type',
+                InputArgument::OPTIONAL,
+                'The type of files to move (all, entity, repository, seeder, migration).',
+                'all'
+            );
     }
 
     /**
@@ -77,25 +82,25 @@ class FeatureMoveCommand extends Command
         $moveMap = [
             'entity' => [
                 'pattern' => "{$entity}.php",
-                'dest' => $this->pathResolverService->getAppFeatureEntityPath($entity), // Destination is a directory
+                'dest' => $this->pathResolverService->getAppFeatureEntityPath($entity),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one entity file expected
             ],
             'repositoryinterface' => [
                 'pattern' => "{$entity}RepositoryInterface.php",
-                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity), // Destination is a directory
+                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one interface file expected
             ],
             'repository' => [
                 'pattern' => "{$entity}Repository.php",
-                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity), // Destination is a directory
+                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one repository file expected
             ],
             'migration' => [
                 'pattern' => "*Create{$entity}Table.php",
-                'dest' => $this->pathResolverService->getDatabaseMigrationsPath(), // Destination is a directory
+                'dest' => $this->pathResolverService->getDatabaseMigrationsPath(),
                 'rename_on_move' => false, // Migrations keep timestamped names
                 'process_all_matching' => false, // All matching migrations should be moved
             ],
@@ -104,6 +109,12 @@ class FeatureMoveCommand extends Command
                 'dest' => $this->pathResolverService->getDatabaseSeedersPath(), // Destination is a directory
                 'rename_on_move' => true, // Seeders are renamed to EntitySeeder.php
                 'process_all_matching' => false, // Only the latest seeder is moved
+            ],
+            'fieldconfig' => [
+                'pattern' => strtolower($entity) . "_fields" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity), // ...Features/{Entity}/Config
+                'rename_on_move' => false,
+                'process_all_matching' => false,
             ],
             // Add more as needed (Controller, FormType, ListType, etc.)
         ];
@@ -163,8 +174,9 @@ class FeatureMoveCommand extends Command
                     if (file_exists($fileToArchive)) {
                         $archiveFilePath = $archiveDir . DIRECTORY_SEPARATOR . basename($fileToArchive);
                         if (rename($fileToArchive, $archiveFilePath)) {
-                            //$io->note("Archived old generated file: <comment>" . basename($fileToArchive) . "</comment> to <comment>" . $info['archive_subdir'] . "</comment>");
-                            $io->note("Archived old generated file: <comment>" . basename($fileToArchive) . "</comment> to <comment>" . basename($archiveDir) . "</comment>");
+                            $io->note("Archived old generated file: <comment>" . basename($fileToArchive)
+                                                                               . "</comment> to <comment>"
+                                                                               . basename($archiveDir) . "</comment>");
                         } else {
                             $io->warning("Failed to archive old generated file: {$fileToArchive}");
                         }
@@ -190,12 +202,14 @@ class FeatureMoveCommand extends Command
 
                 // Check if a file with the FINAL FILENAME already exists in the DESTINATION
                 if (file_exists($destinationFilePath)) {
-                    $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity); // Ensure archive dir is correct
+                    $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity);
                     $this->ensureDirectoryExists($archiveDir, $io);
-                    $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR . $this->addTimestampToFilename(basename($destinationFilePath));
+                    $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR
+                                                       . $this->addTimestampToFilename(basename($destinationFilePath));
                     rename($destinationFilePath, $archiveExistingPath);
-                    // $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath) . "</comment> to <comment>" . $info['archive_subdir'] . "</comment>");
-                    $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath) . "</comment> to <comment>" . basename($archiveDir) . "</comment>");
+                    $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath)
+                                                                              . "</comment> to <comment>"
+                                                                              . basename($archiveDir) . "</comment>");
                 }
 
                 // Ensure destination directory exists

@@ -11,7 +11,7 @@ final class ListRenderOptions
     public const SHOW_ACTION_ADD    = 'show_action_add';
     public const SHOW_ACTION_EDIT   = 'show_action_edit';
     public const SHOW_ACTION_DEL    = 'show_action_del';
-    public const SHOW_ACTION_STATUS = 'show_action_status';
+    public const SHOW_ACTION_STATUS = 'show_action_status'; // fixme issue - do we wanna treat is a s a button?
 
     public const TITLE              = 'title';
 

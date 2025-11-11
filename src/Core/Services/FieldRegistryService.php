@@ -102,22 +102,22 @@ class FieldRegistryService
         // Entity - field_testy
         // Base   - field_base
 
-        // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/field_{pageName}.php
+        // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/{pageName}_fields.php
         // This assumes pageName for a feature is like 'testy_list' or 'testy_edit'
         // and the config file is field_testy.php
         //$featureEntityName = str_replace(['_list', '_edit'], '', $pageName); // Extract 'testy' from 'testy_list'
 
         // fixme shit2 - ok
-        $field = $this->configService->getFromFeature($entityName, 'field_' . $pageName . ".$fieldName");
+        $field = $this->configService->getFromFeature($entityName, $pageName . '_fields' . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
             $field['label'] = $field['label'];//fixme - t/he "*" is mine indicator
             return $field;
         }
 
-        // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/field_{entityName}.php
+        // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/{entityName}_fields.php
         // fixme shit2 - ok
-        $field = $this->configService->getFromFeature($entityName, 'field_' . $entityName . ".$fieldName");
+        $field = $this->configService->getFromFeature($entityName, $entityName . '_fields' . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '!' . $field['label'];
             $field['label'] = $field['label'];

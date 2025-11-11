@@ -69,7 +69,7 @@ class FrontController implements RequestHandlerInterface
         //"App\Features\Post\PostController"
         //"App\Features\Testy\TestyController"
 
-        // FindEntry - ControllerClass
+        // FindIt - If Exists ControllerClass
         // Check if controller class exists
         if (!class_exists($controllerClass)) {
             throw new PageNotFoundException("Controller class '$controllerClass' not found.");
@@ -242,7 +242,7 @@ class FrontController implements RequestHandlerInterface
         // Register Home routes
         //$this->router->add('/post', 'Post@index');
         //??? $this->router->add('', ['controller' => 'Home', 'action' => 'index']);
-        $this->router->add('{controller}/page/{page:\d+}', ['action' => 'index']);
+        $this->router->add('{controller}/list/page/{page:\d+}', ['action' => 'list']);
         //$this->router->add('admin/{controller}/{action}');
 
         ## http://mvclixo.tv/admin/usersxx/boo - notFound

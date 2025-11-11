@@ -53,51 +53,8 @@ return [
         [
             'title'     => 'Your Title',
             'fields'    => [
-                'username',                 // text
-                'is_green',                 // checkbox
-                'is_blue',                 // checkbox
-                'is_green',                 // checkbox
-                'generic_code',                 // select
-                'status',                 // select
-                'roles',
-
-                // 'title',                 // text
-                // 'secret_code_hash',      // password
-                // 'primary_email',         // email
-                // 'online_address',        // url
-                // 'telephone',             // tel
-
-                // 'generic_date',          // date
-                // 'generic_datetime',      // datetime-local
-                // 'generic_month',         // month
-                // 'generic_week',          // week
-                // 'generic_time',          // time
-
-                // 'generic_number',        // number
-                // 'generic_decimal',       // number
-
-                // 'volume_level',          // range int
-                // 'start_rating',          // range dec
-
-
-                // 'generic_color',         // color
-
-                // 'profile_picture',
-
-                // 'is_verified',           // checkbox
-                // 'interest_soccer_ind',   // checkbox
-                // 'interest_baseball_ind', // checkbox
-                // 'interest_football_ind', // checkbox
-                // 'interest_hockey_ind',   // checkbox
-
-                // 'gender_id',             // select
-                // 'gender_other',
-
-
-                // 'balance',
-                // 'date_of_birth',
-                // 'favorite_week_day',
-                // 'content',
+                'name',                 // text
+                'description',
                 // 'store_id',
 
                 // 'is_boodddddvssssserified',
@@ -128,6 +85,6 @@ return [
     'form_hidden_fields' => [
         // 'id',
         // 'store_id',
-        // 'texxstyddddddddddddddddd_user_id',
+        // 'testyddddddddddddddddd_user_id',
     ]
 ];

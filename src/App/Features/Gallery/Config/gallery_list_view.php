@@ -40,7 +40,6 @@ return [
         'show_action_status'    => false,
     ],
     'list_fields' => [
-        // 'id', 'title',  'content', 'generic_text', 'status', 'created_at'
-        'id', 'store_id', 'user_id', 'title',  'content', 'status', 'created_at'
+        'id', 'store_id', 'user_id', 'name',  'description', 'status', 'created_at'
     ],
 ];

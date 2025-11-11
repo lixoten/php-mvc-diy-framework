@@ -8,7 +8,7 @@ use Core\Database\Seeders\Seeder;
 use Core\Database\ConnectionInterface;
 
 /**
- * Generated File - Date: 20251108_110713
+ * Generated File - Date: 20251109_203213
  * Seeder for 'store' table.
  *
  * @package   MVC LIXO Framework
@@ -50,8 +50,8 @@ class StoreSeeder extends Seeder
                 'name' => 'My First Awesome Store',
                 'description' => 'This is the description for my first store. We sell amazing things!',
                 'theme' => 'default',
-                'created_at' => '2025-11-08 11:07:13',
-                'updated_at' => '2025-11-08 11:07:13',
+                'created_at' => '2025-11-09 20:32:13',
+                'updated_at' => '2025-11-09 20:32:13',
             ],
             [
                 'user_id' => 3,
@@ -60,8 +60,8 @@ class StoreSeeder extends Seeder
                 'name' => 'Another Great Shop',
                 'description' => 'A placeholder store that is currently inactive.',
                 'theme' => 'minimal',
-                'created_at' => '2025-11-07 11:07:13',
-                'updated_at' => '2025-11-07 11:07:13',
+                'created_at' => '2025-11-08 20:32:13',
+                'updated_at' => '2025-11-08 20:32:13',
             ],
             [
                 'user_id' => 3,
@@ -70,8 +70,8 @@ class StoreSeeder extends Seeder
                 'name' => 'Suspended Boutique',
                 'description' => 'This store is temporarily suspended due to policy violations.',
                 'theme' => 'default',
-                'created_at' => '2025-11-06 11:07:13',
-                'updated_at' => '2025-11-06 11:07:13',
+                'created_at' => '2025-11-07 20:32:13',
+                'updated_at' => '2025-11-07 20:32:13',
             ],
             [
                 'user_id' => 3,
@@ -80,8 +80,8 @@ class StoreSeeder extends Seeder
                 'name' => 'John Stamps',
                 'description' => 'This store sssssssss is temporarily suspended due to policy violations.',
                 'theme' => 'default',
-                'created_at' => '2025-11-06 11:07:13',
-                'updated_at' => '2025-11-06 11:07:13',
+                'created_at' => '2025-11-07 20:32:13',
+                'updated_at' => '2025-11-07 20:32:13',
             ],
             [
                 'user_id' => 4,
@@ -90,8 +90,8 @@ class StoreSeeder extends Seeder
                 'name' => 'Tech Gadget Hub',
                 'description' => 'Your one-stop shop for the latest electronics and gadgets.',
                 'theme' => 'modern',
-                'created_at' => '2025-11-03 11:07:13',
-                'updated_at' => '2025-11-03 11:07:13',
+                'created_at' => '2025-11-04 20:32:13',
+                'updated_at' => '2025-11-04 20:32:13',
             ],
             [
                 'user_id' => 2,
@@ -100,8 +100,8 @@ class StoreSeeder extends Seeder
                 'name' => 'Eco-Friendly Living',
                 'description' => 'Sustainable products for a greener lifestyle.',
                 'theme' => 'green',
-                'created_at' => '2025-11-01 11:07:13',
-                'updated_at' => '2025-11-01 11:07:13',
+                'created_at' => '2025-11-02 20:32:13',
+                'updated_at' => '2025-11-02 20:32:13',
             ],
             [
                 'user_id' => 3,
@@ -110,8 +110,8 @@ class StoreSeeder extends Seeder
                 'name' => 'Vintage Treasures',
                 'description' => 'Curated collection of antique and vintage items.',
                 'theme' => 'classic',
-                'created_at' => '2025-10-29 11:07:13',
-                'updated_at' => '2025-10-29 11:07:13',
+                'created_at' => '2025-10-30 20:32:13',
+                'updated_at' => '2025-10-30 20:32:13',
             ],
             [
                 'user_id' => 4,
@@ -120,28 +120,28 @@ class StoreSeeder extends Seeder
                 'name' => 'Artisan Crafts Co.',
                 'description' => 'Handmade goods from local artists.',
                 'theme' => 'rustic',
-                'created_at' => '2025-10-27 11:07:13',
-                'updated_at' => '2025-10-27 11:07:13',
+                'created_at' => '2025-10-28 20:32:13',
+                'updated_at' => '2025-10-28 20:32:13',
             ],
             [
-                'user_id' => 3,
+                'user_id' => 4,
                 'status' => 'A',
                 'slug' => 'bookworm-haven',
                 'name' => 'Bookworm Haven',
                 'description' => 'A cozy place for book lovers to find their next read.',
                 'theme' => 'library',
-                'created_at' => '2025-10-24 11:07:13',
-                'updated_at' => '2025-10-24 11:07:13',
+                'created_at' => '2025-10-25 20:32:13',
+                'updated_at' => '2025-10-25 20:32:13',
             ],
             [
-                'user_id' => 2,
+                'user_id' => 4,
                 'status' => 'S',
                 'slug' => 'fashion-forward-hub',
                 'name' => 'Fashion Forward Hub',
                 'description' => 'Trendy apparel and accessories for all seasons.',
                 'theme' => 'chic',
-                'created_at' => '2025-10-21 11:07:13',
-                'updated_at' => '2025-10-21 11:07:13',
+                'created_at' => '2025-10-22 20:32:13',
+                'updated_at' => '2025-10-22 20:32:13',
             ],
             [
                 'user_id' => 4,
@@ -150,18 +150,18 @@ class StoreSeeder extends Seeder
                 'name' => 'Pet Paradise Store',
                 'description' => 'Everything your furry, scaly, or feathered friends need.',
                 'theme' => 'animal',
-                'created_at' => '2025-10-19 11:07:13',
-                'updated_at' => '2025-10-19 11:07:13',
+                'created_at' => '2025-10-20 20:32:13',
+                'updated_at' => '2025-10-20 20:32:13',
             ],
             [
-                'user_id' => 3,
+                'user_id' => 4,
                 'status' => 'I',
                 'slug' => 'gourmet-food-emporium',
                 'name' => 'Gourmet Food Emporium',
                 'description' => 'Fine foods and delicacies from around the world.',
                 'theme' => 'foodie',
-                'created_at' => '2025-10-17 11:07:13',
-                'updated_at' => '2025-10-17 11:07:13',
+                'created_at' => '2025-10-18 20:32:13',
+                'updated_at' => '2025-10-18 20:32:13',
             ],
             [
                 'user_id' => 4,
@@ -170,18 +170,18 @@ class StoreSeeder extends Seeder
                 'name' => 'Home Decor Delights',
                 'description' => 'Transform your living space with unique decorations.',
                 'theme' => 'interior',
-                'created_at' => '2025-10-14 11:07:13',
-                'updated_at' => '2025-10-14 11:07:13',
+                'created_at' => '2025-10-15 20:32:13',
+                'updated_at' => '2025-10-15 20:32:13',
             ],
             [
-                'user_id' => 2,
+                'user_id' => 4,
                 'status' => 'A',
                 'slug' => 'fitness-gear-pro',
                 'name' => 'Fitness Gear Pro',
                 'description' => 'High-quality equipment for your fitness journey.',
                 'theme' => 'sporty',
-                'created_at' => '2025-10-11 11:07:13',
-                'updated_at' => '2025-10-11 11:07:13',
+                'created_at' => '2025-10-12 20:32:13',
+                'updated_at' => '2025-10-12 20:32:13',
             ]
         ];
 

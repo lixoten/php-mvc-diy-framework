@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\List\Renderer;
 
+use App\Helpers\DebugRt;
 use Core\List\ListInterface;
 use Core\Services\ThemeServiceInterface;
 
@@ -48,7 +49,16 @@ abstract class AbstractListRenderer implements ListRendererInterface
      */
     public function renderList(ListInterface $list, array $options = []): string
     {
+        // $temp = $list->getRenderOptions();
+//
+        // DebugRt::j('0', '$options', $options);
+        // DebugRt::j('0', '$list->getRenderOptions()', $list->getRenderOptions());
+        // DebugRt::j('0', '$this->defaultOptions', $this->defaultOptions);
+
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+
+        // DebugRt::j('0', 'Fully merged options:', $options);
+
 
         $cardClass = $this->themeService->getElementClass('card');
 

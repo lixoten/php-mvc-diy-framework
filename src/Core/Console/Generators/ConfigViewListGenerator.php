@@ -11,7 +11,7 @@ use RuntimeException;
  * Service responsible for generating feature-specific field configuration files.
  *
  * This generator reads an entity's schema definition and produces a
- * `field_{entityName}.php` file within the feature's Config directory.
+ * `{entityName}_fields.php` file within the feature's Config directory.
  * This file defines how each field should be rendered in forms and lists,
  * including labels, input types, attributes, formatters, and validators.
  *
@@ -19,7 +19,7 @@ use RuntimeException;
  * @author    Your Name <your@email.com>
  * @copyright Copyright (c) 2025
  */
-class FieldConfigGenerator
+class ConfigViewListGenerator
 {
     private GeneratorOutputService $generatorOutputService;
 
@@ -63,7 +63,7 @@ class FieldConfigGenerator
             }
         }
 
-        $filePath = $outputDir . 'field_' . strtolower($entityName) . '.php';
+        $filePath = $outputDir . strtolower($entityName) . "_fields" . '.php';
         $fileContent = $this->generateFieldConfigFileContent($entityName, $fields);
 
         $success = file_put_contents($filePath, $fileContent);
@@ -97,9 +97,31 @@ class FieldConfigGenerator
             $labelKey = "{$entityNameLower}.{$fieldName}";
             $placeholderKey = "{$entityNameLower}.{$fieldName}.placeholder";
 
-            $fieldDefinitions[] = <<<PHP
-    '{$fieldName}' => [
-        'label' => '{$labelKey}',
+            // ADDED: Build the 'list' section if defined in schema
+            $listSection = '';
+            if (isset($config['list']) && is_array($config['list'])) {
+                $listConfig = $config['list'];
+            } else {
+                $listConfig = [
+                    'sortable' => false,
+                    'formatter' => null,
+                ];
+            }
+
+            $sortable = isset($listConfig['sortable']) ? ($listConfig['sortable'] ? 'true' : 'false') : 'false';
+            $formatter = isset($listConfig['formatter']) ? 'null' : 'null'; // Can be enhanced to support closures
+
+            $listSection = <<<PHP
+        'list' => [
+            'sortable' => {$sortable},
+            'formatter' => {$formatter},
+        ],
+
+PHP;
+            //}
+
+            // ADDED: Build the 'form' section as a variable for consistency
+            $formSection = <<<PHP
         'form' => [
             'type'          => '{$formType}',
             'required'      => {$this->formatBool($config['nullable'] ?? false, true)}, // Required if not nullable
@@ -107,6 +129,13 @@ class FieldConfigGenerator
                 'placeholder' => '{$placeholderKey}',
             ],
         ],
+PHP;
+
+
+            $fieldDefinitions[] = <<<PHP
+    '{$fieldName}' => [
+        'label' => '{$labelKey}',
+{$listSection}{$formSection}
         'formatters' => [
         ],
         'validators' => [
@@ -122,8 +151,6 @@ PHP;
         $php = <<<PHP
 <?php
 
-declare(strict_types=1);
-
 /**
  * Generated File - Date: {$generatedTimestamp}
  * Field definitions for the {$entityName} entity.
@@ -131,6 +158,9 @@ declare(strict_types=1);
  * This file defines how each field should be rendered in forms and lists,
  * including labels, input types, attributes, formatters, and validators.
  */
+
+declare(strict_types=1);
+
 return [
 {$fieldDefinitionsString}
 ];

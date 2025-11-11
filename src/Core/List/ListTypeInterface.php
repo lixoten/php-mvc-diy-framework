@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\List;
 
+use App\Enums\Url;
+
 /**
  * Interface for list types.
  *
@@ -14,14 +16,14 @@ interface ListTypeInterface
 {
     // // public function getCreateUrlEnum(): Url;
 
-    /**
-     * Set default options, URLs, and render options for the list.
-     *
-     * Should be called to initialize or reset the list's configuration.
-     *
-     * @return void
-     */
-    public function setUrlDependentRenderOptions(): void;
+    // /**
+    //  * Set default options, URLs, and render options for the list.
+    //  *
+    //  * Should be called to initialize or reset the list's configuration.
+    //  *
+    //  * @return void
+    //  */
+    // public function setUrlDependentRenderOptions(): void;
 
 
     // /**
@@ -62,7 +64,6 @@ interface ListTypeInterface
         string $pageName,
         string $pageFeature,
         string $pageEntity,
-        string $entityName
     ): void;
 
 
@@ -81,22 +82,24 @@ interface ListTypeInterface
      */
     public function setRenderOptions(array $renderOptions): void;
 
+    public function mergeRenderOptions(array $renderOptions): void;
 
 
     /**
-     * Get the pagination options array for this list type.
+     * Set pagination options for the list.
      *
-     * @return array Associative array of pagination options.
+     * @param array<string, mixed> $options Associative array of pagination options.
+     * @return void
+     */
+    public function setPaginationOptions(array $options): void;
+
+    /**
+     * Get pagination options for the list.
+     *
+     * @return array<string, mixed> Associative array of pagination options.
      */
     public function getPaginationOptions(): array;
 
-     /**
-     * Set the pagination options array for this list type.
-     *
-     * @param array $paginationOptions Associative array of pagination options.
-     * @return void
-     */
-    public function setPaginationOptions(array $paginationOptions): void;
 
 
     /**

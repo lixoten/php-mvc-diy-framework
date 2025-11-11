@@ -29,8 +29,6 @@ abstract class AbstractFormType implements FormTypeInterface
     public readonly string $pageFeature;
     public readonly string $pageEntity;
 
-    public readonly string $entityName;
-
     /**
      * Constructor
      */
@@ -51,12 +49,10 @@ abstract class AbstractFormType implements FormTypeInterface
         string $pageName,
         string $pageFeature,
         string $pageEntity,
-        string $entityName
     ): void {
         $this->pageName      = $pageName;
         $this->pageFeature   = $pageFeature;
         $this->pageEntity    = $pageEntity;
-        $this->entityName    = $entityName;
 
         $this->init();
     }
@@ -230,7 +226,7 @@ abstract class AbstractFormType implements FormTypeInterface
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
             $this->pageName,
-            $this->entityName
+            $this->pageEntity
         );
 
         // 4. Validate Layout fields against against All fields and remove invalid ones from layout
@@ -331,7 +327,7 @@ abstract class AbstractFormType implements FormTypeInterface
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
             $this->pageName,
-            $this->entityName
+            $this->pageEntity
         );
 
         return $validFields;
@@ -362,7 +358,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
         // Process each field
         foreach ($fieldNames as $name) {
-            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($name, $this->pageName, $this->entityName);
+            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($name, $this->pageName, $this->pageEntity);
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
                 if (isset($columnDef['label'])) {
@@ -481,7 +477,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
         // fixme shit2 ok
         // ✅ Get entire config file
-        $viewConfig = $this->configService->getFromFeature($pageFeature, 'view_' . $pageName);
+        $viewConfig = $this->configService->getFromFeature($pageFeature, $pageName . '_view');
 
         // // ✅ Get nested value with dot notation
         // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
@@ -492,7 +488,7 @@ abstract class AbstractFormType implements FormTypeInterface
         // $viewConfig = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
         if ($viewConfig === null) {
             throw new \RuntimeException(
-                "Fatal error: Required config file \"App\Features/Config/view_{$pageName}.php\" is missing."
+                "Fatal error: Required config file \"App\Features/Config/{$pageName}_view.php\" is missing."
             );
         }
         //D:\xampp\htdocs\my_projects\mvclixo\src\App\Features\Auth\Config\view_user_login.php

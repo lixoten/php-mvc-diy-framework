@@ -319,7 +319,7 @@ abstract class AbstractRepository implements BaseRepositoryInterface
 #     * @param array $criteria Optional filtering criteria
 #     * @return int Total number of users matching criteria
 #     */
-#    public function countAllxxx(array $criteria = []): int
+#    public function countAllXxx(array $criteria = []): int
 #    {
 #        $sql = "SELECT COUNT(*) as count FROM user";
 #        $params = [];

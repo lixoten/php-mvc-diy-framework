@@ -27,7 +27,7 @@ return [
         ]
     ],
 
-'roles' => [
+    'roles' => [
         'label' => 'user.roles---localform',
         'data_transformer' => 'json_array', // or 'array'
 
@@ -100,7 +100,7 @@ return [
                 // Custom formatter to convert to uppercase // Example: Custom Formatter in Config
                 return strtoupper((string)($value ?? ''));
             },
-            'foo'                       // Eample: Built-in Formatter in array that happens to be a class
+            'foo'                       // Example: Built-in Formatter in array that happens to be a class
         ],
         'validators' => [
             'callback' => [
@@ -208,7 +208,7 @@ return [
     //         ],
     //     ]
     // ],
-    'titlexxx' => [ // Example - do not use
+    'titleXxx' => [ // Example - do not use
         'label' => 'testy.title',
         'form' => [
             'type'          => 'text',
@@ -642,7 +642,7 @@ return [
                 // // 'leading_zeros_message'  => "custom - Leading zeros are not allowed.",
                 'invalid_message'           => "custom - Please enter a whole number (no decimals).",
             ],
-            'lengthxx' => [],
+            'lengthXxx' => [],
         ]
     ],
     'generic_decimal' => [
@@ -695,7 +695,7 @@ return [
             ],
         ]
     ],
-    'generic_decimalzzzzz' => [
+    'generic_decimalXxx' => [
         'label' => 'Generic Decimal Number',
         'form' => [
             'type' => 'number',

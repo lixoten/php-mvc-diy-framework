@@ -110,8 +110,6 @@ class ConfigService implements ConfigInterface
             return $this->testOverrides[$key];
         }
 
-        // DebugRt::p($key);
-
         // If it's a config group (like "logger"), return the environment-specific config
         if (!str_contains($key, '.')) {
             return $this->getEnvironmentConfig($key);

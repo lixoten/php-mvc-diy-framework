@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\Url;
 
-
 return [
     // Entity metadata
     'metadata' => [
@@ -18,10 +17,10 @@ return [
         'delete_confirm_url_enum' => Url::CORE_TESTY_DELETE_CONFIRM,
 
 
-        'owner_foreign_key' => 'user_id',
+        'owner_foreign_key'   => 'user_id',
         'redirect_after_save' => 'edit',
-        'redirect_after_add' => 'list',
-        'pageName' => 'testy_edit',
-        'entityName' => 'testy',
+        'redirect_after_add'  => 'list',
+        'pageName'            => 'testy_edit',
+        'entityName'          => 'testy',
     ],
 ];

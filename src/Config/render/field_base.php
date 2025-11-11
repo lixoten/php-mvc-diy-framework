@@ -12,12 +12,21 @@ return [
         ],
     ],
     'user_id' => [
-        'label' => 'base.acrUserId',
+        'label' => 'base.user_id',
         'list' => [
-            'sortable' => true,
+            'sortable' => false,
             'formatter' => null,
         ],
+        'form' => [
+        ],
+        'formatters' => [
+        ],
+        'validators' => [
+        ]
     ],
+
+
+
     'title' => [
         'label' => 'base.acrTitle',
         'list' => [
@@ -39,6 +48,26 @@ return [
         ]
     ],
     'name' => [
+        'label' => 'base.name',
+        'list' => [
+            'sortable' => false,
+            'formatter' => null,
+        ],
+        'form' => [
+            'type'          => 'textarea',
+            'required'      => true, // Required if not nullable
+            'attributes'    => [
+                'placeholder' => 'base.name.placeholder',
+            ],
+        ],
+        'formatters' => [
+        ],
+        'validators' => [
+            'text' => [ // Default validator, can be refined based on db_type
+            ],
+        ]
+    ],
+    'namexxx' => [
         'label' => 'base.acrName',
         'list' => [
             'sortable' => true,
@@ -47,7 +76,49 @@ return [
             },
         ],
     ],
+
+    'description' => [
+        'label' => 'base.description',
+        'list' => [
+            'sortable' => false,
+            'formatter' => null,
+        ],
+        'form' => [
+            'type'          => 'textarea',
+            'required'      => false, // Required if not nullable
+            'attributes'    => [
+                'placeholder' => 'base.description.placeholder',
+            ],
+        ],
+        'formatters' => [
+        ],
+        'validators' => [
+            'text' => [ // Default validator, can be refined based on db_type
+            ],
+        ]
+    ],
+
     'status' => [
+        'label' => 'base.status',
+        'list' => [
+            'sortable' => false,
+            'formatter' => null,
+        ],
+        'form' => [
+            'type'          => 'text',
+            'required'      => true, // Required if not nullable
+            'attributes'    => [
+                'placeholder' => 'testy.status.placeholder',
+            ],
+        ],
+        'formatters' => [
+        ],
+        'validators' => [
+            'text' => [ // Default validator, can be refined based on db_type
+            ],
+        ]
+    ],
+    'statusxxx' => [
         'label' => 'base.acrStatus',
         'list' => [
             'sortable' => true,

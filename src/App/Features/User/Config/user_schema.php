@@ -1,7 +1,30 @@
 <?php
 
+/**
+ * @file schema_user.php
+ *
+ * Defines the database schema and configuration metadata for the User entity.
+ * This file is used by code generators and the FieldRegistryService to
+ * build migrations, field configurations, and form/list definitions.
+ *
+ * @package App\Features\User\Config
+ * @author GitHub Copilot
+ * @copyright Copyright (c) 2025
+ */
+
 declare(strict_types=1);
-    $defaultPassword = (string)password_hash('password', PASSWORD_DEFAULT);
+
+/*
+ * If the 'list' configuration is omitted for a field, the ConfigFieldsGenerator
+ * will automatically apply the following default settings:
+ *
+ * 'list' => [
+ *     'sortable' => false,
+ *     'formatter' => null,
+ * ],
+ */
+
+$defaultPassword = (string)password_hash('password', PASSWORD_DEFAULT);
 
 return [
     // Entity Metadata
@@ -24,6 +47,10 @@ return [
             'nullable' => false,
             'unique' => true,
             'comment' => 'Unique username for login',
+            'list' => [
+                'sortable' => true,
+                'formatter' => null,
+            ],
         ],
         'email' => [
             'db_type' => 'string',

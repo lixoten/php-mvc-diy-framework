@@ -30,7 +30,7 @@ use App\Helpers\UiHelper;
             <?php endif; ?>
         </div>
     <?php else : ?>
-        <?= $list->render() ?>
+            <?php echo $renderedList; ?>
     <?php endif; ?>
 
     <div class="mt-4">

@@ -16,8 +16,9 @@ HowToWhatever.md
     2. [Steps to Restore MySQL from a Copied MySQL Folder](#steps-to-restore-mysql-from-a-copied-mysql-folder)
     3. [Clear VS-Code Cache](#clear-vs-code-cache)
 4. [VS-CODE](#vs-code)
-    1. [Excluse Files](#excluse-files)
-    2. [Understanding how files are matched:](#understanding-how-files-are-matched)
+    1. [Exclude Files](#exclude-files)
+    2. [Getting Around](#getting-around)
+    3. [Understanding how files are matched:](#understanding-how-files-are-matched)
 5. [Troubleshooting Doc](#troubleshooting-doc)
     1. [How to recover from XAMPP database corruption](#how-to-recover-from-xampp-database-corruption)
 6. [How to Shit](#how-to-shit)
@@ -98,7 +99,7 @@ HowToWhatever.md
 # VS-CODE
 Understanding Settings.json
 
-## Excluse Files
+## Exclude Files
   - Apply to all 3 of these and also add it to **.gitignore**
 
     ```
@@ -115,6 +116,9 @@ Understanding Settings.json
         //...
     }
     ```
+## Getting Around
+    // FindIt Entry Point of thing i wanna go to
+    // Fik - asdsdf
 
 ## Understanding how files are matched:
 
@@ -214,9 +218,9 @@ Understanding Settings.json
     - Run all:
         - `php`
     - outputs to:
-        - `srcGenerat`
-        - `srcGenerat`
-        - `srcGenerat`
+        - `srcGenerate`
+        - `srcGenerate`
+        - `srcGenerate`
 
 
 5. Update Create Table

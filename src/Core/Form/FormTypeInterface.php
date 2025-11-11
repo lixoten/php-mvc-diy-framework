@@ -70,9 +70,6 @@ interface FormTypeInterface
         string $pageName,
         string $pageFeature,
         string $pageEntity,
-        string $entityName
-        // string $viewFocus2,
-        // string $viewName2
     ): void;
 
 

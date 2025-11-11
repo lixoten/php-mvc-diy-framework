@@ -52,9 +52,9 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         // How you access route params depends on your router/framework integration
         // Assuming they are stored in the container or request attributes
         $routeParams = $request->getAttribute('route_params');
-        $pageName = $request->getAttribute('page_name'); // Get individual attribute
-        $entityId = $request->getAttribute('id');     // Get individual attribute
-        $actionName = $request->getAttribute('action'); // Get individual attribute
+        $pageName = $request->getAttribute('page_name');
+        $entityId = $request->getAttribute('id'); 
+        $actionName = $request->getAttribute('action');
 
         $namespace  =  $request->getAttribute('namespace');
         $controller =  $request->getAttribute('controller');
@@ -62,7 +62,13 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         $pageKey    =  $request->getAttribute('page_key');
         $pageName   =  $request->getAttribute('page_name');
 
-        // $pageName    =  $pageKey ;
+
+
+        $pageQueryParms   = $request->getQueryParams();
+        $pageListViewType = $pageQueryParms['view'] ?? 'table';
+
+
+
         $pageFeature =  $controller;
 
         if (in_array($controller, ['login', 'registration', 'logout'])) {
@@ -83,6 +89,11 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         $this->currentContext->setPageName($pageName);
         $this->currentContext->setPageFeature($pageFeature);
         $this->currentContext->setPageEntity($pageEntity);
+
+
+        $this->currentContext->setPageQueryParms($pageQueryParms);
+        $this->currentContext->setPageListViewType($pageListViewType);
+
 
         // Set context values (null if attributes don't exist)
         $this->currentContext->setPageKey($pageKey);

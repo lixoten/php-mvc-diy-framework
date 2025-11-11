@@ -10,6 +10,12 @@ class PaginationService
 {
     /**
      * Get pagination data for rendering
+     *
+     * @param Url $baseUrl The base URL enum (e.g., Url::CORE_TESTY_LIST)
+     * @param int $currentPage The current page number
+     * @param int $totalPages The total number of pages
+     * @param array<string, mixed> $urlParams Additional query parameters to include in the pagination links.
+     * @return array<string, mixed> Structured pagination data.
      */
     public function getPaginationData(
         Url $baseUrl,
@@ -18,21 +24,22 @@ class PaginationService
         array $urlParams = []
     ): array {
         if ($totalPages <= 1) {
-            return ['pages' => [], 'showPagination' => false];
+            return [
+                'pages' => [],
+                'showPagination' => false,
+                'baseUrlEnum' => $baseUrl,
+                'urlParams' => $urlParams
+            ];
         }
 
         $pages = [];
 
         // Generate page links
         for ($i = 1; $i <= $totalPages; $i++) {
-            $pageParams = array_merge($urlParams, ['page' => $i]);
-
             $pages[] = [
                 'number' => $i,
-                'url' => $baseUrl,
-                'href' => $baseUrl->url($pageParams),
+                'href' => $baseUrl->paginationUrl($i, $urlParams),
                 'text' => (string)$i,
-                'params' => $pageParams,
                 'active' => ($i === $currentPage),
                 'disabled' => false
             ];
@@ -41,12 +48,10 @@ class PaginationService
         // Previous link
         $prevLink = null;
         if ($currentPage > 1) {
-            $prevParams = array_merge($urlParams, ['page' => $currentPage - 1]);
             $prevLink = [
                 'url' => $baseUrl,
-                'href' => $baseUrl->url($prevParams),
+                'href' => $baseUrl->paginationUrl($currentPage - 1, $urlParams),
                 'text' => 'Previous',
-                'params' => $prevParams,
                 'active' => false,
                 'disabled' => false
             ];
@@ -55,12 +60,10 @@ class PaginationService
         // Next link
         $nextLink = null;
         if ($currentPage < $totalPages) {
-            $nextParams = array_merge($urlParams, ['page' => $currentPage + 1]);
             $nextLink = [
                 'url' => $baseUrl,
-                'href' => $baseUrl->url($nextParams),
+                'href' => $baseUrl->paginationUrl($currentPage + 1, $urlParams),
                 'text' => 'Next',
-                'params' => $nextParams,
                 'active' => false,
                 'disabled' => false
             ];
@@ -75,12 +78,21 @@ class PaginationService
             'showPagination' => true,
             'hasPages' => $totalPages > 1,
             'hasPrevious' => $currentPage > 1,
-            'hasNext' => $currentPage < $totalPages
+            'hasNext' => $currentPage < $totalPages,
+            'baseUrlEnum' => $baseUrl, // REF: Provide the Url enum object at top level
+            'urlParams' => $urlParams, // REF: Provide the original URL parameters at top level
         ];
     }
 
     /**
      * Get pagination with window (only show certain pages around current)
+     *
+     * @param Url $baseUrl The base URL enum (e.g., Url::CORE_TESTY_LIST)
+     * @param int $currentPage The current page number
+     * @param int $totalPages The total number of pages
+     * @param int $window The number of pages to show around the current page.
+     * @param array<string, mixed> $urlParams Additional query parameters to include in the pagination links.
+     * @return array<string, mixed> Structured pagination data with windowing.
      */
     public function getPaginationDataWithWindow(
         Url $baseUrl,
@@ -108,8 +120,29 @@ class PaginationService
         $data['window'] = $window;
         $data['windowStart'] = $start;
         $data['windowEnd'] = $end;
+
+         // Explicitly provide first and last page data if they are outside the window
         $data['showFirstPage'] = $start > 1;
+        if ($data['showFirstPage']) {
+            $data['firstPageLink'] = [
+                'href' => $baseUrl->paginationUrl(1, $urlParams),
+                'text' => '1',
+                'number' => 1,
+                'active' => false,
+                'disabled' => false
+            ];
+        }
+
         $data['showLastPage'] = $end < $totalPages;
+        if ($data['showLastPage']) {
+            $data['lastPageLink'] = [
+                'href' => $baseUrl->paginationUrl($totalPages, $urlParams),
+                'text' => (string)$totalPages,
+                'number' => $totalPages,
+                'active' => false,
+                'disabled' => false
+            ];
+        }
 
         return $data;
     }

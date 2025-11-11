@@ -36,6 +36,7 @@ use Core\Form\FormTypeInterface;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
+use Core\List\Renderer\ListRendererInterface;
 use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
 
@@ -45,22 +46,7 @@ use Psr\Log\LoggerInterface;
  */
 class UserController extends AbstractCrudController
 {
-    protected ConfigService $config;
     protected ?ServerRequestInterface $request = null; // Declare correctly with proper type
-    private UserService $userService;
-
-    // private FormFactoryInterface $formFactory;
-    // private FormHandlerInterface $formHandler;
-    // private UserRepositoryInterface $repository;
-    // private UserFormType $formType;
-    // private ListFactory $listFactory;
-    // private UserListType $listType;
-
-    // protected Logger $logger;
-    // protected EmailNotificationService $emailNotificationService;
-    // private PaginationService $paginationService;
-    //protected FormTypeInterface $formType; // Change from UserFormType to FormTypeInterface
-    //protected BaseRepositoryInterface $repository; // Change from UserRepositoryInterface to BaseRepositoryInterface
 
     public function __construct(
         array $route_params,
@@ -70,21 +56,22 @@ class UserController extends AbstractCrudController
         ContainerInterface $container,
         CurrentContext $scrap,
         //-----------------------------------------
-        private FeatureMetadataService $featureMetadataService,
-        protected FormFactoryInterface $formFactory,
-        protected FormHandlerInterface $formHandler,
-        FormTypeInterface $formType,//dangerdanger // 10
-        private ListFactoryInterface $listFactory,
-        private ListTypeInterface $listType,
+        FeatureMetadataService $featureMetadataService,
+        FormFactoryInterface $formFactory,
+        FormHandlerInterface $formHandler,
+        FormTypeInterface $formType,
+        ListFactoryInterface $listFactory,
+        ListTypeInterface $listType,
         UserRepositoryInterface $repository,
-        protected TypeResolverService $typeResolver,
+        TypeResolverService $typeResolver,
+        ListRendererInterface $listRenderer,
         //-----------------------------------------
-        ConfigInterface $config,
+        protected ConfigInterface $config,
         protected LoggerInterface $logger,
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
         private FormatterService $formatter,
-        UserService $userService
+        private UserService $userService
     ) {
         parent::__construct(
             $route_params,
@@ -102,20 +89,22 @@ class UserController extends AbstractCrudController
             $listType,
             $repository,
             $typeResolver,
+            $listRenderer,
         );
-        $this->config = $config;
-        // $this->formFactory = $formFactory;
-        // $this->formHandler = $formHandler;
-        // $this->repository = $repository;
-        // $this->formType = $formType;
-        // $this->listFactory = $listFactory;
-        // $this->listType = $listType;
-        $this->listType->routeType = $scrap->getRouteType();
-        $this->logger = $logger;
-        $this->emailNotificationService = $emailNotificationService;
-        $this->paginationService = $paginationService;
-        $this->formatter = $formatter;
-        $this->userService = $userService;
+        // constructor uses promotion php8+
+        // $this->config = $config;
+        // // $this->formFactory = $formFactory;
+        // // $this->formHandler = $formHandler;
+        // // $this->repository = $repository;
+        // // $this->formType = $formType;
+        // // $this->listFactory = $listFactory;
+        // // $this->listType = $listType;
+        // $this->listType->routeType = $scrap->getRouteType();
+        // $this->logger = $logger;
+        // $this->emailNotificationService = $emailNotificationService;
+        // $this->paginationService = $paginationService;
+        // $this->formatter = $formatter;
+        // $this->userService = $userService;
     }
 
     /**
@@ -142,35 +131,15 @@ class UserController extends AbstractCrudController
      */
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
-        // return parent::listAction(request: $request);
-
-        // $debugBar = $this->getDebugBar();
-
-        // $currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-        // $navData = $this->getNavigationData($currentPath);
-
-
-
-        //var_dump($request);
-        // $this->formType = $this->listType;
-        //$tmpEnum = $this->feature->baseUrlEnum;
         $pageName       = $this->scrap->getPageName();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
-
-        // $tmp = $tmpEnum->data()['view'];
-        $xpl = explode('_', $pageName);
-        // $pageNm   = $xpl[0] . '_' . $xpl[1];
-        $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
 
         $this->listType->setFocus(
             $pageName,
             $pageFeature,
             $pageEntity,
-            $entityNm
         );
-
-
 
 
         $options            = $this->listType->getOptions() ?? [];
@@ -178,34 +147,6 @@ class UserController extends AbstractCrudController
         $paginationOptions  = $this->listType->getPaginationOptions() ?? [];
         $listFields         = $this->listType->getFields() ?? [];
 
-
-
-
-
-
-
-        $filter = (string)($request->getQueryParams()['filter'] ?? "DDDD");
-
-        // $this->scrap->setRouteType('store');
-        // $storeId = $this->scrap->getStoreId();
-
-
-        //$EE = $this->feature->baseUrlEnum;
-
-        $url = $this->feature->listUrlEnum;
-
-
-        $routeType = $this->scrap->getRouteType();
-        // if ($routeType === 'account') {
-        //     $filter = 'user';
-        //     $url = Url::ACCOUNT_TESTY;
-        // } elseif ($routeType === 'store') {
-        //     $filter = 'store';
-        //     $url = Url::STORE_TESTY;
-        // } else {
-        //     $filter = 'user';
-        //     $url = Url::CORE_TESTY;
-        // }
 
         $sortField = $options['default_sort_key']
             ?? $this->listType->getOptions()['default_sort_key'] ?? PostFields2::TITLE->value;
@@ -216,15 +157,43 @@ class UserController extends AbstractCrudController
         $page = isset($this->route_params['page']) ? (int)$this->route_params['page'] : 1;
         $limit = $paginationOptions['per_page']
             ?? $this->listType->getPaginationOptions()['per_page'] ?? 2;
-        // $limit = $paginationOptions['per_page'] ?? 20;
         $offset = ($page - 1) * $limit;
 
-        ## todo introduce filters. At the moment we are not.
-        // if ($filter === "user") {
+
+        $routeType = $this->scrap->getRouteType();
+
+        $totalRecords = 0;
+        // 1. Fetch total records first to determine total pages
+        if ($this->scrap->getRouteType() === "account") {
+            $userId = $this->scrap->getUserId();
+            $totalRecords = $this->repository->countByUserId($userId);
+        } else {
+            if ($pageEntity === 'user') {
+                $totalRecords = $this->userService->countAllUsers();
+            } else {
+                $storeId = $this->scrap->getStoreId();
+                $totalRecords = $this->repository->countByStoreId($storeId);
+            }
+        }
+
+        // 2. Calculate total pages. Ensure it's at least 1, even if no records.
+        $totalPages = ($totalRecords > 0) ? ceil($totalRecords / $limit) : 1;
+
+
+        // 3. Validate the requested page number and adjust internally
+        if ($page < 1) {
+            $page = 1; // If page is less than 1, default to page 1
+        } elseif ($page > $totalPages) {
+            $page = (int)$totalPages; // If page is too high, set to the last valid page
+        }
+
+        // 4. Recalculate offset with the potentially corrected page number
+        $offset = ($page - 1) * $limit;
+
+        $records = [];
+
+        // 5. Fetch actual records
         if ($this->scrap->getRouteType() === "store") {
-            // $userId = $this->scrap->getUserId();
-            // $records = $this->repository->findByUserId($userId,
-            //                                              [$sortField => $sortDirection], $limit, $offset);
             $storeId = 1;
             $records = $this->repository->findByStoreIdWithFields(
                 $storeId,
@@ -234,12 +203,8 @@ class UserController extends AbstractCrudController
                 $offset
             );
 
-            $totalRecords = $this->repository->countByStoreId($storeId);
+            // $totalRecords = $this->repository->countByStoreId($storeId);
         } else {
-            //$records = $this->repository->findByStoreId($storeId, [$sortField => $sortDirection],
-            // $limit, $offset);
-
-            //help me here??????????????????????????????
             $records = $this->userService->getAllUsersWithFields(
                 $listFields,
                 $sortField,
@@ -248,13 +213,14 @@ class UserController extends AbstractCrudController
                 $offset
             );
 
-            $totalRecords = $this->userService->countAllUsers();
+            // $totalRecords = $this->userService->countAllUsers();
         }
 
         $totalPages = ceil($totalRecords / $limit);
         $paginationOptions['current_page'] = $page;
         $paginationOptions['total_pages'] = $totalPages;
         $paginationOptions['total_items'] = $totalRecords;
+        $paginationOptions['listUrlEnum'] = $this->feature->listUrlEnum;
 
         // $cols = !empty($listFields) ? $listFields : $this->listType->getFields();
         // if (!empty($listFields)) {
@@ -278,31 +244,46 @@ class UserController extends AbstractCrudController
         // );
         $dataRecords = $records;
 
+        // ✅ NEW: Update the ListType with the calculated runtime pagination options
+        $this->listType->setPaginationOptions($paginationOptions);
+
+        $this->listType->mergeRenderOptions([
+            'url_enums' => [
+                'list' => $this->feature->listUrlEnum,
+                'edit' => $this->feature->editUrlEnum,
+                'delete' => $this->feature->deleteUrlEnum ?? $this->feature->editUrlEnum,
+                'view' => $this->feature->viewUrlEnum ?? $this->feature->baseUrlEnum,
+                'add' => $this->feature->createUrlEnum ?? $this->feature->baseUrlEnum,
+            ],
+            'add_url' => $this->feature->createUrlEnum?->url([], $routeType) ?? '',
+            'route_type' => $this->scrap->getRouteType(),
+            'current_query_params' => $this->scrap->getPageQueryParms(),
+            'view_type' => $this->scrap->getPageListViewType(),
+        ]);
+
         $list = $this->listFactory->create(
             listType: $this->listType,
             data: $dataRecords,
+            // The 'options' array is now empty as all configuration is on the ListType.
+            // You can remove it entirely or leave it as an empty array for future factory-specific flags.
+            // options: [],
             options: [
                 // 'options'           => $options,
-                'pagination'        => $paginationOptions,
+                // 'pagination'        => $paginationOptions,
                 // 'render_options'    => $renderOptions,
                 // 'list_fields'       => $listFields,
             ],
         );
 
+        $renderedList = $this->listRenderer->renderList($list, []);
 
         $viewData = [
-            'title' => 'Testy List Action',
-            'list' => $list,
+            'title' => 'User List Action',
+            'renderedList' => $renderedList,
         ];
 
-        // $foo = $this->buildCommonViewData($viewData);
-        // $fee = Url::CORE_TESTY_LIST->view();
-        // $r = $this->view($fee, $foo);
-        // $r = $this->view(Url::CORE_TESTY_LIST->view(), $this->buildCommonViewData($viewData));
-        // return $r;
-        // exit();
 
-        // return $this->view(Url::CORE_TESTY_LIST->view(), $this->buildCommonViewData($viewData));
+        $url = $this->feature->listUrlEnum;
         return $this->view($url->view(), $this->buildCommonViewData($viewData));
     }
 
@@ -328,20 +309,14 @@ class UserController extends AbstractCrudController
 
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
-        // return parent::editAction(request: $request);
-
         $pageName       = $this->scrap->getPageName();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
-        $xpl = explode('_', $pageName);
-        $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
-
         $this->formType->setFocus(
             $pageName,
             $pageFeature,
-            $pageEntity,
-            $entityNm
+            $pageEntity
         );
 
         $this->overrideFormTypeRenderOptions();
@@ -491,22 +466,14 @@ class UserController extends AbstractCrudController
      */
     public function createAction(ServerRequestInterface $request): ResponseInterface
     {
-        // Get the current user ID - We use a trait
-        // $userId = $this->getCurrentUserId();
-        //return parent::createAction(request: $request);
-
         $pageName       = $this->scrap->getPageName();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
-        $xpl = explode('_', $pageName);
-        $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
-
         $this->formType->setFocus(
             $pageName,
             $pageFeature,
-            $pageEntity,
-            $entityNm
+            $pageEntity
         );
 
         $this->overrideFormTypeRenderOptions();

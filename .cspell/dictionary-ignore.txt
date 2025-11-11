@@ -2,6 +2,7 @@ Abbondanza
 abend
 activitusbar
 Architectu
+autoloads
 automagically
 badrequest
 badsite
@@ -27,15 +28,20 @@ dfts
 Dusch
 dynfully
 easymock
+ecfg
+ERRORLEVEL
 extratest
 Fabio
+fieldconfig
 fielsdset
+flushdns
 Folmer
 foofee
 foofoo
 formatterxx
 formatterz
 friendsofphp
+GENPOST
 Gert
 getenv
 giggsey
@@ -49,6 +55,7 @@ HHVM
 Hilson
 howtodoc
 htdocs
+htmlspecialchars
 httponly
 humy
 ignt
@@ -68,6 +75,7 @@ laravel
 libphonenumber
 linkdemo
 LINKDEMO
+localform
 Mapp
 Martijn
 Matzelle
@@ -79,6 +87,7 @@ mnapoli
 modernizr
 mondersky
 mvclaravel
+mvclixotest
 myclabs
 mycompany
 mynotes
@@ -137,11 +146,13 @@ Scrapfile
 scrapinfo
 selectinsidesidebar
 serviceunavailable
+Shft
 simplexml
 Spampinato
 squizlabs
 ssssws
 starticks
+storeadmin
 storejohn
 symfony
 Tabstronaut
@@ -169,6 +180,7 @@ vlucas
 Volker
 volumeticks
 Wayou
+whatthefook
 Wholeline
 wongjn
 xampp

@@ -15,6 +15,37 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - Also include file name if you are suggesting a fix or enhancement, and line number would also be nice.
 - my public folder is `public_html` NOT `public'
 
+
+### Null Coalescing Operator (`??`) Usage
+
+The null coalescing operator (`??`) should be used judiciously. Avoid its blanket application with `?? ''` (empty string fallback) for all variables passed to `htmlspecialchars()`.
+
+**Guidance:**
+
+*   **Expose Bugs:** If a variable passed to `htmlspecialchars()` is *expected* to be a non-null string (e.g., a required URL, a CSS class name from `themeService->getElementClass()`, a mandatory label, or a value from `paginationData` that is guaranteed to exist by a preceding `if` condition), **do not use `?? ''`**. In such cases, if the variable is `null`, it indicates a deeper bug in the data source or logic, and allowing `htmlspecialchars()` to throw an `Argument #1 ($string) must be of type string, null given` error is the correct behavior to highlight the problem.
+*   **Intentional Fallbacks:** Use `?? ''` (or `?? false`, `?? 0`, etc.) **only when `null` is an expected and valid state** for that variable, and the fallback value (e.g., an empty string) is a sensible and non-buggy default for rendering. This applies to truly optional configuration values, dynamic data attributes, or optional display text.
+*   **Boolean/Numeric Defaults:** For boolean flags, use `?? false`. For numeric defaults, use `?? 0` or `?? 1` as appropriate.
+
+**Example (Bad - masks bug):**
+```php
+// Bad: If $user->getName() can be null, it's a bug in the User entity or data retrieval.
+// htmlspecialchars($user->getName() ?? '')
+```
+
+**Example (Good - exposes bug):**
+```php
+// Good: If $user->getName() is null, htmlspecialchars will throw an error,
+// indicating a problem that needs fixing upstream.
+htmlspecialchars($user->getName())
+```
+
+**Example (Good - intentional fallback):**
+```php
+// Good: 'add_url' is an optional configuration, so an empty string is a valid default.
+htmlspecialchars($options['add_url'] ?? '')
+```
+
+
 ## Coding Style
 ### General Principles and Formatting
 - Line Length: Adhere to a maximum line length of 120 characters. Break long lines for improved readability.
@@ -37,10 +68,10 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - improve codebase consistency, we will now adopt a singular naming convention across all components: tables, controllers, models, and routes.
 
 - The new convention is as follows:
-    - Models: Singular (Post, Comment). This is standard practice.
-    - Tables: Singular (post, comment). A table is a collection of a single entity type, so we will use the singular name to represent it.
-    - Controllers: Singular (PostController, CommentController). This avoids confusion and emphasizes that the controller class is a single blueprint for handling a resource.
-    - Routes: Singular (/post, /comment). We will access resource collections via singular paths (e.g., GET /post).
+    - Models: Singular (Testy, Post, Comment). This is standard practice.
+    - Tables: Singular (testy, post, comment). A table is a collection of a single entity type, so we will use the singular name to represent it.
+    - Controllers: Singular (TestyController, PostController, CommentController). This avoids confusion and emphasizes that the controller class is a single blueprint for handling a resource.
+    - Routes: Singular (/testy, /post, /comment). We will access resource collections via singular paths (e.g., GET /post).
 - Why this change?
     - This decision prioritizes consistency above all else. Instead of asking "should this be singular or plural?", we will all follow one simple, unified rule: always use the singular form.
     - This rule applies to all new features and components going forward. We will ALSO be refactoring existing code to this new standard. So please point this out if you see this rule not being followed
@@ -107,9 +138,9 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - **Thin Type Classes:** ListType/FormType classes only set context (entity name, default columns/fields). All business logic resides in abstract base classes.
 - **Abstract Base Classes:** `AbstractListType` and `AbstractFormType` implement all shared logic for building, rendering, and field resolution.
 - **Field Registry Pattern:** `FieldRegistryService` centralizes field/column/field definition lookup with **layered fallbacks**:
-  1. Page/view context (e.g., `list_fields/local_post.php`)
-  2. Entity/table context (e.g., `list_fields/post.php`)
-  3. Base/global config (`list_fields/base.php`)
+  1. Page/view context (e.g., `src\App\Features\Testy\Config\testy_fields.php`)
+  2. Entity/table context (e.g., `src\App\Features\Testy\Config\testy_fields.php`)
+  3. Base/global config (`src\Config\render\field_base.php`)
 - **Configuration System:** `ConfigService` supports dot notation and folder structure for per-entity overrides
 - **Dependency Injection:** All services injected via PHP-DI container defined in `src/dependencies.php`
 - **Middleware Stack:** PSR-15 middleware for timing, error handling, session, CSRF, rate limiting, authentication
@@ -129,11 +160,40 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 - **Formatter closures:** Use PHP closures for custom field formatting in config files
 - **Validation rules:** Defined in config alongside field definitions
 
-### Field Definition Pattern
+
+
+
+### Config View Definition Pattern
 ```php
-// Example from src/Config/list_fields/post.php
+return [
+    'options' => [
+        'default_sort_key' => 'created_at',
+        'default_sort_direction' => 'DESC'
+    ],
+    'pagination' => [
+        'per_page' => 4
+    ],
+    'render_options' => [
+        'title'                 =>  'list.testy.title',
+        'show_actions'          => true,
+        'show_action_add'       => true,
+        'show_action_edit'      => true,
+        'show_action_del'       => true,
+        'show_action_status'    => false,
+    ],
+    'list_fields' => [
+        'id', 'store_id', 'user_id', 'title',  'content', 'status', 'created_at'
+    ],
+];
+```
+
+
+
+### Config Fields Definition Pattern
+```php
+// Example from ssrc\App\Features\Testy\Config\testy_list_fields.php
 'title' => [
-    'label' => 'Post Title',
+    'label' => 'Testy Title',
     'list' => [
         'sortable' => true,
         'formatter' => function ($value) {
@@ -211,13 +271,14 @@ vendor/bin/phpstan analyse src/
 - `src/dependencies.php` – PHP-DI container definitions
 - `src/Core/Middleware/` – PSR-15 middleware components
 
-### Application Structure
-- `src/App/Features/*/Controller/` – Feature controllers
-- `src/App/Features/*/List/` – Thin ListType classes
-- `src/App/Features/*/Form/` – Thin FormType classes
-- `src/Config/list_fields/` – Per-entity field definitions
-- `src/Config/list_fields_base.php` – Global field definitions
-- `Tests/` – Unit tests mirroring src structure
+### Application Structure src\App\Features\Testy\Config\testy_list_fields.php
+- `src\App\Features\Testy\TestyController.php` – Feature controllers
+- `src\Core\List\ZzzzListType.php` – Thin ListType class
+- `src\Core\List\ZzzzFormType.php` – Thin FormType class
+-  Config fields for a page - uses a fallback
+    - `src\App\Features\Testy\Config\testy_list_fields.php`(list, edit, add...) – field definitions - page level - highest
+    - `src\App\Features\Testy\Config\testy_fields.php` – Per-entity field definitions - Entity level
+    - `src\Config\render\field_base.php` – Common field definitions - lowest
 
 ### External Integrations
 - **Database:** PDO with migration system
@@ -229,9 +290,8 @@ vendor/bin/phpstan analyse src/
 ## Integration & Extensibility
 
 ### Adding New Features
-1. Create feature directory under `src/App/Features/`
-2. Implement thin Controller, ListType, FormType classes
-3. Add field definitions to `src/Config/list_fields/`
+1. Create feature directory under `src/App/Features/Xxxx`
+3. Add field definitions to `src\App\Features\Xxxx\Config\testy_fields.php`
 4. Register dependencies in `src/dependencies.php`
 5. Add routes and middleware as needed
 
@@ -249,37 +309,80 @@ vendor/bin/phpstan analyse src/
 
 ### Controller Pattern
 ```php
-class PostController extends Controller {
+class TestyController extends AbstractCrudController
+{
+    protected ConfigService $config;
+    protected ?ServerRequestInterface $request = null;
+
     public function __construct(
         array $route_params,
-        FlashMessageServiceInterface $flash,
+        FlashMessageServiceInterface $flash22,
         View $view,
         HttpFactory $httpFactory,
         ContainerInterface $container,
         CurrentContext $scrap,
-        // ... other dependencies
+        //-----------------------------------------
+        private FeatureMetadataService $featureMetadataService,
+        protected FormFactoryInterface $formFactory,
+        protected FormHandlerInterface $formHandler,
+        FormTypeInterface $formType,
+        private ListFactoryInterface $listFactory,
+        private ListTypeInterface $listType,
+        TestyRepositoryInterface $repository,
+        protected TypeResolverService $typeResolver,
+        //-----------------------------------------
+        ConfigInterface $config,
+        protected LoggerInterface $logger,
+        protected EmailNotificationService $emailNotificationService,
+        private PaginationService $paginationService,
+        private FormatterService $formatter,
     ) {
-        parent::__construct($route_params, $flash, $view, $httpFactory, $container, $scrap);
+        parent::__construct(
+            $route_params,
+            $flash22,
+            $view,
+            $httpFactory,
+            $container,
+            $scrap,
+            //-----------------------------------------
+            $featureMetadataService,
+            $formFactory,
+            $formHandler,
+            $formType,
+            $listFactory,
+            $listType,
+            $repository,
+            $typeResolver,
+        );
+        $this->config = $config;
+        $this->listType->routeType = $scrap->getRouteType();
+        $this->logger = $logger;
+        $this->emailNotificationService = $emailNotificationService;
+        $this->paginationService = $paginationService;
+        $this->formatter = $formatter;
     }
-}
 ```
 
 ### ListType Pattern
 ```php
-class PostListType extends AbstractListType {
-    protected const LIST_TYPE = 'POST';
-    protected const LIST_NAME = 'post_list';
+class ZzzzListType extends AbstractListType
+{
+    protected array $options = [];
 
-    public function __construct(FieldRegistryService $fieldRegistryService) {
-        $this->fieldRegistryService->setEntityName(static::LIST_TYPE);
-        $this->fieldRegistryService->setPageName(static::LIST_NAME);
-        parent::__construct($fieldRegistryService);
+    public function __construct(
+        protected FieldRegistryService $fieldRegistryService,
+        protected ConfigInterface $configService,
+    ) {
+        $this->fieldRegistryService = $fieldRegistryService;
+        $this->configService        = $configService;
+
+        parent::__construct(
+            fieldRegistryService: $this->fieldRegistryService,
+            configService: $this->configService,
+        );
     }
-}
 ```
 
-### Config-Driven Fields
-See `src/Config/list_fields/post.php` and `src/Config/list_fields_base.php` for field definition patterns with fallback hierarchy.
 
 ---
 If any section is unclear or missing, please provide feedback to improve these instructions.

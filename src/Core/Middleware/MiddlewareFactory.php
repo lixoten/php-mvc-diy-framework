@@ -99,6 +99,7 @@ class MiddlewareFactory
         // Important!!!
         $storeAccountContextPatterns = [
             '/testy*', // dynamic-fix
+            '/gallery*', // dynamic-fix
             '/image*', // dynamic-fix
             // '/posts*', // dynamic-fix
             // add more as needed

@@ -82,7 +82,7 @@ if account/
 
 if store/ or nothing thus CORE
     all testy records for a store regardless of user
-    all user records for a store regardless of user  --- danger danger - only storeowner and admin
+    all user records for a store regardless of user  --- danger danger - only storeOwner and admin
     galleries
 
 

@@ -26,29 +26,6 @@ class SchemaLoaderService
         $this->config = $config;
     }
 
-    // /**
-    //  * Load schema definition for an entity.
-    //  *
-    //  * @param string $entityName The name of the entity (e.g., 'Post', 'User').
-    //  * @return array<string, mixed> The loaded schema definition.
-    //  * @throws SchemaDefinitionException If the schema file cannot be found or is invalid.
-    //  */
-    // public function load(string $entityName): array
-    // {
-    //     // Strictly load from feature-specific config: src/App/Features/{EntityName}/Config/schema_{entityName}.php
-    //     $featureSchemaPath = $this->p......athResolverService->getAppFeatureConfigSchemaFilePath($entityName);
-
-    //     if (file_exists($featureSchemaPath)) {
-    //         $schema = require $featureSchemaPath;
-    //         if (is_array($schema)) {
-    //             return $schema;
-    //         }
-    //         throw new SchemaDefinitionException("Invalid schema definition in feature file: {$featureSchemaPath}");
-    //     }
-
-    //     throw new SchemaDefinitionException("Schema file not found for entity: {$entityName}");
-    // }
-
     /**
      * Load schema definition for an entity.
      *
@@ -58,14 +35,14 @@ class SchemaLoaderService
      */
     public function load(string $entityName): array
     {
-        // Load from feature-specific config: src/App/Features/{EntityName}/Config/schema_{entityName}.php
-        $schema = $this->config->getFromFeature($entityName, 'schema_' . $entityName);
+        // Load from feature-specific config: src/App/Features/{EntityName}/Config/{entityName}_schema.php
+        $schema = $this->config->getFromFeature($entityName, $entityName . '_schema');
 
         // Check if config was loaded successfully
         if ($schema === null) {
             throw new SchemaDefinitionException(
                 "Schema file not found for entity: {$entityName}. " .
-                "Expected: src/App/Features/{$entityName}/Config/schema_{$entityName}.php"
+                "Expected: src/App/Features/{$entityName}/Config/{$entityName}_schema.php"
             );
         }
 
@@ -103,7 +80,7 @@ class SchemaLoaderService
 
         foreach ($featureDirs as $featureName) {
             // Try to load schema using ConfigService
-            $schema = $this->config->getFromFeature($featureName, 'schema_' . $featureName);
+            $schema = $this->config->getFromFeature($featureName, $featureName . '_schema');
 
             // Only add if schema exists and is valid
             if ($schema !== null && is_array($schema)) {

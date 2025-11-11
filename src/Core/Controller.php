@@ -36,30 +36,19 @@ use Psr\Http\Message\ServerRequestInterface;
 //abstract class Controller extends DIP
 abstract class Controller
 {
-    protected ContainerInterface $container;
     protected string $pageTitle;
-    public array $route_params;
-    protected View $view;
-    protected HttpFactory $httpFactory;
     protected ?SessionManagerInterface $session = null;
     protected ?ServerRequestInterface $request = null;
-    //protected ConfigService $request; // This is incorrectly typed as ConfigService
-    protected CurrentContext $scrap;
 
     public function __construct(
-        array $route_params,
-        protected FlashMessageServiceInterface $flash22, // constructor promotion php8+
-        View $view,
-        HttpFactory $httpFactory,
-        ContainerInterface $container,
-        CurrentContext $scrap
+        public array $route_params,
+        protected FlashMessageServiceInterface $flash22,
+        protected View $view,
+        protected HttpFactory $httpFactory,
+        protected ContainerInterface $container,
+        protected CurrentContext $scrap
     ) {
-        $this->route_params = $route_params;
-        $this->flash22 = $flash22;
-        $this->view = $view;
-        $this->httpFactory = $httpFactory;
-        $this->container = $container;
-        $this->scrap = $scrap;
+        // constructor uses promotion php8+
     }
 
 
@@ -174,7 +163,7 @@ abstract class Controller
 
 
 
-        
+
         $content = $this->view->renderWithLayout($template, $args);
 
 

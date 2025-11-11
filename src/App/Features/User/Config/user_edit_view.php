@@ -53,7 +53,15 @@ return [
         [
             'title'     => 'Your Title',
             'fields'    => [
-                'title',                 // text
+                'username',                 // text
+                'is_green',                 // checkbox
+                'is_blue',                 // checkbox
+                'is_green',                 // checkbox
+                'generic_code',                 // select
+                'status',                 // select
+                'roles',
+
+                // 'title',                 // text
                 // 'secret_code_hash',      // password
                 // 'primary_email',         // email
                 // 'online_address',        // url
@@ -89,10 +97,9 @@ return [
                 // 'balance',
                 // 'date_of_birth',
                 // 'favorite_week_day',
-                'content',
+                // 'content',
                 // 'store_id',
 
-                // 'is_boodddddvssssserified',
                 // 'gender_id',
                 // 'gender_other',
 
@@ -120,6 +127,6 @@ return [
     'form_hidden_fields' => [
         // 'id',
         // 'store_id',
-        // 'testyddddddddddddddddd_user_id',
+        // 'testy_user_id',
     ]
 ];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Console\Commands;
 
-use Core\Console\Generators\FieldConfigGenerator;
+use Core\Console\Generators\ConfigFieldsGenerator;
 use Core\Exceptions\SchemaDefinitionException;
 use Core\Services\SchemaLoaderService;
 use Symfony\Component\Console\Command\Command;
@@ -16,7 +16,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 /**
  * Console command to generate a feature-specific field configuration file.
  *
- * This command uses the FieldConfigGenerator to create a `field_{entityName}.php`
+ * This command uses the ConfigFieldsGenerator to create a `{entityName}_fields.php`
  * file based on the entity's schema definition, placing it in the feature's Config directory.
  *
  * @package   MVC LIXO Framework
@@ -28,19 +28,19 @@ class MakeFieldConfigCommand extends Command
     protected static $defaultName = 'make:field-config';
     protected static $defaultDescription = 'Generates a feature-specific field configuration file from schema.';
 
-    private FieldConfigGenerator $fieldConfigGenerator;
+    private ConfigFieldsGenerator $ConfigFieldsGenerator;
     private SchemaLoaderService $schemaLoaderService;
 
     /**
-     * @param FieldConfigGenerator $fieldConfigGenerator The service for generating field config files.
+     * @param ConfigFieldsGenerator $ConfigFieldsGenerator The service for generating field config files.
      * @param SchemaLoaderService $schemaLoaderService The service for loading schema definitions.
      */
     public function __construct(
-        FieldConfigGenerator $fieldConfigGenerator,
+        ConfigFieldsGenerator $ConfigFieldsGenerator,
         SchemaLoaderService $schemaLoaderService
     ) {
         parent::__construct();
-        $this->fieldConfigGenerator = $fieldConfigGenerator;
+        $this->ConfigFieldsGenerator = $ConfigFieldsGenerator;
         $this->schemaLoaderService = $schemaLoaderService;
     }
 
@@ -74,7 +74,7 @@ class MakeFieldConfigCommand extends Command
             $schema = $this->schemaLoaderService->load($entityName); // <-- MODIFIED: Load schema
 
             // Pass the loaded schema (array) to the generator
-            $filePath = $this->fieldConfigGenerator->generate($schema); // <-- MODIFIED: Pass schema array
+            $filePath = $this->ConfigFieldsGenerator->generate($schema); // <-- MODIFIED: Pass schema array
             $io->success("Field configuration for '{$entityName}' generated successfully at: {$filePath}");
             return Command::SUCCESS;
         } catch (SchemaDefinitionException $e) {

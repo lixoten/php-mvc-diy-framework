@@ -178,7 +178,7 @@ class PathResolverService
      */
     public function getAppFeatureConfigSchemaFilePath(string $entityName): string
     {
-        return $this->getAppFeatureConfigPath($entityName) . 'schema_' . strtolower($entityName) . '.php';
+        return $this->getAppFeatureConfigPath($entityName) . strtolower($entityName) . '_schema' . '.php';
     }
 
     /**
@@ -189,7 +189,7 @@ class PathResolverService
      */
     public function getAppFeatureConfigFieldRenderFilePath2(string $entityName): string
     {
-        return $this->getAppFeatureConfigPath($entityName) . 'field_' . strtolower($entityName) . '.php';
+        return $this->getAppFeatureConfigPath($entityName) . strtolower($entityName) . "_fields" . '.php';
     }
 
     /**
@@ -204,7 +204,7 @@ class PathResolverService
         $entityName = $w[0];
         $action     = $w[1];
 
-        $file = 'field_';
+        $file = '';
         if ($type === 'local') {
             $file .= "{$entityName}_{$action}";
         } elseif ($type === 'entity') {
@@ -214,7 +214,7 @@ class PathResolverService
         } else {
             $file .= $entityName;
         }
-        $rrr = $this->getAppFeatureConfigPath($entityName) .  $file . '.php';
+        $rrr = $this->getAppFeatureConfigPath($entityName) .  $file . '_fields' . '.php';
         return $rrr;
     }
 

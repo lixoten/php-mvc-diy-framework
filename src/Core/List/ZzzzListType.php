@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-// namespace App\Features\Testy\List;
 namespace Core\List;
 
 use Core\Interfaces\ConfigInterface;
 use Core\List\AbstractListType;
-use Core\Services\ConfigService;
+use Core\Services\ListConfigurationService;
 use Core\Services\FieldRegistryService;
+use Psr\Log\LoggerInterface;
 
 /**
- * Testy list type definition
+ * list type definition
  */
 class ZzzzListType extends AbstractListType
 {
@@ -21,13 +21,14 @@ class ZzzzListType extends AbstractListType
     public function __construct(
         protected FieldRegistryService $fieldRegistryService,
         protected ConfigInterface $configService,
+        protected ListConfigurationService $listConfigService,
+        protected LoggerInterface $logger,
     ) {
-        $this->fieldRegistryService = $fieldRegistryService;
-        $this->configService        = $configService;
-
         parent::__construct(
-            fieldRegistryService: $this->fieldRegistryService,
-            configService: $this->configService,
+            fieldRegistryService: $fieldRegistryService,
+            configService: $configService,
+            listConfigService: $listConfigService,
+            logger: $logger,
         );
     }
 
@@ -37,10 +38,8 @@ class ZzzzListType extends AbstractListType
     protected function getDeleteActionAttributes(): array
     {
         return [
-                'testy-id' => '{id}',
-                'testy-title' => '{title}',
-                // 'testy-created_at' => '{created_at}',
-                // 'testy-foofoo' => 'shit',
+            'data-confirm' => 'Are you sure you want to delete this item?',
+            'data-method' => 'DELETE',
         ];
     }
 }
