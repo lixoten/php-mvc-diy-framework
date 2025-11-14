@@ -85,9 +85,9 @@ return [
             ],
         ],
         // 'formatters' => [
-        //     // ['name' => 'phone', 'options' => ['region' => 'US']],  // Include region in per-formatter options
-        //     // ['name' => 'phone', 'options' => ['region' => ''$userRegion, 'user_region' => $userRegion]],
-        //     // ['name' => 'phone', 'options' => ['region' => 'PT']],
+        //     // ['name' => 'tel', 'options' => ['region' => 'US']],  // Include region in per-formatter options
+        //     // ['name' => 'tel', 'options' => ['region' => ''$userRegion, 'user_region' => $userRegion]],
+        //     // ['name' => 'tel', 'options' => ['region' => 'PT']],
         //     ['name' => 'image',
         //         'options' => [
         //             'base_url' => '/uploads/',  // Adjust to your server's web root or
@@ -388,14 +388,14 @@ return [
             // 'datalist' => [],
         ],
         'formatters' => [
-            'phone',
-            // 'phone' => [],
-            // 'phone' => [
+            'tel',
+            // 'tel' => [],
+            // 'tel' => [
             //     'format' => 'default', 'region' => 'US'
             // ],
         ],
         'validators' => [
-            // 'phone' => [
+            // 'tel' => [
             //     // 'invalid_region_message' => 'Custom: Invalid_region',
             //     // 'invalid_parse_message'  => 'Custom: Invalid_parse',
             //     // 'invalid_message'        => 'Custom: Invalid',

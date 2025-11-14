@@ -14,34 +14,29 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 /**
- * Console command to generate a feature-specific field configuration file.
+ * Console command to generate a feature-specific fields configuration file.
  *
- * This command uses the ConfigFieldsGenerator to create a `{entityName}_fields.php`
+ * This command uses the ConfigFieldsGenerator to create a `{entityName}_fields_{configType}.php`
  * file based on the entity's schema definition, placing it in the feature's Config directory.
  *
  * @package   MVC LIXO Framework
  * @author    GitHub Copilot
  * @copyright Copyright (c) 2025
  */
-class MakeFieldConfigCommand extends Command
+class MakeConfigFieldsCommand extends Command
 {
-    protected static $defaultName = 'make:field-config';
-    protected static $defaultDescription = 'Generates a feature-specific field configuration file from schema.';
-
-    private ConfigFieldsGenerator $ConfigFieldsGenerator;
-    private SchemaLoaderService $schemaLoaderService;
+    protected static $defaultName = 'make:config-fields';
+    protected static $defaultDescription = 'Generates a feature-specific fields configuration file from schema.';
 
     /**
-     * @param ConfigFieldsGenerator $ConfigFieldsGenerator The service for generating field config files.
+     * @param ConfigFieldsGenerator $configFieldsGenerator The service for generating field config files.
      * @param SchemaLoaderService $schemaLoaderService The service for loading schema definitions.
      */
     public function __construct(
-        ConfigFieldsGenerator $ConfigFieldsGenerator,
-        SchemaLoaderService $schemaLoaderService
+        private ConfigFieldsGenerator $configFieldsGenerator,
+        private SchemaLoaderService $schemaLoaderService
     ) {
         parent::__construct();
-        $this->ConfigFieldsGenerator = $ConfigFieldsGenerator;
-        $this->schemaLoaderService = $schemaLoaderService;
     }
 
     /**
@@ -52,8 +47,9 @@ class MakeFieldConfigCommand extends Command
         $this
             ->setName(static::$defaultName)
             ->setDescription(static::$defaultDescription)
-            ->addArgument('entity', InputArgument::REQUIRED, 'The name of the entity (e.g., "Testy").');
-    }
+            ->addArgument('entity', InputArgument::REQUIRED, 'The name of the entity (e.g., "Testy").')
+            ->addArgument('configType', InputArgument::OPTIONAL, 'An optional type for the config (e.g., "list", "edit").', 'root');
+        }
 
     /**
      * Executes the command.
@@ -66,16 +62,26 @@ class MakeFieldConfigCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         $entityName = $input->getArgument('entity');
+        $configType = strtolower($input->getArgument('configType'));
+
+        // --- VALIDATION ---
+        $allowedConfigTypes = ['list', 'edit', 'root']; // Defined allowed types
+
+        if (!in_array($configType, $allowedConfigTypes, true)) {
+            $io->error("Invalid configType '{$configType}'. Allowed types are: " . implode(', ', $allowedConfigTypes));
+            return Command::FAILURE;
+        }
+        // --- END VALIDATION ---
 
         $io->title("Generating Field Configuration for '{$entityName}'");
 
         try {
             // Load the schema for the given entity
-            $schema = $this->schemaLoaderService->load($entityName); // <-- MODIFIED: Load schema
+            $schema = $this->schemaLoaderService->load($entityName);
 
             // Pass the loaded schema (array) to the generator
-            $filePath = $this->ConfigFieldsGenerator->generate($schema); // <-- MODIFIED: Pass schema array
-            $io->success("Field configuration for '{$entityName}' generated successfully at: {$filePath}");
+            $filePath = $this->configFieldsGenerator->generate($schema, $configType);
+            $io->success("Field configuration for '{$entityName}' - '{$configType}'generated successfully at: {$filePath}");
             return Command::SUCCESS;
         } catch (SchemaDefinitionException $e) {
             $io->error("Schema error for '{$entityName}': " . $e->getMessage());

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 use Core\Console\Commands\FeatureMoveCommand;
 use Core\Console\Commands\HelloCommand;
+use Core\Console\Commands\MakeConfigEditFieldsCommand;
 use Core\Console\Commands\MakeEntityCommand;
-use Core\Console\Commands\MakeFieldConfigCommand;
+use Core\Console\Commands\MakeConfigFieldsCommand;
 use Core\Console\Commands\MakeMigrationCommand;
 use Core\Console\Commands\MakeRepositoryCommand;
 use Core\Console\Commands\MakeSeederCommand;
@@ -50,7 +51,7 @@ $application->add($container->get(SeedCommand::class));
 
 $application->add($container->get(MakeRepositoryCommand::class));
 $application->add($container->get(MakeEntityCommand::class));
-$application->add($container->get(MakeFieldConfigCommand::class));
+$application->add($container->get(MakeConfigFieldsCommand::class));
 $application->add($container->get(MakeSeederCommand::class));
 $application->add($container->get(MakeMigrationCommand::class));
 $application->add($container->get(FeatureMoveCommand::class));

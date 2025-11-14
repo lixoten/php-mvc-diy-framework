@@ -6,14 +6,14 @@ namespace Core\Form\Renderer;
 
 use Core\Form\FormInterface;
 use Core\Form\Field\FieldInterface;
-use App\Helpers\DebugRt;
-use Core\Services\ClosureFormatterService;
+// use App\Helpers\DebugRt;
+// use Core\Services\ClosureFormatterService;
 use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
 use Psr\Log\LoggerInterface;
 
-use function PHPUnit\Framework\isEmpty;
-use function PHPUnit\Framework\isNull;
+// use function PHPUnit\Framework\isEmpty;
+// use function PHPUnit\Framework\isNull;
 
 /**
  * Bootstrap 5 form renderer
@@ -257,8 +257,12 @@ class BootstrapFormRenderer implements FormRendererInterface
         $fieldOptions = $field->getOptions();
         $value = '';
 
-        // $formatters = $fieldOptions['formatter'];
         $formatters = $field->getFormatters();
+        // Important!!! Only allow certain formatters - Those Masking like the telephone
+        // Formatting in general is not allowed in Forms
+        if (!isset($formatters['tel'])) {
+            $formatters = null;
+        }
 
 
         //$accesskey = $fieldConfig['form']['attributes']['accesskey'] ?? null;
@@ -284,38 +288,49 @@ class BootstrapFormRenderer implements FormRendererInterface
         // Important!!! - Uber_GEO, Uber_Formatter, Uber_Phone
         if (!empty($field->getErrors())) {
             // Show the original user input (escaped)
-            $value = htmlspecialchars((string)$rawValue ?? '');
+            // Handle arrays (like checkbox_group values) appropriately
+            if (is_array($rawValue)) {
+                $value = $rawValue; // Keep as array for field types that expect it
+            } else {
+                $value = htmlspecialchars((string)$rawValue ?? '');
+            }
         } elseif (isset($formatters)) {
-            //$formatters = $formatter;
-
             // Ensure formatters is an array for uniform processing
             if (!is_array($formatters)) {
                 $formatters = [$formatters];
             }
+
+
 
             // Start with the raw value
             $currentValue = $rawValue;
 
             // Apply each formatter in sequence
             foreach ($formatters as $key => $formatter) {
-                if (is_int($key) && is_string($formatter)) {
-                    // Simple string: 'phone'
-                    $currentValue = $this->formatterService->format($formatter, $currentValue, []);
-                } elseif (is_int($key) && is_callable($formatter)) {
-                    $aaa = new ClosureFormatterService();
-                    // $currentValue = $this->formatterService->formatClosure($formatter, $currentValue, []);
-                    $currentValue = $aaa->format($formatter, $currentValue, []);
-                } elseif (is_string($key)) {
-                    // Associative array: 'phone' => [options] or closure //xx
+                // if (is_int($key) && is_string($formatter)) {
+                //     // Simple string: 'tel' // fixme Fookup  MUST BE ARRAY sing causes pronlem
+                //     $currentValue = $this->formatterService->format($formatter, $currentValue, []);
+                // } elseif (is_int($key) && is_callable($formatter)) {
+                //     $aaa = new ClosureFormatterService();
+                //     // $currentValue = $this->formatterService->formatClosure($formatter, $currentValue, []);
+                //     $currentValue = $aaa->format($formatter, $currentValue, []);
+                // } else
+                if (is_string($key)) {
+                    // Associative array: 'tel' => [options] or closure //xx
+                    // Associative array: 'tel' => [options]
                     if (is_callable($formatter)) {
                         $currentValue = $formatter($currentValue);
                     } else {
+                        // This will be called for the 'tel' formatter with its options
                         $currentValue = $this->formatterService->format($key, $currentValue, $formatter ?? []);
                     }
                 }
             }
 
             // Final value after all formatters: escape unless it's a display field with HTML output
+            // For 'tel' fields, it should be HTML-escaped and placed in the value attribute.
+            // For 'display' fields (which might use a phone formatter), the transformed value
+            // is usually treated as display HTML (e.g., clickable links).
             if (($type === 'display' || $type === 'file') && !empty($formatters)) {
                 $value = (string)$currentValue;
             } else {
@@ -323,7 +338,12 @@ class BootstrapFormRenderer implements FormRendererInterface
             }
         } else {
             // Fallback for fields without a formatter
-            $value = htmlspecialchars((string)$rawValue ?? '');
+            // Handle arrays appropriately
+            if (is_array($rawValue)) {
+                $value = $rawValue;
+            } else {
+                $value = htmlspecialchars((string)$rawValue ?? '');
+            }
         }
 
 
@@ -546,11 +566,11 @@ class BootstrapFormRenderer implements FormRendererInterface
                 // $checked = $field->getValue() ? ' checked' : '';
 
 
-                 // Build attribute string for the checkbox input
-                 $checkboxAttributes = $field->getAttributes();
-                 $checkboxAttributes['id'] = $id;
-                 $checkboxAttributes['name'] = $name;
-                 $checkboxAttributes['value'] = '1';
+                // Build attribute string for the checkbox input
+                $checkboxAttributes = $field->getAttributes();
+                $checkboxAttributes['id'] = $id;
+                $checkboxAttributes['name'] = $name;
+                $checkboxAttributes['value'] = '1';
 
                 // Add ARIA attributes for accessibility (applies to all fields)
                 if ($field->isRequired()) {

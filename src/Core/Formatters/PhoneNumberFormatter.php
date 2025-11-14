@@ -53,7 +53,7 @@ class PhoneNumberFormatter extends AbstractFormatter
     /** {@inheritdoc} */
     public function getName(): string
     {
-        return 'phone';
+        return 'tel';
     }
 
     /** {@inheritdoc} */
@@ -83,52 +83,116 @@ class PhoneNumberFormatter extends AbstractFormatter
         $region = $options['region'] ?? $this->regionContextService->getRegion();
 
         try {
-            // $value = "+15556614567"; // invalid number always
-            // $value = "+16612529078";
             $numberProto = $phoneUtil->parse((string)$value, $region);
+
+            // Determine the base libphonenumber format (NATIONAL or INTERNATIONAL)
+            // This logic is central to region-aware formatting for 'default' and custom delimiters.
+            $baseLibFormat = PhoneNumberFormat::NATIONAL; // Default to national
             $numberCountry = $phoneUtil->getRegionCodeForNumber($numberProto);
+
+            if ($numberCountry !== null && strtoupper($numberCountry) === strtoupper($region)) {
+                $baseLibFormat = PhoneNumberFormat::NATIONAL;
+            } else {
+                $baseLibFormat = PhoneNumberFormat::INTERNATIONAL;
+            }
 
             switch ($options['format']) {
                 case self::FORMAT_DASHES:
-                    $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
-                    $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
-                    $formatted = preg_replace('/\s+/', ' ', $formatted);
+                    // Start with the determined base format (national or international)
+                    $formatted = $phoneUtil->format($numberProto, $baseLibFormat);
+                    // Clean up and apply dashes, preserving '+' if it came from international format
+                    // Allow '+' sign in the regex to keep it when starting from INTERNATIONAL format
+                    $formatted = preg_replace('/[^\d\+]+/', ' ', $formatted); // Replace non-digits/non-plus with space
+                    $formatted = preg_replace('/\s+/', ' ', $formatted); // Collapse multiple spaces
                     $formatted = trim($formatted);
-                    $formatted = preg_replace('/\s+/', '-', $formatted);
-                    // return trim($formatted);
+                    $formatted = preg_replace('/\s+/', '-', $formatted); // Replace spaces with dashes
                     return $formatted;
+
                 case self::FORMAT_DOTS:
-                    $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
-                    $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
+                    $formatted = $phoneUtil->format($numberProto, $baseLibFormat);
+                    $formatted = preg_replace('/[^\d\+]+/', ' ', $formatted);
                     $formatted = preg_replace('/\s+/', ' ', $formatted);
                     $formatted = trim($formatted);
                     $formatted = preg_replace('/\s+/', '.', $formatted);
-                    // return trim($formatted);
-                    return str_replace(' ', '.', $formatted);
+                    return $formatted;
+
                 case self::FORMAT_SPACES:
-                    $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
-                    $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
+                    $formatted = $phoneUtil->format($numberProto, $baseLibFormat);
+                    $formatted = preg_replace('/[^\d\+]+/', ' ', $formatted);
                     $formatted = preg_replace('/\s+/', ' ', $formatted);
                     $formatted = trim($formatted);
                     return $formatted;
+
+                case self::FORMAT_INTERNATIONAL:
+                    // Explicitly force INTERNATIONAL format
+                    return $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
+
+                case self::FORMAT_INTERNATIONAL_DASHES:
+                    // Force INTERNATIONAL format, then apply dashes
+                    $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::INTERNATIONAL);
+                    $formatted = preg_replace('/[^\d\+]+/', ' ', $formatted);
+                    $formatted = preg_replace('/\s+/', ' ', $formatted);
+                    $formatted = trim($formatted);
+                    $formatted = preg_replace('/\s+/', '-', $formatted);
+                    return $formatted;
+
                 case self::FORMAT_DEFAULT:
                 default:
-                    // Use region logic as before
-                    $numberCountry = $phoneUtil->getRegionCodeForNumber($numberProto);
-                    // if (strtoupper($numberCountry) === strtoupper($region)) {
-                    if ($numberCountry !== null && strtoupper($numberCountry) === strtoupper($region)) {
-                        $libFormat = PhoneNumberFormat::NATIONAL;
-                    } else {
-                        $libFormat = PhoneNumberFormat::INTERNATIONAL;
-                    }
+                    // Use the dynamically determined base format (national or international)
+                    return $phoneUtil->format($numberProto, $baseLibFormat);
             }
 
-
-            return $phoneUtil->format($numberProto, $libFormat);
         } catch (NumberParseException $e) {
-            // Fallback: return sanitized digits
-            return $this->sanitize($value);
+            // Fallback: return the raw original value; AbstractFormatter::format will handle HTML escaping.
+            return (string)$value;
         }
+
+        // try {
+        //     // $value = "+15556614567"; // invalid number always
+        //     // $value = "+16612529078";
+        //     $numberProto = $phoneUtil->parse((string)$value, $region);
+        //     $numberCountry = $phoneUtil->getRegionCodeForNumber($numberProto);
+
+        //     switch ($options['format']) {
+        //         case self::FORMAT_DASHES:
+        //             $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
+        //             $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
+        //             $formatted = preg_replace('/\s+/', ' ', $formatted);
+        //             $formatted = trim($formatted);
+        //             $formatted = preg_replace('/\s+/', '-', $formatted);
+        //             // return trim($formatted);
+        //             return $formatted;
+        //         case self::FORMAT_DOTS:
+        //             $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
+        //             $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
+        //             $formatted = preg_replace('/\s+/', ' ', $formatted);
+        //             $formatted = trim($formatted);
+        //             $formatted = preg_replace('/\s+/', '.', $formatted);
+        //             return $formatted;
+        //         case self::FORMAT_SPACES:
+        //             $formatted = $phoneUtil->format($numberProto, PhoneNumberFormat::NATIONAL);
+        //             $formatted = preg_replace('/[^\d]+/', ' ', $formatted);
+        //             $formatted = preg_replace('/\s+/', ' ', $formatted);
+        //             $formatted = trim($formatted);
+        //             return $formatted;
+        //         case self::FORMAT_DEFAULT:
+        //         default:
+        //             // Use region logic as before
+        //             $numberCountry = $phoneUtil->getRegionCodeForNumber($numberProto);
+        //             // if (strtoupper($numberCountry) === strtoupper($region)) {
+        //             if ($numberCountry !== null && strtoupper($numberCountry) === strtoupper($region)) {
+        //                 $libFormat = PhoneNumberFormat::NATIONAL;
+        //             } else {
+        //                 $libFormat = PhoneNumberFormat::INTERNATIONAL;
+        //             }
+        //     }
+
+
+        //     return $phoneUtil->format($numberProto, $libFormat);
+        // } catch (NumberParseException $e) {
+        //     // Fallback: return sanitized digits
+        //     return (string)$value;
+        // }
     }
 
     /** {@inheritdoc} */

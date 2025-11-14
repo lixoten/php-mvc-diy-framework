@@ -319,8 +319,8 @@ return [
             // important!!! allowed/Forbidden here pertain to DOMAINS
             'ignore_allowed'    => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'  => ['values' => 'bool', 'default' => false],
-            'allowed'           => ['values' => 'array', 'default' => ['aaa.com', 'bbb.org']],
-            'forbidden'         => ['values' => 'array', 'default' => ['xxx.com', 'zzz.net']],
+            'allowed'           => ['values' => 'array', 'default' => ['good.com', 'heaven.org']],
+            'forbidden'         => ['values' => 'array', 'default' => ['xxx.com', 'bad.com']],
 
             'required_message'  => ['values' => 'string', 'default' => 'zzEmail is required.'],
             'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid email address.'],

@@ -106,28 +106,33 @@ class FieldRegistryService
         // This assumes pageName for a feature is like 'testy_list' or 'testy_edit'
         // and the config file is field_testy.php
         //$featureEntityName = str_replace(['_list', '_edit'], '', $pageName); // Extract 'testy' from 'testy_list'
+        $key = str_replace('_', '_fields_', $pageName);
 
         // fixme shit2 - ok
-        $field = $this->configService->getFromFeature($entityName, $pageName . '_fields' . ".$fieldName");
+        $devOnly = 'L-';
+        $field = $this->configService->getFromFeature($entityName, $key . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
-            $field['label'] = $field['label'];//fixme - t/he "*" is mine indicator
+            $field['label'] = $devOnly  . $field['label'];//fixme - t/he "*" is mine indicator
             return $field;
         }
 
+        // $key = str_replace('_', '_fields_', $pageName);
         // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/{entityName}_fields.php
         // fixme shit2 - ok
-        $field = $this->configService->getFromFeature($entityName, $entityName . '_fields' . ".$fieldName");
+        $devOnly = 'R-';
+        $field = $this->configService->getFromFeature($entityName, $entityName . '_fields_root' . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '!' . $field['label'];
-            $field['label'] = $field['label'];
+            $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 
         // 3. Base config: config/render/fields_base.php
+        $devOnly = 'B-';
         $field = $this->configService->get('render/field_base' . '.' . $fieldName);
         if ($field !== null) {
-            $field['label'] = '-' . $field['label'];
+            $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 

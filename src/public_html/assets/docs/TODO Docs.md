@@ -1,3 +1,27 @@
+
+we need to create additional generators
+--- xxxx_metadata
+--- xxxx_list_view - very generic like ...really just common fields
+--- xxxx_edit_view - very generic like ...really just common fields
+--- xxxx_list_fields - very generic with dummy fields of each type
+--- xxxx_edit_fields - very generic with dummy fields of each type
+
+
+### Generators
+    --- MigrationGenerator - Done        - make:migration xxxx     - *CreateXxxxTable.php
+    --- SeederGenerator - Done           - make:seeder xxxx        - XxxxSeeder.php
+    --- EntityGenerator - Done           - make:entity xxxx        - Xxxx.php
+    --- RepositoryGenerator - Revisit    - make:repository xxxx    - XxxxRepository.php, XxxxRepositoryInterface.php,
+    --- ConfigFieldsGenerator - Done     - make:config-fields xxxx - Config\xxxx_fields.php
+    --- FeatureGenerator - Done          - feature:move            - moves file to appropriate location
+    ---
+    --- ConfigListViewGenerator - PEND   - make:config-list-view   - Config\xxxx_list_view.php ---- ConfigViewListGenerator
+    --- ConfigEditViewGenerator - PEND   - make:config-edit-view   - Config\xxxx_edit_view.php
+    --- ConfigListFieldsGenerator - PEND - make:config-list-fields - Config\xxxx_list_fields.php
+    --- ConfigEditFieldsGenerator - PEND - make:config-edit-fields - Config\xxxx_edit_fields.php
+#### Run migrations
+    ---,,,,,
+
 SessionAuthenticationService needs to use `UserService` to get rig of errors
 
 

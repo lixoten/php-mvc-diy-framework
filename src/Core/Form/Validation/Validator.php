@@ -37,7 +37,7 @@ class Validator
 
     /**
      * Normalize validator list to ensure consistent associative array format.
-     * Converts simple string validators (e.g., ['phone']) to ['phone' => []].
+     * Converts simple string validators (e.g., ['tel']) to ['tel' => []].
      *
      * @param array<int|string, mixed> $validatorList
      * @return array<string, array<string, mixed>>
@@ -140,6 +140,15 @@ class Validator
         if (($value === null || $value === '') && !$required) {
             return $errors;
         }
+
+        // // fixme fuckup bigtime
+        // if ($type === 'tel') {
+        //     $type = 'tel';
+        // }
+        // if ($field->getName() === 'generic_text') {
+        //     $rrr = 'tel';
+        // }
+
 
         // Unset so we do not run it more than once.
         unset($validatorList[$type]);

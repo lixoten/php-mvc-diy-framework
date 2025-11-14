@@ -11,23 +11,25 @@ use Core\List\ListView;
 use Core\Services\ThemeServiceInterface;
 use Core\I18n\LabelProvider;
 use App\Enums\Url;
+use Core\Services\FormatterService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Bootstrap list renderer
  */
 class BootstrapListRenderer extends AbstractListRenderer
 {
-    protected LabelProvider $labelProvider;
-
     /**
      * Constructor
      */
     public function __construct(
-        ThemeServiceInterface $themeService,
-        LabelProvider $labelProvider
+        protected ThemeServiceInterface $themeService,
+        private LabelProvider $labelProvider,
+        private FormatterService $formatterService,
+        private LoggerInterface $logger
     ) {
         parent::__construct($themeService);
-        $this->labelProvider = $labelProvider;
+        // $this->labelProvider = $labelProvider;
 
         // Bootstrap-specific default options
         // $this->defaultOptions = array_merge($this->defaultOptions, [
@@ -35,7 +37,7 @@ class BootstrapListRenderer extends AbstractListRenderer
         //     'view_type' => self::VIEW_TABLE,
         //     'view_type' => self::VIEW_LIST,
         // ]);
-        $this->defaultOptions['view_type'] = self::VIEW_TABLE; // Line 33: Assuming VIEW_TABLE is the desired default for Bootstrap lists
+        $this->defaultOptions['view_type'] = self::VIEW_TABLE;
 
         // Fik - Override List View Default - GRID TABLE LIST
         // $this->defaultOptions['view_type'] = self::VIEW_TABLE;
@@ -157,7 +159,7 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '<thead><tr>';
         foreach ($list->getColumns() as $name => $column) {
             // $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
-            $temp = htmlspecialchars($this->labelProvider->get($column['label']));
+            $temp = htmlspecialchars($this->labelProvider->get($column['label'], $list->getName()));
             $output .= '<th>' . $temp . '</th>';
         }
 
@@ -196,7 +198,7 @@ class BootstrapListRenderer extends AbstractListRenderer
     /**
      * Render grid view with cards in a grid layout
      */
-    protected function renderGridView(ListInterface $list, array $options = []): string
+    protected function renderGridView2(ListInterface $list, array $options = []): string
     {
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
 
@@ -251,6 +253,96 @@ class BootstrapListRenderer extends AbstractListRenderer
                     $output .= '</p>';
                 }
             }
+
+
+            // foreach (array_keys($list->getColumns()) as $columnName) {
+            //     $columns = $list->getColumns();
+            //     $value = $record[$columnName] ?? null;
+            //     $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
+            // }
+
+
+
+
+            $output .= '</div>'; // End card body
+
+            // Card footer with actions
+            if ($options['show_actions'] && !empty($list->getActions())) {
+                $output .= '<div class="' . $viewLayout['footer'] . '">';
+                $output .= $this->renderActions($list, $record, $options);
+                $output .= '</div>';
+            }
+
+            $output .= '</div>'; // End card
+            $output .= '</div>'; // End col
+        }
+
+        $output .= '</div>'; // End grid
+        $output .= '</div>'; // End card body
+
+        return $output;
+    }
+
+    /**
+     * Render grid view with cards in a grid layout
+     */
+    protected function renderGridView(ListInterface $list, array $options = []): string
+    {
+        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
+
+        $viewLayout = $this->themeService->getViewLayoutClasses('grid');
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+
+        $output = '<div class="' . $cardBodyClass . '">';
+        $output .= '<div class="' . $viewLayout['container'] . '">';
+
+        // Get columns to display
+        $columns = $list->getColumns();
+
+        // Get primary image field, title field and description fields
+        $imageField = $options['grid_image_field'] ?? $this->findFirstFieldOfType($columns, 'image');
+        $titleField = $options['grid_title_field']
+            ?? $this->findFirstFieldOfType($columns, 'title')
+            ?? array_key_first($columns);
+        // $descFields = $options['grid_description_fields'] ?? array_slice(array_keys($columns), 1, 2);
+        $descFields = $options['grid_description_fields'] ?? array_keys($columns);
+        // $descFields = $options['grid_description_fields'] ?? $columns;
+
+        // Render each record as a card
+        foreach ($list->getData() as $record) {
+            $output .= '<div class="' . $viewLayout['item'] . '">';
+            $output .= '<div class="' . $viewLayout['card'] . '">';
+
+            // // Render image if we have an image field defined
+            // if ($imageField && !empty($record[$imageField])) {
+            //     $imageValue = $record[$imageField];
+            //     $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+            //     if ($imageUrl) {
+            //         $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
+            //             $viewLayout['image'] . '" alt="' .
+            //             htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
+            //     }
+            // }
+
+            // Title
+            if (isset($record[$titleField])) {
+                $output .= '<h5 class="' . $viewLayout['title'] . '">' .
+                    htmlspecialchars((string)$record[$titleField]) . '</h5>';
+                unset($record['title']);
+            }
+
+            // Description fields
+            foreach ($descFields as $field) {
+                // if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
+                if (isset($record[$field])) {
+                    $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
+                    $output .= '<p class="' . $viewLayout['text'] . '">';
+                    $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
+                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= '</p>';
+                }
+            }
+
 
             $output .= '</div>'; // End card body
 
@@ -358,11 +450,42 @@ class BootstrapListRenderer extends AbstractListRenderer
      */
     public function renderValue(string $column, $value, array $record, array $columns = []): string
     {
-        // Handle Bootstrap-specific formatting for special columns
-        if ($column === 'status' && $value !== null) {
-            $statusClass = ((string)$value === 'Published') ? 'success' : 'warning';
-            return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars((string)$value) . '</span>';
+        // Get column configuration (which includes 'formatters' key)
+        $columnConfig = $columns[$column] ?? [];
+
+        // Priority 1: Apply class-based formatters via FormatterService
+        // These are defined under the 'formatters' key in your field config.
+        if (isset($columnConfig['formatters']) && is_array($columnConfig['formatters'])) {
+            foreach ($columnConfig['formatters'] as $formatterName => $formatterOptions) {
+                try {
+                    // Apply each formatter in sequence
+                    $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
+                } catch (\Core\Exceptions\FormatterNotFoundException $e) {
+                    $this->logger->warning(sprintf(
+                        'Formatter "%s" not found for column "%s". Error: %s',
+                        $formatterName,
+                        $column,
+                        $e->getMessage()
+                    ));
+                    // Continue with the unformatted value or apply default HTML escaping
+                } catch (\Throwable $e) {
+                    $this->logger->error(sprintf(
+                        'Error applying formatter "%s" to column "%s": %s',
+                        $formatterName,
+                        $column,
+                        $e->getMessage()
+                    ));
+                    // Continue with the unformatted value or apply default HTML escaping
+                }
+            }
         }
+
+
+        // Handle Bootstrap-specific formatting for special columns
+        // if ($column === 'status' && $value !== null) {
+        //     $statusClass = ((string)$value === 'Published') ? 'success' : 'warning';
+        //     return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars((string)$value) . '</span>';
+        // }
 
         // For all other columns, use the parent implementation
         return parent::renderValue($column, $value, $record, $columns);

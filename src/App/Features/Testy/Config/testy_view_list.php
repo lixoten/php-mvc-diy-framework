@@ -43,6 +43,12 @@ return [
     ],
     'list_fields' => [
         // 'id', 'title',  'content', 'generic_text', 'status', 'created_at'
-        'id', 'store_id', 'user_id', 'title',  'content', 'status', 'created_at'
+        // 'status', 'created_at', 'id', 'store_id', 'user_id', 'title',  'content', 'is_verified', 'super_powers', 'generic_code'
+        'id',
+        'title',
+        // 'content',
+        'generic_text',
+        'primary_email',         // email
+        'telephone'
     ],
 ];

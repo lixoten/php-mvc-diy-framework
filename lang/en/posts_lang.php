@@ -6,5 +6,5 @@ return [
     // 'title' => 'Title',
     'author' => 'Author',
     'status' => 'Status',
-    'created_atxxx' => 'Created At',
+    'created_at' => 'Created At',
 ];

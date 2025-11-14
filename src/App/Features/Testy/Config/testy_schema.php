@@ -86,6 +86,17 @@ return [
             'unsigned' => true,
             'comment' => 'Optional cover image id',
         ],
+        'generic_code' => [
+            'db_type' => 'string',
+            'nullable' => false,
+            'comment' => 'Generic Code',
+        ],
+        'super_powers' => [
+            'db_type' => 'array',
+            'nullable' => false,
+            // 'default' => [],
+            'comment' => 'JSON encoded array of user super_powers',
+        ],
         'date_of_birth' => [
             'db_type' => 'date',
             'nullable' => true,

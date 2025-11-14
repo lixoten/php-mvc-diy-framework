@@ -163,12 +163,12 @@ IF %ERRORLEVEL% EQU 1 (
 echo.
 
 @REM Prompt before generating the entity
-CHOICE /C YNQ /M "Run php bin/console.php make:field-config %entity%. Do it?"
+CHOICE /C YNQ /M "Run php bin/console.php make:config-fields %entity%. Do it?"
 IF %ERRORLEVEL% EQU 1 (
-    echo %Entity% chose YES. Generating field-config...
-    php bin/console.php make:field-config %entity%
+    echo %Entity% chose YES. Generating config-fields...
+    php bin/console.php make:config-fields %entity%
 ) ELSE IF %ERRORLEVEL% EQU 2 (
-    echo %Entity% chose NO. Skipping field-config generation.
+    echo %Entity% chose NO. Skipping config-fields generation.
 ) ELSE IF %ERRORLEVEL% EQU 3 (
     echo %Entity% chose QUIT. Exiting script.
     EXIT /B

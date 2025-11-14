@@ -54,8 +54,20 @@ return [
             'title'     => 'Your Title',
             'fields'    => [
                 'title',                 // text
+                'generic_text',
+                'telephone',
+                'primary_email',         // email
+
+                // 'content',
+                // 'is_verified',
+                // 'generic_code',                 // select ERR-DEV88
+                // 'status',                 // select
+                // 'super_powers',
+        // 'status', 'created_at', 'id', 'store_id', 'user_id', 'title',  'content', 'is_verified', 'super_powers', 'generic_code'
+
+
+
                 // 'secret_code_hash',      // password
-                // 'primary_email',         // email
                 // 'online_address',        // url
                 // 'telephone',             // tel
 
@@ -89,7 +101,7 @@ return [
                 // 'balance',
                 // 'date_of_birth',
                 // 'favorite_week_day',
-                'content',
+
                 // 'store_id',
 
                 // 'is_boodddddvssssserified',

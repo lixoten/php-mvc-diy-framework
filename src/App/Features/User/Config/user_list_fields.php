@@ -1,36 +1,27 @@
 <?php
 
+/**
+ * Generated File - Date: 20251111_222717
+ * List-Field definitions for the User entity.
+ *
+ * This file defines how each field should be rendered in lists,
+ * including labels, input types, attributes, formatters, and validators.
+ */
+
 declare(strict_types=1);
 
-use App\Helpers\DebugRt;
-
 return [
-    'id' => [
-        'label' => 'user.id',
-        'form' => [
-            'attributes' => [
-                'type' => 'hidden',
-            ],
-        ],
+    'email' => [
+        'label' => 'user.email',
         'list' => [
-            'sortable' => true,
+            'sortable' => false,
             'formatter' => null,
-        ]
-    ],
-    'username' => [
-        'label' => 'user.username',
-        'list' => [
-            'sortable' => true,
-            // 'formatter' => fn($value) => htmlspecialchars($value ?? 'Unknown'),
-            'formatter' => function ($value) {
-                return htmlspecialchars($value ?? 'Unknown');
-            },
         ],
         'form' => [
-            'type'          => 'text',
+            'type'          => 'email',
             'required'      => true, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'user.username.placeholder',
+                'placeholder' => 'user.email.placeholder',
             ],
         ],
         'formatters' => [
@@ -40,6 +31,4 @@ return [
             ],
         ]
     ],
-
-
 ];

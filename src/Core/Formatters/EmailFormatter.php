@@ -45,7 +45,7 @@ class EmailFormatter extends AbstractFormatter
                 if (isset($domainParts[1])) {
                     $domain .= '.' . $domainParts[1];
                 }
-                return htmlspecialchars($local . '@' . $domain);
+                return $local . '@' . $domain;
             }
         }
 

@@ -76,19 +76,6 @@ return [
                 'subdir' => 'pictures',
             ],
         ],
-        // 'formatters' => [
-        //     // ['name' => 'phone', 'options' => ['region' => 'US']],  // Include region in per-formatter options
-        //     // ['name' => 'phone', 'options' => ['region' => ''$userRegion, 'user_region' => $userRegion]],
-        //     // ['name' => 'phone', 'options' => ['region' => 'PT']],
-        //     ['name' => 'image',
-        //         'options' => [
-        //             'base_url' => '/uploads/',  // Adjust to your server's web root or
-                                               // upload directory, e.g., '/uploads/' if files are in /uploads/pictures/
-        //             'class' => 'img-fluid',
-        //             'alt' => 'Picture of me',  // Optional: for accessibility
-        //         ],
-        //     ],
-        // ],
         'formatters' => [
             'image' => [
                 'base_url' => '/uploads/',  // Adjust to your server's web root or upload directory, e.g.,
@@ -359,119 +346,6 @@ return [
                 'forbidden_message' => 'Custom: This domain is not allowed.',
             ],
         ],
-    ],
-    'telephone' => [
-        'label' => 'testy.telephone',
-        'form' => [
-            'type' => 'tel',
-            // 'region' => 'PT',
-            'attributes' => [
-                'id' => 'telephone',
-                // 'placeholder' => 'testy.telephone.placeholder', // '+1-555-123-4567',
-                'required' => true,
-                'maxlength' => 21,
-                // 'list' => 'foo',
-                // 'data-char-counter'     => true, // js-feature
-                // 'data-live-validation'  => true  // js-feature
-                // 'data-mask' => 'phone', // todo - mast does not validate.
-                // 'data-country' => 'pt', // todo - revisit for validation -  'pattern', 'maxlength', or 'validators')
-                // 'style' => 'background: cyan;',
-            ],
-            // 'datalist' => [],
-        ],
-        'formatters' => [
-            'phone',
-            // 'phone' => [],
-            // 'phone' => [
-            //     'format' => 'default', 'region' => 'US'
-            // ],
-        ],
-        'validators' => [
-            // 'phone' => [
-            //     // 'invalid_region_message' => 'Custom: Invalid_region',
-            //     // 'invalid_parse_message'  => 'Custom: Invalid_parse',
-            //     // 'invalid_message'        => 'Custom: Invalid',
-            // ],
-        ],
-    ],
-    'my_search' => [
-        'label' => 'Search',
-        'form' => [
-            'type' => 'url',
-            'attributes' => [
-                'placeholder' => 'sea....',
-                'maxlength' => 255,
-            ],
-        ],
-    ],
-    // ----Date Based-------------------------------------
-    'generic_date' => [
-        'label' => 'testy.generic_date',
-        'form' => [
-            'type' => 'date',
-            'attributes' => [
-                'required' => true,
-                'min'      => '1900-01-01',  // optional: earliest allowed date
-                'max'      => date('Y-m-d'), // optional: latest allowed date (today)
-
-                // 'data-live-validation'  => true  // js-feature
-            ],
-        ],
-        'validators' => [
-            'date' => [
-                // 'max'    => '4026-09-25',
-                //---
-                'required_message'   => "custom - This field is required.",
-                'min_message'        => "custom - Date must not be before ___.",
-                'max_message'        => "custom - Date must not be after ___.",
-                'invalid_message'    => "custom - Please enter a valid date.",
-            ]
-        ]
-    ],
-    'generic_datetime' => [
-        'label' => 'testy.generic_datetime',
-        'form' => [
-            'type' => 'datetime',
-            'attributes' => [
-                'required' => true,
-                'min' => '1900-01-01T00:00', // Earliest allowed datetime
-                'max' => date('Y-m-d\TH:i'), // Latest allowed datetime (now)
-                // 'data-live-validation'  => true  // js-feature
-            ],
-        ],
-        'validators' => [
-            'datetime' => [
-                // 'max'    => '2026-12-25',
-                //---
-                'required_message'   => "custom - Date and time is required.",
-                'min_message'        => "custom - Date and time must not be before ___.",
-                'max_message'        => "custom - Date and time must not be after ___.",
-                'invalid_message'    => "custom - Please enter a valid date and time " .
-                                        "(YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS).",
-            ]
-        ]
-    ],
-    'generic_month' => [
-        'label' => 'testy.generic_month',
-        'form' => [
-            'type' => 'month',
-            'attributes' => [
-                'required' => true,
-                'min' => '1900-01', // optional: earliest allowed date
-                'max' => date('Y-m'), // optional: latest allowed date month (today)
-                // 'data-live-validation'  => true  // js-feature
-            ],
-        ],
-        'validators' => [
-            'month' => [
-                // 'max'    => '2026-09-25',
-                //---
-                'required_message'   => "custom - Year-Month is required.",
-                'min_message'        => "custom - Month must not be before ___.",
-                'max_message'        => "custom - Month must not be after ___.",
-                'invalid_message'    => "custom - Please enter a valid year-month.",
-            ]
-        ]
     ],
     'generic_week' => [
         'label' => 'testy.generic_week',

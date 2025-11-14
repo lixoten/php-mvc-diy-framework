@@ -496,18 +496,41 @@ return [
 
 
 
-    'Core\I18n\LabelProvider' => function () {
-        $testy  = include dirname(__DIR__) . '/lang/en/testy.php';
-        $gallery  = include dirname(__DIR__) . '/lang/en/gallery.php';
-        $user   = include dirname(__DIR__) . '/lang/en/user.php';
-        // $albums = include dirname(__DIR__) . '/lang/en/albums.php';
-        $common = include dirname(__DIR__) . '/lang/en/common.php';
-        // Merge post and common for the provider
+    'Core\I18n\LabelProvider' => function (ContainerInterface $c) {
+        $logger = $c->get(LoggerInterface::class);
+
+        $langPath = dirname(__DIR__) . '/lang/en/';
+
+
+        $testyPath = $langPath . 'testy_lang.php';
+        $testy = file_exists($testyPath) ? include $testyPath : [];
+        if (empty($testy) && !file_exists($testyPath)) {
+            $logger->warning("Language file not found: {$testyPath}. Using empty array.");
+        }
+
+        $galleryPath = $langPath . 'gallery_lang.php';
+        $gallery = file_exists($galleryPath) ? include $galleryPath : [];
+        if (empty($gallery) && !file_exists($galleryPath)) {
+            $logger->warning("Language file not found: {$galleryPath}. Using empty array.");
+        }
+
+        $userPath = $langPath . 'user_lang.php';
+        $user = file_exists($userPath) ? include $userPath : [];
+        if (empty($user) && !file_exists($userPath)) {
+            $logger->warning("Language file not found: {$userPath}. Using empty array.");
+        }
+
+        $commonPath = $langPath . 'common_lang.php';
+        $common = file_exists($commonPath) ? include $commonPath : [];
+        if (empty($common) && !file_exists($commonPath)) {
+            $logger->warning("Language file not found: {$commonPath}. Using empty array.");
+        }
+
+        // Collect all loaded language arrays into a single structure for the LabelProvider
         $labels = [
             'testy' => $testy,
             'gallery' => $gallery,
             'user' => $user,
-            // 'albums' => $albums,
             'common' => $common,
         ];
         return new \Core\I18n\LabelProvider($labels);
@@ -562,6 +585,11 @@ return [
 
     \Core\Services\DataTransformerService::class => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get(\Core\Services\FieldRegistryService::class)),
+
+
+    // Base Feature Service (provides common utilities like data transformation)
+    \Core\Services\BaseFeatureService::class => \DI\autowire()
+        ->constructorParameter('dataTransformerService', \DI\get(\Core\Services\DataTransformerService::class)),
 
 
 
@@ -1278,7 +1306,7 @@ return [
     'validator.password' => \DI\autowire(\Core\Form\Validation\Rules\PasswordValidator::class),
     'validator.email'    => \DI\autowire(\Core\Form\Validation\Rules\EmailValidator::class),
     'validator.url'      => \DI\autowire(\Core\Form\Validation\Rules\UrlValidator::class),
-    'validator.phone'    => \DI\autowire(\Core\Form\Validation\Rules\PhoneValidator::class),
+    'validator.tel'    => \DI\autowire(\Core\Form\Validation\Rules\TelValidator::class),
     'validator.search'   => \DI\autowire(\Core\Form\Validation\Rules\SearchValidator::class),
 
     'validator.date' => \DI\autowire(\Core\Form\Validation\Rules\DateValidator::class),
@@ -1343,7 +1371,7 @@ return [
             $c->get('validator.password'),
             $c->get('validator.email'),
             $c->get('validator.url'),
-            $c->get('validator.phone'),
+            $c->get('validator.tel'),
             $c->get('validator.search'),
 
             $c->get('validator.date'),
@@ -1395,9 +1423,9 @@ return [
 
     // Core Components - Pure autowiring
     'formatterz.text'      => \DI\autowire(\Core\Formatters\TextFormatter::class),
-    'formatterz.phone'     => \DI\autowire(\Core\Formatters\PhoneNumberFormatter::class),
+    'formatterz.tel'       => \DI\autowire(\Core\Formatters\PhoneNumberFormatter::class),
     'formatterz.email'     => \DI\autowire(\Core\Formatters\EmailFormatter::class),
-    'formatterz.image'     => \DI\autowire(\Core\Formatters\ImageFormatter::class),
+    // 'formatterz.image'     => \DI\autowire(\Core\Formatters\ImageFormatter::class),
     'formatterz.decimal'   => \DI\autowire(\Core\Formatters\DecimalFormatter::class),
     'formatterz.currency'  => \DI\autowire(\Core\Formatters\CurrencyFormatter::class),
     'formatterz.foo'       => \DI\autowire(\Core\Formatters\FooFormatter::class),
@@ -1408,9 +1436,9 @@ return [
     \Core\Formatters\FormatterRegistry::class => \DI\factory(function (ContainerInterface $c) {
         $registry = new \Core\Formatters\FormatterRegistry([
             $c->get('formatterz.text'),
-            $c->get('formatterz.phone'),
+            $c->get('formatterz.tel'),
             $c->get('formatterz.email'),
-            $c->get('formatterz.image'),
+            // $c->get('formatterz.image'),
             $c->get('formatterz.decimal'),
             $c->get('formatterz.currency'),
             $c->get('formatterz.foo'),
@@ -1574,8 +1602,8 @@ return [
         ->constructorParameter('repositoryGenerator', \DI\get(\Core\Console\Generators\RepositoryGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
-    \Core\Console\Commands\MakeFieldConfigCommand::class => \DI\autowire()
-        ->constructorParameter('ConfigFieldsGenerator', \DI\get(\Core\Console\Generators\ConfigFieldsGenerator::class))
+    \Core\Console\Commands\MakeConfigFieldsCommand::class => \DI\autowire()
+        ->constructorParameter('configFieldsGenerator', \DI\get(\Core\Console\Generators\ConfigFieldsGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
     \Core\Console\Commands\FeatureMoveCommand::class => \DI\autowire()
@@ -1623,15 +1651,11 @@ return [
 
     // Register ConfigFieldsGenerator
     \Core\Console\Generators\ConfigFieldsGenerator::class
-                                                   => \DI\autowire(\Core\Console\Generators\ConfigFieldsGenerator::class)
+                                            => \DI\autowire(\Core\Console\Generators\ConfigFieldsGenerator::class)
         ->constructorParameter(
             'generatorOutputService',
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
         ),
-        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
-
-
-
 
 
     // Register FeatureGenerator
@@ -1919,7 +1943,9 @@ return [
     'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\List\Renderer\BootstrapListRenderer(
             $c->get('Core\Services\ThemeServiceInterface'),
-            $c->get('Core\I18n\LabelProvider')
+            $c->get('Core\I18n\LabelProvider'),
+            $c->get('Core\Services\FormatterService'),
+            $c->get(LoggerInterface::class)
         );
     }),
 

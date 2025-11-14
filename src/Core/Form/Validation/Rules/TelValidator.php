@@ -13,7 +13,7 @@ use libphonenumber\PhoneNumberFormat;
  * Uber_Phone
  * Validates international phone numbers using libphonenumber.
  */
-class PhoneValidator extends AbstractValidator
+class TelValidator extends AbstractValidator
 {
     private RegionContextService $regionContextService;
 
@@ -74,7 +74,7 @@ class PhoneValidator extends AbstractValidator
     /** {@inheritdoc} */
     public function getName(): string
     {
-        return 'phone';
+        return 'tel';
     }
 
     /** {@inheritdoc} */

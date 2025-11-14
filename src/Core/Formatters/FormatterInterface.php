@@ -17,17 +17,18 @@ interface FormatterInterface
      *
      * @param mixed $value The value to format
      * @param array<string, mixed> $options Additional formatting options
-     * @return string The formatted value
+     * @return mixed The formatted value - some formatters might return arrays
+     *                                     (e.g., for multi-value fields) before final rendering.
      */
-    public function format(mixed $value, array $options = []): string;
+    public function format(mixed $value, array $options = []): mixed;
 
-    /**
-     * Sanitizes a value according to the formatter's rules, preparing it for storage or validation.
-     *
-     * @param mixed $value The value to sanitize.
-     * @return string The sanitized value.
-     */
-    public function sanitize(mixed $value): string;
+    // /** // removeme
+    //  * Sanitizes a value according to the formatter's rules, preparing it for storage or validation.
+    //  *
+    //  * @param mixed $value The value to sanitize.
+    //  * @return string The sanitized value.
+    //  */
+    // public function sanitize(mixed $value): string;
 
 
     /**

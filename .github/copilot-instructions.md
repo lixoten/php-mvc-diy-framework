@@ -6,6 +6,22 @@ applyTo: '**'
 
 This document serves as a guide for GitHub Copilot to ensure all code contributions align with the project's standards, conventions, and architecture.
 
+## Solid Principles, No mixing concerns. If you spot code ming concerns please alert me.
+
+**Mandate (Mandatory Rules for All Code Generation):**
+
+1.  **Strict SOLID Adherence:** All generated code MUST adhere to the SOLID principles.
+2.  **Single Responsibility Principle (SRP):** Classes and methods MUST only handle one concern. Never mix concerns like **Persistence (Database)**, **Business Logic (Validation/Calculation)**, and **Presentation (HTML/Headers)** within the same class or method.
+3.  **Separation of Concerns (SoC):** All code MUST separate high-level logic (orchestration) from low-level details (implementation).
+    * **Controllers** MUST only handle request parsing and delegating work to Services. They MUST NOT contain business logic or database queries.
+    * **Services** MUST contain all business logic and MUST interact with Repositories.
+    * **Repositories** MUST contain all persistence (database) logic.
+4.  **Dependency Inversion Principle (DIP):** Depend on **abstractions** (Interfaces) over **concretions** (Classes). Use Constructor Injection for all dependencies.
+5.  **Interface Segregation Principle (ISP):** Avoid "fat" interfaces. If an interface is used, it must be small and role-specific.
+
+If a code suggestion violates SRP, OCP, or DIP, you MUST refuse the suggestion and explain which principle was violated.
+
+
 
 ## Code Style and Best Practices
 

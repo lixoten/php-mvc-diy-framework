@@ -16,10 +16,8 @@ class FieldSchema
     public function get(string $fieldType): array
     {
         $global = $this->schemas['global'] ?? [];
-        // $form = $this->schemas['form'] ?? [];
         $typeSpecific = $this->schemas[$fieldType] ?? [];
 
-        // return array_merge($global, $form, $typeSpecific);
         return array_merge($global, $typeSpecific);
     }
 }

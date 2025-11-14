@@ -154,8 +154,10 @@ class ListConfigurationService
      */
     protected function loadPageConfiguration(string $pageFeature, string $pageName): array
     {
-        try {
-            $configKey = $pageName . '_view';
+        try {                               // root explode
+            $useEntity = explode('_', $pageName)[0];
+
+            $configKey = "{$useEntity}_view_list"; // findLoc config file testy_view_list
             $config = $this->configService->getFromFeature($pageFeature, $configKey) ?? [];
 
             // $this->logger->debug('ListConfigurationService: Page config loaded', [

@@ -11,23 +11,23 @@ use App\Features\User\User;
 // use App\Repository\UserRepositoryInterface;
 use App\Features\User\UserRepositoryInterface;
 use Core\Security\TokenServiceInterface;
+// use Core\Services\DataTransformerService;
 use App\Enums\UserStatus;
-use Core\Services\DataTransformerService;
 
 class UserService
 {
     private UserRepositoryInterface $userRepository;
     private TokenServiceInterface $tokenService;
-    private DataTransformerService $dataTransformer;
+    // private DataTransformerService $dataTransformer;
 
     public function __construct(
         UserRepositoryInterface $userRepository,
         TokenServiceInterface $tokenService,
-        DataTransformerService $dataTransformer
+        // DataTransformerService $dataTransformer
     ) {
         $this->userRepository = $userRepository;
         $this->tokenService = $tokenService;
-        $this->dataTransformer = $dataTransformer;
+        // $this->dataTransformer = $dataTransformer;
     }
 
     /**
@@ -161,29 +161,29 @@ class UserService
 
 
 
-    /**
-     * Transform user data for database storage
-     * Normalizes form submission or API input for database persistence
-     *
-     * @param array<string, mixed> $data Raw input data
-     * @param string $pageName Page context (e.g., 'user_edit')
-     * @return array<string, mixed> Storage-ready data
-     */
-    public function transformForStorage(array $data, string $pageName = 'user_edit'): array
-    {
-        return $this->dataTransformer->toStorage($data, $pageName, 'user');
-    }
+    // /**
+    //  * Transform user data for database storage
+    //  * Normalizes form submission or API input for database persistence
+    //  *
+    //  * @param array<string, mixed> $data Raw input data
+    //  * @param string $pageName Page context (e.g., 'user_edit')
+    //  * @return array<string, mixed> Storage-ready data
+    //  */
+    // public function transformForStorage(array $data, string $pageName = 'user_edit'): array
+    // {
+    //     return $this->dataTransformer->toStorage($data, $pageName, 'user');
+    // }
 
-    /**
-     * Transform user data for display
-     * Converts database/storage format to display-ready format for views, forms, lists
-     *
-     * @param array<string, mixed> $userData Raw user data from storage
-     * @param string $pageName Page context (e.g., 'user_edit', 'user_list', 'user_detail')
-     * @return array<string, mixed> Display-ready data
-     */
-    public function transformForDisplay(array $userData, string $pageName = 'user_edit'): array
-    {
-        return $this->dataTransformer->toDisplay($userData, $pageName, 'user');
-    }
+    // /**
+    //  * Transform user data for display
+    //  * Converts database/storage format to display-ready format for views, forms, lists
+    //  *
+    //  * @param array<string, mixed> $userData Raw user data from storage
+    //  * @param string $pageName Page context (e.g., 'user_edit', 'user_list', 'user_detail')
+    //  * @return array<string, mixed> Display-ready data
+    //  */
+    // public function transformForDisplay(array $userData, string $pageName = 'user_edit'): array
+    // {
+    //     return $this->dataTransformer->toDisplay($userData, $pageName, 'user');
+    // }
 }

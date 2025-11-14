@@ -106,13 +106,25 @@ class FeatureMoveCommand extends Command
             ],
             'seeder' => [
                 'pattern' => "*{$entity}Seeder.php",
-                'dest' => $this->pathResolverService->getDatabaseSeedersPath(), // Destination is a directory
+                'dest' => $this->pathResolverService->getDatabaseSeedersPath(),
                 'rename_on_move' => true, // Seeders are renamed to EntitySeeder.php
                 'process_all_matching' => false, // Only the latest seeder is moved
             ],
-            'fieldconfig' => [
-                'pattern' => strtolower($entity) . "_fields" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity), // ...Features/{Entity}/Config
+            'configfieldsroot' => [
+                'pattern' => strtolower($entity) . "_fields_root" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
+            'configfieldslist' => [
+                'pattern' => strtolower($entity) . "_fields_list" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
+            'configfieldsedit' => [
+                'pattern' => strtolower($entity) . "_fields_edit" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],

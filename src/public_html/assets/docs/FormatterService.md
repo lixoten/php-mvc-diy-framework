@@ -16,12 +16,12 @@ $uppercaseFormatter = new UppercaseFormatter();
 
 // 2. Register these instances with the registry
 $registry = new FormatterRegistry();
-$registry->set('phone', $phoneNumberFormatter);
+$registry->set('tel', $phoneNumberFormatter);
 $registry->set('uppercase', $uppercaseFormatter);
 
 // 3. The service can now retrieve and use them
 $formatterService = new FormatterService($registry);
-$formattedPhone = $formatterService->format('phone', '1234567890');
+$formattedPhone = $formatterService->format('tel', '1234567890');
 
 
 

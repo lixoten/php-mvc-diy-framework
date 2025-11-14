@@ -2,6 +2,7 @@ Abbondanza
 abend
 activitusbar
 Architectu
+aszzzzsets
 autoloads
 automagically
 badrequest
@@ -16,6 +17,10 @@ Bointon
 classmap
 codesearch
 codesniffer
+configfieldsedit
+configfieldslist
+configfieldsroot
+copyzzzz
 ctype
 dangerdanger
 Datalists
@@ -33,6 +38,7 @@ ERRORLEVEL
 extratest
 Fabio
 fieldconfig
+fieldsconfig
 fielsdset
 flushdns
 Folmer
@@ -65,6 +71,7 @@ Inno
 instantiator
 Instantiator
 intelephense
+invis
 ircmaxell
 Jagielski
 jhhtaylor
@@ -75,6 +82,7 @@ laravel
 libphonenumber
 linkdemo
 LINKDEMO
+listfieldsconfig
 localform
 Mapp
 Martijn
@@ -160,6 +168,7 @@ tempx
 testdatabase
 Testdatabase
 TESTDATABASE
+TESTFORMATTER
 testlogger
 TESTLOGGER
 testsession

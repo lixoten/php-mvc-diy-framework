@@ -34,12 +34,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\FormTypeInterface;
+use Core\Formatters\TextFormatter;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
 use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
 use Core\List\Renderer\ListRendererInterface;
+use Core\Services\BaseFeatureService;
 
 /**
  * Testy controller
@@ -72,6 +74,7 @@ class TestyController extends AbstractCrudController
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
         private FormatterService $formatter,
+        protected BaseFeatureService $baseFeatureService
     ) {
         parent::__construct(
             $route_params,
@@ -90,6 +93,7 @@ class TestyController extends AbstractCrudController
             $repository,
             $typeResolver,
             $listRenderer,
+            $baseFeatureService
         );
         // constructor uses promotion php8+
     }
@@ -141,6 +145,7 @@ class TestyController extends AbstractCrudController
             Url::CORE_TESTY_EDIT,
             Url::CORE_TESTY_PLACEHOLDER,
             Url::CORE_TESTY_TESTLOGGER,
+            Url::CORE_TESTY_TESTFORMATTER,
             Url::CORE_TESTY_TESTSESSION,
             Url::CORE_TESTY_TESTDATABASE,
             Url::CORE_TESTY_EMAILTEST,
@@ -317,6 +322,154 @@ class TestyController extends AbstractCrudController
         ];
 
         return $this->view(Url::CORE_TESTY_TESTLOGGER->view(), $this->buildCommonViewData($viewData));
+    }
+    public function testformatterAction(): ResponseInterface
+    {
+        $content = "<h1>Logger String Interpolation Tests</h1>";
+        //$content .= Debug::p($this->route_params, 0, true);  // Return output instead of echo
+
+
+        // Assume TextFormatter is instantiated, e.g., via DI
+        $textFormatter = new TextFormatter();
+
+
+        // Basic usage
+        $title = '<hr><h3>Basic usage</h3>';
+        $data = 'hello world';
+        $content .= "$title<b>transform </b> Does nothing<br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data); // Output: hello world
+
+        // With null value
+        $title = '<br /><hr><h3>With null value</h3>';
+        $v = "['null_value' => 'No Content']";
+        $data = null;
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['null_value' => 'No Content']); // Output: No Content
+
+        // Truncation
+        $title = '<br /><hr><h3>Truncation</h3>';
+        $v = "['max_length' => 20]";
+        $data = 'This is a very long text that needs to be truncated.';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['max_length' => 20]);
+        // Output: This is a very lon...
+
+
+
+        // Truncation with custom suffix
+        $title = '<br /><hr><h3>Truncation with custom suffix</h3>';
+        $v = "['max_length' => 10, 'truncate_suffix' => '...read more']";
+        $data = 'Another long sentence.';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['max_length' => 10, 'truncate_suffix' => '...read more']);
+        // Output: Another lo...read more
+
+        // Uppercase transformation
+        $title = '<br /><hr><h3>Uppercase transformation</h3>';
+        $v = " ['transform' => 'uppercase']";
+        $data = 'hello world';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['transform' => 'uppercase']); // Output: HELLO WORLD
+
+        // Lowercase transformation
+        $title = '<br /><hr><h3>Lowercase transformation</h3>';
+        $v = " ['transform' => 'lowercase']";
+        $data = 'HELLO world';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['transform' => 'lowercase']); // Output: hello world
+
+        // Capitalize transformation
+        $title = '<br /><hr><h3>Capitalize transformation</h3>';
+        $v = " ['transform' => 'capitalize']";
+        $data = 'hello world, is is a nice day';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['transform' => 'capitalize']);
+        // Output: Hello world, is is a nice day
+
+
+        // Title case transformation
+        $title = '<br /><hr></hr><h3>Title case transformation</h3>';
+        $v = "['transform' => 'title']";
+        $data = 'this is a title';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['transform' => 'title']); // Output: This Is A Title
+
+        // last2char_upper transformation
+        $title = '<br /><hr><h3>last2char_upper transformation</h3>';
+        $v = " ['transform' => 'last2char_upper']";
+        $data = 'hello world, is is a nice day';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['transform' => 'last2char_upper']);
+        // Output: Hello world, is is a nice dAY
+
+
+        // Custom suffix
+        $title = '<br /><hr><h3>Custom suffix</h3>';
+        $v = "['suffix' => ': $100']";
+        $data = 'Price';
+        $content .= "$title<b>transform {$v}</b><br />";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform($data, ['suffix' => ': $100']); // Output: Price: $100
+
+        // Combination (max_length, transform, suffix)
+        $title = '<br /><hr><h3>Combination (max_length, transform, suffix)</h3>';
+        $v = "<pre>
+            [
+                'max_length' => 15,
+                'truncate_suffix' => '...',
+                'transform' => 'uppercase',
+                'suffix' => ' (CONFIDENTIAL)'
+            ]</pre>";
+        $data = "super important secret message";
+        $content .= "$title<b>transform {$v}</b>";
+        $content .= "<b>Data: </b> $data <br />";
+        $content .= "<b>Output: </b>";
+        $content .= $textFormatter->transform(
+            $data,
+            [
+                'max_length' => 15,
+                'truncate_suffix' => '...',
+                'transform' => 'uppercase',
+                'suffix' => ' (CONFIDENTIAL)'
+            ]
+        );
+        // Output: SUPER IMPOR... (CONFIDENTIAL)
+
+        // $title = '<br /><hr><h3>xxx</h3>';
+        // $v = "xxx";
+        // $data = 'xxx';
+        // $content .= "$title<b>transform {$v}</b><br />";
+        // $content .= "<b>Data: </b> $data <br />";
+        // $content .= "<b>Output: </b>";
+
+
+        $content .= '<hr>';
+        $viewData = [
+            'title' => 'Testy Logger Action',
+            'actionLinks' => $this->getReturnActionLinks(),
+            'additional_content' => $content
+        ];
+
+        return $this->view(Url::CORE_TESTY_TESTFORMATTER->view(), $this->buildCommonViewData($viewData));
     }
 
 

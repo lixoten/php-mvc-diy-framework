@@ -41,8 +41,8 @@ class TextFormatter extends AbstractFormatter
                 'lowercase' => strtolower($text),
                 'capitalize' => ucfirst(strtolower($text)),
                 'title' => ucwords(strtolower($text)),
+                'trim' => trim($text), // notes-: assuming we did not store clean data
                 'last2char_upper' => $this->last2CharUpper($text),
-                'feefee' => $text . '-feefee',
                 default => $text
             };
         }
@@ -79,8 +79,8 @@ class TextFormatter extends AbstractFormatter
             'max_length' => null,
             'truncate_suffix' => '...',
             'null_value' => '',
-            'transform' => null,
-            'suffix' => null
+            'transform'  => null,
+            'suffix'     => null
         ];
     }
 }

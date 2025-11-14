@@ -11,6 +11,8 @@
     <exclude-pattern>*/blank copy.php</exclude-pattern>
     <exclude-pattern>*copy.php</exclude-pattern>
 
+    <!--
     <arg name="colors" />
     <arg value="p" />
+    -->
 </ruleset>

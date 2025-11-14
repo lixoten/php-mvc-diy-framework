@@ -69,6 +69,7 @@ class TestySeeder extends Seeder
                 'interest_hockey_ind' => false,
                 'primary_email' => 'alice@example.com',
                 'secret_code_hash' => 'X7F9-ALPHA-2025',
+                'super_powers' => '["fly", "invis"]',
                 'balance' => 98765.43,
                 'generic_decimal' => 36.6,
                 'generic_number' => 2,

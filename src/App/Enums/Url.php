@@ -71,6 +71,7 @@ enum Url
     case CORE_TESTY_PLACEHOLDER;
     case CORE_TESTY_LINKDEMO;
     case CORE_TESTY_TESTLOGGER;
+    case CORE_TESTY_TESTFORMATTER;
     case CORE_TESTY_TESTSESSION;
     case CORE_TESTY_TESTDATABASE;
     case CORE_TESTY_EMAILTEST;
@@ -711,6 +712,12 @@ enum Url
                 'testy/testlogger',
                 'testlogger',
                 'Logger'
+            ),
+            self::CORE_TESTY_TESTFORMATTER => $this->routeData(
+                'testy/testformatter',
+                'testy/testformatter',
+                'testformatter',
+                'formatter'
             ),
             self::CORE_TESTY_TESTSESSION => $this->routeData(
                 'testy/testsession',

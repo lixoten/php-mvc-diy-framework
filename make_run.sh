@@ -78,7 +78,7 @@ prompt_and_run "make:entity" "Entity Generation" "3"
 #########################################################
 # 4. Generate Field Config
 #########################################################
-prompt_and_run "make:field-config" "Field Config Generation" "4"
+prompt_and_run "make:config-fields" "Field Config Generation" "4"
 
 #########################################################
 # 5. Move Files to Feature Directory

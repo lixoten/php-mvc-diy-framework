@@ -27,6 +27,7 @@ use Core\Services\TypeResolverService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Core\List\Renderer\ListRendererInterface;
+use Core\Services\BaseFeatureService;
 
 /**
  * Provides a base for controllers that handle standard CRUD operations.
@@ -53,6 +54,7 @@ abstract class AbstractCrudController extends Controller
         protected BaseRepositoryInterface $repository,
         protected TypeResolverService $typeResolver,
         protected ListRendererInterface $listRenderer,
+        protected BaseFeatureService $baseFeatureService
         //-----------------------------------------
     ) {
         parent::__construct($route_params, $flash, $view, $httpFactory, $container, $scrap);
@@ -294,6 +296,8 @@ abstract class AbstractCrudController extends Controller
             if (!$this->scrap->isAdmin()) {
                 $this->checkForEditPermissions($recordArray);
             }
+
+            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageName, $pageEntity);
         } else {
             $recordArray = null;
         }
@@ -338,7 +342,8 @@ abstract class AbstractCrudController extends Controller
                 }
             }
 
-
+            // Transform form data before saving
+            $data = $this->baseFeatureService->transformToStorage($data, $pageName, $pageEntity);
 
 
             // foreach ($data as $name => $field) {
@@ -465,6 +470,10 @@ abstract class AbstractCrudController extends Controller
                     $data['slug'] = $this->generateSlug((string)$data['title']);
                 }
             }
+
+            // Transform form data before saving
+            $data = $this->baseFeatureService->transformForStorage($data, $pageName);
+
 
             // foreach ($data as $name => $field) {
             //     if ($field->getAttribute('type') === 'hidden' ||

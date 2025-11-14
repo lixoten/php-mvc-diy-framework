@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
  */
 class UserController extends AbstractCrudController
 {
-    protected ?ServerRequestInterface $request = null; // Declare correctly with proper type
+    protected ?ServerRequestInterface $request = null;
 
     public function __construct(
         array $route_params,
@@ -72,6 +72,9 @@ class UserController extends AbstractCrudController
         private PaginationService $paginationService,
         private FormatterService $formatter,
         private UserService $userService
+        //-----------------------------------------
+        // BaseFeatureService is already injected by parent AbstractCrudController.
+        // No need to inject it here again.
     ) {
         parent::__construct(
             $route_params,
@@ -90,6 +93,7 @@ class UserController extends AbstractCrudController
             $repository,
             $typeResolver,
             $listRenderer,
+            $this->baseFeatureService
         );
         // constructor uses promotion php8+
         // $this->config = $config;
@@ -346,7 +350,8 @@ class UserController extends AbstractCrudController
             }
 
             // Transform data for form display
-            $recordArray = $this->userService->transformForDisplay($recordArray, $pageName);
+            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageName, $pageEntity);
+            //$recordArray = $this->userService->transformForDisplay($recordArray, $pageName);
         } else {
             $recordArray = null;
         }
@@ -373,7 +378,8 @@ class UserController extends AbstractCrudController
             $data = $form->getUpdatableData();
 
             // Transform form data before saving
-            $data = $this->userService->transformForStorage($data, $pageName);
+            // $data = $this->userService->transformForStorage($data, $pageName);
+            $data = $this->baseFeatureService->transformToStorage($data, $pageName, $pageEntity);
 
 
 
@@ -501,7 +507,8 @@ class UserController extends AbstractCrudController
             $data = $form->getUpdatableData();
 
             // Transform form data before saving
-            $data = $this->userService->transformForStorage($data, $pageName);
+            // $data = $this->userService->transformForStorage($data, $pageName);
+            $data = $this->baseFeatureService->transformForStorage($data, $pageName);
 
 
 

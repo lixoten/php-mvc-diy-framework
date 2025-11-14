@@ -34,7 +34,7 @@ return [
         'per_page' => 20
     ],
     'render_options' => [
-        'title'                 =>  'list.posts.title 111',
+        'title'                 =>  'list.user.title 111',
         'show_actions'          => true,
         'show_action_add'       => true,
         'show_action_edit'      => true,
@@ -43,6 +43,6 @@ return [
         'show_action_status'    => false,
     ],
     'list_fields' => [
-        'id', 'username', 'email', 'status', 'roles', 'created_at'
+        'id', 'username', 'email', 'status', 'roles', 'generic_code', 'created_at'
     ],
 ];
