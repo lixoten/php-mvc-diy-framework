@@ -166,12 +166,12 @@ class UserService
     //  * Normalizes form submission or API input for database persistence
     //  *
     //  * @param array<string, mixed> $data Raw input data
-    //  * @param string $pageName Page context (e.g., 'user_edit')
+    //  * @param string $pageKey Page context (e.g., 'user_edit')
     //  * @return array<string, mixed> Storage-ready data
     //  */
-    // public function transformForStorage(array $data, string $pageName = 'user_edit'): array
+    // public function transformForStorage(array $data, string $pageKey = 'user_edit'): array
     // {
-    //     return $this->dataTransformer->toStorage($data, $pageName, 'user');
+    //     return $this->dataTransformer->toStorage($data, $pageKey, 'user');
     // }
 
     // /**
@@ -179,11 +179,11 @@ class UserService
     //  * Converts database/storage format to display-ready format for views, forms, lists
     //  *
     //  * @param array<string, mixed> $userData Raw user data from storage
-    //  * @param string $pageName Page context (e.g., 'user_edit', 'user_list', 'user_detail')
+    //  * @param string $pageKey Page context (e.g., 'user_edit', 'user_list', 'user_detail')
     //  * @return array<string, mixed> Display-ready data
     //  */
-    // public function transformForDisplay(array $userData, string $pageName = 'user_edit'): array
+    // public function transformForDisplay(array $userData, string $pageKey = 'user_edit'): array
     // {
-    //     return $this->dataTransformer->toDisplay($userData, $pageName, 'user');
+    //     return $this->dataTransformer->toDisplay($userData, $pageKey, 'user');
     // }
 }

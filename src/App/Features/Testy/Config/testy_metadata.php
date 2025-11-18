@@ -20,7 +20,7 @@ return [
         'owner_foreign_key'   => 'user_id',
         'redirect_after_save' => 'edit',
         'redirect_after_add'  => 'list',
-        'pageName'            => 'testy_edit',
+        'pageKey'             => 'testy_edit',
         'entityName'          => 'testy',
     ],
 ];

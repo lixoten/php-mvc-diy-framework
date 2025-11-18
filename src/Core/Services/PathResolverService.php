@@ -198,9 +198,9 @@ class PathResolverService
      * param string $entityName The name of the entity (e.g., 'Testy').
      * @return string
      */
-    public function getAppFeatureConfigFieldRenderFilePath(string $type, string $pageName): string
+    public function getAppFeatureConfigFieldRenderFilePath(string $type, string $pageKey): string
     {
-        $w = explode('_', $pageName);
+        $w = explode('_', $pageKey);
         $entityName = $w[0];
         $action     = $w[1];
 

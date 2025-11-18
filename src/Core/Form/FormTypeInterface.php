@@ -60,6 +60,10 @@ interface FormTypeInterface
     public function setFields(array $fields): void;
 
 
+    public function mergeRenderOptions(array $renderOptions): void;
+
+
+
     /**
      * set the fields for this form type
      *
@@ -67,7 +71,9 @@ interface FormTypeInterface
      * return void
      */
     public function setFocus(
+        string $pageKey,
         string $pageName,
+        string $pageAction,
         string $pageFeature,
         string $pageEntity,
     ): void;

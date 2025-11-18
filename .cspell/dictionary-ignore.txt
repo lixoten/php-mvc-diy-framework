@@ -1,5 +1,6 @@
 Abbondanza
 abend
+Activitus
 activitusbar
 Architectu
 aszzzzsets
@@ -20,6 +21,8 @@ codesniffer
 configfieldsedit
 configfieldslist
 configfieldsroot
+configviewedit
+configviewlist
 copyzzzz
 ctype
 dangerdanger
@@ -44,6 +47,7 @@ flushdns
 Folmer
 foofee
 foofoo
+Fookup
 formatterxx
 formatterz
 friendsofphp
@@ -54,6 +58,7 @@ giggsey
 girel
 greew
 Grekas
+Gruntfuggly
 hayageek
 Heuer
 hhvm
@@ -143,6 +148,7 @@ REMOVEME
 repositoryinterface
 returnid
 roave
+Romkes
 rrudyi
 rrudyix
 rudyt

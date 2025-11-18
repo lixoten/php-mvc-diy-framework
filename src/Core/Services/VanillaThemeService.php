@@ -140,4 +140,30 @@ class VanillaThemeService implements ThemeServiceInterface
     {
         $this->viewLayouts[$layoutName] = $classes;
     }
+
+
+    /**
+     * Get badge CSS class for a semantic variant in Vanilla CSS.
+     *
+     * @param string $variant Semantic variant (success, danger, warning, info, secondary, etc.)
+     * @return string Full CSS class string for the badge
+     */
+    public function getBadgeClass(string $variant): string
+    {
+        // These are custom classes you would define in your vanilla.css file
+        $baseClass = 'vanilla-badge';
+        $variantClass = match ($variant) {
+            'success'   => 'vanilla-badge-success',
+            'danger'    => 'vanilla-badge-danger',
+            'warning'   => 'vanilla-badge-warning',
+            'info'      => 'vanilla-badge-info',
+            'primary'   => 'vanilla-badge-primary',
+            'secondary' => 'vanilla-badge-secondary',
+            'light'     => 'vanilla-badge-light',
+            'dark'      => 'vanilla-badge-dark',
+            default     => 'vanilla-badge-secondary', // Default fallback
+        };
+
+        return $baseClass . ' ' . $variantClass;
+    }
 }

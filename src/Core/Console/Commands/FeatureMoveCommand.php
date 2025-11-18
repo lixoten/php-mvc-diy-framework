@@ -128,6 +128,18 @@ class FeatureMoveCommand extends Command
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
+            'configviewlist' => [
+                'pattern' => strtolower($entity) . "_view_list" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
+            'configviewedit' => [
+                'pattern' => strtolower($entity) . "_view_edit" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
             // Add more as needed (Controller, FormType, ListType, etc.)
         ];
 

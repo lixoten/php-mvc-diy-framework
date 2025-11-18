@@ -56,7 +56,10 @@ class ListFactory implements ListFactoryInterface
         array $options = [],
     ): ListInterface {
         // Create list instance
-        $list = new ListView($listType->pageName);
+        $list = new ListView(
+            $listType->pageKey,
+            $listType->pageName,
+        );
 
         // Create list builder
         $builder = new ListBuilder($list, $this->fieldTypeRegistry);

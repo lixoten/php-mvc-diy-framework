@@ -37,7 +37,7 @@ class ListComponent extends AbstractComponent
         $mergedOptions = array_merge($this->options, $options);
 
         // Load component options with fallbacks (e.g., for 'list')
-        $componentOptions = $this->loadOptions('list', $mergedOptions['pageName'] ?? null, $mergedOptions['entityName'] ?? null);
+        $componentOptions = $this->loadOptions('list', $mergedOptions['pageKey'] ?? null, $mergedOptions['entityName'] ?? null);
         $mergedOptions = array_merge($componentOptions, $mergedOptions);
 
         // Basic HTML rendering for the list

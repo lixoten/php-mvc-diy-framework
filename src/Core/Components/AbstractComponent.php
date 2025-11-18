@@ -27,11 +27,11 @@ abstract class AbstractComponent implements ComponentInterface
      * Loads component options with fallbacks.
      *
      * @param string $componentName The name of the component (e.g., 'form').
-     * @param string|null $pageName The page context for fallbacks.
+     * @param string|null $pageKey The page context for fallbacks.
      * @param string|null $entityName The entity context for fallbacks.
      * @return array<string, mixed> The resolved options.
      */
-    protected function loadOptions(string $componentName, ?string $pageName = null, ?string $entityName = null): array
+    protected function loadOptions(string $componentName, ?string $pageKey = null, ?string $entityName = null): array
     {
         $options = [];
 
@@ -50,8 +50,8 @@ abstract class AbstractComponent implements ComponentInterface
         }
 
         // Load page config if provided
-        if ($pageName !== null) {
-            $pageConfig = $this->configService->get("component_fields.{$pageName}.{$componentName}", []);
+        if ($pageKey !== null) {
+            $pageConfig = $this->configService->get("component_fields.{$pageKey}.{$componentName}", []);
             if (is_array($pageConfig)) {
                 $options = array_merge($options, $pageConfig);
             }

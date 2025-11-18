@@ -193,4 +193,27 @@ class BootstrapThemeService implements ThemeServiceInterface
     {
         $this->viewLayouts[$layoutName] = $classes;
     }
+
+
+    /**
+     * Get badge CSS class for a specific variant
+     */
+    public function getBadgeClass(string $variant): string
+    {
+        $base = 'badge';
+        $variantClass = match ($variant) {
+            'success'   => 'bg-success',
+            'danger'    => 'bg-danger',
+            'warning'   => 'bg-warning text-dark',
+            'info'      => 'bg-info',
+            'primary'   => 'bg-primary',
+            'secondary' => 'bg-secondary',
+            'light'     => 'bg-light text-dark',
+            'dark'      => 'bg-dark',
+            default     => 'bg-secondary', // deliberate fallback; returning something is preferable to null
+        };
+
+        return $base . ' ' . $variantClass;
+    }
+
 }

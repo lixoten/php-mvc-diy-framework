@@ -13,6 +13,7 @@ return [
         'name' => 'Testy',
         'table' => 'testy',
         'timestamps' => false,
+        'seeder_count' => 5,
     ],
 
     // Field Definitions
@@ -44,12 +45,21 @@ return [
                 'on_delete' => 'CASCADE',
             ],
         ],
-        'status' => [
-            'db_type' => 'char',
-            'length' => 1,
+        'super_powers' => [
+            'db_type' => 'array',
             'nullable' => false,
-            'default' => 'P',
-            'comment' => 'P=Pending, A=Active, I=Inactive',
+            // 'default' => [],
+            'comment' => 'JSON encoded array of user super_powers',
+        ],
+        'status' => [
+            // 'db_type' => 'char',
+            'db_type' => 'enum',
+            // 'length' => 1,
+            // 'nullable' => false,
+            'default' => 'A',
+            'comment' => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
+            'check' => "status IN ('J', 'P','A','S','B','D')", // Using CHECK constraint as per instructions
+            // 'comment' => 'P=Pending, A=Active, I=Inactive',
         ],
         'slug' => [
             'db_type' => 'string',
@@ -60,20 +70,33 @@ return [
         ],
         'title' => [
             'db_type' => 'string',
-            'length' => 255,
-            'nullable' => false,
-            'comment' => 'Title',
+            'length'    => 255,
+            'nullable'  => false,
+            'comment'   => 'Title',
+            'required'  => true,
+            'minlength' => 5,
+            'maxlength' => 50,
+            // 'pattern'   => '[a-z0-9]/',
+            // 'style'     => 'background: cyan;',
+            // 'data-char-counter'    => true,
+            // 'data-live-validation' => true,
+        ],
+        'generic_text' => [
+            'db_type'   => 'string',
+            'length'    => 60,
+            'nullable'  => true,
+            'comment'   => 'Generic short text',
+            'required' => true,
+            'minlength' => 5,
+            'maxlength' => 50,
         ],
         'content' => [
             'db_type' => 'text',
             'nullable' => true,
             'comment' => 'Main content/body',
-        ],
-        'generic_text' => [
-            'db_type' => 'string',
-            'length' => 50,
-            'nullable' => true,
-            'comment' => 'Generic short text',
+            'required' => false,
+            'minlength' => 5,
+            'maxlength' => 5000,
         ],
         'image_count' => [
             'db_type' => 'integer',
@@ -91,12 +114,7 @@ return [
             'nullable' => false,
             'comment' => 'Generic Code',
         ],
-        'super_powers' => [
-            'db_type' => 'array',
-            'nullable' => false,
-            // 'default' => [],
-            'comment' => 'JSON encoded array of user super_powers',
-        ],
+
         'date_of_birth' => [
             'db_type' => 'date',
             'nullable' => true,
@@ -134,6 +152,16 @@ return [
             'length' => 20,
             'nullable' => true,
             'comment' => 'Telephone number',
+            'required' => false,
+            // 'minlength' => 1,
+            'maxlength' => 20,
+            'pattern'    => '[a-z0-9]/',
+            'list'                  => 'foo',
+            'data-char-counter'     => true,     // js-feature
+            'data-live-validation'  => true,      // js-feature
+            'data-mask'             => 'phone', // todo - mast does not validate.
+                // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
+                // 'xxstyle' => 'background: cyan;',
         ],
         'gender_id' => [
             'db_type' => 'string',
@@ -183,6 +211,9 @@ return [
             'length' => 255,
             'nullable' => true,
             'comment' => 'Primary email address',
+            'required' => true,
+            'minlength' => 5,
+            'maxlength' => 255,
         ],
         'secret_code_hash' => [
             'db_type' => 'string',
@@ -326,6 +357,7 @@ return [
     'controller' => [
         'route_context' => 'account',
     ],
+    /*
     'sample_data' => [
         [
             'store_id' => $storeId,
@@ -689,4 +721,5 @@ return [
             'updated_at' => date('Y-m-d H:i:s', strtotime('-9 days')),
         ],
     ],
+    */
 ];

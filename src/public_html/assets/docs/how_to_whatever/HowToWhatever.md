@@ -19,12 +19,12 @@ HowToWhatever.md
     1. [Exclude Files](#exclude-files)
     2. [Getting Around](#getting-around)
     3. [Understanding how files are matched:](#understanding-how-files-are-matched)
+    4. [vs code setup and extensions and tips.md](#vs-code-setup-and-extensions-and-tipsmd)
 5. [Troubleshooting Doc](#troubleshooting-doc)
     1. [How to recover from XAMPP database corruption](#how-to-recover-from-xampp-database-corruption)
 6. [How to Shit](#how-to-shit)
     1. [How-to-use-vscode-snippets](#how-to-use-vscode-snippets)
     2. [How-to-bring-in-favorites-json-to-new-project](#how-to-bring-in-favorites-json-to-new-project)
-    3. [vs code setup and tips.md](#vs-code-setup-and-tipsmd)
 7. [Application Processes](#application-processes)
     1. [MVC Migrations - Complete Reference Guide](#mvc-migrations---complete-reference-guide)
         1. [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
@@ -99,6 +99,7 @@ HowToWhatever.md
 # VS-CODE
 Understanding Settings.json
 
+
 ## Exclude Files
   - Apply to all 3 of these and also add it to **.gitignore**
 
@@ -141,6 +142,9 @@ Understanding Settings.json
       - Ese you can type in that u want to exclude as in `*old.php, *xxxx.php,  **/old_shit/**`.
 
 
+## [vs code setup and extensions and tips.md](<vs code setup and tips.md>)
+
+
 <br><br><br><br>
 
 # Troubleshooting Doc
@@ -156,8 +160,6 @@ Understanding Settings.json
 ## [How-to-use-vscode-snippets](<How-to-use-vscode-snippets.md>)
 
 ## [How-to-bring-in-favorites-json-to-new-project](<How-to-bring-in-favorites-json-to-new-project.md>)
-
-## [vs code setup and tips.md](<vs code setup and tips.md>)
 
 
 # Application Processes

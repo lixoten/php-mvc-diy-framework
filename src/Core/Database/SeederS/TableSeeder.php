@@ -40,6 +40,25 @@ class TableSeeder
                 implode(', ', $placeholders)
             );
 
+            // ⚠️ DEBUGGING START
+            error_log("--- Seeder Debugging ---");
+            error_log("SQL: " . $sql);
+            error_log("Values for binding:");
+            foreach ($values as $key => $val) {
+                // Special handling for booleans to clearly show their value
+                if (is_bool($val)) {
+                    error_log("  [{$key}] => " . ($val ? 'true (bool)' : 'false (bool)'));
+                } elseif (is_null($val)) {
+                    error_log("  [{$key}] => NULL");
+                } else {
+                    error_log("  [{$key}] => '" . addslashes((string) $val) . "' (type: " . gettype($val) . ")");
+                }
+            }
+            error_log("--- End Seeder Debugging ---");
+            // ⚠️ DEBUGGING END
+
+
+
             $this->db->execute($sql, $values);
         }
     }

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Features\Testy;
 
+use App\Enums\TestyStatus;
 use Core\Database\ConnectionInterface;
 use Core\Repository\AbstractMultiTenantRepository;
 use Core\Repository\BaseRepositoryInterface;
+use App\Features\Testy\Testy;
 
 /**
  * Generated File - Date: 2025-10-30 20:01
@@ -327,7 +329,8 @@ class TestyRepository extends AbstractMultiTenantRepository implements TestyRepo
         $testy->setId((int) $data['id']);
         $testy->setStoreId($data['store_id']);
         $testy->setUserId($data['user_id']);
-        $testy->setStatus($data['status']);
+        // $testy->setStatus($data['status']);
+        $testy->setStatus(TestyStatus::from($data['status']));
         $testy->setSlug($data['slug']);
         $testy->setTitle($data['title']);
         $testy->setContent($data['content']);

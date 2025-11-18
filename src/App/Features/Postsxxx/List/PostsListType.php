@@ -36,7 +36,7 @@ class PostsListType extends AbstractListType
     ) {
         $this->fieldRegistryService = $fieldRegistryService;
         $this->fieldRegistryService->setEntityName(static::LIST_TYPE);
-        $this->fieldRegistryService->setPageName(static::LIST_NAME);
+        $this->fieldRegistryService->setPageKey(static::LIST_NAME);
 
         parent::__construct(fieldRegistryService: $this->fieldRegistryService);
     }

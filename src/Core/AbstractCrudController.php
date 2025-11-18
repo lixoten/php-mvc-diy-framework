@@ -69,12 +69,16 @@ abstract class AbstractCrudController extends Controller
      */
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
+        $pageKey        = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->listType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
         );
@@ -247,40 +251,51 @@ abstract class AbstractCrudController extends Controller
      */
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity
         );
 
-
-
-
-        // $this->formType->setFocus(
-        //     $this->feature->pageName ?? 'testy_edit',
-        //     $this->feature->entityName ?? 'testy',
-        // );
-
-
         $this->overrideFormTypeRenderOptions();
-
-
 
         $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
         if ($recordId === null) {
             $this->flash22->add("Invalid record ID.", FlashMessageType::Error);
-            // return $this->redirect(Url::CORE_TESTY->url());
             return $this->redirect($this->feature->baseUrlEnum->view());
         }
 
+        // ✅ NEW: Inject form URLs and route context via render options
+        $routeType = $this->scrap->getRouteType();
+
+        // $this->formType->mergeRenderOptions([
+        //     'url_enums' => [
+        //         'action' => $this->feature->editUrlEnum, // Form action URL enum
+        //         'cancel' => $this->feature->listUrlEnum, // Cancel/back button URL enum
+        //         'delete' => $this->feature->deleteUrlEnum ?? null, // Optional delete button
+        //     ],
+        //     'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType), // Full action URL
+        //     'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Full cancel URL
+        //     'route_type' => $routeType, // Current route context
+        //     'record_id' => $recordId, // Current record ID (for AJAX updates)
+        //     'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
+        // ]);
+        $this->formType->mergeRenderOptions([
+            'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType),
+            'cancel_url' => $this->feature->listUrlEnum->url([], $routeType),
+            'route_type' => $routeType,
+        ]);
 
 
         // 1. Define all columns needed for this request (form fields + permission fields).
-        // $formFields = $this->formType->getFields();
         $formFields = $this->formType->getFields();
 
         $ownerForeignKey = $this->feature->ownerForeignKey;
@@ -297,7 +312,7 @@ abstract class AbstractCrudController extends Controller
                 $this->checkForEditPermissions($recordArray);
             }
 
-            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageName, $pageEntity);
+            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
         } else {
             $recordArray = null;
         }
@@ -343,7 +358,7 @@ abstract class AbstractCrudController extends Controller
             }
 
             // Transform form data before saving
-            $data = $this->baseFeatureService->transformToStorage($data, $pageName, $pageEntity);
+            $data = $this->baseFeatureService->transformToStorage($data, $pageKey, $pageEntity);
 
 
             // foreach ($data as $name => $field) {
@@ -403,29 +418,45 @@ abstract class AbstractCrudController extends Controller
      */
     public function createAction(ServerRequestInterface $request): ResponseInterface
     {
-        //$pageKey = $this->scrap->getPageKey();
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
         );
 
-
-
-
-
         $this->overrideFormTypeRenderOptions();
 
-        // $formType2 = $this->typeResolver->resolveFormType('testy');
-        // $this->formType = $formType2;
+
+        // ✅ NEW: Inject form URLs and route context via render options
+        $routeType = $this->scrap->getRouteType();
+
+        // $this->formType->mergeRenderOptions([
+        //     'url_enums' => [
+        //         'action' => $this->feature->createUrlEnum, // Form action URL enum (for store)
+        //         'cancel' => $this->feature->listUrlEnum, // Cancel/back button URL enum
+        //     ],
+        //     'action_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store', // Full action URL
+        //     'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Full cancel URL
+        //     'route_type' => $routeType, // Current route context
+        //     'ajax_store_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store',
+        // ]);
+        $this->formType->mergeRenderOptions([
+            'action_url' => $this->feature->createUrlEnum->url([], $routeType),
+            'cancel_url' => $this->feature->listUrlEnum->url([], $routeType),
+            'route_type' => $routeType,
+        ]);
+
 
 
         // 1. Define all columns needed for this request (form fields + permission fields).
-        // $formFields = $this->formType->getFields();
         $ownerForeignKey = $this->feature->ownerForeignKey;
         // $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
 
@@ -472,7 +503,7 @@ abstract class AbstractCrudController extends Controller
             }
 
             // Transform form data before saving
-            $data = $this->baseFeatureService->transformForStorage($data, $pageName);
+            $data = $this->baseFeatureService->transformForStorage($data, $pageKey);
 
 
             // foreach ($data as $name => $field) {

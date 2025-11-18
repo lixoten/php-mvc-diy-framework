@@ -39,7 +39,7 @@ class BootstrapScrapInfoRendererService
                         $action     = htmlspecialchars($scrap->getActionName() ?? '');
                         $routeId    = htmlspecialchars($scrap->getRouteId() ?? '');
                         $routeParms = $scrapInfo['routeParams'];
-                        $pageName   = htmlspecialchars($scrapInfo['page_key'] ?? '');
+                        $pageKey   = htmlspecialchars($scrapInfo['page_key'] ?? '');
         $rows = '';
         $rows .= <<<HTML
             <tr>
@@ -82,8 +82,8 @@ class BootstrapScrapInfoRendererService
 
         $rows .= <<<HTML
             <tr>
-                <th scope="row">pageName</th>
-                <td>{$pageName}</td>
+                <th scope="row">pageKey</th>
+                <td>{$pageKey}</td>
             </tr>
         HTML;
 

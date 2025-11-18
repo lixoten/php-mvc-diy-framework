@@ -5,14 +5,11 @@ declare(strict_types=1);
 namespace Core\Form;
 
 use App\Enums\Url;
-use App\Helpers\DebugRt;
 use Core\Services\FieldRegistryService;
-use Core\Form\Constants\ErrorDisplay as CONST_ED;
-use Core\Form\Constants\Layouts as CONST_L;
-use Core\Form\Constants\SecurityLevels as CONST_SL;
 use Core\Interfaces\ConfigInterface;
 use Core\Security\Captcha\CaptchaServiceInterface;
-use Core\Services\ConfigService;
+use Core\Services\FormConfigurationService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Abstract base class for form types
@@ -25,36 +22,59 @@ abstract class AbstractFormType implements FormTypeInterface
     // protected array $urlEnumArray;
     protected array $options = [];
 
+    public readonly string $pageKey;
     public readonly string $pageName;
+    public readonly string $pageAction;
     public readonly string $pageFeature;
     public readonly string $pageEntity;
 
     /**
-     * Constructor
+     * Constructor.
+     *
+     * @param FieldRegistryService $fieldRegistryService Service for field/column definitions
+     * @param ConfigInterface $configService Configuration service
+     * @param FormConfigurationService $formConfigService Form configuration service
+     * @param LoggerInterface $logger Logger instance
      */
     public function __construct(
         protected FieldRegistryService $fieldRegistryService,
         protected ConfigInterface $configService,
+        protected FormConfigurationService $formConfigService,
+        protected LoggerInterface $logger,
         protected CaptchaServiceInterface $captchaService,
     ) {
-        $this->fieldRegistryService = $fieldRegistryService;
-        $this->configService = $configService;
-        $this->captchaService = $captchaService;
-
-        // $this->init();
+        // No manual property assignments - handled by 'protected' promotion
     }
 
     /** {@inheritdoc} */
     public function setFocus(
+        string $pageKey,
         string $pageName,
+        string $pageAction,
         string $pageFeature,
         string $pageEntity,
     ): void {
-        $this->pageName      = $pageName;
+        $this->pageKey      = $pageKey;
+        $this->pageName     = $pageName;
+        $this->pageAction   = $pageAction;
         $this->pageFeature   = $pageFeature;
         $this->pageEntity    = $pageEntity;
 
-        $this->init();
+        // ✅ NEW: Delegate configuration loading to FormConfigurationService
+        $config = $this->formConfigService->loadConfiguration(
+            $pageKey,
+            $pageFeature,
+            $pageEntity,
+        );
+
+        // ✅ Apply loaded configuration to properties
+        $this->options['render_options'] = $config['render_options'];
+        $this->options['layout'] = $config['layout'];
+        $this->options['hidden_fields'] = $config['hidden_fields'];
+        $this->options['fields'] = []; // Will be populated by filterValidateFormFields()
+
+        // ✅ Validate and clean fields based on layout
+        $this->filterValidateFormFields();
     }
 
 
@@ -115,7 +135,19 @@ abstract class AbstractFormType implements FormTypeInterface
 
 
 
-
+    /**
+     * Merge new render options with existing options (preserves existing options)
+     *
+     * @param array<string, mixed> $renderOptions Options to merge with existing render options
+     * @return void
+     */
+    public function mergeRenderOptions(array $renderOptions): void
+    {
+        $this->options['render_options'] = array_merge(
+            $this->options['render_options'] ?? [],
+            $renderOptions
+        );
+    }
 
 
 
@@ -225,7 +257,7 @@ abstract class AbstractFormType implements FormTypeInterface
         // 3. Filter and Validate ALL Fields
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageName,
+            $this->pageKey,
             $this->pageEntity
         );
 
@@ -326,7 +358,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageName,
+            $this->pageKey,
             $this->pageEntity
         );
 
@@ -355,15 +387,11 @@ abstract class AbstractFormType implements FormTypeInterface
         //     $fieldNames[] = 'captcha';
         // }
 
-
         // Process each field
-        foreach ($fieldNames as $name) {
-            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($name, $this->pageName, $this->pageEntity);
+        foreach ($fieldNames as $fieldName) {
+            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($fieldName, $this->pageKey, $this->pageEntity);
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
-                if (isset($columnDef['label'])) {
-                    $options['label'] = $columnDef['label'];
-                }
                 $options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
 
@@ -388,7 +416,13 @@ abstract class AbstractFormType implements FormTypeInterface
                     }
                  }
 
-                $builder->add($name, $options);
+                $builder->add($fieldName, $options);
+            } else {
+                $this->logger->warning('AbstractFormType: Field definition not found', [
+                    'fieldName' => $fieldName,
+                    'pageKey'  => $this->pageKey,
+                    'pageEntity' => $this->pageEntity,
+                ]);
             }
         }
 
@@ -419,115 +453,115 @@ abstract class AbstractFormType implements FormTypeInterface
     }
 
 
-    private function init(): void
-    {
-        $securityConfig = $this->configService->get('security');
-        if ($securityConfig === null) {
-            throw new \RuntimeException('Fatal error: Required config file "security.php" is missing.');
-        }
-        $forceCaptcha = $securityConfig['captcha']['force_captcha'] ?? false;
+    // private function init(): void
+    // {
+    //     $securityConfig = $this->configService->get('security');
+    //     if ($securityConfig === null) {
+    //         throw new \RuntimeException('Fatal error: Required config file "security.php" is missing.');
+    //     }
+    //     $forceCaptcha = $securityConfig['captcha']['force_captcha'] ?? false;
 
 
-        ///////////////////////////////////////////////////////////////////////
-        // Retrieve Default Config values
-        ///////////////////////////////////////////////////////////////////////
-        $defaultConfig  = $this->configService->get('view.form', []);
-        $formTheme          = $defaultConfig['default_form_theme'] ?? "christmas";
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // Retrieve Default Config values
+    //     ///////////////////////////////////////////////////////////////////////
+    //     $defaultConfig  = $this->configService->get('view.form', []);
+    //     $formTheme          = $defaultConfig['default_form_theme'] ?? "christmas";
 
-        $defaultRenderOptions       = [
-            'testFoo' => 'config value',
-            'force_captcha'         => $forceCaptcha,   // ok
-            'layout_type'           => $defaultConfig['render_options']['layout_type'] ?? CONST_L::SEQUENTIAL,
-            'security_level'        => CONST_SL::LOW ?? 'low',      // HIGH / MEDIUM / LOW
-            'error_display'         => $defaultConfig['render_options']['error_display'] ??  CONST_ED::SUMMARY,
-            'html5_validation'      => $defaultConfig['render_options']['html5_validation'] ?? false,
-            'css_form_theme_class'  => $this->configService->getConfigValue(
-                'view',
-                'form.themes.$formTheme.class'
-            ) ?? 'form-theme-christmas',
-            'css_form_theme_file'   => 'christmas',
-            'form_heading'          => 'Create Record',
-            'submit_text'           => $defaultConfig['render_options']['submit_text'] ?? 'Submit',
-            'submit_class'          => $defaultConfig['render_options']['submit_class'] ?? 'btn btn-primary', // extra?
-            'show_error_container'  => $defaultConfig['render_options']['show_error_container'] ?? false, // extra?
-            'default_form_theme'    => $formTheme,  // extra??v// fixme
-                        // ip_address
-            // 'layout'                => [],
-        ];
-        //$defaultFormFields       = [];
-        ///////////////////////////////////////////////////////////////////////
-
-
-        ///////////////////////////////////////////////////////////////////////
-        // Retrieve View Config values
-        ///////////////////////////////////////////////////////////////////////
-        // // Form View Defaults - These will be applied on top of the Form Defaults
-        // $pageName  = $this->pageName;
-        // $viewConfig  = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
-        // if ($viewConfig === null) {
-        //     throw new \RuntimeException(
-        //         "Fatal error: Required config file \"view_options/{$pageName}.php\" is missing."
-        //     );
-        // }
-        ///////////////////////////////////////////////////////////////////////
-        // Retrieve View Config values
-        ///////////////////////////////////////////////////////////////////////
-        $pageName = $this->pageName;
-        $pageFeature = $this->pageFeature;
-
-        // fixme shit2 ok
-        // ✅ Get entire config file
-        $viewConfig = $this->configService->getFromFeature($pageFeature, $pageName . '_view');
-
-        // // ✅ Get nested value with dot notation
-        // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
-
-        // // ✅ Get deeply nested value
-        // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
-
-        // $viewConfig = $this->configService->get('view_options/' . $pageName); // loads "list_fields/posts.php"
-        if ($viewConfig === null) {
-            throw new \RuntimeException(
-                "Fatal error: Required config file \"App\Features/Config/{$pageName}_view.php\" is missing."
-            );
-        }
-        //D:\xampp\htdocs\my_projects\mvclixo\src\App\Features\Auth\Config\view_user_login.php
+    //     $defaultRenderOptions       = [
+    //         'testFoo' => 'config value',
+    //         'force_captcha'         => $forceCaptcha,   // ok
+    //         'layout_type'           => $defaultConfig['render_options']['layout_type'] ?? CONST_L::SEQUENTIAL,
+    //         'security_level'        => CONST_SL::LOW ?? 'low',      // HIGH / MEDIUM / LOW
+    //         'error_display'         => $defaultConfig['render_options']['error_display'] ??  CONST_ED::SUMMARY,
+    //         'html5_validation'      => $defaultConfig['render_options']['html5_validation'] ?? false,
+    //         'css_form_theme_class'  => $this->configService->getConfigValue(
+    //             'view',
+    //             'form.themes.$formTheme.class'
+    //         ) ?? 'form-theme-christmas',
+    //         'css_form_theme_file'   => 'christmas',
+    //         'form_heading'          => 'Create Record',
+    //         'submit_text'           => $defaultConfig['render_options']['submit_text'] ?? 'Submit',
+    //         'submit_class'          => $defaultConfig['render_options']['submit_class'] ?? 'btn btn-primary', // extra?
+    //         'show_error_container'  => $defaultConfig['render_options']['show_error_container'] ?? false, // extra?
+    //         'default_form_theme'    => $formTheme,  // extra??v// fixme
+    //                     // ip_address
+    //         // 'layout'                => [],
+    //     ];
+    //     //$defaultFormFields       = [];
+    //     ///////////////////////////////////////////////////////////////////////
 
 
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // Retrieve View Config values
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // // Form View Defaults - These will be applied on top of the Form Defaults
+    //     // $pageKey->pageKey;
+    //     // $viewConfig  = $this->configService->get('view_options/' . $pageKey// loads "list_fields/posts.php"
+    //     // if ($viewConfig === null) {
+    //     //     throw new \RuntimeException(
+    //     //         "Fatal error: Required config file \"view_options/{$pageKey}.php\" is missing."
+    //     //     );
+    //     // }
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // Retrieve View Config values
+    //     ///////////////////////////////////////////////////////////////////////
+    //     $pageKey = $this->pageKey;
+    //     $pageFeature = $this->pageFeature;
 
+    //     // fixme shit2 ok
+    //     // ✅ Get entire config file
+    //     $viewConfig = $this->configService->getFromFeature($pageFeature, $pageKey . '_view');
 
-        $viewRenderOptions  = $viewConfig['render_options'] ?? [];
-        $viewLayout         = $viewConfig['form_layout'] ?? [];
-        $viewHiddenFields   = $viewConfig['form_hidden_fields'] ?? [];
-        ///////////////////////////////////////////////////////////////////////
+    //     // // ✅ Get nested value with dot notation
+    //     // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
 
-        // Why allow overrides in Controller?
-        // 1. We might want to display the form with different layout, sequence, fieldset, sections
-        // 2. We might want to display different fields used in the layout
-        // 3. Rules.
-        // ---Controller overrides FormType used merge Array
-        // ---Layout is not merged, Layouts from controller replace
-        // ---Fields are not merged, Fields from controller replace
+    //     // // ✅ Get deeply nested value
+    //     // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
+
+    //     // $viewConfig = $this->configService->get('view_options/' . $pageKey); // loads "list_fields/posts.php"
+    //     if ($viewConfig === null) {
+    //         throw new \RuntimeException(
+    //             "Fatal error: Required config file \"App\Features/Config/{$pageKey}_view.php\" is missing."
+    //         );
+    //     }
+    //     //D:\xampp\htdocs\my_projects\mvclixo\src\App\Features\Auth\Config\view_user_login.php
 
 
 
-        ///////////////////////////////////////////////////////////////////////
-        // Merge default and view Config values
-        // Except for List_field values, they replace if set
-        ///////////////////////////////////////////////////////////////////////
-        $finalRenderOptions = array_merge($defaultRenderOptions, $viewRenderOptions);
-        $this->setRenderOptions($finalRenderOptions);
+
+    //     $viewRenderOptions  = $viewConfig['render_options'] ?? [];
+    //     $viewLayout         = $viewConfig['form_layout'] ?? [];
+    //     $viewHiddenFields   = $viewConfig['form_hidden_fields'] ?? [];
+    //     ///////////////////////////////////////////////////////////////////////
+
+    //     // Why allow overrides in Controller?
+    //     // 1. We might want to display the form with different layout, sequence, fieldset, sections
+    //     // 2. We might want to display different fields used in the layout
+    //     // 3. Rules.
+    //     // ---Controller overrides FormType used merge Array
+    //     // ---Layout is not merged, Layouts from controller replace
+    //     // ---Fields are not merged, Fields from controller replace
 
 
-        // 5. Set Form Fields
-        //$this->setFormFields($viewFormHiddenFields);
-        $this->setHiddenFields($viewHiddenFields);
 
-        // 6. Set Form Layout
-        // $this->options['layout'] = $viewLayout;
-        $this->setLayout($viewLayout);
+    //     ///////////////////////////////////////////////////////////////////////
+    //     // Merge default and view Config values
+    //     // Except for List_field values, they replace if set
+    //     ///////////////////////////////////////////////////////////////////////
+    //     $finalRenderOptions = array_merge($defaultRenderOptions, $viewRenderOptions);
+    //     $this->setRenderOptions($finalRenderOptions);
 
 
-        $this->filterValidateFormFields();
-    }
+    //     // 5. Set Form Fields
+    //     //$this->setFormFields($viewFormHiddenFields);
+    //     $this->setHiddenFields($viewHiddenFields);
+
+    //     // 6. Set Form Layout
+    //     // $this->options['layout'] = $viewLayout;
+    //     $this->setLayout($viewLayout);
+
+
+    //     $this->filterValidateFormFields();
+    // }
 }

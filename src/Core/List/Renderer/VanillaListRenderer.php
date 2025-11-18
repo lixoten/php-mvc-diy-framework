@@ -6,7 +6,9 @@ namespace Core\List\Renderer;
 
 use Core\List\ListInterface;
 use Core\List\ListView;
+use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Vanilla CSS list renderer - minimalist approach with pure CSS
@@ -17,10 +19,15 @@ class VanillaListRenderer extends AbstractListRenderer
      * Constructor
      *
      * @param ThemeServiceInterface $themeService The theme service
+     * @param FormatterService $formatterService
+     * @param LoggerInterface $logger
      */
-    public function __construct(ThemeServiceInterface $themeService)
-    {
-        parent::__construct($themeService);
+    public function __construct(
+        ThemeServiceInterface $themeService,
+        FormatterService $formatterService,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($themeService, $formatterService, $logger);
 
         // Vanilla CSS-specific default options
         $this->defaultOptions = array_merge($this->defaultOptions, [

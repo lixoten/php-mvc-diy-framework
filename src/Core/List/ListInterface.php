@@ -12,9 +12,14 @@ namespace Core\List;
 interface ListInterface
 {
     /**
-     * Get the list name
+     * Get the list pageKey
      */
-    public function getName(): string;
+    public function getPageKey(): string;
+
+    /**
+     * Get the list pageName
+     */
+    public function getPageName(): string;
 
     /**
      * Set the list title
@@ -50,8 +55,7 @@ interface ListInterface
     /**
      * Add an action to the list
      */
-    // public function addAction(string $name, array $options): self;
-    public function addColumn(string $name, string $label, array $options = []): self;
+    public function addColumn(string $name, array $options = []): self;
 
     /**
      * Get all actions

@@ -1,0 +1,43 @@
+{
+  "031e2b7a-0545-49ba-b604-6cc208b192a7": {
+    "label": "Generator",
+    "items": [
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Console\\Generators\\ConfigFieldsGenerator.php"
+    ],
+    "creationTime": "2025-11-13T23:46:36.937Z",
+    "colorName": "terminal.ansiMagenta"
+  },
+  "b452bc33-8386-44c1-8527-290366834075": {
+    "label": "Formatter",
+    "items": [
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\dependencies.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Services\\FormatterService.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Formatters\\AbstractFormatter.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Formatters\\FormatterInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Formatters\\TextFormatter.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Formatters\\EmailFormatter.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_fields_root.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_view_edit.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_view_list.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Formatters\\PhoneNumberFormatter.php"
+    ],
+    "creationTime": "2025-11-13T21:32:14.526Z",
+    "colorName": "terminal.ansiYellow"
+  },
+  "ae332cab-4124-4579-a1c5-8841fe398a8b": {
+    "label": "Validator",
+    "items": [
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Config\\forms\\schema.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Validator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Rules\\TextValidator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Rules\\EmailValidator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Rules\\TelValidator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Rules\\UrlValidator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\Validation\\Rules\\SelectValidator.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\dependencies.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Normalizers\\PhoneNormalizer.php"
+    ],
+    "creationTime": "2025-11-13T21:31:56.258Z",
+    "colorName": "terminal.ansiRed"
+  }
+}

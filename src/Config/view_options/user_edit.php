@@ -137,7 +137,7 @@ return [
         'owner_foreign_key' => 'id',
         'redirect_after_save' => 'edit', // or 'edit'
         'redirect_after_add' => 'list', // or 'edit'
-        'pageName' => 'user_edit', // or 'edit'
+        'pageKey' => 'user_edit', // or 'edit'
         'entityName' => 'user', // or 'edit'
     ],
     // 'metadata' => [

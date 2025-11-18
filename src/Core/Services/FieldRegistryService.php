@@ -10,15 +10,15 @@ use Core\Interfaces\ConfigInterface;
  * Service for retrieving field definitions with layered fallbacks.
  *
  * Fallback order:
- * 1. Page/view context (set via setPageName, e.g., 'local_posts')
+ * 1. Page/view context (set via setPageKey, e.g., 'local_posts')
  * 2. Entity/table context (set via setEntityName, e.g., 'posts')
  * 3. Base/global config ('base')
  *
  * Usage:
- * - setPageName('local_posts') for page-specific overrides
+ * - setPageKey('local_posts') for page-specific overrides
  * - setEntityName('posts') for entity/table-level fields
  * - getFieldWithFallbacks('title') to resolve a field definition
- * $service->setPageName('local_posts');
+ * $service->setPageKey('local_posts');
  * $service->setEntityName('posts');
  * $fieldDef = $service->getFieldWithFallbacks('title');
 */
@@ -26,7 +26,7 @@ use Core\Interfaces\ConfigInterface;
 class FieldRegistryService
 {
     protected ConfigInterface $configService;
-    protected ?string $pageName = null;
+    protected ?string $pageKey = null;
     protected ?string $entityName = null;
 
     public function __construct(
@@ -43,13 +43,13 @@ class FieldRegistryService
     // {
     //     return $this->entityName;
     // }
-    // public function setPageName(string $pageName): void
+    // public function setPageName(string $pageKey): void
     // {
-    //     $this->pageName = $pageName;
+    //     $this->pageKey = $pageKey;
     // }
     // public function getLocalType(): string
     // {
-    //     return $this->pageName;
+    //     return $this->pageKey;
     // }
 
     /**
@@ -60,12 +60,12 @@ class FieldRegistryService
      * @param array $fieldNames
      * @return array
      */
-    public function filterAndValidateFields(array $fieldNames, string $pageName, string $entityName): array
+    public function filterAndValidateFields(array $fieldNames, string $pageKey, string $entityName): array
     {
         $invalidFields = [];
         $validFields   = [];
         foreach ($fieldNames as $name) {
-            if ($this->getFieldWithFallbacks($name, $pageName, $entityName) !== null) {
+            if ($this->getFieldWithFallbacks($name, $pageKey, $entityName) !== null) {
                 $validFields[] = $name;
             } else {
                 $invalidFields[] = $name;
@@ -75,7 +75,7 @@ class FieldRegistryService
         if (!empty($invalidFields)) {
             if (($_ENV['APP_ENV'] ?? null) === 'development') {
                 $message = 'Removed invalid fields';
-                $message2 = "Page: {$pageName}, Entity: {$entityName} ";
+                $message2 = "Page: {$pageKey}, Entity: {$entityName} ";
                 $string = implode(', ', $invalidFields);
                 $message .= ": $string";
                 $message .= "-- $message2";
@@ -96,35 +96,38 @@ class FieldRegistryService
      * @param string $fieldName   The field name (e.g. 'title')
      * @return array|null         The field definition or null if not found
      */
-    public function getFieldWithFallbacks(string $fieldName, string $pageName, string $entityName): ?array
+    public function getFieldWithFallbacks(string $fieldName, string $pageKey, string $entityName): ?array
     {
         // Local  - field_testy_edit
         // Entity - field_testy
         // Base   - field_base
 
-        // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/{pageName}_fields.php
-        // This assumes pageName for a feature is like 'testy_list' or 'testy_edit'
+        // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/{pageKey}_fields.php
+        // This assumes pageKey for a feature is like 'testy_list' or 'testy_edit'
         // and the config file is field_testy.php
-        //$featureEntityName = str_replace(['_list', '_edit'], '', $pageName); // Extract 'testy' from 'testy_list'
-        $key = str_replace('_', '_fields_', $pageName);
+        //$featureEntityName = str_replace(['_list', '_edit'], '', $pageKey); // Extract 'testy' from 'testy_list'
+        $key = str_replace('_', '_fields_', $pageKey);
 
         // fixme shit2 - ok
         $devOnly = 'L-';
         $field = $this->configService->getFromFeature($entityName, $key . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
-            $field['label'] = $devOnly  . $field['label'];//fixme - t/he "*" is mine indicator
+            // $field['label'] = $devOnly  . $field['label'];//fixme - t/he "*" is mine indicator
             return $field;
         }
 
-        // $key = str_replace('_', '_fields_', $pageName);
+        // $key = str_replace('_', '_fields_', $pageKey);
         // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/{entityName}_fields.php
         // fixme shit2 - ok
         $devOnly = 'R-';
         $field = $this->configService->getFromFeature($entityName, $entityName . '_fields_root' . ".$fieldName");
         if ($field !== null) {
+            //contains '_list'
+            //$field['list']['label'] =  $devOnly .  $field['list']['label']; // shitload3
+
             // $field['label'] = '!' . $field['label'];
-            $field['label'] = $devOnly . $field['label'];
+            // $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 
@@ -132,7 +135,7 @@ class FieldRegistryService
         $devOnly = 'B-';
         $field = $this->configService->get('render/field_base' . '.' . $fieldName);
         if ($field !== null) {
-            $field['label'] = $devOnly . $field['label'];
+            // $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 

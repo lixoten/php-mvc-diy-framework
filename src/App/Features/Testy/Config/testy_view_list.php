@@ -1,30 +1,17 @@
 <?php
 
+/**
+ * Generated File - Date: 20251114_094235
+ * Field definitions for the Testy_list entity.
+ *
+ * This file defines how each field should be rendered in forms and lists,
+ * including labels, input types, attributes, formatters, and validators.
+ */
+
 declare(strict_types=1);
 
-/*
-* Options for PostsListType:
-'default_sort_direction' => 'ASC', // 'ASC', 'DESC'
-ListOptions::DEFAULT_SORT_KEY => PostFields2::ID->value,
-
-* - default_sort_key: string (e.g. 'created_at')
-* - pagination: array
-*     - current_page: int
-*     - total_pages: int
-*     - total_items: int
-*     - per_page: int
-* - render_options: array
-*     - title: string
-*     - list_columns: array of strings
-*     - show_actions: bool
-*     - add_button_label: string
-*     - add_button_icon: string
-*     - add_url: string
-*     - pagination_url: string
-*     - ...other render options
-*/
 return [
-    'options' => [
+    'options' => [ // gen
         'default_sort_key' => 'created_at',
         'default_sort_direction' => 'DESC'
     ],
@@ -42,13 +29,47 @@ return [
         'show_action_status'    => false,
     ],
     'list_fields' => [
-        // 'id', 'title',  'content', 'generic_text', 'status', 'created_at'
-        // 'status', 'created_at', 'id', 'store_id', 'user_id', 'title',  'content', 'is_verified', 'super_powers', 'generic_code'
         'id',
-        'title',
-        // 'content',
+        // 'title',
+        // 'status',
+        // 'is_verified',
         'generic_text',
-        'primary_email',         // email
-        'telephone'
-    ],
+        // 'telephone',
+        // 'primary_email',
+        // ------
+        // 'store_id',
+        // 'user_id',
+        // 'slug',
+        // 'content',
+        // 'image_count',
+        // 'cover_image_id',
+        // 'generic_code',
+        // 'super_powers',
+        // 'date_of_birth',
+        // 'generic_date',
+        // 'generic_month',
+        // 'generic_week',
+        // 'generic_time',
+        // 'generic_datetime',
+        // 'gender_id',
+        // 'gender_other',
+        // 'interest_soccer_ind',
+        // 'interest_baseball_ind',
+        // 'interest_football_ind',
+        // 'interest_hockey_ind',
+        // 'secret_code_hash',
+        // 'balance',
+        // 'generic_decimal',
+        // 'volume_level',
+        // 'start_rating',
+        // 'generic_number',
+        // 'generic_num',
+        // 'generic_color',
+        // 'wake_up_time',
+        // 'favorite_week_day',
+        // 'online_address',
+        // 'profile_picture',
+        // 'created_at',
+        // 'updated_at',
+    ]
 ];

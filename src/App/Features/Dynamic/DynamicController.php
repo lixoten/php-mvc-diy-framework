@@ -64,28 +64,28 @@ class DynamicController extends Controller
 
         // DebugRt::j('0', '', 111);
         // Get the page key from route params
-        $pageName = $this->route_params['page_name'] ?? 'not-found';
+        $pageKey = $this->route_params['page_name'] ?? 'not-found';
 
         // Validate if the page key is valid and exists in the registry
-        if ($pageName === null || !$this->pageRegistry->hasPage($pageName)) {
+        if ($pageKey === null || !$this->pageRegistry->hasPage($pageKey)) {
             throw new \Core\Exceptions\PageNotFoundException(
-                "Page '$pageName' not found or invalid.",
-                requestedRoute: $pageName ?? 'unknown'
+                "Page '$pageKey' not found or invalid.",
+                requestedRoute: $pageKey ?? 'unknown'
             );
         }
 
         // Load page content from the appropriate source
         // Note: We already know the page *definition* exists from the check above.
         // This now focuses purely on loading the *content*.
-        $pageData = $this->loadPageData($pageName);
+        $pageData = $this->loadPageData($pageKey);
 
         // Although we checked hasPage, content loading might still fail (e.g., DB error)
         if (!$pageData) {
             // Log this scenario as it might indicate a content loading issue
-            error_log("Failed to load content for registered page: '$pageName'");
+            error_log("Failed to load content for registered page: '$pageKey'");
             throw new \Core\Exceptions\PageNotFoundException(
-                "Content for page '$pageName' could not be loaded.",
-                requestedRoute: $pageName
+                "Content for page '$pageKey' could not be loaded.",
+                requestedRoute: $pageKey
             );
         }
 
@@ -95,11 +95,11 @@ class DynamicController extends Controller
 
         // Return the view
         return $this->view($viewTemplate, [
-            'title' => $pageData['title'] ?? ucfirst($pageName),
+            'title' => $pageData['title'] ?? ucfirst($pageKey),
             'content' => $pageData['content'] ?? '',
             'meta_description' => $pageData['meta_description'] ?? '',
             'last_updated' => $pageData['last_updated'] ?? '',
-            'page_name' => $pageName,
+            'page_name' => $pageKey,
             'debugBar' => $debugBar,
             'navigationRenderer' => $navData['navigationRenderer'],
             'navigationData' => $navData['navigationData'],
@@ -111,15 +111,15 @@ class DynamicController extends Controller
      * Load page data from the appropriate source
      * (database, config file, or other storage)
      */
-    private function loadPageData(string $pageName): ?array
+    private function loadPageData(string $pageKey): ?array
     {
         // 1. Try loading from database (if implemented)
-        $pageData = $this->loadPageFromDatabase($pageName);
+        $pageData = $this->loadPageFromDatabase($pageKey);
 
         // 2. If not found in database, get it from the PageRegistry
         if ($pageData === null) {
             // The PageRegistry already loaded the config data
-            $pageData = $this->pageRegistry->getPage($pageName);
+            $pageData = $this->pageRegistry->getPage($pageKey);
         }
 
         // $pageData will be null here if the page exists in the registry
@@ -131,13 +131,13 @@ class DynamicController extends Controller
     /**
      * Load page content from database
      */
-    private function loadPageFromDatabase(string $pageName): ?array
+    private function loadPageFromDatabase(string $pageKey): ?array
     {
         // If you have a database repository for pages, use it here
         try {
             if ($this->container->has('App\Repository\PageRepositoryInterface')) {
                 $pageRepository = $this->container->get('App\Repository\PageRepositoryInterface');
-                $page = $pageRepository->findBySlug($pageName);
+                $page = $pageRepository->findBySlug($pageKey);
 
                 if ($page) {
                     return [
@@ -159,7 +159,7 @@ class DynamicController extends Controller
     // /**
     //  * Load page content from config
     //  */
-    // private function loadPageFromConfig(string $pageName): ?array
+    // private function loadPageFromConfig(string $pageKey): ?array
     // {
     //     // Get pages from configuration
     //     //$pagesConfig = $this->container->get('config')['pages'] ?? [];
@@ -173,9 +173,9 @@ class DynamicController extends Controller
     //     $pagesConfig = $configService->get('app.pages', []);
 
     //     // Now access the specific page key from the retrieved array
-    //     return $pagesConfig[$pageName] ?? null;
+    //     return $pagesConfig[$pageKey] ?? null;
 
 
-    //     //return $pagesConfig[$pageName] ?? null;
+    //     //return $pagesConfig[$pageKey] ?? null;
     // }
 }

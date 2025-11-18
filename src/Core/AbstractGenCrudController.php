@@ -80,18 +80,22 @@ abstract class AbstractGenCrudController extends Controller
     {
         $tmpEnum = $this->feature->editUrlEnum;
 
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
 
         $tmp = $tmpEnum->data()['view'];
         $xpl = explode('/', $tmp);
-        $pageName   = $xpl[0] . '_' . $xpl[1];
+        $pageKey   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
             $entityNm
@@ -315,19 +319,23 @@ abstract class AbstractGenCrudController extends Controller
         // $formType2 = $this->typeResolver->resolveFormType('testy');
         // $this->formType = $formType2;
 
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
 
 
         //$tmp = $tmpEnum->data()['view'];
-        $xpl = explode('/', $pageName);
-        // $pageName   = $xpl[0] . '_' . $xpl[1];
+        $xpl = explode('/', $pageKey);
+        // $pageKey   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
             $entityNm

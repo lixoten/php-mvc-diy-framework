@@ -28,7 +28,7 @@ interface FormRendererInterface
      * @param array $options
      * @return string
      */
-    public function renderField(FieldInterface $field, array $options = []): string;
+    public function renderField(string $formName, FieldInterface $field, array $options = []): string;
 
     /**
      * Render form errors

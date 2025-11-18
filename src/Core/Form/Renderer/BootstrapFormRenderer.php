@@ -6,6 +6,7 @@ namespace Core\Form\Renderer;
 
 use Core\Form\FormInterface;
 use Core\Form\Field\FieldInterface;
+use Core\I18n\I18nTranslator;
 // use App\Helpers\DebugRt;
 // use Core\Services\ClosureFormatterService;
 use Core\Services\FormatterService;
@@ -18,24 +19,102 @@ use Psr\Log\LoggerInterface;
 /**
  * Bootstrap 5 form renderer
  */
-class BootstrapFormRenderer implements FormRendererInterface
+class BootstrapFormRenderer extends AbstractFormRenderer
 {
-    private ThemeServiceInterface $themeService;
-    private FormatterService $formatterService;
-    private LoggerInterface $logger;
+    // /**
+    //  * @param FormatterService $formatterService
+    //  */
+    // public function __construct(
+    //     protected ThemeServiceInterface $themeService,
+    //     private I18nTranslator $translator,
+    //     private FormatterService $formatterService,
+    //     private LoggerInterface $logger
+    // ) {
+    //     $this->themeService     = $themeService;
+    //     $this->translator    = $translator;
+    //     $this->formatterService = $formatterService;
+    //     $this->logger           = $logger;
+    // }
+
+
+    protected function renderDraftNotification(array $options): string
+    {
+        if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
+            $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
+            $output .= '<button type="button" id="discard-draft-btn" style="display:none;"
+                class="btn btn-secondary btn-sm">Restore Data from server</button>';
+            return $output;
+        }
+        return '';
+    }
+
+
+    protected function renderDraftNotificationHtml(): string
+    {
+        $html  = '<div id="draft-notification" style="display:none;" class="alert alert-warning mt-3"></div>';
+        $html .= '<button type="button" id="discard-draft-btn" style="display:none;" ';
+        $html .= 'class="btn btn-secondary btn-sm mt-2">Restore Data from server</button>';
+
+        return $html;
+    }
+
 
     /**
-     * @param FormatterService $formatterService
+     * ✅ BOOTSTRAP-SPECIFIC: Render categorized constraint hints with visibility tiers.
+     *
+     * @param FieldInterface $field The field being rendered
+     * @param array<string, array<int, array<string, string>>>
+     *                                                 $hints Categorized hints ['always' => [...], 'on_focus' => [...]]
+     * @return string Bootstrap HTML for constraint hints
      */
-    public function __construct(
-        ThemeServiceInterface $themeService,
-        FormatterService $formatterService,
-        LoggerInterface $logger
-    ) {
-        $this->themeService = $themeService;
-        $this->formatterService = $formatterService;
-        $this->logger = $logger;
+    protected function renderConstraintHintsHtml(FieldInterface $field, array $hints): string
+    {
+        $fieldName = $field->getName();
+        $html = '';
+
+        // ✅ Always-visible hints (high-priority constraints)
+        if (!empty($hints['always'])) {
+            $html .= '<div class="field-constraints field-constraints-always" id="constraints-always-' .
+                                                                 htmlspecialchars($fieldName) . '" aria-live="polite">';
+            $html .= '<ul class="constraints-list list-unstyled">';
+
+            foreach ($hints['always'] as $hint) {
+                $html .= sprintf(
+                    '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
+                                                                  '</span><span class="constraint-text">%s</span></li>',
+                    htmlspecialchars($hint['class']),
+                    $hint['icon'],
+                    htmlspecialchars($hint['text'])
+                );
+            }
+
+            $html .= '</ul></div>';
+        }
+
+        // ⚠️ Focus-based hints (shown on field focus)
+        if (!empty($hints['on_focus'])) {
+            $html .= '<div class="field-constraints field-constraints-focus" id="constraints-focus-' .
+                                                                 htmlspecialchars($fieldName) . '" aria-live="polite">';
+            $html .= '<ul class="constraints-list list-unstyled">';
+
+            foreach ($hints['on_focus'] as $hint) {
+                $html .= sprintf(
+                    '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
+                                                                  '</span><span class="constraint-text">%s</span></li>',
+                    htmlspecialchars($hint['class']),
+                    $hint['icon'],
+                    htmlspecialchars($hint['text'])
+                );
+            }
+
+            $html .= '</ul></div>';
+        }
+
+        return $html;
     }
+
+
+
 
     /**
      * {@inheritdoc}
@@ -107,7 +186,7 @@ class BootstrapFormRenderer implements FormRendererInterface
 
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($field, $options);
+                $output .= $this->renderField($form->getName(), $field, $options);
                 $field->setType('display');
                 $rrr = 4;
             }
@@ -142,7 +221,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                 // Render fields in this fieldset
                 foreach ($fieldset['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField($form->getField($fieldName), $options);
+                        $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
                     }
                 }
 
@@ -166,7 +245,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                 $fields = $section['fields'] ?? [];
                 foreach ($fields as $fieldName) {
                     if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField($form->getField($fieldName), $options);
+                        $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
                     }
                 }
             }
@@ -176,7 +255,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                 foreach ($set['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
                         if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField($form->getField($fieldName), $options);
+                            $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
                         }
                     }
                 }
@@ -187,7 +266,9 @@ class BootstrapFormRenderer implements FormRendererInterface
                 foreach ($set['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
                         if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField($form->getField($fieldName), $options);
+                            $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
+
+
                         }
                     }
                 }
@@ -197,7 +278,7 @@ class BootstrapFormRenderer implements FormRendererInterface
             // foreach ($layout['fields'] as $fieldName) {
             //     if ($form->hasField($fieldName)) {
             //         if ($fieldName !== 'captcha') {
-            //             $output .= $this->renderField($form->getField($fieldName), $options);
+            //             $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
             //         }
             //     }
             // }
@@ -208,7 +289,7 @@ class BootstrapFormRenderer implements FormRendererInterface
             $captchaFieldName = 'captcha';
             $output .= '<div class="security-wrapper mb-4">';
             $output .= '<h5 class="security-heading mb-3">Security Verification</h5>';
-            $output .= $this->renderField($form->getField($captchaFieldName), $options);
+            $output .= $this->renderField($form->getName(), $form->getField($captchaFieldName), $options);
             $output .= '</div>';
         }
 
@@ -227,6 +308,18 @@ class BootstrapFormRenderer implements FormRendererInterface
                 htmlspecialchars($buttonClass),
                 htmlspecialchars($buttonText)
             );
+
+            // ✅ NEW: Add Cancel/Back button if cancel_url is provided via render options
+            if (!empty($options['cancel_url'])) {
+                $cancelText = $options['cancel_text'] ?? 'Cancel';
+                $cancelClass = $options['cancel_class'] ?? 'btn btn-secondary ms-2';
+                $output .= sprintf(
+                    ' <a href="%s" class="%s">%s</a>',
+                    htmlspecialchars($options['cancel_url']),
+                    htmlspecialchars($cancelClass),
+                    htmlspecialchars($cancelText)
+                );
+            }
         }
 
         $output .= $this->renderDraftNotification($options); // js-feature
@@ -239,7 +332,7 @@ class BootstrapFormRenderer implements FormRendererInterface
     /**
      * {@inheritdoc}
      */
-    public function renderField(FieldInterface $field, array $options = []): string
+    public function renderField(string $formName, FieldInterface $field, array $options = []): string
     {
         static $autofocusSet = false;
 
@@ -248,7 +341,8 @@ class BootstrapFormRenderer implements FormRendererInterface
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
         // $label = $field->getLabel();
-        $label = htmlspecialchars($field->getLabel());  // Escape first for security
+        // $label = htmlspecialchars($field->getLabel());  // Escape first for security
+        $label = htmlspecialchars($this->translator->get($field->getLabel(), $formName));
 
 
         //$value = htmlspecialchars((string)$field->getValue());
@@ -308,7 +402,7 @@ class BootstrapFormRenderer implements FormRendererInterface
             // Apply each formatter in sequence
             foreach ($formatters as $key => $formatter) {
                 // if (is_int($key) && is_string($formatter)) {
-                //     // Simple string: 'tel' // fixme Fookup  MUST BE ARRAY sing causes pronlem
+                //     // Simple string: 'tel' // fixme Fookup  MUST BE ARRAY sing causes problems
                 //     $currentValue = $this->formatterService->format($formatter, $currentValue, []);
                 // } elseif (is_int($key) && is_callable($formatter)) {
                 //     $aaa = new ClosureFormatterService();
@@ -375,7 +469,11 @@ class BootstrapFormRenderer implements FormRendererInterface
 
         // Get all attributes
         $attributes = $field->getAttributes();
-
+        if (isset($attributes['placeholder'])) {
+            $attributes['placeholder'] = htmlspecialchars(
+                $this->translator->get($attributes['placeholder'], $formName)
+            );
+        }
 
 
         // Autofocus logic: set autofocus on the first field with errors
@@ -494,7 +592,8 @@ class BootstrapFormRenderer implements FormRendererInterface
             $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
             $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
             foreach ($errors as $error) {
-                $errorHTML .= htmlspecialchars($error) . '<br>';
+                $informedError = $this->getInformedValidationError($field, $error);
+                $errorHTML .= htmlspecialchars($informedError) . '<br>';
             }
             $errorHTML .= '</div>';
         }
@@ -541,7 +640,7 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
             case 'file':
                 $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
-                 $output .= '<div class="mb-2">' . $value . '</div>';
+                $output .= '<div class="mb-2">' . $value . '</div>';
 
                 // // Display current image if value exists
                 // if (!empty($rawValue)) {
@@ -914,30 +1013,21 @@ class BootstrapFormRenderer implements FormRendererInterface
                 break;
         }
 
-            $output .= '</div>';
+        // ✅ Generate constraint hints (categorized by visibility tier)
+        if (($options['show_constraint_hints'] ?? true) && $type !== 'hidden') {
+            $hints = $this->generateConstraintHints($field, $formName);
+
+            // Only render if there are hints to display
+            if (!empty($hints['always']) || !empty($hints['on_focus'])) {
+                $output .= $this->renderConstraintHintsHtml($field, $hints);
+            }
+        }
+
+        $output .= '</div>';
+
 
         return $output;
     }
-
-    /**
-     * Render draft notification and discard button if auto-save and localStorage are enabled.
-     *
-     * @param array $options
-     * @return string
-     */
-    private function renderDraftNotification(array $options): string // js-feature
-    {
-        // Auto Save / Draft Feature - JS
-        if (!empty($options['auto_save']) && !empty($options['use_local_storage'])) {
-            $output  = '<div id="draft-notification" style="display:none;" class="alert alert-warning"></div>';
-                // class="btn btn-secondary btn-sm">Discard Draft</button>';
-            $output .= '<button type="button" id="discard-draft-btn" style="display:none;"
-                class="btn btn-secondary btn-sm">Restore Data from server</button>';
-            return $output;
-        }
-        return '';
-    }
-
 
 
     /**
@@ -1008,6 +1098,27 @@ class BootstrapFormRenderer implements FormRendererInterface
     public function renderStart(FormInterface $form, array $options = []): string
     {
         $attributes = $form->getAttributes();
+
+
+        // ✅ NEW: Merge render options to get injected URLs from controller
+        $renderOptions = $form->getRenderOptions();
+        $options = array_merge($renderOptions, $options);
+
+        // ✅ NEW: Use action_url from render options if available (injected by controller)
+        // Falls back to form's action attribute if not set via render options
+        if (!empty($options['action_url'])) {
+            $attributes['action'] = $options['action_url'];
+        } elseif (!isset($attributes['action'])) {
+            // Fallback to current URL if no action is specified anywhere
+            $attributes['action'] = '';
+        }
+
+        // ✅ NEW: Add AJAX attributes if provided via render options
+        if (!empty($options['ajax_update_url'])) {
+            $attributes['data-ajax-action'] = $options['ajax_update_url'];
+        } elseif (!empty($options['ajax_store_url'])) {
+            $attributes['data-ajax-action'] = $options['ajax_store_url'];
+        }
 
 
 

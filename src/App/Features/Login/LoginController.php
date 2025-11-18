@@ -76,15 +76,19 @@ class LoginController extends Controller
     public function indexAction(ServerRequestInterface $request): ResponseInterface
     {
 
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
-        $xpl = explode('_', $pageName);
+        $xpl = explode('_', $pageKey);
         $entityNm = $xpl[0]; // hack dangerdanger - i do not like how i get table name
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
             $entityNm
@@ -211,12 +215,12 @@ class LoginController extends Controller
      */
     protected function overrideFormTypeRenderOptions(): void
     {
-        // $pageName = $this->scrap->getPageName();
-        // $xpl = explode('_', $pageName);
+        // $pageKey = $this->scrap->getPageKey();
+        // $xpl = explode('_', $pageKey);
         // $entityNm = $xpl[0]; // Extract entity name from page config key
 
         // $this->formType->setFocus(
-        //     $pageName,
+        //     $pageKey,
         //     $entityNm
         // );
 

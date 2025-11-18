@@ -992,11 +992,11 @@ enum Url
         return $this->data()['label'];
     }
 
-    public function pageName(): string
+    public function pageKey(): string
     {
-        $pageName = $this->data()['view'];
-        $pageName = str_replace('/', '_', $pageName);
-        return $pageName;
+        $pageKey = $this->data()['view'];
+        $pageKey = str_replace('/', '_', $pageKey);
+        return $pageKey;
     }
 
 

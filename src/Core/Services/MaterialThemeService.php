@@ -184,4 +184,30 @@ class MaterialThemeService implements ThemeServiceInterface
     {
         $this->viewLayouts[$layoutName] = $classes;
     }
+
+    /**
+     * Get badge CSS class for a semantic variant in Material Design.
+     *
+     * @param string $variant Semantic variant (success, danger, warning, info, secondary, etc.)
+     * @return string Full CSS class string for the badge
+     */
+    public function getBadgeClass(string $variant): string
+    {
+        // Material Design often uses "chips" for badge-like elements.
+        // You might define custom classes for these variants in your Material CSS.
+        $baseClass = 'mdc-chip'; // Base Material Design Chip class
+        $variantClass = match ($variant) {
+            'success'   => 'mdc-chip--success', // Custom class you'd define for success
+            'danger'    => 'mdc-chip--error',   // Custom class you'd define for error
+            'warning'   => 'mdc-chip--warning', // Custom class you'd define for warning
+            'info'      => 'mdc-chip--info',    // Custom class you'd define for info
+            'primary'   => 'mdc-chip--primary', // Primary color from Material theme
+            'secondary' => 'mdc-chip--secondary', // Secondary color from Material theme
+            'light'     => 'mdc-chip--light',   // Custom class for light variant
+            'dark'      => 'mdc-chip--dark',    // Custom class for dark variant
+            default     => 'mdc-chip--default', // Default chip style
+        };
+
+        return $baseClass . ' ' . $variantClass;
+    }
 }

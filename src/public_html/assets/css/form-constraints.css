@@ -1,0 +1,237 @@
+/* ============================================
+   Field Constraints - Two-Tier Visibility System
+   Pure CSS solution with focus-based hints
+   ============================================ */
+
+/* ✅ ALWAYS-VISIBLE HINTS (High-priority: required, min/max length) */
+.field-constraints-always {
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: #f8f9fa;
+    border-left: 3px solid #6c757d;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+    opacity: 1;
+}
+
+/* ⚠️ FOCUS-BASED HINTS (Complex: pattern, format examples) */
+.field-constraints-focus {
+    margin-top: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    background: rgba(13, 202, 240, 0.05);
+    border-left: 3px solid #0dcaf0;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: #0dcaf0;
+
+    max-height: 0;
+    overflow: hidden;
+
+    /* Hidden by default with smooth animation */
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+
+    /* Smooth transitions for all animated properties */
+    transition: max-height 0.3s ease-out, opacity 0.3s ease-out, transform 0.3s ease-out, margin-top 0.3s ease-out, padding 0.3s ease-out;
+}
+
+/* ✅ Show focus-based hints on field focus */
+.mb-3:focus-within .field-constraints-focus,
+.form-group:focus-within .field-constraints-focus,
+.field-wrapper:focus-within .field-constraints-focus {
+    /* ✅ KEY FIX: Give it a max-height when visible */
+    max-height: 300px; /* Adjust this value if your hints are taller */
+
+    /* Visible state for animation */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+
+    /* Restore margins/padding if they were animated with max-height */
+    margin-top: 0.5rem; /* Larger margin when visible */
+    padding: 0.5rem 0.75rem;
+}
+
+/* ✅ Always-visible hints never hide */
+.mb-3:focus-within .field-constraints-always,
+.form-group:focus-within .field-constraints-always,
+.field-wrapper:focus-within .field-constraints-always {
+    /* No changes - always visible */
+}
+
+/* ============================================
+   Constraint List Styling
+   ============================================ */
+
+.constraints-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.constraint-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    line-height: 1.4;
+}
+
+.constraint-item:last-child {
+    margin-bottom: 0;
+}
+
+.constraint-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    min-width: 1.25rem;
+    margin-right: 0.5rem;
+    font-size: 0.875rem;
+    color: inherit;
+}
+
+.constraint-text {
+    flex: 1;
+}
+
+/* ============================================
+   Special Constraint Types
+   ============================================ */
+
+/* Required field indicator */
+.constraint-required .constraint-icon {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Character limit indicators */
+.constraint-minlength .constraint-icon,
+.constraint-maxlength .constraint-icon {
+    color: #0d6efd;
+}
+
+/* ============================================
+   Validation State Styling
+   ============================================ */
+
+/* Invalid state - using :has() for modern browsers */
+.mb-3:has(.form-control.is-invalid) .field-constraints-always,
+.mb-3:has(.form-control.is-invalid) .field-constraints-focus {
+    border-left-color: #dc3545;
+    background: #fff5f5;
+}
+
+.mb-3:has(.form-control.is-invalid) .constraint-icon {
+    color: #dc3545;
+}
+
+/* Valid state */
+.mb-3:has(.form-control.is-valid) .field-constraints-always,
+.mb-3:has(.form-control.is-valid) .field-constraints-focus {
+    border-left-color: #198754;
+    background: #f0fff4;
+}
+
+.mb-3:has(.form-control.is-valid) .constraint-icon {
+    color: #198754;
+}
+
+/* Fallback for browsers without :has() support */
+@supports not selector(:has(*)) {
+    .form-control.is-invalid ~ .field-constraints-always,
+    .form-control.is-invalid ~ .field-constraints-focus {
+        border-left-color: #dc3545;
+        background: #fff5f5;
+    }
+
+    .form-control.is-invalid ~ .field-constraints-always .constraint-icon,
+    .form-control.is-invalid ~ .field-constraints-focus .constraint-icon {
+        color: #dc3545;
+    }
+
+    .form-control.is-valid ~ .field-constraints-always,
+    .form-control.is-valid ~ .field-constraints-focus {
+        border-left-color: #198754;
+        background: #f0fff4;
+    }
+
+    .form-control.is-valid ~ .field-constraints-always .constraint-icon,
+    .form-control.is-valid ~ .field-constraints-focus .constraint-icon {
+        color: #198754;
+    }
+}
+
+/* ============================================
+   Accessibility & Performance
+   ============================================ */
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .field-constraints-focus {
+        transition: none;
+        transform: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .field-constraints-always,
+    .field-constraints-focus {
+        border-width: 4px;
+        font-weight: 600;
+    }
+
+    .constraint-icon {
+        font-size: 1rem;
+        font-weight: bold;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .field-constraints-always {
+        background: #2a2a2a;
+        color: #b0b0b0;
+        border-left-color: #6c757d;
+    }
+
+    .field-constraints-focus {
+        background: rgba(13, 202, 240, 0.1);
+        color: #5cc0e8;
+        border-left-color: #0dcaf0;
+    }
+
+    .mb-3:has(.form-control.is-invalid) .field-constraints-always,
+    .mb-3:has(.form-control.is-invalid) .field-constraints-focus {
+        background: #3a1f1f;
+    }
+
+    .mb-3:has(.form-control.is-valid) .field-constraints-always,
+    .mb-3:has(.form-control.is-valid) .field-constraints-focus {
+        background: #1f3a1f;
+    }
+
+    /* Fallback for browsers without :has() support */
+    @supports not selector(:has(*)) {
+        .form-control.is-invalid ~ .field-constraints-always,
+        .form-control.is-invalid ~ .field-constraints-focus {
+            background: #3a1f1f;
+        }
+
+        .form-control.is-valid ~ .field-constraints-always,
+        .form-control.is-valid ~ .field-constraints-focus {
+            background: #1f3a1f;
+        }
+    }
+}
+
+/* Print styles */
+@media print {
+    .field-constraints-always,
+    .field-constraints-focus {
+        display: none;
+    }
+}

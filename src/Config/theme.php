@@ -77,8 +77,12 @@ return [
                     [
                         'path' => '/assets/css/normalize.css'
                     ],
+
                     [
                         'path' => '/assets/css/common.css'
+                    ],
+                    [
+                        'path' => '/assets/css/form-constraints.css'
                     ]
                 ],
                 'admin' => [

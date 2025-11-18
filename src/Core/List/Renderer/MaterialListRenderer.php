@@ -6,7 +6,9 @@ namespace Core\List\Renderer;
 
 use Core\List\ListInterface;
 use Core\List\ListView;
+use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Material Design list renderer
@@ -17,17 +19,22 @@ class MaterialListRenderer extends AbstractListRenderer
      * Constructor
      *
      * @param ThemeServiceInterface $themeService The theme service
+     * @param FormatterService $formatterService
+     * @param LoggerInterface $logger
      */
-    public function __construct(ThemeServiceInterface $themeService)
-    {
-        parent::__construct($themeService);
+    public function __construct(
+        ThemeServiceInterface $themeService,
+        FormatterService $formatterService,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($themeService, $formatterService, $logger);
 
         // Material Design-specific default options
         $this->defaultOptions = array_merge($this->defaultOptions, [
-            'view_type' => self::VIEW_GRID,
-            'elevation' => 2, // Material elevation level (0-24)
-            'card_shape' => 'rounded', // rounded, rounded-lg, or sharp
-            'dense' => false, // Use dense layout
+            'view_type'  => self::VIEW_GRID,
+            'elevation'  => 2,          // Material elevation level (0-24)
+            'card_shape' => 'rounded',  // rounded, rounded-lg, or sharp
+            'dense'      => false,      // Use dense layout
         ]);
     }
 

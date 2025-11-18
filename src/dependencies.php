@@ -26,6 +26,7 @@ use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\Interfaces\GenericDataServiceInterface;
+use Core\Console\Generators\GeneratorOutputService;
 use Core\Console\Generators\MigrationGenerator;
 use Core\Console\Generators\SeederGenerator;
 use Core\Constants\Consts;
@@ -43,7 +44,7 @@ use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\Schema\FieldSchema;
 use Core\Form\Validation\ValidatorRegistry;
-use Core\I18n\LabelProvider;
+use Core\I18n\I18nTranslator;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\Middleware\RoutingMiddleware;
@@ -494,47 +495,68 @@ return [
 
 
 
+    'Core\I18n\TranslationLoaderService' => \DI\autowire()
+        ->constructorParameter('languageDir', __DIR__ . '/../lang')
+        ->constructorParameter('currentLocale', $_ENV['APP_LOCALE'] ?? 'en'),
 
-
-    'Core\I18n\LabelProvider' => function (ContainerInterface $c) {
-        $logger = $c->get(LoggerInterface::class);
-
-        $langPath = dirname(__DIR__) . '/lang/en/';
-
-
-        $testyPath = $langPath . 'testy_lang.php';
-        $testy = file_exists($testyPath) ? include $testyPath : [];
-        if (empty($testy) && !file_exists($testyPath)) {
-            $logger->warning("Language file not found: {$testyPath}. Using empty array.");
-        }
-
-        $galleryPath = $langPath . 'gallery_lang.php';
-        $gallery = file_exists($galleryPath) ? include $galleryPath : [];
-        if (empty($gallery) && !file_exists($galleryPath)) {
-            $logger->warning("Language file not found: {$galleryPath}. Using empty array.");
-        }
-
-        $userPath = $langPath . 'user_lang.php';
-        $user = file_exists($userPath) ? include $userPath : [];
-        if (empty($user) && !file_exists($userPath)) {
-            $logger->warning("Language file not found: {$userPath}. Using empty array.");
-        }
-
-        $commonPath = $langPath . 'common_lang.php';
-        $common = file_exists($commonPath) ? include $commonPath : [];
-        if (empty($common) && !file_exists($commonPath)) {
-            $logger->warning("Language file not found: {$commonPath}. Using empty array.");
-        }
-
-        // Collect all loaded language arrays into a single structure for the LabelProvider
-        $labels = [
-            'testy' => $testy,
-            'gallery' => $gallery,
-            'user' => $user,
-            'common' => $common,
-        ];
-        return new \Core\I18n\LabelProvider($labels);
+    'Core\I18n\I18nTranslator' => function (ContainerInterface $c) {
+        $loader = $c->get('Core\I18n\TranslationLoaderService');
+        return new \Core\I18n\I18nTranslator(
+            $loader->loadTranslations(),
+            '_'
+        );
     },
+    // 'Core\I18n\I18nTranslator' => function (ContainerInterface $c) {
+    //     // ✅ Load translations from files
+    //     $labels = [];
+    //     $langDir = __DIR__ . '/../lang/en/';
+
+    //     foreach (glob($langDir . '*.php') as $file) {
+    //         $namespace = basename($file, '_lang.php');
+    //         $labels[$namespace] = require $file;
+    //     }
+
+    //     return new \Core\I18n\I18nTranslator($labels, '_'); // ✅ Pass delimiter
+    // },
+    // 'Core\I18n\I18nTranslator' => function (ContainerInterface $c) {
+    //     $logger = $c->get(LoggerInterface::class);
+
+    //     $langPath = dirname(__DIR__) . '/lang/en/';
+
+
+    //     $testyPath = $langPath . 'testy_lang.php';
+    //     $testy = file_exists($testyPath) ? include $testyPath : [];
+    //     if (empty($testy) && !file_exists($testyPath)) {
+    //         $logger->warning("Language file not found: {$testyPath}. Using empty array.");
+    //     }
+
+    //     $galleryPath = $langPath . 'gallery_lang.php';
+    //     $gallery = file_exists($galleryPath) ? include $galleryPath : [];
+    //     if (empty($gallery) && !file_exists($galleryPath)) {
+    //         $logger->warning("Language file not found: {$galleryPath}. Using empty array.");
+    //     }
+
+    //     $userPath = $langPath . 'user_lang.php';
+    //     $user = file_exists($userPath) ? include $userPath : [];
+    //     if (empty($user) && !file_exists($userPath)) {
+    //         $logger->warning("Language file not found: {$userPath}. Using empty array.");
+    //     }
+
+    //     $commonPath = $langPath . 'common_lang.php';
+    //     $common = file_exists($commonPath) ? include $commonPath : [];
+    //     if (empty($common) && !file_exists($commonPath)) {
+    //         $logger->warning("Language file not found: {$commonPath}. Using empty array.");
+    //     }
+
+    //     // Collect all loaded language arrays into a single structure for the I18nTranslator
+    //     $labels = [
+    //         'testy' => $testy,
+    //         'gallery' => $gallery,
+    //         'user' => $user,
+    //         'common' => $common,
+    //     ];
+    //     return new \Core\I18n\I18nTranslator($labels);
+    // },
 
 
 
@@ -687,7 +709,7 @@ return [
         \Psr\Container\ContainerInterface $container
     ) {
         return new \Core\Form\Renderer\BootstrapFormRenderer(
-            // $container->get('Core\Services\ThemeServiceInterface'),
+            $container->get('Core\Services\ThemeServiceInterface'),
             $container->get(ThemeServiceInterface::class),
             $container->get(FormatterService::class),
             $container->get(LoggerInterface::class)
@@ -1430,6 +1452,8 @@ return [
     'formatterz.currency'  => \DI\autowire(\Core\Formatters\CurrencyFormatter::class),
     'formatterz.foo'       => \DI\autowire(\Core\Formatters\FooFormatter::class),
     'formatterz.truncate5' => \DI\autowire(\Core\Formatters\Truncate5Formatter::class),
+    'formatterz.badge'     => \DI\autowire(\Core\Formatters\BadgeFormatter::class)
+        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
 
     'Core\Formatters\FormatterInterface'    => \DI\get('Core\Formatters\TextFormatter'),
 
@@ -1443,6 +1467,7 @@ return [
             $c->get('formatterz.currency'),
             $c->get('formatterz.foo'),
             $c->get('formatterz.truncate5'),
+            $c->get('formatterz.badge'),
             // ...other formatters
         ]);
         return $registry;
@@ -1606,6 +1631,10 @@ return [
         ->constructorParameter('configFieldsGenerator', \DI\get(\Core\Console\Generators\ConfigFieldsGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
+        \Core\Console\Commands\MakeConfigViewCommand::class => \DI\autowire()
+        ->constructorParameter('configViewGenerator', \DI\get(\Core\Console\Generators\ConfigViewGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
+
     \Core\Console\Commands\FeatureMoveCommand::class => \DI\autowire()
         ->constructorParameter('pathResolverService', \DI\get(Core\Services\PathResolverService::class)),
 
@@ -1633,7 +1662,12 @@ return [
         ->constructorParameter(
             'generatorOutputService',
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
-        ),
+        )
+        ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class))
+        ->constructorParameter('fakeDataGenerator', \DI\get(\Core\Console\Generators\FakeDataGenerator::class)),
+
+    // FakeDataGenerator definition
+    \Core\Console\Generators\FakeDataGenerator::class => \DI\autowire(),
 
     // Register RepositoryGenerator
     \Core\Console\Generators\RepositoryGenerator::class => \DI\autowire()
@@ -1656,6 +1690,11 @@ return [
             'generatorOutputService',
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
         ),
+
+    // Register ConfigViewGenerator
+    \Core\Console\Generators\ConfigViewGenerator::class
+                                                    => \DI\autowire(\Core\Console\Generators\ConfigViewGenerator::class)
+        ->constructorParameter('generatorOutputService', \DI\get(GeneratorOutputService::class)),
 
 
     // Register FeatureGenerator
@@ -1727,6 +1766,8 @@ return [
     'Core\Form\ZzzzFormType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
         ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('formConfigService', \DI\get(\Core\Services\FormConfigurationService::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
         ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
     'App\Features\Testy\Form\TestyFormType' => \DI\autowire()
@@ -1924,6 +1965,7 @@ return [
     'form.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\Form\Renderer\BootstrapFormRenderer(
             $c->get('Core\Services\ThemeServiceInterface'),
+            $c->get('Core\I18n\I18nTranslator'),
             $c->get('Core\Services\FormatterService'),
             $c->get(LoggerInterface::class)
         );
@@ -1943,7 +1985,7 @@ return [
     'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\List\Renderer\BootstrapListRenderer(
             $c->get('Core\Services\ThemeServiceInterface'),
-            $c->get('Core\I18n\LabelProvider'),
+            $c->get('Core\I18n\I18nTranslator'),
             $c->get('Core\Services\FormatterService'),
             $c->get(LoggerInterface::class)
         );
@@ -1952,14 +1994,20 @@ return [
     // Material Design renderer
     'list.renderer.material' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\List\Renderer\MaterialListRenderer(
-            $c->get('Core\Services\ThemeServiceInterface')
+            $c->get(\Core\Services\ThemeServiceInterface::class),
+            // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
+            $c->get(\Core\Services\FormatterService::class),
+            $c->get(\Psr\Log\LoggerInterface::class)
         );
     }),
 
     // Vanilla List Renderer
     'list.renderer.vanilla' => \DI\factory(function (ContainerInterface $c) {
         return new \Core\List\Renderer\VanillaListRenderer(
-            $c->get('Core\Services\VanillaThemeService')
+            $c->get(\Core\Services\ThemeServiceInterface::class),
+            // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
+            $c->get(\Core\Services\FormatterService::class),
+            $c->get(\Psr\Log\LoggerInterface::class)
         );
     }),
 

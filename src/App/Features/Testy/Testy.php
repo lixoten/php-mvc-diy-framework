@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Features\Testy;
 
+use App\Enums\TestyStatus;
 
 /**
- * Generated File - Date: 20251109_203444
+ * Generated File - Date: 20251114_193709 ffff
  * Entity class for Testy.
  *
  * @property-read array<string, mixed> $fields
@@ -29,9 +30,9 @@ class Testy
     private int $user_id = 0;
 
     /**
-     * @var string
+     * @var TestyStatus
      */
-    private string $status = '';
+    private TestyStatus $status = TestyStatus::PENDING;
 
     /**
      * @var string
@@ -62,6 +63,16 @@ class Testy
      * @var int
      */
     private ?int $cover_image_id = null;
+
+    /**
+     * @var string
+     */
+    private string $generic_code = '';
+
+    /**
+     * @var array<string>
+     */
+    private array $super_powers = [];
 
     /**
      * @var string
@@ -262,18 +273,18 @@ class Testy
     }
 
     /**
-     * @return string
+     * @return TestyStatus
      */
-    public function getStatus(): string
+    public function getStatus(): TestyStatus
     {
         return $this->status;
     }
 
     /**
-     * @param string $status
+     * @param TestyStatus $status
      * @return self
      */
-    public function setStatus(string $status): self
+    public function setStatus(TestyStatus $status): self
     {
         $this->status = $status;
         return $this;
@@ -384,6 +395,42 @@ class Testy
     public function setCoverImageId(?int $cover_image_id): self
     {
         $this->cover_image_id = $cover_image_id;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getGenericCode(): string
+    {
+        return $this->generic_code;
+    }
+
+    /**
+     * @param string $generic_code
+     * @return self
+     */
+    public function setGenericCode(string $generic_code): self
+    {
+        $this->generic_code = $generic_code;
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getSuperPowers(): array
+    {
+        return $this->super_powers;
+    }
+
+    /**
+     * @param array $super_powers
+     * @return self
+     */
+    public function setSuperPowers(array $super_powers): self
+    {
+        $this->super_powers = $super_powers;
         return $this;
     }
 
@@ -907,5 +954,29 @@ class Testy
     {
         $this->updated_at = $updated_at;
         return $this;
+    }
+
+
+    /**
+     * ✅ NEW: Provides formatter options for the is_verified badge.
+     *
+     * @param mixed $value The raw boolean value
+     * @return array<string, string|bool>
+     */
+    public static function getIsVerifiedBadgeOptions(mixed $value): array
+    {
+        $isVerified = (bool)$value;
+
+        if ($isVerified) {
+            return [
+                'label'   => 'Yes',
+                'variant' => 'success',
+            ];
+        }
+
+        return [
+            'label'   => 'No',
+            'variant' => 'secondary',
+        ];
     }
 }

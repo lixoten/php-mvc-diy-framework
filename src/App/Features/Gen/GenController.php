@@ -157,17 +157,21 @@ class GenController extends AbstractGenCrudController
 
 
         $tmpEnum = $this->feature->baseUrlEnum;
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $tmp = $tmpEnum->data()['view'];
-        $xpl = explode('/', $pageName);
-        // $pageName   = $xpl[0] . '_' . $xpl[1];
+        $xpl = explode('/', $pageKey);
+        // $pageKey   = $xpl[0] . '_' . $xpl[1];
         $entityNm = $xpl[0];
 
         $this->listType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
             $entityNm

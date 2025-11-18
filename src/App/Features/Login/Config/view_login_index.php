@@ -90,7 +90,7 @@ return [
         // 'redirect_after_save' => 'list', // Redirect to list after save
         'redirect_after_add' => 'list', // or 'edit'
         // 'redirect_after_add' => 'edit', // Redirect to edit after add
-        'pageName' => 'user_edit', // or 'edit'
+        'pageKey' => 'user_edit', // or 'edit'
         'entityName' => 'user', // or 'edit'
     ],
     'form_hidden_fields' => [

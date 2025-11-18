@@ -21,13 +21,13 @@ abstract class AbstractFormatter implements FormatterInterface
     {
         $transformed = $this->transform($value, $options);
 
-        // // If formatter declares it produces safe HTML (and handles attribute escaping),
-        // // return raw HTML. Otherwise perform default sanitization.
-        // if ($this->isSafeHtml()) {
-        //     return (string) $raw;
-        // }
+        // If formatter declares it produces safe HTML (and handles attribute escaping),
+        // return raw HTML. Otherwise perform default sanitization.
+        if ($this->isSafeHtml()) {
+            return (string) $transformed;
+        }
 
-        return $this->sanitize($transformed);
+        return $this->sanitize($transformed); // Sanitize only for plain text formatters like TextFormatter
     }
 
 

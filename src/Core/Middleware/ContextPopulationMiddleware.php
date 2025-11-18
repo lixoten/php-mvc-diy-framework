@@ -52,15 +52,18 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         // How you access route params depends on your router/framework integration
         // Assuming they are stored in the container or request attributes
         $routeParams = $request->getAttribute('route_params');
-        $pageName = $request->getAttribute('page_name');
-        $entityId = $request->getAttribute('id'); 
-        $actionName = $request->getAttribute('action');
+
+        $pageKey     = $request->getAttribute('page_name');// shitload4
+        $pageName = explode('_', $pageKey)[0];
+        // $pageName   =  $request->getAttribute('page_name');
+        $pageAction =  $request->getAttribute('action');
+
+        $entityId    = $request->getAttribute('id');
+        $actionName  = $request->getAttribute('action');
 
         $namespace  =  $request->getAttribute('namespace');
         $controller =  $request->getAttribute('controller');
         $route_id   =  $request->getAttribute('route_id');
-        $pageKey    =  $request->getAttribute('page_key');
-        $pageName   =  $request->getAttribute('page_name');
 
 
 
@@ -86,9 +89,6 @@ class ContextPopulationMiddleware implements MiddlewareInterface
             }
         }
 
-        $this->currentContext->setPageName($pageName);
-        $this->currentContext->setPageFeature($pageFeature);
-        $this->currentContext->setPageEntity($pageEntity);
 
 
         $this->currentContext->setPageQueryParms($pageQueryParms);
@@ -97,6 +97,11 @@ class ContextPopulationMiddleware implements MiddlewareInterface
 
         // Set context values (null if attributes don't exist)
         $this->currentContext->setPageKey($pageKey);
+        $this->currentContext->setPageName($pageName);
+        $this->currentContext->setPageAction($pageAction);
+        $this->currentContext->setPageFeature($pageFeature);
+        $this->currentContext->setPageEntity($pageEntity);
+
         $this->currentContext->setEntityId($entityId !== null ? (int)$entityId : null);
         $this->currentContext->setActionName($actionName);
 

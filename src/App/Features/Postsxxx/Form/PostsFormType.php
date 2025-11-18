@@ -39,7 +39,7 @@ class PostsFormType extends AbstractFormType
         $this->captchaService = $captchaService;
 
         $this->fieldRegistryService->setEntityName(static::FORM_TYPE);
-        $this->fieldRegistryService->setPageName(static::FORM_NAME);
+        $this->fieldRegistryService->setPageKey(static::FORM_NAME);
 
         // parent::__construct(fieldRegistryService: $this->fieldRegistryService);
     }

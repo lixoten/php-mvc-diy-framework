@@ -32,7 +32,7 @@ class LoginFieldRegistry extends AbstractFieldRegistry
      */
     protected array $fields;
 
-    // public function __construct(LabelProvider $labelProvider)
+    // public function __construct(I18nTranslator $labelProvider)
     public function __construct(
         ConfigService $configService,
         ?\Core\Registry\AbstractFieldRegistry $baseRegistry = null

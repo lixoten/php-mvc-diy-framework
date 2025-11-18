@@ -18,7 +18,7 @@ class FrontController implements RequestHandlerInterface
 {
     protected RouterInterface $router;
     protected $httpFactory;
-    protected PageRegistryInterface $pageRegistry; // Dynamic-me
+    protected PageRegistryInterface $pageRegistry; // Dynamic-me vvvvv
     protected ContainerInterface $container;
 
     public function __construct(
@@ -171,11 +171,11 @@ class FrontController implements RequestHandlerInterface
         // Loop through the pages and register a route for each slug
         ## http://mvclixo.tv/about
         ## http://mvclixo.tv/terms
-        foreach (array_keys($dynamicPages) as $pageName) {
-            $this->router->add($pageName, [
+        foreach (array_keys($dynamicPages) as $pageKey) {
+            $this->router->add($pageKey, [
                 'controller' => 'Dynamic', // Assuming your controller namespace is correctly resolved
                 'action'     => 'page',
-                'page_name'   => $pageName, // Pass the slug as page_name
+                'page_name'   => $pageKey, // Pass the slug as page_name
                 'route_id' => 'bee801-gen-hc/hc/hc' // ok
             ]);
         }
@@ -198,15 +198,15 @@ class FrontController implements RequestHandlerInterface
         ];
 //'#^account\/(?P<controller>[a-zA-Z]+)$#i'
         // Dynamic-me 3
-        foreach (array_keys($dynamicPages) as $pageName) {
+        foreach (array_keys($dynamicPages) as $pageKey) {
             foreach ($basePaths as $basePath) {
-                $baseRoute = $basePath . $pageName;
+                $baseRoute = $basePath . $pageKey;
                 $routeParams = [
                     // 'controller' => 'Generic',
                     // 'namespace'  => 'Generic',  // Consider different namespaces for different paths if needed
                     'controller' => 'Gen', // dynamic-fix
                     'namespace'  => 'Gen', // dynamic-fix
-                    'page_name'  => $pageName,
+                    'page_name'  => $pageKey,
                     'route_id' => 'bee802-gen'
                 ];
 

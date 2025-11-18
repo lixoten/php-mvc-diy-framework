@@ -28,7 +28,9 @@ abstract class AbstractListType implements ListTypeInterface
     protected array $renderOptions = [];
     protected array $fields = [];
 
+    public readonly string $pageKey;
     public readonly string $pageName;
+    public readonly string $pageAction;
     public readonly string $pageFeature;
     public readonly string $pageEntity;
 
@@ -51,17 +53,21 @@ abstract class AbstractListType implements ListTypeInterface
 
     /** {@inheritdoc} */
     public function setFocus(
+        string $pageKey,
         string $pageName,
+        string $pageAction,
         string $pageFeature,
         string $pageEntity,
     ): void {
-        $this->pageName = $pageName;
+        $this->pageKey     = $pageKey;
+        $this->pageName    = $pageName;
+        $this->pageAction  = $pageAction;
         $this->pageFeature = $pageFeature;
-        $this->pageEntity = $pageEntity;
+        $this->pageEntity  = $pageEntity;
 
         // ✅ Delegate configuration loading to service
         $config = $this->listConfigService->loadConfiguration(
-            $pageName,
+            $pageKey,
             $pageFeature,
             $pageEntity,
         );
@@ -114,7 +120,7 @@ abstract class AbstractListType implements ListTypeInterface
     {
         $validFields = $this->fieldRegistryService->filterAndValidateFields(
             $fields,
-            $this->pageName,
+            $this->pageKey,
             $this->pageEntity
         );
         $this->fields = $validFields;
@@ -152,22 +158,24 @@ abstract class AbstractListType implements ListTypeInterface
         $builder->setOptions($this->options);
         $builder->setRenderOptions($this->renderOptions);
 
+        //$fieldNames = $this->getFields();
+
         // Add columns from field definitions
         foreach ($this->fields as $fieldName) {
             $columnDef = $this->fieldRegistryService->getFieldWithFallbacks(
                 $fieldName,
-                $this->pageName,
+                $this->pageKey,
                 $this->pageEntity
             );
 
             if ($columnDef && isset($columnDef['list'])) {
                 $listOptions = $columnDef['list'];
                 $listOptions['formatters'] = $columnDef['formatters'] ?? [];
-                $builder->addColumn($fieldName, $columnDef['label'], $listOptions);
+                $builder->addColumn($fieldName, $listOptions);
             } else {
                 $this->logger->warning('AbstractListType: Field definition not found', [
                     'fieldName' => $fieldName,
-                    'pageName' => $this->pageName,
+                    'pageKey' => $this->pageKey,
                     'pageEntity' => $this->pageEntity,
                 ]);
             }
@@ -239,7 +247,7 @@ abstract class AbstractListType implements ListTypeInterface
 
             $builder->addAction('edit', [
                 'url' => $generatedUrl,
-                'label' => 'Edit',
+                'label' => 'Edit', // need translator
                 'icon' => 'pencil',
             ]);
             $actionsAdded++;
@@ -328,7 +336,7 @@ abstract class AbstractListType implements ListTypeInterface
         foreach ($fields as $fieldName) {
             $fieldDef = $this->fieldRegistryService->getFieldWithFallbacks(
                 $fieldName,
-                $this->pageName,
+                $this->pageKey,
                 $this->pageEntity
             );
 
@@ -337,7 +345,7 @@ abstract class AbstractListType implements ListTypeInterface
             } else {
                 $this->logger->warning('AbstractListType: Invalid field configured', [
                     'fieldName' => $fieldName,
-                    'pageName' => $this->pageName,
+                    'pageKey' => $this->pageKey,
                     'pageEntity' => $this->pageEntity,
                 ]);
             }

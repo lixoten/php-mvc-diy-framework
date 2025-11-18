@@ -28,14 +28,15 @@ class CurrentContext
     private ?int $storeId = null;
     private ?string $storeName = null;
 
-    private ?string $pageName = null; // e.g.,  'testy_edit', 'testy_index', 'testy_etc...'
+    private ?string $pageKey = null; // e.g.,  'testy_edit', 'testy_index', 'testy_etc...'// shitload4
+    private ?string $pageName = null;
+    private ?string $pageAction = null;
     private ?string $pageFeature = null; // e.g.,  'testy', 'post', 'user', 'login'...
     private ?string $pageEntity = null; // e.g.,  'testy', 'post', 'user'...
 
     private ?array $pageQueryParms = null;
     private ?string $pageListViewType = null;
 
-    private ?string $pageKey = null; // e.g.,  , 'users' from route
     private ?int $entityId = null; // e.g., the ID from /edit/{id}
     private array $routeParams = [];
     private ?string $actionName = null; // e.g., 'index', 'edit'
@@ -305,6 +306,17 @@ class CurrentContext
     }
 
     /////////////////////////////////////////////////////////////////////
+    public function setPageKey(?string $pageKey): void
+    {
+        $this->pageKey = $pageKey;
+    }
+
+    public function getPageKey(): ?string
+    {
+        return $this->pageKey;
+    }
+    // --
+
     public function setPageName(?string $pageName): void
     {
         $this->pageName = $pageName;
@@ -313,6 +325,17 @@ class CurrentContext
     public function getPageName(): ?string
     {
         return $this->pageName;
+    }
+    // --
+
+    public function setPageAction(?string $pageAction): void
+    {
+        $this->pageAction = $pageAction;
+    }
+
+    public function getPageAction(): ?string
+    {
+        return $this->pageAction;
     }
 
     public function setPageFeature(?string $pageFeature): void
@@ -365,16 +388,6 @@ class CurrentContext
 
 
 
-
-    public function setPageKey(?string $pageKey): void
-    {
-        $this->pageKey = $pageKey;
-    }
-
-    public function getPageKey(): ?string
-    {
-        return $this->pageKey;
-    }
 
 
 

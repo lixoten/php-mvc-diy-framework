@@ -67,4 +67,13 @@ interface ThemeServiceInterface
      * @return void
      */
     public function setViewLayoutClasses(string $layoutName, array $classes): void;
+
+
+    /**
+     * Get badge CSS class for a semantic variant.
+     *
+     * @param string $variant Semantic variant (success, danger, warning, info, secondary, etc.)
+     * @return string Full CSS class string for the badge (must not be null)
+     */
+    public function getBadgeClass(string $variant): string;
 }

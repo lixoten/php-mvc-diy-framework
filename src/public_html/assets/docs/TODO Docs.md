@@ -15,10 +15,10 @@ we need to create additional generators
     --- ConfigFieldsGenerator - Done     - make:config-fields xxxx - Config\xxxx_fields.php
     --- FeatureGenerator - Done          - feature:move            - moves file to appropriate location
     ---
-    --- ConfigListViewGenerator - PEND   - make:config-list-view   - Config\xxxx_list_view.php ---- ConfigViewListGenerator
-    --- ConfigEditViewGenerator - PEND   - make:config-edit-view   - Config\xxxx_edit_view.php
-    --- ConfigListFieldsGenerator - PEND - make:config-list-fields - Config\xxxx_list_fields.php
-    --- ConfigEditFieldsGenerator - PEND - make:config-edit-fields - Config\xxxx_edit_fields.php
+    --- ConfigListViewGenerator - Done   - make:config-list-view   - Config\xxxx_list_view.php ---- ConfigViewListGenerator
+    --- ConfigEditViewGenerator - Done   - make:config-edit-view   - Config\xxxx_edit_view.php
+    --- ConfigListFieldsGenerator - Done - make:config-list-fields - Config\xxxx_list_fields.php
+    --- ConfigEditFieldsGenerator - Done - make:config-edit-fields - Config\xxxx_edit_fields.php
 #### Run migrations
     ---,,,,,
 

@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace Core\List\Renderer;
 
 use App\Helpers\DebugRt;
-use Core\Constants\Urls;
 use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\ThemeServiceInterface;
-use Core\I18n\LabelProvider;
+use Core\I18n\I18nTranslator;
 use App\Enums\Url;
 use Core\Services\FormatterService;
 use Psr\Log\LoggerInterface;
@@ -24,23 +23,12 @@ class BootstrapListRenderer extends AbstractListRenderer
      */
     public function __construct(
         protected ThemeServiceInterface $themeService,
-        private LabelProvider $labelProvider,
-        private FormatterService $formatterService,
-        private LoggerInterface $logger
+        private I18nTranslator $translator,
+        protected FormatterService $formatterService,
+        protected LoggerInterface $logger
     ) {
-        parent::__construct($themeService);
-        // $this->labelProvider = $labelProvider;
-
-        // Bootstrap-specific default options
-        // $this->defaultOptions = array_merge($this->defaultOptions, [
-        //     'view_type' => self::VIEW_GRID,
-        //     'view_type' => self::VIEW_TABLE,
-        //     'view_type' => self::VIEW_LIST,
-        // ]);
-        $this->defaultOptions['view_type'] = self::VIEW_TABLE;
-
-        // Fik - Override List View Default - GRID TABLE LIST
-        // $this->defaultOptions['view_type'] = self::VIEW_TABLE;
+        parent::__construct($themeService, $formatterService, $logger);
+        $this->defaultOptions['view_type'] = self::VIEW_TABLE; // Fik - Override List View Default - GRID TABLE LIST
     }
 
     /**
@@ -55,7 +43,6 @@ class BootstrapListRenderer extends AbstractListRenderer
 
         $output = '<div class="' . $headerClass . '">';
 
-        // Add title
         $output .= '<h2>' . htmlspecialchars($list->getTitle()) . '</h2>';
 
         // Add "Add New" button if URL is provided
@@ -65,7 +52,6 @@ class BootstrapListRenderer extends AbstractListRenderer
                 htmlspecialchars($options['add_button_label'] ?? '');
             $output .= '</a>';
         }
-
 
         $output .= '</div>';
 
@@ -85,7 +71,6 @@ class BootstrapListRenderer extends AbstractListRenderer
 
         $output = '<div class="' . $cardBodyClass . ' pt-0">';
         $output .= '<div class="' . $toggleClass . '" role="group" aria-label="View options">';
-
 
 
         $viewTypes = [self::VIEW_TABLE, self::VIEW_GRID, self::VIEW_LIST];
@@ -159,13 +144,15 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '<thead><tr>';
         foreach ($list->getColumns() as $name => $column) {
             // $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
-            $temp = htmlspecialchars($this->labelProvider->get($column['label'], $list->getName()));
+            $temp = htmlspecialchars($this->translator->get($column['label'], $list->getPageKey()));
             $output .= '<th>' . $temp . '</th>';
         }
 
         // Add actions column if needed
         if ($options['show_actions'] && !empty($list->getActions())) {
-            $output .= '<th>Actions</th>';
+            $actionsLabel = $this->translator->get($list->getPageName() . '.actions', 'xxx');
+            //$temp = htmlspecialchars($this->translator->get($column['label'], $list->getPageKey()));
+            $output .= "<th>$actionsLabel</th>";
         }
 
         $output .= '</tr></thead>';
@@ -253,16 +240,6 @@ class BootstrapListRenderer extends AbstractListRenderer
                     $output .= '</p>';
                 }
             }
-
-
-            // foreach (array_keys($list->getColumns()) as $columnName) {
-            //     $columns = $list->getColumns();
-            //     $value = $record[$columnName] ?? null;
-            //     $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
-            // }
-
-
-
 
             $output .= '</div>'; // End card body
 
@@ -458,7 +435,15 @@ class BootstrapListRenderer extends AbstractListRenderer
         if (isset($columnConfig['formatters']) && is_array($columnConfig['formatters'])) {
             foreach ($columnConfig['formatters'] as $formatterName => $formatterOptions) {
                 try {
-                    // Apply each formatter in sequence
+                    // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined
+                    if (isset($formatterOptions['options_provider']) && is_callable($formatterOptions['options_provider'])) {
+                        // Call the static method (e.g., [TestyStatus::class, 'getFormatterOptions'])
+                        // passing the current field value and the full record.
+                        $resolvedOptions = call_user_func($formatterOptions['options_provider'], $value, $record);
+                        $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
+                    }
+
+                    // Apply each formatter in sequence with the resolved options
                     $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
                 } catch (\Core\Exceptions\FormatterNotFoundException $e) {
                     $this->logger->warning(sprintf(
@@ -479,13 +464,6 @@ class BootstrapListRenderer extends AbstractListRenderer
                 }
             }
         }
-
-
-        // Handle Bootstrap-specific formatting for special columns
-        // if ($column === 'status' && $value !== null) {
-        //     $statusClass = ((string)$value === 'Published') ? 'success' : 'warning';
-        //     return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars((string)$value) . '</span>';
-        // }
 
         // For all other columns, use the parent implementation
         return parent::renderValue($column, $value, $record, $columns);
@@ -675,49 +653,6 @@ class BootstrapListRenderer extends AbstractListRenderer
         return $output;
     }
 
-    // /**
-    //  * Render pagination
-    //  */
-    // public function renderPagination_Old(ListInterface $list, array $options = []): string
-    // {
-    //     $pagination = $list->getPagination();
-
-    //     if (empty($pagination) || $pagination['total_pages'] <= 1) {
-    //         return '';
-    //     }
-
-    //     $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
-    //     $paginationClass = $this->themeService->getElementClass('pagination');
-
-    //     $output = '<nav aria-label="Page navigation"><ul class="' . $paginationClass . '">';
-
-    //     $baseUrl = $options['pagination_url'] ?? '';
-    //     $currentPage = $pagination['current_page'];
-    //     $totalPages = $pagination['total_pages'];
-
-    //     // Add view type to pagination URLs if it exists
-    //     if (!empty($options['view_type']) && $options['view_type'] !== self::VIEW_TABLE) {
-    //         $viewParam = 'view=' . $options['view_type'];
-    //         if (strpos($baseUrl, '?') !== false) {
-    //             $baseUrl .= '&' . $viewParam;
-    //         } else {
-    //             $baseUrl .= '?' . $viewParam;
-    //         }
-    //     }
-
-    //     for ($i = 1; $i <= $totalPages; $i++) {
-    //         $active = ($i === $currentPage) ? ' active' : '';
-    //         $url = str_replace('{page}', (string)$i, $baseUrl);
-
-    //         $output .= '<li class="page-item' . $active . '">';
-    //         $output .= '<a class="page-link" href="' . $url . '">' . (string)$i . '</a>';
-    //         $output .= '</li>';
-    //     }
-
-    //     $output .= '</ul></nav>';
-
-    //     return $output;
-    // }
 
     /**
      * Helper method to get image URL from record

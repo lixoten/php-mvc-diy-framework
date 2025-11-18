@@ -124,7 +124,7 @@ class TestyController extends AbstractCrudController
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
 
-
+        // $rrr = $this->scrap();
         return parent::listAction(request: $request);
     }
 

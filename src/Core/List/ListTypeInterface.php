@@ -61,7 +61,9 @@ interface ListTypeInterface
     public function setOptions(array $options): void;
 
     public function setFocus(
+        string $pageKey,
         string $pageName,
+        string $pageAction,
         string $pageFeature,
         string $pageEntity,
     ): void;

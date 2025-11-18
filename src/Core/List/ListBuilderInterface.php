@@ -21,7 +21,7 @@ interface ListBuilderInterface
     /**
      * Add a column to the list
      */
-    public function addColumn(string $name, ?string $label = null, array $options = []): self;
+    public function addColumn(string $name, array $options = []): self;
 
     /**
      * Add an action to the list

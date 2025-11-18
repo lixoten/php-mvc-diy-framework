@@ -54,15 +54,9 @@ class ListBuilder implements ListBuilderInterface
     /**
      * Add a column to the list
      */
-    public function addColumn(string $name, ?string $label = null, array $options = []): self
+    public function addColumn(string $name, array $options = []): self
     {
-        // $this->columns[$name] = [
-        //     'label' => $label ?? ucfirst(str_replace('_', ' ', $name . "wtf")),
-        //     'options' => $options
-        // ];
-
-        $label = $label ?? ucfirst(str_replace('_', ' ', $name)); // Removed "wtf" placeholder
-        $this->list->addColumn($name, $label, $options);
+        $this->list->addColumn($name, $options);
         return $this;
     }
 

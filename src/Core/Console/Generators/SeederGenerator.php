@@ -19,17 +19,20 @@ class SeederGenerator
 {
     private GeneratorOutputService $generatorOutputService;
     private PathResolverService $pathResolverService;
-
+    private FakeDataGenerator $fakeDataGenerator;
     /**
      * @param GeneratorOutputService $generatorOutputService The service for managing output directories.
      * @param PathResolverService $pathResolverService The service for resolving application paths.
+     * @param FakeDataGenerator $fakeDataGenerator The service for generating fake data.
      */
     public function __construct(
         GeneratorOutputService $generatorOutputService,
-        PathResolverService $pathResolverService
+        PathResolverService $pathResolverService,
+        FakeDataGenerator $fakeDataGenerator
     ) {
         $this->generatorOutputService = $generatorOutputService;
         $this->pathResolverService = $pathResolverService;
+        $this->fakeDataGenerator = $fakeDataGenerator;
     }
 
     /**
@@ -74,7 +77,7 @@ class SeederGenerator
 
         $fields = $schema['fields'];
 
-        // NEW CODE START: Determine unique fields from schema for createIfNotExists
+        // Determine unique fields from schema for createIfNotExists
         $uniqueFields = [];
         if (isset($schema['fields']) && is_array($schema['fields'])) {
             foreach ($schema['fields'] as $fieldName => $fieldDefinition) {
@@ -85,15 +88,16 @@ class SeederGenerator
         }
         // If no unique fields are explicitly defined, default to an empty array
         $uniqueCheckString = empty($uniqueFields) ? '[]' : "['" . implode("', '", $uniqueFields) . "']";
-        // NEW CODE END
 
-
+        // Get the number of records to generate (default to 1 if not specified)
+        $seederCount = (int) ($schema['entity']['seeder_count'] ?? 1);
 
         $sampleDataArray = $schema['sample_data'] ?? null;
         if ($sampleDataArray && is_array($sampleDataArray)) {
             $sampleData = $this->formatSampleData($sampleDataArray);
         } else {
-            $sampleData = $this->generateSampleData($fields);
+            // ✅ This is where FakeDataGenerator is now used!
+            $sampleData = $this->generateSampleData($fields, $seederCount);
         }
 
         $relatedIdCode = '';
@@ -192,52 +196,64 @@ PHP;
      * Generate sample data array for seeder.
      *
      * @param array<string, array<string, mixed>> $fields Schema field definitions.
+     * @param int $count The number of records to generate. // ✅ ADD THIS PARAMETER
      * @return string
      */
-    protected function generateSampleData(array $fields): string
+    protected function generateSampleData(array $fields, int $count = 1): string
     {
-        $sample = [];
-        foreach ($fields as $field => $config) {
-            if (!empty($config['auto_increment']) || !empty($config['primary'])) {
-                continue;
-            }
+        $allSamples = [];
+        for ($i = 0; $i < $count; $i++) { // ✅ LOOP 'count' TIMES
+            $sample = [];
+            foreach ($fields as $field => $config) {
+                if (!empty($config['auto_increment']) || !empty($config['primary'])) {
+                    continue;
+                }
 
-            if (in_array($field, ['user_id', 'store_id', 'store_user_id'], true)) {
-                $value = '$' . lcfirst(str_replace('_id', 'Id', $field));
-            } elseif (isset($config['nullable']) && $config['nullable']) {
-                $value = 'null';
-            } elseif (isset($config['default'])) {
-                $value = var_export($config['default'], true);
-            } elseif (($config['db_type'] ?? '') === 'boolean') {
-                $value = 'false';
-            } elseif (($config['db_type'] ?? '') === 'integer' || ($config['db_type'] ?? '') === 'bigInteger') {
-                $value = '0';
-            } elseif (
-                      ($config['db_type'] ?? '') === 'decimal' ||
-                      ($config['db_type'] ?? '') === 'float' ||
-                      ($config['db_type'] ?? '') === 'double'
-            ) {
-                $value = '0.0';
-            } elseif (($config['db_type'] ?? '') === 'date') {
-                $value = "'1970-01-01'";
-            } elseif (($config['db_type'] ?? '') === 'time') {
-                $value = "'00:00:00'";
-            } elseif (($config['db_type'] ?? '') === 'dateTime') {
-                $value = "'1970-01-01 00:00:00'";
-            } else {
-                $value = "'sample_{$field}'";
+                $valueString = '';
+                if (in_array($field, ['user_id', 'store_id', 'store_user_id'], true)) {
+                    // These are special cases that need PHP variables in the generated seeder
+                    $valueString = '$' . lcfirst(str_replace('_id', 'Id', $field));
+                } else {
+                    // Use the injected FakeDataGenerator for rich sample data
+                    $generatedValue = $this->fakeDataGenerator->generateValue($field, $config);
+
+                    if (is_string($generatedValue)) {
+                        // Check if the generated string is a JSON string (e.g., from db_type 'array')
+                        // We do not want to addslashes to a JSON string, as it will break its validity.
+                        $isJson = (isset($config['db_type']) && $config['db_type'] === 'array') ||
+                                  (json_decode($generatedValue) !== null && json_last_error() === JSON_ERROR_NONE);
+
+                        if ($isJson) {
+                            $valueString = "'" . $generatedValue . "'"; // ✅ DO NOT addslashes for JSON
+                        } else {
+                            $valueString = "'" . addslashes($generatedValue) . "'"; // ✅ Only addslashes for regular strings
+                        }
+                    } elseif (is_bool($generatedValue)) {
+                        $valueString = $generatedValue ? 'true' : 'false';
+                    } elseif ($generatedValue === null) {
+                        $valueString = 'null';
+                    } elseif (is_numeric($generatedValue)) {
+                        // Numbers don't need quotes
+                        $valueString = (string) $generatedValue;
+                    } else {
+                        // Fallback for any other complex types like PHP arrays
+                        // FakeDataGenerator might return array for 'array' type, var_export handles it
+                        $valueString = var_export($generatedValue, true);
+                        // If it's a multi-line output from var_export (e.g., a complex array), re-indent it
+                        if (is_array($generatedValue)) { // Check if the original value was an array
+                            $valueString = str_replace(
+                                "\n",
+                                "\n" . str_repeat(' ', 16), // Adjust indentation for array elements
+                                $valueString
+                            );
+                        }
+                    }
+                }
+                $sample[] = "                '{$field}' => {$valueString},";
             }
-            $sample[] = "                '{$field}' => {$value},";
+            $allSamples[] = "            [\n" . implode("\n", $sample) . "\n            ]";
         }
-        // Add created_at/updated_at if needed
-        if (isset($fields['created_at'])) {
-            $sample[] = "                'created_at' => date('Y-m-d H:i:s'),";
-        }
-        if (isset($fields['updated_at'])) {
-            $sample[] = "                'updated_at' => date('Y-m-d H:i:s'),";
-        }
-        $sampleBlock = "            [\n" . implode("\n", $sample) . "\n            ]";
-        return $sampleBlock;
+        return implode(",\n", $allSamples); // ✅ Implode all generated samples
     }
 
     /**
@@ -326,3 +342,4 @@ PHP;
         return implode(" .\n" . $indentString, $segments);
     }
 }
+

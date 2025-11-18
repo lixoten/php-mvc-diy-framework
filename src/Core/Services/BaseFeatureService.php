@@ -29,13 +29,13 @@ class BaseFeatureService
      * Transforms data for display purposes.
      *
      * @param array<string, mixed> $data The data to transform.
-     * @param string $pageName The name of the page/context for transformation rules.
+     * @param string $pageKey The name of the page/context for transformation rules.
      * @param string $entityName The name of the entity (e.g., 'user', 'post').
      * @return array<string, mixed> The transformed data.
      */
-    public function transformToDisplay(array $data, string $pageName, string $entityName): array
+    public function transformToDisplay(array $data, string $pageKey, string $entityName): array
     {
-        return $this->dataTransformerService->toDisplay($data, $pageName, $entityName);
+        return $this->dataTransformerService->toDisplay($data, $pageKey, $entityName);
     }
 
 
@@ -43,13 +43,13 @@ class BaseFeatureService
      * Transforms data for storage purposes.
      *
      * @param array<string, mixed> $data The data to transform.
-     * @param string $pageName The name of the page/context for transformation rules.
+     * @param string $pageKey The name of the page/context for transformation rules.
      * @param string $entityName The name of the entity (e.g., 'user', 'post').
      * @return array<string, mixed> The transformed data.
      */
-    public function transformToStorage(array $data, string $pageName, string $entityName): array
+    public function transformToStorage(array $data, string $pageKey, string $entityName): array
     {
-        return $this->dataTransformerService->toStorage($data, $pageName, $entityName);
+        return $this->dataTransformerService->toStorage($data, $pageKey, $entityName);
     }
 
     // You can add other generic utility methods here as needed,

@@ -27,13 +27,13 @@ class ListConfigurationService
     /**
      * Load and merge list configuration for a specific page/entity context
      *
-     * @param string $pageName Page identifier (e.g., 'testy_list')
+     * @param string $pageKey Page identifier (e.g., 'testy_list')
      * @param string $pageFeature Feature name (e.g., 'Testy')
      * @param string $pageEntity Entity name (e.g., 'testy')
      * @return array<string, mixed> Merged configuration array
      */
     public function loadConfiguration(
-        string $pageName,
+        string $pageKey,
         string $pageFeature,
         string $pageEntity,
     ): array {
@@ -44,7 +44,7 @@ class ListConfigurationService
         $entityConfig = $this->loadEntityConfiguration($pageFeature, $pageEntity);
 
         // 3. Load page-specific configuration
-        $pageConfig = $this->loadPageConfiguration($pageFeature, $pageName);
+        $pageConfig = $this->loadPageConfiguration($pageFeature, $pageKey);
 
         // 4. Merge configurations (page > entity > base)
         $mergedOptions = $this->deepMerge(
@@ -72,7 +72,7 @@ class ListConfigurationService
             ?? [];
 
         // $this->logger->debug('ListConfigurationService: Configuration loaded', [
-        //     'pageName' => $pageName,
+        //     'pageKey' => $pageKey,
         //     'pageFeature' => $pageFeature,
         //     'pageEntity' => $pageEntity,
         //     'mergedOptions' => $mergedOptions,
@@ -149,20 +149,20 @@ class ListConfigurationService
      * Example: src/App/Features/Testy/Config/testy_list_view.php
      *
      * @param string $pageFeature Feature name (e.g., 'Testy')
-     * @param string $pageName Page name (e.g., 'testy_list')
+     * @param string $pageKey Page name (e.g., 'testy_list')
      * @return array<string, mixed>
      */
-    protected function loadPageConfiguration(string $pageFeature, string $pageName): array
+    protected function loadPageConfiguration(string $pageFeature, string $pageKey): array
     {
         try {                               // root explode
-            $useEntity = explode('_', $pageName)[0];
+            $useEntity = explode('_', $pageKey)[0];
 
             $configKey = "{$useEntity}_view_list"; // findLoc config file testy_view_list
             $config = $this->configService->getFromFeature($pageFeature, $configKey) ?? [];
 
             // $this->logger->debug('ListConfigurationService: Page config loaded', [
             //     'feature' => $pageFeature,
-            //     'page' => $pageName,
+            //     'page' => $pageKey,
             //     'configKey' => $configKey,
             //     'config' => $config
             // ]);
@@ -171,7 +171,7 @@ class ListConfigurationService
         } catch (\Exception $e) {
             // $this->logger->debug('ListConfigurationService: No page-specific configuration found', [
             //     'feature' => $pageFeature,
-            //     'page' => $pageName,
+            //     'page' => $pageKey,
             //     'error' => $e->getMessage()
             // ]);
             return [];

@@ -47,7 +47,7 @@ class DebugRt
 
     public function __construct()
     {
-        //$this->$pageName = $pageName;
+        //$this->$pageKey = $pageKey;
     }
 
 

@@ -61,13 +61,13 @@ class DataTransformerService
      * for use in views, lists, forms, or any presentation layer.
      *
      * @param array<string, mixed> $data Raw data from storage layer
-     * @param string $pageName Page context (e.g., 'user_edit', 'user_list', 'user_detail')
+     * @param string $pageKey Page context (e.g., 'user_edit', 'user_list', 'user_detail')
      * @param string $entityName Entity name (e.g., 'user', 'post')
      * @return array<string, mixed> Display-ready data with transformed values
      */
-    public function toDisplay(array $data, string $pageName, string $entityName): array
+    public function toDisplay(array $data, string $pageKey, string $entityName): array
     {
-        return $this->transform($data, $pageName, $entityName, 'display');
+        return $this->transform($data, $pageKey, $entityName, 'display');
     }
 
 
@@ -81,13 +81,13 @@ class DataTransformerService
      * This method only normalizes PHP types.
      *
      * @param array<string, mixed> $data Raw input data (form, API, user input)
-     * @param string $pageName Page context (e.g., 'user_edit')
+     * @param string $pageKey Page context (e.g., 'user_edit')
      * @param string $entityName Entity name (e.g., 'user')
      * @return array<string, mixed> Storage-ready data with normalized values
      */
-    public function toStorage(array $data, string $pageName, string $entityName): array
+    public function toStorage(array $data, string $pageKey, string $entityName): array
     {
-        return $this->transform($data, $pageName, $entityName, 'storage');
+        return $this->transform($data, $pageKey, $entityName, 'storage');
     }
 
 
@@ -95,14 +95,14 @@ class DataTransformerService
      * Core transformation logic (DRY helper)
      *
      * @param array<string, mixed> $data Raw data
-     * @param string $pageName Page context
+     * @param string $pageKey Page context
      * @param string $entityName Entity name
      * @param string $direction Transformation direction ('display' or 'storage')
      * @return array<string, mixed> Transformed data
      */
     private function transform(
         array $data,
-        string $pageName,
+        string $pageKey,
         string $entityName,
         string $direction
     ): array {
@@ -111,7 +111,7 @@ class DataTransformerService
         foreach ($data as $fieldName => $value) {
             $fieldDef = $this->fieldRegistryService->getFieldWithFallbacks(
                 $fieldName,
-                $pageName,
+                $pageKey,
                 $entityName
             );
 

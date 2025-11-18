@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Registry;
 
-use Core\I18n\LabelProvider;
+use Core\I18n\I18nTranslator;
 use Core\Interfaces\ConfigInterface;
 
 /**
@@ -18,21 +18,21 @@ abstract class AbstractFieldRegistry implements FieldRegistryInterface
     //protected array $fields = [];
     public string $entityType = '';
 
-    //protected LabelProvider $labelProvider;
+    //protected I18nTranslator $translator;
     //protected ?FieldRegistryInterface $baseRegistry = null;
     protected ConfigInterface $configService;
 
     /**
      * Constructor
      */
-    // public function __construct(LabelProvider $labelProvider, ?FieldRegistryInterface $baseRegistry = null)
+    // public function __construct(I18nTranslator $translator, ?FieldRegistryInterface $baseRegistry = null)
     public function __construct(
         ConfigInterface $configService,
         //?FieldRegistryInterface $baseRegistry = null
     ) {
         $this->configService = $configService;
         //$this->baseRegistry = $baseRegistry;
-        // $this->labelProvider = $labelProvider;
+        // $this->translator = $translator;
     }
 
 

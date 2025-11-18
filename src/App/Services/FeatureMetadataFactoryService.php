@@ -47,7 +47,7 @@ class FeatureMetadataFactoryService
         $routeMap = $metadataConfig['route_map'] ?? [];
         $routeDefaults = $routeMap[$routeType] ?? $routeMap['core'] ?? [];
 
-        $pageName = $metadataConfig['pageName'] ?? null;
+        $pageKey = $metadataConfig['pageKey'] ?? null;
         $entityName = $metadataConfig['entityName'] ?? null;
         $ownerForeignKey = (string) ($metadataConfig['owner_foreign_key'] ?? $routeDefaults['owner_foreign_key']
                                                                                                                ?? 'id');
@@ -81,7 +81,7 @@ class FeatureMetadataFactoryService
 
 
         return new FeatureMetadataService(
-            $pageName,
+            $pageKey,
             $entityName,
             $ownerForeignKey,
             $baseUrlEnum,

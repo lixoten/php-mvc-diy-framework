@@ -90,8 +90,21 @@ class ConfigFieldsGenerator
         $fieldDefinitions = [];
 
         foreach ($fields as $fieldName => $config) {
-            if (!in_array($fieldName, ['title', 'generic_text', 'primary_email', 'telephone'])) {
-                    continue;
+            if (
+                !in_array(
+                    $fieldName,
+                    [
+                        // 'primary_email',
+                        // 'title',
+                        'generic_text',
+                        // 'slug',
+                        // 'status',
+                        // 'super_powers',
+                        // 'primary_email', 'telephone', 'status', 'super_powers'
+                    ]
+                )
+            ) {
+                continue;
             }
             if ($configType === 'root') {
                 if (
@@ -127,15 +140,15 @@ class ConfigFieldsGenerator
             //     continue;
             // }
 
-            $formType = $this->mapDbTypeToFormType($config, $fieldName);
-            if ($formType === 'telephone') {
+            $fieldType = $this->mapDbTypeToFormType($config, $fieldName);
+            if ($fieldType === 'telephone') {
                 $defaultValidatorName = 'tel';
                 $defaultFormatterName = 'tel';
             } else {
-                $defaultValidatorName = $formType;
-                $defaultFormatterName = $formType;
+                $defaultValidatorName = $fieldType;
+                $defaultFormatterName = $fieldType;
             }
-            $labelKey = "{$entityNameLower}.{$fieldName}";
+            // $labelKey = "{$entityNameLower}.{$fieldName}";
             $placeholderKey = "{$entityNameLower}.{$fieldName}.placeholder";
 
             // Build the 'list' section if defined in schema
@@ -153,13 +166,16 @@ class ConfigFieldsGenerator
             $formatter = isset($listConfig['formatter']) ? 'null' : 'null'; // Can be enhanced to support closures
 
 
-            $someListStuff      = $this->getCodeBlock(type: $formType, blockName: 'list');
-            $someFormStuff      = $this->getCodeBlock(type: $formType, blockName: 'form');
-            $someFormatterStuff = $this->getCodeBlock(type: $formType, blockName: 'formatter');
-            $someValidatorStuff = $this->getCodeBlock(type: $formType, blockName: 'validator');
+
+
+            $formAttr = $this->getFormAttr($fieldName, $config, $placeholderKey, $fieldType);
 
 
 
+            $someListStuff      = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'list');
+            $someFormStuff      = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'form', formAttr: $formAttr);
+            $someFormatterStuff = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'formatter');
+            $someValidatorStuff = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'validator');
 
 
 
@@ -182,10 +198,10 @@ PHP;
             if (($config['primary'] ?? false) === true) {
                 $formSection = '';
             }
+        // 'label' => '{$labelKey}',
 
             $fieldDefinitions[] = <<<PHP
     '{$fieldName}' => [ // gen
-        'label' => '{$labelKey}',
 {$listSection}{$formSection}
         'formatters' => [
             '{$defaultFormatterName}' => [
@@ -225,9 +241,107 @@ PHP;
         return $php;
     }
 
-                // $someValidatorStuff = $this->getCodeBlock(type: $formType, blockName: 'validator');
-    protected function getCodeBlock(string $type, string $blockName): string
-    {
+
+
+
+    protected function getFormAttr(
+        string $fieldName,
+        array $config,
+        string $placeholderKey,
+        string $fieldType,
+    ): ?string {
+         if (stripos($fieldName, 'slug') !== false) {
+            return null;
+        }
+
+        $formAttr = [];
+        $spaces = '                ';
+        if ($config['db_type'] === 'string') {
+            $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
+
+            if (isset($config['required']) && $config['required']) {
+                $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
+            } else {
+                $formAttr[] = "$spaces// 'required'    => false,";
+            }
+
+            if ((isset($config['minlength']))) {
+                $formAttr[] = "$spaces'minlength'   => {$config['minlength']},";
+            } else {
+                $formAttr[] = "$spaces// 'minlength'   => 1,";
+            }
+
+            if (isset($config['length'])) {
+                if ((isset($config['maxlength']) && $config['maxlength'] <= $config['length'])) {
+                    $formAttr[] = "$spaces'maxlength'   => {$config['maxlength']},";
+                } else {
+                    $formAttr[] = "$spaces'maxlength'   => {$config['length']},";
+                }
+            } else {
+                $formAttr[] = "$spaces// 'maxlength'    => 1,";
+            }
+
+            if ((isset($config['pattern']))) {
+                $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
+            } else {
+                $formAttr[] = "$spaces// 'pattern'     => '[a-z0-9]/',";
+            }
+
+            if ((isset($config['style']))) {
+                $formAttr[] = "$spaces'style'       => {$config['style']},";
+            } else {
+                $formAttr[] = "$spaces// 'style'       => 'background:yellow;',";
+            }
+
+            if (in_array('text', ['text'])) {
+                if (isset($config['data-char-counter']) && $config['data-char-counter']) {
+                    $formAttr[] = "$spaces'data-char-counter'    => {$this->formatBool($config['data-char-counter'])},";
+                } else {
+                    $formAttr[] = "$spaces// 'data-char-counter'    => false,";
+                }
+            }
+
+            if (isset($config['data-live-validation']) && $config['data-live-validation']) {
+                $formAttr[] =
+                "$spaces'data-live-validation' => {$this->formatBool($config['data-live-validation'])},";
+            } else {
+                $formAttr[] = "$spaces// 'data-live-validation' => false,";
+            }
+
+
+            if (in_array($fieldType, ['telephone'])) {
+                if ((isset($config['data-mask']))) {
+                    $formAttr[] = "$spaces'data-mask' => {$config['data-mask']},";
+                } else {
+                    $formAttr[] = "$spaces// 'data-mask' => 'data-mask',";
+                }
+            }
+
+
+            // if ((isset($config['sssss']))) {
+            //     $formAttr[] = "$spaces'sssss' => {$config['sssss']},";
+            // } else {
+            //     $formAttr[] = "$spaces// 'sssss'    => 'sssss',";
+            // }
+
+            // if (isset($config['ttttt']) && $config['ttttt']) {
+            //     $formAttr[] = "$spaces'ttttt'  => {$this->formatBool($config['ttttt'])},";
+            // } else {
+            //     $formAttr[] = "$spaces// 'ttttt'    => false,";
+            // }
+
+        }
+        $formAttr = implode("\n", $formAttr);
+
+        return $formAttr;
+    }
+
+    protected function getCodeBlock(
+        string $fieldName,
+        string $type,
+        string $blockName,
+        string $formAttr = null
+    ): string {
         $block = '';
         switch ($type) {
             // TEXT /////////////////////////////////////////////////////////
@@ -235,17 +349,15 @@ PHP;
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'sortable' => false,
+    'label'      => '{$blockName}.{$fieldName}',
+                'sortable'   => false,
     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'type'          => 'text',
-                'attributes'    => [
-                    'placeholder' => 'testy.generic_text.placeholder',
-                    // 'required'  => true,     // Used in validation
-                    // 'minlength' => 5,        // Used in validation
-                    // 'maxlength' => 15,       // Used in validation
-                    // 'pattern'   => '/\d/',   // Used in validation
+    'label'      => '{$blockName}.{$fieldName}',
+                'type'       => 'text',
+                'attributes' => [
+    $formAttr
                 ],
     PHP;
                 } elseif ($blockName === 'formatter') {
@@ -284,16 +396,15 @@ PHP;
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'sortable' => false,
+    'label'      => '{$blockName}.{$fieldName}',
+                'sortable'   => false,
     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'type'          => 'email',
+    'label'      => '{$blockName}.{$fieldName}',
+                'type'       => 'email',
                 'attributes'    => [
-                    'placeholder' => 'testy.primary_email.placeholder',
-                    'required'    => true,
-                    'minlength'   => 12,
-                    'maxlength'   => 255,
+    $formAttr
                     // 'pattern'     => '/^user[a-z0-9._%+-]*@/',
                 ],
     PHP;
@@ -326,21 +437,23 @@ PHP;
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'sortable' => false,
+    'label'      => '{$blockName}.{$fieldName}',
+                'sortable'   => false,
     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
     //  'region' => 'US',
-                'type'          => 'tel',
-                'attributes'    => [
-                    'placeholder' => 'testy.telephone.placeholder',
-                    // 'required'              => true,
-                    // 'list'                  => 'foo',
-                    // 'data-char-counter'     => true,     // js-feature
+                'label'      => '{$blockName}.{$fieldName}',
+                'type'       => 'tel',
+                'attributes' => [
+    $formAttr
+                    // 'xxrequired'              => true,
+                    // 'xxlist'                  => 'foo',
+                    // 'xxdata-char-counter'     => true,     // js-feature
                     // 'data-live-validation'  => true      // js-feature
-                    // 'data-mask'             => 'phone', // todo - mast does not validate.
-                    // 'data-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
-                    // 'style' => 'background: cyan;',
+                    // 'xxdata-mask'             => 'phone', // todo - mast does not validate.
+                    // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
+                    // 'xxstyle' => 'background: cyan;',
                 ],
     PHP;
                 } elseif ($blockName === 'formatter') {
@@ -366,11 +479,13 @@ PHP;
             default:
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'sortable' => false,
+    'label'      => '{$blockName}.{$fieldName}',
+                'sortable'   => false,
     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'type'          => 'email',
+    'label'      => '{$blockName}.{$fieldName}',
+                'type'       => 'email',
                 'attributes'    => [
                 ],
     PHP;

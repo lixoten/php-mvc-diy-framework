@@ -11,7 +11,9 @@ use Core\List\Renderer\ListRendererInterface;
  */
 class ListView implements ListInterface
 {
-    private string $name;
+    // private string $name;
+    private string $pageKey;
+    private string $pageName;
     private string $title;
     private array $data = [];
     private array $columns = [];
@@ -26,10 +28,12 @@ class ListView implements ListInterface
      * Constructor
      */
     public function __construct(
-        string $name,
+        string $pageKey,
+        string $pageName,
         array $columns = [],
     ) {
-        $this->name = $name;
+        $this->pageKey = $pageKey;
+        $this->pageName = $pageName;
         $this->columns = $columns;
     }
 
@@ -46,9 +50,12 @@ class ListView implements ListInterface
     /**
      * Add a column to the list
      */
-    public function addColumn(string $name, string $label, array $options = []): self
+    public function addColumn(string $name, array $options = []): self
     {
-        $this->columns[$name] = ['label' => $label] + $options;
+        // if (!isset($options['label'])) { // A label was not set in testy_fields____.php
+        //     $this->columns[$name] = ['label' => ucfirst(str_replace('_', ' ', $name))] + $options; // shitload3
+        // }
+        $this->columns[$name] = $options;
         return $this;
     }
 
@@ -89,11 +96,20 @@ class ListView implements ListInterface
 
 
     /**
-     * Get the list name
+     * Get the list pageName
      */
-    public function getName(): string
+    public function getPageName(): string
     {
-        return $this->name;
+        return $this->pageName;
+    }
+
+
+    /**
+     * Get the list pageKey
+     */
+    public function getPageKey(): string
+    {
+        return $this->pageKey;
     }
 
     /**
@@ -110,7 +126,7 @@ class ListView implements ListInterface
      */
     public function getTitle(): string
     {
-        return $this->title ?? $this->name;
+        return $this->title ?? $this->pageKey;
     }
 
     /**
@@ -217,7 +233,7 @@ class ListView implements ListInterface
     // public function render(array $options = []): string
     // {
     //     if ($this->renderer === null) {
-    //         throw new \RuntimeException('Renderer not set for list: ' . $this->name);
+    //         throw new \RuntimeException('Renderer not set for list: ' . $this->pageKey);
     //     }
     //     $mergedOptions = array_merge($this->renderOptions, $options);
     //     return $this->renderer->renderList($this, $mergedOptions);

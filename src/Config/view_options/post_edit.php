@@ -124,7 +124,7 @@ return [
         'owner_foreign_key' => 'user_id',
         'redirect_after_save' => 'edit', // or 'edit'
         'redirect_after_add' => 'list', // or 'edit'
-        'pageName' => 'post_edit', // or 'edit'
+        'pageKey' => 'post_edit', // or 'edit'
         'entityName' => 'post', // or 'edit'
     ],
     'form_hidden_fields' => [

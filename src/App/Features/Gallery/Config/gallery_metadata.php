@@ -21,7 +21,7 @@ return [
         'owner_foreign_key' => 'user_id',
         'redirect_after_save' => 'edit',
         'redirect_after_add' => 'list',
-        'pageName' => 'gallery_edit',
+        'pageKey' => 'gallery_edit',
         'entityName' => 'gallery',
     ],
 ];

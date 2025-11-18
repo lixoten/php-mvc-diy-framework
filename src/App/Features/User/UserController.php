@@ -135,12 +135,16 @@ class UserController extends AbstractCrudController
      */
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
+        $pageKey       = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->listType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
         );
@@ -313,12 +317,16 @@ class UserController extends AbstractCrudController
 
     public function editAction(ServerRequestInterface $request): ResponseInterface
     {
+        $pageKey        = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity
         );
@@ -350,8 +358,8 @@ class UserController extends AbstractCrudController
             }
 
             // Transform data for form display
-            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageName, $pageEntity);
-            //$recordArray = $this->userService->transformForDisplay($recordArray, $pageName);
+            $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
+            //$recordArray = $this->userService->transformForDisplay($recordArray, $pageKey);
         } else {
             $recordArray = null;
         }
@@ -378,8 +386,8 @@ class UserController extends AbstractCrudController
             $data = $form->getUpdatableData();
 
             // Transform form data before saving
-            // $data = $this->userService->transformForStorage($data, $pageName);
-            $data = $this->baseFeatureService->transformToStorage($data, $pageName, $pageEntity);
+            // $data = $this->userService->transformForStorage($data, $pageKey);
+            $data = $this->baseFeatureService->transformToStorage($data, $pageKey, $pageEntity);
 
 
 
@@ -472,12 +480,16 @@ class UserController extends AbstractCrudController
      */
     public function createAction(ServerRequestInterface $request): ResponseInterface
     {
+        $pageKey        = $this->scrap->getPageKey();
         $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
         $pageFeature    = $this->scrap->getPageFeature();
         $pageEntity     = $this->scrap->getPageEntity();
 
         $this->formType->setFocus(
+            $pageKey,
             $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity
         );
@@ -507,8 +519,8 @@ class UserController extends AbstractCrudController
             $data = $form->getUpdatableData();
 
             // Transform form data before saving
-            // $data = $this->userService->transformForStorage($data, $pageName);
-            $data = $this->baseFeatureService->transformForStorage($data, $pageName);
+            // $data = $this->userService->transformForStorage($data, $pageKey);
+            $data = $this->baseFeatureService->transformForStorage($data, $pageKey);
 
 
 

@@ -16,7 +16,7 @@ class FeatureMetadataService
     /**
      * @var string
      */
-    public readonly string $pageName;
+    public readonly string $pageKey;
 
     /**
      * @var string
@@ -94,7 +94,7 @@ class FeatureMetadataService
 
 
     /**
-     * @param string $pageName
+     * @param string $pageKey
      * @param string $entityName
      * @param string $ownerForeignKey
      * @param Url $baseUrlEnum
@@ -108,7 +108,7 @@ class FeatureMetadataService
      * @param string|null $redirectAfterAdd
      */
     public function __construct(
-        string $pageName,
+        string $pageKey,
         string $entityName,
         string $ownerForeignKey,
         Url $baseUrlEnum,
@@ -121,7 +121,7 @@ class FeatureMetadataService
         ?string $redirectAfterSave = null,
         ?string $redirectAfterAdd = null,
     ) {
-        $this->pageName   = $pageName;
+        $this->pageKey   = $pageKey;
         $this->entityName = $entityName;
         $this->ownerForeignKey = $ownerForeignKey;
         $this->baseUrlEnum = $baseUrlEnum;
