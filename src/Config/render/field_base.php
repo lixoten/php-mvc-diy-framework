@@ -5,23 +5,24 @@ use App\Helpers\DebugRt;
 // DebugRt::j('0', '', 'BOOM on Config File');
 return [
     'id' => [
-        'label' => 'base.id',
         'list' => [
+            'label' => 'common.id.list.label',
             'sortable' => true,
             'formatter' => null,
         ],
     ],
     'store_id' => [
-        'label' => 'testy.store_id',
         'list' => [
+            'label' => 'store_id',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'store_id',
             'type'          => 'number',
             'required'      => false, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'testy.store_id.placeholder',
+                'placeholder' => 'store_id.placeholder',
             ],
         ],
         'formatters' => [
@@ -32,16 +33,17 @@ return [
         ]
     ],
     'user_id' => [
-        'label' => 'testy.user_id',
         'list' => [
+            'label' => 'user_id',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'user_id',
             'type'          => 'number',
             'required'      => true, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'testy.user_id.placeholder',
+                'placeholder' => 'user_id.placeholder',
             ],
         ],
         'formatters' => [
@@ -52,17 +54,18 @@ return [
         ]
     ],
     'title' => [
-        'label' => 'testy.title',
         'list' => [
+            'label' => 'title',
             'sortable' => false,
         ],
         'form' => [
+            'label' => 'title',
             'type'          => 'text',
             'required'      => true, // Required if not nullable
         ],
         'formatters' => [
             'text' => [
-                'max_length' => 10,
+                'max_length' => 11,
                 'truncate_suffix' => '...',
                 'transform' => 'lowercase',
             ],
@@ -73,18 +76,19 @@ return [
         ]
     ],
     'titleXxx' => [
-        'label' => 'base.acrTitle',
         'list' => [
+            'label' => 'acrTitle',
             'sortable' => true,
             'formatter' => function ($value) {
                 return htmlspecialchars((string)$value ?? '');
             },
         ],
         'form' => [
+            'label' => 'acrTitle',
             'attributes' => [
                 'type' => 'text',
                 'id' => 'title',
-                'placeholder' => 'testy.title.placeholder', //.Enter a testy title'
+                'placeholder' => 'title.placeholder', //.Enter a tescccty title'
                 'minlength' => 5,
                 'maxlength' => 12,
                 'data-char-counter' => 'title-counter',
@@ -93,16 +97,17 @@ return [
         ]
     ],
     'name' => [
-        'label' => 'base.name',
         'list' => [
+            'label' => 'name',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'name',
             'type'          => 'textarea',
             'required'      => true, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'base.name.placeholder',
+                'placeholder' => 'name.placeholder',
             ],
         ],
         'formatters' => [
@@ -113,8 +118,8 @@ return [
         ]
     ],
     'namexxx' => [
-        'label' => 'base.acrName',
         'list' => [
+            'label' => 'acrName',
             'sortable' => true,
             'formatter' => function ($value) {
                 return htmlspecialchars((string)$value ?? '');
@@ -123,16 +128,17 @@ return [
     ],
 
     'description' => [
-        'label' => 'base.description',
         'list' => [
+            'label' => 'description',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'description',
             'type'          => 'textarea',
             'required'      => false, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'base.description.placeholder',
+                'placeholder' => 'description.placeholder',
             ],
         ],
         'formatters' => [
@@ -143,16 +149,17 @@ return [
         ]
     ],
     'content' => [
-        'label' => 'base.content',
         'list' => [
+            'label' => 'content',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'content',
             'type'          => 'textarea',
             'required'      => false, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'base.content.placeholder',
+                'placeholder' => 'content.placeholder',
             ],
         ],
         'formatters' => [
@@ -163,16 +170,17 @@ return [
         ]
     ],
     'status' => [
-        'label' => 'base.status',
         'list' => [
+            'label' => 'status',
             'sortable' => false,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'status',
             'type'          => 'text',
             'required'      => true, // Required if not nullable
             'attributes'    => [
-                'placeholder' => 'testy.status.placeholder',
+                'placeholder' => 'status.placeholder',
             ],
         ],
         'formatters' => [
@@ -183,7 +191,7 @@ return [
         ]
     ],
     // 'statusxxx' => [
-    //     'label' => 'base.acrStatus',
+    //     'label' => 'acrStatus',
     //     'list' => [
     //         'sortable' => true,
     //         'formatter' => function ($value) {
@@ -196,8 +204,8 @@ return [
     //     ],
     // ],
     'created_at' => [
-        'label' => 'base.created_at',
         'list' => [
+            'label' => 'created_at',
             'sortable' => true,
             'formatter' => function ($value) {
                 if ($value instanceof \DateTimeInterface) {
@@ -212,8 +220,8 @@ return [
         ],
     ],
     'updated_at' => [
-        'label' => 'base.acrUpdated At',
         'list' => [
+            'label' => 'acrUpdated At',
             'sortable' => true,
             'formatter' => function ($value) {
                 if ($value instanceof \DateTimeInterface) {
@@ -223,24 +231,10 @@ return [
             },
         ],
     ],
-    'testname1' => [
-        'type' => 'text',
-        'label' => 'base.Testname1',
-        'required' => true,
-        'minlength' => 3,
-        'maxlength' => 50,
-        'attributes' => [
-            'class' => 'form-control',
-            'id' => 'testname1',
-            'placeholder' => 'Testname1 boo',
-            'autofocus' => false
-        ],
-        'validators' => []
-    ],
     'username' => [
-        'label' => 'base.Username.username222',
         // 'label' => 'Username or Emailxxx',
         'form' => [
+            'label' => 'Username.username222',
             'type' => 'text',
             'attributes' => [
                 'placeholder' => 'Enter your username or emailxxx',
@@ -252,12 +246,13 @@ return [
         ]
     ],
     'usernamexxx' => [
-        'label' => 'base.Username.username',
         'list' => [
+            'label' => 'Username.username',
             'sortable' => true,
             'formatter' => null,
         ],
         'form' => [
+            'label' => 'Username.username',
             'type' => 'text',
             'required' => true,
             'minlength' => 3,
@@ -276,8 +271,8 @@ return [
         ]
     ],
     'password' => [
-        'label' => 'base.Password',
         'form' => [
+            'label' => 'Password',
             'type' => 'password',
             'required' => true,
             'minlength' => 4,
@@ -295,8 +290,8 @@ return [
         ]
     ],
     'captcha' => [
-        'label' => 'base.Security Verification',
         'form' => [
+            'label' => 'Security Verification',
             'type' => 'captcha',
             'required' => true,
             'help_text' => 'Please complete the security check',
@@ -316,20 +311,23 @@ return [
     ],
 
 
-
-    'generic_text' => [
-        'label' => 'testy.generic_text',
+    'generic_text' => [ // gen
         'list' => [
-            'sortable' => false,
+            'label'      => 'common.generic_text.list.label',
+            'sortable'   => false,
         ],
         'form' => [
-            'type'          => 'text',
-            'attributes'    => [
-                'placeholder' => 'testy.generic_text.placeholder',
-                // 'required'  => true,     // Used in validation
-                // 'minlength' => 5,        // Used in validation
-                // 'maxlength' => 15,       // Used in validation
-                // 'pattern'   => '/\d/',   // Used in validation
+            'label'      => 'common.generic_text.form.label',
+            'type'       => 'text',
+            'attributes' => [
+                'placeholder' => 'common.generic_text.form.placeholder',
+                'required'    => true,
+                'minlength'   => 5,
+                'maxlength'   => 50,
+                'pattern'     => '[a-z0-9]/',
+                // 'style'       => 'background:yellow;',
+                // 'data-char-counter'    => false,
+                // 'data-live-validation' => false,
             ],
         ],
         'formatters' => [
@@ -348,31 +346,35 @@ return [
             ],
         ],
         'validators' => [
-            'text' => [
+            'text' => [ // Default validator, can be refined based on db_type
                 'forbidden'         => ['fook', 'shit'], // allows to add on to existing
                 'allowed'           => ['fee', 'foo'],   // allows to add on to existing
                 // 'ignore_forbidden'  => true,  // Default is false
                 // 'ignore_allowed'    => false, // Default is true
                 //---
-                'required_message'  => "Custom: This field is required.",
-                // 'invalid_message'   => "Custom: Please enter a valid text.",
-                // 'minlength_message' => "Custom: Text must be at least ___ characters.",
-                // 'maxlength_message' => "Custom: Text must not exceed ___ characters.",
-                // 'pattern_message'   => "Custom: Text does not match the required pattern.",
-                // 'allowed_message'   => "Custom: Please select a valid word.",
-                // 'forbidden_message' => "Custom: This word is not allowed.",
+                'required_message'  => 'common.generic_text.validation.required',
+                'invalid_message'   => 'common.generic_text.validation.invalid',
+                'minlength_message' => 'common.generic_text.validation.minlength',
+                'maxlength_message' => 'common.generic_text.validation.maxlength',
+                'pattern_message'   => 'common.generic_text.validation.pattern',
+                'allowed_message'   => 'common.generic_text.validation.allowed',
+                'forbidden_message' => 'common.generic_text.validation.forbidden',
             ],
         ]
     ],
+
+
+
     'primary_email' => [
-        'label' => 'testy.primary_email',
         'list' => [
+            'label' => 'primary_email',
             'sortable' => false,
         ],
         'form' => [
+            'label' => 'primary_email',
             'type'          => 'email',
             'attributes'    => [
-                'placeholder' => 'testy.primary_email.placeholder',
+                'placeholder' => 'primary_email.placeholder',
                 'required'    => true,
                 'minlength'   => 12,
                 'maxlength'   => 255,
@@ -405,15 +407,16 @@ return [
         ]
     ],
     'telephone' => [
-        'label' => 'testy.telephone',
         'list' => [
+            'label' => 'telephone',
             'sortable' => false,
         ],
         'form' => [
+            'label' => 'telephone',
             //  'region' => 'US',
             'type'          => 'tel',
             'attributes'    => [
-                'placeholder' => 'testy.telephone.placeholder',
+                'placeholder' => 'telephone.placeholder',
                 // 'required'              => true,
                 // 'list'                  => 'foo',
                 // 'data-char-counter'     => true,     // js-feature
