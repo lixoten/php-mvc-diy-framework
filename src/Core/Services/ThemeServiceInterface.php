@@ -76,4 +76,13 @@ interface ThemeServiceInterface
      * @return string Full CSS class string for the badge (must not be null)
      */
     public function getBadgeClass(string $variant): string;
+
+
+    /**
+     * Resolves a semantic button variant into framework-specific CSS classes.
+     *
+     * @param string $variant The semantic variant (e.g., 'primary', 'secondary', 'danger').
+     * @return string The CSS classes for the specified button variant.
+     */
+    public function getButtonClass(string $variant): string;
 }

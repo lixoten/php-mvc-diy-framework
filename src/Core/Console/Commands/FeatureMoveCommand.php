@@ -110,6 +110,24 @@ class FeatureMoveCommand extends Command
                 'rename_on_move' => true, // Seeders are renamed to EntitySeeder.php
                 'process_all_matching' => false, // Only the latest seeder is moved
             ],
+            'langmainfile' => [
+                'pattern' => strtolower($entity) . "_lang" . ".php",
+                'dest' => $this->pathResolverService->getLangFilePath(),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
+            'langcommonfile' => [
+                'pattern' => "common_lang" . ".php",
+                'dest' => $this->pathResolverService->getLangFilePath(),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
+            'configfieldsbase' => [
+                'pattern' => 'base_fields.php',
+                'dest' => $this->pathResolverService->getConfigFieldRenderBaseFilePath(),
+                'rename_on_move' => false,
+                'process_all_matching' => false,
+            ],
             'configfieldsroot' => [
                 'pattern' => strtolower($entity) . "_fields_root" . ".php",
                 'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),

@@ -12,25 +12,41 @@ declare(strict_types=1);
 
 return [
     'render_options' => [ // gen
-        // 'attributes' => [
-        //     'data-ajax_save'         => true,    // js-feature
-        //     'data-auto_save'         => true,    // js-feature Enable auto-save/draft for the whole form
-        //     'data-use_local_storage' => true,
-        // ],
-        'ajax_save'         => true,     // js-feature
-        'auto_save'         => false,    // js-feature Enable auto-save/draft for the whole form
-        'use_local_storage' => false,    // js-feature Use localStorage for drafts
-        'data-ajax-save'    => true,
+        'from'                  => 'testy_view_edit-config',
+
+        // HTML attributes (id, data-*, aria-*)
+        'attributes' => [
+            // 'id' => 'testy-edit-form',
+            // 'data-analytics' => 'form-testy',
+        ],
+
+        // Behavior flags
+        'ajax_save'         => true,     // js-feature: renderer/JS should enable ajax save behavior
+        'auto_save'         => false,    // js-feature: enable auto-save/draft for the whole form
+        'use_local_storage' => false,    // js-feature: Use localStorage for drafts
 
         // 'force_captcha'        => false,
-        'layout_type'          => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
         // 'security_level'       => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
+        'layout_type'          => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
         // 'error_display'        => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-        'html5_validation'     => false,
-        // 'css_form_theme_class' => "form-theme-christmas",
-        // 'css_form_theme_file'  => "christmas",
-        // 'form_heading'         => "Create Post Parent",
-        'submit_text'          => "Save",
+        'html5_validation'      => false,
+
+        'css_form_theme_class'  => '', // "form-theme-christmas",
+        'css_form_theme_file'   => '', // "christmas",
+        'default_form_theme'    => '', // 'christmas' ?? 'default',
+
+        // 'form_heading_level'         => 'h3', // Default is 'h2'
+        'form_heading'               => "testy.form.heading",
+        'form_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
+
+        'submit_text'           => "testy.button.save",
+        'submit_button_variant' => 'primary',
+        'cancel_text'           => 'testy.button.cancel', // Added for translation
+        'cancel_button_variant' => 'secondary',
+
+
+
     ],
     'form_layout' => [
         [
@@ -41,7 +57,7 @@ return [
                 // 'status',
                 'generic_text',
                 // 'telephone',
-                // 'primary_email',
+                'primary_email',
                 // 'super_powers',
                 // ------
                 // 'store_id',

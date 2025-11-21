@@ -109,7 +109,8 @@ class BootstrapListRenderer extends AbstractListRenderer
             $toggleUrl = $listUrlEnum->url($toggleParams, $routeType);
 
             $output .= '<a href="' . htmlspecialchars($toggleUrl) . '" ';
-            $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="' . htmlspecialchars($viewTitles[$viewType]) . '">';
+            $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="' .
+                                                                        htmlspecialchars($viewTitles[$viewType]) . '">';
             $output .= $this->themeService->getIconHtml($viewIcons[$viewType]) . '</a>';
         }
 
@@ -144,14 +145,13 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '<thead><tr>';
         foreach ($list->getColumns() as $name => $column) {
             // $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
-            $temp = htmlspecialchars($this->translator->get($column['label'], $list->getPageKey()));
+            $temp = htmlspecialchars($this->translator->get($column['label']));
             $output .= '<th>' . $temp . '</th>';
         }
 
         // Add actions column if needed
         if ($options['show_actions'] && !empty($list->getActions())) {
-            $actionsLabel = $this->translator->get($list->getPageName() . '.actions', 'xxx');
-            //$temp = htmlspecialchars($this->translator->get($column['label'], $list->getPageKey()));
+            $actionsLabel = $this->translator->get($list->getPageName() . '.actions');
             $output .= "<th>$actionsLabel</th>";
         }
 
@@ -185,84 +185,6 @@ class BootstrapListRenderer extends AbstractListRenderer
     /**
      * Render grid view with cards in a grid layout
      */
-    protected function renderGridView2(ListInterface $list, array $options = []): string
-    {
-        $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
-
-        $viewLayout = $this->themeService->getViewLayoutClasses('grid');
-        $cardBodyClass = $this->themeService->getElementClass('card.body');
-
-        $output = '<div class="' . $cardBodyClass . '">';
-        $output .= '<div class="' . $viewLayout['container'] . '">';
-
-        // Get columns to display
-        $columns = $list->getColumns();
-
-        // Get primary image field, title field and description fields
-        $imageField = $options['grid_image_field'] ?? $this->findFirstFieldOfType($columns, 'image');
-        $titleField = $options['grid_title_field']
-            ?? $this->findFirstFieldOfType($columns, 'title')
-            ?? array_key_first($columns);
-        $descFields = $options['grid_description_fields'] ?? array_slice(array_keys($columns), 1, 2);
-
-        // Render each record as a card
-        foreach ($list->getData() as $record) {
-            $output .= '<div class="' . $viewLayout['item'] . '">';
-            $output .= '<div class="' . $viewLayout['card'] . '">';
-
-            // Render image if we have an image field defined
-            if ($imageField && !empty($record[$imageField])) {
-                $imageValue = $record[$imageField];
-                $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
-                if ($imageUrl) {
-                    $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
-                        $viewLayout['image'] . '" alt="' .
-                        htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
-                }
-            }
-
-            // Card body with title and description
-            $output .= '<div class="' . $viewLayout['body'] . '">';
-
-            // Title
-            if (isset($record[$titleField])) {
-                $output .= '<h5 class="' . $viewLayout['title'] . '">' .
-                    htmlspecialchars((string)$record[$titleField]) . '</h5>';
-            }
-
-            // Description fields
-            foreach ($descFields as $field) {
-                if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
-                    $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
-                    $output .= '<p class="' . $viewLayout['text'] . '">';
-                    $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
-                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
-                    $output .= '</p>';
-                }
-            }
-
-            $output .= '</div>'; // End card body
-
-            // Card footer with actions
-            if ($options['show_actions'] && !empty($list->getActions())) {
-                $output .= '<div class="' . $viewLayout['footer'] . '">';
-                $output .= $this->renderActions($list, $record, $options);
-                $output .= '</div>';
-            }
-
-            $output .= '</div>'; // End card
-            $output .= '</div>'; // End col
-        }
-
-        $output .= '</div>'; // End grid
-        $output .= '</div>'; // End card body
-
-        return $output;
-    }
-
-    /**
-     * Render grid view with cards in a grid layout
-     */
     protected function renderGridView(ListInterface $list, array $options = []): string
     {
         $options = array_merge($this->defaultOptions, $list->getRenderOptions(), $options);
@@ -281,37 +203,37 @@ class BootstrapListRenderer extends AbstractListRenderer
         $titleField = $options['grid_title_field']
             ?? $this->findFirstFieldOfType($columns, 'title')
             ?? array_key_first($columns);
-        // $descFields = $options['grid_description_fields'] ?? array_slice(array_keys($columns), 1, 2);
         $descFields = $options['grid_description_fields'] ?? array_keys($columns);
-        // $descFields = $options['grid_description_fields'] ?? $columns;
 
         // Render each record as a card
         foreach ($list->getData() as $record) {
             $output .= '<div class="' . $viewLayout['item'] . '">';
             $output .= '<div class="' . $viewLayout['card'] . '">';
 
-            // // Render image if we have an image field defined
-            // if ($imageField && !empty($record[$imageField])) {
-            //     $imageValue = $record[$imageField];
-            //     $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
-            //     if ($imageUrl) {
-            //         $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
-            //             $viewLayout['image'] . '" alt="' .
-            //             htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
-            //     }
-            // }
+            // Render image if we have an image field defined
+            if ($imageField && !empty($record[$imageField])) {
+                //$imageValue = $record[$imageField];
+                // $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+                $imageUrl = $this->renderValue($imageField, $record[$imageField], $record, $columns);
+                if ($imageUrl) {
+                    $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
+                        $viewLayout['image'] . '" alt="' .
+                        htmlspecialchars((string)($record[$titleField] ?? 'Item image')) . '">';
+                }
+            }
 
             // Title
             if (isset($record[$titleField])) {
                 $output .= '<h5 class="' . $viewLayout['title'] . '">' .
-                    htmlspecialchars((string)$record[$titleField]) . '</h5>';
+                    $this->renderValue($titleField, $record[$titleField], $record, $columns) . '</h5>';
+                    // htmlspecialchars((string)$record[$titleField]) . '</h5>';
                 unset($record['title']);
             }
 
             // Description fields
             foreach ($descFields as $field) {
                 // if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
-                if (isset($record[$field])) {
+                if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
                     $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
                     $output .= '<p class="' . $viewLayout['text'] . '">';
                     $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
@@ -369,8 +291,9 @@ class BootstrapListRenderer extends AbstractListRenderer
 
             // Optional image
             if ($imageField && !empty($record[$imageField])) {
-                $imageValue = $record[$imageField];
-                $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+                //$imageValue = $record[$imageField];
+                // $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
+                $imageUrl = $this->renderValue($imageField, $record[$imageField], $record, $columns);
                 if ($imageUrl) {
                     $output .= '<img src="' . htmlspecialchars($imageUrl) . '"
                         class="rounded me-3" style="max-width: 64px; max-height: 64px;"
@@ -416,58 +339,6 @@ class BootstrapListRenderer extends AbstractListRenderer
         return $output;
     }
 
-    /**
-     * Render column value with appropriate formatting
-     *
-     * @param string $column The column name
-     * @param mixed $value The value to render
-     * @param array<string, mixed> $record The complete record data
-     * @param array<string, mixed> $columns Column definitions
-     * @return string The formatted value as HTML
-     */
-    public function renderValue(string $column, $value, array $record, array $columns = []): string
-    {
-        // Get column configuration (which includes 'formatters' key)
-        $columnConfig = $columns[$column] ?? [];
-
-        // Priority 1: Apply class-based formatters via FormatterService
-        // These are defined under the 'formatters' key in your field config.
-        if (isset($columnConfig['formatters']) && is_array($columnConfig['formatters'])) {
-            foreach ($columnConfig['formatters'] as $formatterName => $formatterOptions) {
-                try {
-                    // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined
-                    if (isset($formatterOptions['options_provider']) && is_callable($formatterOptions['options_provider'])) {
-                        // Call the static method (e.g., [TestyStatus::class, 'getFormatterOptions'])
-                        // passing the current field value and the full record.
-                        $resolvedOptions = call_user_func($formatterOptions['options_provider'], $value, $record);
-                        $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
-                    }
-
-                    // Apply each formatter in sequence with the resolved options
-                    $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
-                } catch (\Core\Exceptions\FormatterNotFoundException $e) {
-                    $this->logger->warning(sprintf(
-                        'Formatter "%s" not found for column "%s". Error: %s',
-                        $formatterName,
-                        $column,
-                        $e->getMessage()
-                    ));
-                    // Continue with the unformatted value or apply default HTML escaping
-                } catch (\Throwable $e) {
-                    $this->logger->error(sprintf(
-                        'Error applying formatter "%s" to column "%s": %s',
-                        $formatterName,
-                        $column,
-                        $e->getMessage()
-                    ));
-                    // Continue with the unformatted value or apply default HTML escaping
-                }
-            }
-        }
-
-        // For all other columns, use the parent implementation
-        return parent::renderValue($column, $value, $record, $columns);
-    }
 
     /**
      * Render actions for a record
@@ -510,9 +381,11 @@ class BootstrapListRenderer extends AbstractListRenderer
             $iconHtml = $this->themeService->getIconHtml($name);
 
 
-            $title = $actionOptions['title'] ?? ucfirst($name);
+            $title = $actionOptions['label'] ?? ucfirst($name);
+            $title = htmlspecialchars($this->translator->get($title, pageName: $list->getPageName()));
 
-            if ($name === 'deletexxx') {
+
+            if ($name === 'deleteXxx') {
                 // Delete button code with modal trigger
                 $output .= '<button type="button" ';
                 $output .= 'class="' . htmlspecialchars($class) . ' delete-item-btn" '; // CRITICAL: Add defensive check
@@ -526,7 +399,7 @@ class BootstrapListRenderer extends AbstractListRenderer
                                 $val = str_replace('{' . $key . '}', (string)$value, $val);
                             }
                         }
-                        $output .= ' data-' . htmlspecialchars($attr ?? '') . '="' . htmlspecialchars($val ?? '') . '"'; // CRITICAL: Add defensive check
+                        $output .= ' data-' . htmlspecialchars($attr ?? '') . '="' . htmlspecialchars($val ?? '') . '"';
                     }
                 }
 
@@ -556,17 +429,6 @@ class BootstrapListRenderer extends AbstractListRenderer
         return $output;
     }
 
-    /**
-     * Get action button CSS class
-     *
-     * @param string $actionName The action name
-     * @return string The CSS class for the button
-     */
-    protected function getActionButtonClass(string $actionName): string
-    {
-        return $this->themeService->getElementClass('button.' . $actionName);
-    }
-
 
     /**
      * Render pagination
@@ -575,9 +437,7 @@ class BootstrapListRenderer extends AbstractListRenderer
     {
         $paginationData = $list->getPagination();
 
-        // $paginationData['showPagination'] = true; //hack - LEAVE THKIS COMMNET ALONE
-
-        if (empty($paginationData) || !($paginationData['showPagination'] ?? false)) { // CRITICAL: Add defensive check
+        if (empty($paginationData) || !($paginationData['showPagination'] ?? false)) {
             return '';
         }
 
@@ -623,7 +483,7 @@ class BootstrapListRenderer extends AbstractListRenderer
 
         // Render last page if not in window
         if (isset($paginationData['showLastPage']) && $paginationData['showLastPage']) {
-            if (($paginationData['windowEnd'] ?? 0) < ($paginationData['total'] ?? 0) - 1) { // Add ellipsis if there's a gap
+            if (($paginationData['windowEnd'] ?? 0) < ($paginationData['total'] ?? 0) - 1) { // Add ellipsis if gap
                 $output .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
             }
             $lastPageLink = $paginationData['lastPageLink'] ?? null;
@@ -651,52 +511,6 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '</ul></nav>';
 
         return $output;
-    }
-
-
-    /**
-     * Helper method to get image URL from record
-     */
-    protected function getImageUrl(string $field, $value, array $record, array $columns): string
-    {
-        if (empty($value)) {
-            return '';
-        }
-
-        // Check if we have formatter options for this field
-        $columnData = $columns[$field] ?? [];
-        $options = $columnData['options'] ?? [];
-        $formatters = $options['formatters'] ?? [];
-
-        // If we have image formatter configuration, use its base URL
-        if (isset($formatters['image']) && isset($formatters['image']['base_url'])) {
-            return $formatters['image']['base_url'] . $value;
-        }
-
-        // Default behavior - assume value is already a URL
-        return (string)$value;
-    }
-
-    /**
-     * Helper to find the first field of a specific type
-     */
-    protected function findFirstFieldOfType(array $columns, string $type): ?string
-    {
-        foreach ($columns as $name => $column) {
-            $options = $column['options'] ?? [];
-            $fieldType = $options['type'] ?? '';
-
-            if ($fieldType === $type) {
-                return $name;
-            }
-
-            // Check field name for common patterns
-            if (strpos($name, $type) !== false || strpos($name, 'image') !== false) {
-                return $name;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -737,8 +551,8 @@ class BootstrapListRenderer extends AbstractListRenderer
                             {$csrfField}
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-danger">Delete</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">CancelFook</button>
+                            <button type="submit" class="btn btn-danger">DeleteFook3</button>
                         </div>
                    </form>
                 </div>
@@ -764,4 +578,6 @@ class BootstrapListRenderer extends AbstractListRenderer
         </script>
         HTML;
     }
+
+    // 642 585
 }

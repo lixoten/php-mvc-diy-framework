@@ -40,34 +40,27 @@ class ListConfigurationService
         // 1. Load base/default configuration
         $baseConfig = $this->loadBaseConfiguration();
 
-        // 2. Load entity-level configuration
-        $entityConfig = $this->loadEntityConfiguration($pageFeature, $pageEntity);
-
-        // 3. Load page-specific configuration
+        // 2. Load page-specific configuration
         $pageConfig = $this->loadPageConfiguration($pageFeature, $pageKey);
 
-        // 4. Merge configurations (page > entity > base)
+        // 3. Merge configurations (page > base)
         $mergedOptions = $this->deepMerge(
             $baseConfig['options'] ?? [],
-            $entityConfig['options'] ?? [],
             $pageConfig['options'] ?? []
         );
 
         $mergedPagination = $this->deepMerge(
             $baseConfig['pagination'] ?? [],
-            $entityConfig['pagination'] ?? [],
             $pageConfig['pagination'] ?? []
         );
 
         $mergedRenderOptions = $this->deepMerge(
             $baseConfig['render_options'] ?? [],
-            $entityConfig['render_options'] ?? [],
             $pageConfig['render_options'] ?? []
         );
 
         // List fields: page-specific takes precedence, then entity, then base
         $listFields = $pageConfig['list_fields']
-            ?? $entityConfig['list_fields']
             ?? $baseConfig['list_fields']
             ?? [];
 
@@ -97,7 +90,7 @@ class ListConfigurationService
     protected function loadBaseConfiguration(): array
     {
         try {
-            $config = $this->configService->get('list.default') ?? [];
+            $config = $this->configService->get('view.list') ?? [];
             // $this->logger->debug('ListConfigurationService: Base config loaded', [
             //     'config' => $config
             // ]);
@@ -106,39 +99,6 @@ class ListConfigurationService
             $this->logger->warning('ListConfigurationService: Failed to load base configuration', [
                 'error' => $e->getMessage()
             ]);
-            return [];
-        }
-    }
-
-    /**
-     * Load entity-level list configuration
-     *
-     * Example: src/App/Features/Testy/Config/testy_view.php
-     *
-     * @param string $pageFeature Feature name (e.g., 'Testy')
-     * @param string $pageEntity Entity name (e.g., 'testy')
-     * @return array<string, mixed>
-     */
-    protected function loadEntityConfiguration(string $pageFeature, string $pageEntity): array
-    {
-        try {
-            $configKey = $pageEntity . '_view';
-            $config = $this->configService->getFromFeature($pageFeature, $configKey) ?? [];
-
-            // $this->logger->debug('ListConfigurationService: Entity config loaded', [
-            //     'feature' => $pageFeature,
-            //     'pageEntity' => $pageEntity,
-            //     'configKey' => $configKey,
-            //     'config' => $config
-            // ]);
-
-            return $config;
-        } catch (\Exception $e) {
-            // $this->logger->debug('ListConfigurationService: No entity-level configuration found', [
-            //     'feature' => $pageFeature,
-            //     'pageEntity' => $pageEntity,
-            //     'error' => $e->getMessage()
-            // ]);
             return [];
         }
     }

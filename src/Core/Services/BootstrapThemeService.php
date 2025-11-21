@@ -15,7 +15,7 @@ class BootstrapThemeService implements ThemeServiceInterface
      * @var array<string, string>
      */
     protected array $elementClasses = [
-        'navbar' => 'navbar navbar-expand-lg navbar-light', // singular, matches your markup
+        'navbar' => 'navbar navbar-expand-lg navbar-light',
         'navbar.brand' => 'navbar-brand',
         'navbar.nav' => 'navbar-nav',
         'navbar.item' => 'nav-item',
@@ -43,6 +43,9 @@ class BootstrapThemeService implements ThemeServiceInterface
         'button.delete' => 'btn btn-danger',
         'button.group' => 'btn-group btn-group-sm',
         'view.toggle' => 'btn-group btn-group-sm mb-3',
+
+        'form.heading.wrapper' => 'form-heading-wrapper bg-light px-3 py-2 border-bottom',
+        'form.heading' => 'form-heading', // Assuming 'form-heading' is a general base class
     ];
 
     /**
@@ -216,4 +219,25 @@ class BootstrapThemeService implements ThemeServiceInterface
         return $base . ' ' . $variantClass;
     }
 
+    /**
+     * Resolves a semantic button variant into framework-specific CSS classes.
+     *
+     * @param string $variant The semantic variant (e.g., 'primary', 'secondary', 'danger').
+     * @return string The CSS classes for the specified button variant.
+     */
+    public function getButtonClass(string $variant): string
+    {
+        return match ($variant) {
+            'primary'   => 'btn btn-primary',
+            'secondary' => 'btn btn-secondary',
+            'success'   => 'btn btn-success',
+            'danger'    => 'btn btn-danger',
+            'warning'   => 'btn btn-warning',
+            'info'      => 'btn btn-info',
+            'light'     => 'btn btn-light',
+            'dark'      => 'btn btn-dark',
+            'link'      => 'btn btn-link',
+            default     => 'btn btn-secondary', // Fallback to a neutral button
+        };
+    }
 }

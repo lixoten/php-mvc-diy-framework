@@ -20,6 +20,7 @@ use Core\Enum\SortDirection;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\FormTypeInterface;
+use Core\Form\Renderer\FormRendererInterface;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
 use Core\Repository\BaseRepositoryInterface;
@@ -54,6 +55,7 @@ abstract class AbstractCrudController extends Controller
         protected BaseRepositoryInterface $repository,
         protected TypeResolverService $typeResolver,
         protected ListRendererInterface $listRenderer,
+        protected FormRendererInterface $formRenderer,
         protected BaseFeatureService $baseFeatureService
         //-----------------------------------------
     ) {
@@ -289,9 +291,10 @@ abstract class AbstractCrudController extends Controller
         //     'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
         // ]);
         $this->formType->mergeRenderOptions([
-            'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType),
-            'cancel_url' => $this->feature->listUrlEnum->url([], $routeType),
-            'route_type' => $routeType,
+            'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType), // Form action URL enum
+            'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Cancel/back button URL enum
+            'route_type' => $routeType, // Current route context
+            // 'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
         ]);
 
 
@@ -389,11 +392,15 @@ abstract class AbstractCrudController extends Controller
             // }
         }
 
+
+        $renderedForm = $this->formRenderer->renderForm($form, []);
+
         // This block handles the initial page load (GET) or a failed submission
         $viewData = [
-            'title' => 'Edit Record',
+            'title' => 'Edit Recordeeeeeeeeetitlr',
             'form' => $form,
             'formTheme' => $form->getCssFormThemeFile(),
+            'renderedForm' => $renderedForm,
             //'geo_region' => $regionCode,
         ];
 

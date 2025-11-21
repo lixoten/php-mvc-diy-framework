@@ -34,6 +34,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\FormTypeInterface;
+use Core\Form\Renderer\FormRendererInterface;
 use Core\Formatters\TextFormatter;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
@@ -68,6 +69,7 @@ class TestyController extends AbstractCrudController
         TestyRepositoryInterface $repository,
         TypeResolverService $typeResolver,
         ListRendererInterface $listRenderer,
+        FormRendererInterface $formRenderer,
         //-----------------------------------------
         protected ConfigInterface $config,
         protected LoggerInterface $logger,
@@ -93,6 +95,7 @@ class TestyController extends AbstractCrudController
             $repository,
             $typeResolver,
             $listRenderer,
+            $formRenderer,
             $baseFeatureService
         );
         // constructor uses promotion php8+

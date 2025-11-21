@@ -22,6 +22,9 @@ class VanillaThemeService implements ThemeServiceInterface
         'card.body' => 'vanilla-card-body',
         'card.footer' => 'vanilla-card-footer',
         'pagination' => 'vanilla-pagination',
+
+        'form.heading.wrapper' => 'vanilla-form-heading-wrapper vanilla-bg-light vanilla-px-3 vanilla-py-2 vanilla-border-bottom',
+        'form.heading' => 'vanilla-form-heading', // Example Vanilla heading class
     ];
 
     /**
@@ -162,6 +165,36 @@ class VanillaThemeService implements ThemeServiceInterface
             'light'     => 'vanilla-badge-light',
             'dark'      => 'vanilla-badge-dark',
             default     => 'vanilla-badge-secondary', // Default fallback
+        };
+
+        return $baseClass . ' ' . $variantClass;
+    }
+
+
+    /**
+     * Resolves a semantic button variant into framework-specific CSS classes for Vanilla CSS.
+     *
+     * @param string $variant The semantic variant (e.g., 'primary', 'secondary', 'danger').
+     * @return string The CSS classes for the specified button variant.
+     */
+    public function getButtonClass(string $variant): string
+    {
+        // ❌ BUG: This implementation is using Material Design classes (mdc-button, mdc-theme--primary, etc.)
+        // instead of Vanilla CSS classes.
+        // ✅ FIX: Replace with classes defined for your Vanilla CSS.
+
+        $baseClass = 'vanilla-button'; // Base class for all vanilla buttons
+        $variantClass = match ($variant) {
+            'primary'   => 'vanilla-button-primary',
+            'secondary' => 'vanilla-button-secondary',
+            'success'   => 'vanilla-button-success',
+            'danger'    => 'vanilla-button-danger',
+            'warning'   => 'vanilla-button-warning',
+            'info'      => 'vanilla-button-info',
+            'light'     => 'vanilla-button-light',
+            'dark'      => 'vanilla-button-dark',
+            'link'      => 'vanilla-button-link',
+            default     => 'vanilla-button-default', // Fallback to a neutral button
         };
 
         return $baseClass . ' ' . $variantClass;

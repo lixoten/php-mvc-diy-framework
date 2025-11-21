@@ -20,6 +20,8 @@ class MaterialFormRenderer extends AbstractFormRenderer
      */
     public function renderForm(FormInterface $form, array $options = []): string
     {
+        $pageName = $form->getPageName();
+
         $options = $this->mergeOptions($form, $options);
 
         $output = $this->renderStart($form, $options);
@@ -61,7 +63,7 @@ class MaterialFormRenderer extends AbstractFormRenderer
         // Render hidden fields first
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getName(), $field, $options);
+                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
                 //$field->setType('display');
             }
         }
@@ -69,10 +71,10 @@ class MaterialFormRenderer extends AbstractFormRenderer
         // Render visible fields with constraint hints
         foreach ($form->getFields() as $field) {
             if ($field->getType() !== 'hidden') {
-                $output .= $this->renderField($form->getName(), $field, $options);
+                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
 
                 if ($options['show_constraint_hints'] ?? true) {
-                    $output .= $this->generateConstraintHints($field, $form->getName());
+                    $output .= $this->generateConstraintHints($field, $pageName, $form->getName());
                 }
             }
         }
@@ -140,7 +142,8 @@ class MaterialFormRenderer extends AbstractFormRenderer
 
         foreach ($hints as $hint) {
             $html .= sprintf(
-                '<li class="constraint-item mdc-list-item %s"><span class="constraint-icon mdc-list-item__graphic">%s</span><span class="constraint-text mdc-list-item__text">%s</span></li>',
+                '<li class="constraint-item mdc-list-item %s"><span class="constraint-icon mdc-list-item__graphic">" .
+                            "%s</span><span class="constraint-text mdc-list-item__text">%s</span></li>',
                 htmlspecialchars($hint['class']),
                 $hint['icon'],
                 htmlspecialchars($hint['text'])
@@ -159,7 +162,8 @@ class MaterialFormRenderer extends AbstractFormRenderer
      */
     protected function renderDraftNotificationHtml(): string
     {
-        $html  = '<div id="draft-notification" style="display:none;" class="mdc-card mdc-card--outlined mb-3" style="background-color: #fff3cd;">';
+        $html  = '<div id="draft-notification" style="display:none;" ' .
+                                       'class="mdc-card mdc-card--outlined mb-3" style="background-color: #fff3cd;">';
         $html .= '<div class="mdc-card__content"></div></div>';
         $html .= '<button type="button" id="discard-draft-btn" style="display:none;" ';
         $html .= 'class="mdc-button mdc-button--outlined">Restore Data from server</button>';
@@ -175,12 +179,12 @@ class MaterialFormRenderer extends AbstractFormRenderer
      * @param array<string, mixed> $options
      * @return string
      */
-    public function renderField(string $formName, FieldInterface $field, array $options = []): string
+    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
     {
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
-        $label = htmlspecialchars($this->translator->get($field->getLabel(), $formName));
+        $label = htmlspecialchars($this->translator->get($field->getLabel()));
         $value = htmlspecialchars((string)$field->getValue() ?? '');
         $errors = $field->getErrors();
         $attributes = $field->getAttributes();
@@ -191,7 +195,8 @@ class MaterialFormRenderer extends AbstractFormRenderer
         if (!empty($errors) && empty($options['hide_inline_errors'])) {
             $errorClass = ' mdc-text-field--invalid';
             $errorId = $id . '-error';
-            $errorHTML = '<div id="' . $errorId . '" class="mdc-text-field-helper-text mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg" role="alert">';
+            $errorHTML = '<div id="' . $errorId . '" class="mdc-text-field-helper-text ' .
+                     'mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg" role="alert">';
             foreach ($errors as $error) {
                 $errorHTML .= htmlspecialchars($error) . '<br>';
             }
@@ -348,4 +353,3 @@ class MaterialFormRenderer extends AbstractFormRenderer
         return '</form>';
     }
 }
-

@@ -52,15 +52,16 @@ return [
 
     'list' => [
         'options' => [
-            'default_sort_key' => 'created_at def',
-            'default_sort_direction' => 'DESC def'
+            'default_sort_key' => 'created_at',
+            'default_sort_direction' => 'DESC'
         ],
         'pagination' => [
-            'per_page' => 10
+            'per_page'    => 10,
+            'window_size' => 3,
         ],
         'render_options' => [
-            'css_framework' => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
-            'title'                 =>  'list.posts.title default',
+            'css_framework'         => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
+            'title'                 =>  'list.posts.title default',//shithead2
             'show_actions'          => true,
             'show_action_add'       => false,
             'show_action_edit'      => false,
@@ -75,22 +76,40 @@ return [
     // Form display settings
     'form' => [
         'render_options' => [
-            'force_captcha' => false,
-            'security_level' => 'low',      // HIGH / MEDIUM / LOW
-            'css_form_theme_class' => "form-theme-christmas",
-            'css_form_theme_file' => "christmas",
-            'form_heading' => "Create Record",
-            'submit_text' => "Add Record", // 'Submit'
-            'css_framework' => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
-            'layout_type' => $_ENV['FORM_LAYOUT_TYPE'] ?? 'sequential',
-            'error_display' => $_ENV['FORM_ERROR_DISPLAY'] ?? 'summary',
-            // 'submit_text' => 'SSSSubmit',
-            // 'form_heading' => 'Edit Content 123',
-            'submit_class' => 'btn btn-primary',
-            'html5_validation' => false,
-            'show_error_container' => false,
-            'default_form_theme' => 'christmas' ?? 'default',
-            'themes' => [
+            'from'                  => 'base_config',
+
+            'ajax_save'         => true,     // js-feature
+            'auto_save'         => false,    // js-feature Enable auto-save/draft for the whole form
+            'use_local_storage' => false,    // js-feature Use localStorage for drafts
+
+            'force_captcha'         => false,
+            'security_level'        => 'low',      // HIGH / MEDIUM / LOW
+            'layout_type'           => $_ENV['FORM_LAYOUT_TYPE'] ?? 'sequential',
+            'error_display'         => $_ENV['FORM_ERROR_DISPLAY'] ?? 'summary',
+            'html5_validation'      => false,
+
+            'css_form_theme_class'  => "form-theme-christmas",
+            'css_form_theme_file'   => "christmas",
+            'default_form_theme'    => 'christmas' ?? 'default',
+
+            'form_heading_level'    => "h2",
+            'form_heading'          => "common.form.heading",
+            'form_heading_class'         => null, // Do-not change. It uses ThemeService default, See note-#53
+            'form_heading_wrapper_class' => null, // Do-not change. It uses ThemeService default, See note-#53
+
+            'submit_text'           => "common.button.save",
+            'submit_button_variant' => 'primary',
+            'cancel_text'           => 'common.button.cancel', // Added for translation
+            'cancel_button_variant' => 'secondary',
+
+
+
+            //---???????-----------------------------------
+            'css_framework'         => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
+            'show_error_container'  => false,
+
+
+            'themes'                => [
                 'default' => [
                     'css' => ''
                 ],
@@ -111,10 +130,6 @@ return [
                     'class' => 'form-theme-rounded'
                 ]
             ],
-            // 'submit_text' => 'Submit',
-            // 'submit_class' => 'btn btn-primary',
-            // 'html5_validation' => false,
-            // 'show_error_container' => false
         ],
         'form_fields' => [
             //'title', 'boo abstract'

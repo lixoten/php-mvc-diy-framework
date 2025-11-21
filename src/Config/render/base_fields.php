@@ -1,8 +1,8 @@
 <?php
 
 /**
- * Generated File - Date: 20251119_151200
- * Field definitions for the testy_root entity.
+ * Generated File - Date: 20251119_150154
+ * Field definitions for the basefield_base entity.
  *
  * This file defines how each field should be rendered in forms and lists,
  * including labels, input types, attributes, formatters, and validators.
@@ -13,20 +13,20 @@ declare(strict_types=1);
 return [
     'id' => [
         'list' => [
-            'label'      => 'testy.id.list.label',
+            'label'      => 'basefield.id.list.label',
             'sortable'   => false,
         ],
     ],
     'generic_text' => [
         'list' => [
-            'label'      => 'testy.generic_text.list.label',
+            'label'      => 'basefield.generic_text.list.label',
             'sortable'   => false,
         ],
         'form' => [
-            'label'      => 'testy.generic_text.form.label',
+            'label'      => 'basefield.generic_text.form.label',
             'type'       => 'text',
             'attributes' => [
-                'placeholder' => 'testy.generic_text.form.placeholder',
+                'placeholder' => 'basefield.generic_text.form.placeholder',
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 50,
@@ -58,26 +58,26 @@ return [
                 // 'ignore_forbidden'  => true,  // Default is false
                 // 'ignore_allowed'    => false, // Default is true
                 //---
-                'required_message'  => 'testy.generic_text.validation.required',
-                'invalid_message'   => 'testy.generic_text.validation.invalid',
-                'minlength_message' => 'testy.generic_text.validation.minlength',
-                'maxlength_message' => 'testy.generic_text.validation.maxlength',
-                'pattern_message'   => 'testy.generic_text.validation.pattern',
-                'allowed_message'   => 'testy.generic_text.validation.allowed',
-                'forbidden_message' => 'testy.generic_text.validation.forbidden',
+                'required_message'  => 'basefield.generic_text.validation.required',
+                'invalid_message'   => 'basefield.generic_text.validation.invalid',
+                'minlength_message' => 'basefield.generic_text.validation.minlength',
+                'maxlength_message' => 'basefield.generic_text.validation.maxlength',
+                'pattern_message'   => 'basefield.generic_text.validation.pattern',
+                'allowed_message'   => 'basefield.generic_text.validation.allowed',
+                'forbidden_message' => 'basefield.generic_text.validation.forbidden',
             ]
         ],
     ],
     'primary_email' => [
         'list' => [
-            'label'      => 'testy.primary_email.list.label',
+            'label'      => 'basefield.primary_email.list.label',
             'sortable'   => false,
         ],
         'form' => [
-            'label'      => 'testy.primary_email.form.label',
+            'label'      => 'basefield.primary_email.form.label',
             'type'       => 'email',
             'attributes' => [
-                'placeholder' => 'testy.primary_email.form.placeholder',
+                'placeholder' => 'basefield.primary_email.form.placeholder',
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 255,
@@ -112,13 +112,13 @@ return [
                 // 'ignore_forbidden'  => true,  // Default is false
                 // 'ignore_allowed'    => false, // Default is true
                 //---
-                'required_message'  => 'testy.primary_email.validation.required',
-                'invalid_message'   => 'testy.primary_email.validation.invalid',
-                'minlength_message' => 'testy.primary_email.validation.minlength',
-                'maxlength_message' => 'testy.primary_email.validation.maxlength',
-                'pattern_message'   => 'testy.primary_email.validation.pattern',
-                'allowed_message'   => 'testy.primary_email.validation.allowed',
-                'forbidden_message' => 'testy.primary_email.validation.forbidden',
+                'required_message'  => 'basefield.primary_email.validation.required',
+                'invalid_message'   => 'basefield.primary_email.validation.invalid',
+                'minlength_message' => 'basefield.primary_email.validation.minlength',
+                'maxlength_message' => 'basefield.primary_email.validation.maxlength',
+                'pattern_message'   => 'basefield.primary_email.validation.pattern',
+                'allowed_message'   => 'basefield.primary_email.validation.allowed',
+                'forbidden_message' => 'basefield.primary_email.validation.forbidden',
             ],
         ],
     ],

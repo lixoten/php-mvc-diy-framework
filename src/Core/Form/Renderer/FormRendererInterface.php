@@ -24,11 +24,13 @@ interface FormRendererInterface
     /**
      * Render a single field
      *
+     * @param string $formName
+     * @param string $pageName
      * @param FieldInterface $field
      * @param array $options
      * @return string
      */
-    public function renderField(string $formName, FieldInterface $field, array $options = []): string;
+    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string;
 
     /**
      * Render form errors

@@ -79,8 +79,8 @@ class ListRenderer
             $html .= '<tr>';
             $html .= "<td>
                 <a href=\"/users/edit/{$record["user_id"]}\">Edit</a>
-                <a href=\"/users/show/{$record["user_id"]}\">View</a>
-                <a href=\"/users/delete/{$record["user_id"]}?token={$pageToken}\">Delete</a></td>";
+                <a href=\"/users/show/{$record["user_id"]}\">Viewfook</a>
+                <a href=\"/users/delete/{$record["user_id"]}?token={$pageToken}\">Deletefook1</a></td>";
             foreach ($header as $key => $column) {
                 $value = (string)($record[$key] ?? ''); // Use null coalescing operator to handle missing keys
 

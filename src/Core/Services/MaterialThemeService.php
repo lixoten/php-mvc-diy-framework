@@ -28,6 +28,9 @@ class MaterialThemeService implements ThemeServiceInterface
         'pagination' => 'mdc-pagination',
         'pagination.item' => 'mdc-pagination__item',
         'pagination.link' => 'mdc-pagination__link',
+
+        'form.heading.wrapper' => 'mdc-form-heading-wrapper mdc-elevation--z1 mdc-typography--headline6',
+        'form.heading' => 'mdc-typography--headline6',
     ];
 
     /**
@@ -207,6 +210,37 @@ class MaterialThemeService implements ThemeServiceInterface
             'dark'      => 'mdc-chip--dark',    // Custom class for dark variant
             default     => 'mdc-chip--default', // Default chip style
         };
+
+        return $baseClass . ' ' . $variantClass;
+    }
+
+
+    /**
+     * Resolves a semantic button variant into framework-specific CSS classes for Material Design.
+     *
+     * @param string $variant The semantic variant (e.g., 'primary', 'secondary', 'danger').
+     * @return string The CSS classes for the specified button variant.
+     */
+    public function getButtonClass(string $variant): string
+    {
+        // Material Design buttons have base classes like 'mdc-button'
+        // and then modifiers for raised, outlined, text, and color variants.
+        // Assuming 'raised' as a common default for primary actions.
+        $baseClass = 'mdc-button';
+        $variantClass = match ($variant) {
+            'primary'   => 'mdc-button--raised mdc-theme--primary', // Often uses theme primary color
+            'secondary' => 'mdc-button--outlined mdc-theme--secondary', // Outlined secondary
+            'success'   => 'mdc-button--raised mdc-button--green', // Custom green button
+            'danger'    => 'mdc-button--raised mdc-button--red',   // Custom red button
+            'warning'   => 'mdc-button--outlined mdc-button--orange', // Outlined orange
+            'info'      => 'mdc-button--text mdc-button--blue',    // Text button with blue
+            'light'     => 'mdc-button--outlined mdc-button--light', // Light outlined
+            'dark'      => 'mdc-button--raised mdc-button--dark',  // Dark raised
+            'link'      => 'mdc-button--text',                     // Simple text button
+            default     => 'mdc-button--text',                     // Default to a text button
+        };
+        // Note: mdc-theme--primary/secondary are recommended for theme colors.
+        // 'mdc-button--green', 'mdc-button--red' etc. would be custom classes in your Material CSS.
 
         return $baseClass . ' ' . $variantClass;
     }

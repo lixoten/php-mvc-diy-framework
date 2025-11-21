@@ -26,6 +26,7 @@ use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\Interfaces\GenericDataServiceInterface;
+use Core\Console\Generators\ConfigViewGenerator;
 use Core\Console\Generators\GeneratorOutputService;
 use Core\Console\Generators\MigrationGenerator;
 use Core\Console\Generators\SeederGenerator;
@@ -704,18 +705,6 @@ return [
 
 
 
-    // Form renderer with theme service
-    'Core\Form\Renderer\FormRendererInterface' => function (
-        \Psr\Container\ContainerInterface $container
-    ) {
-        return new \Core\Form\Renderer\BootstrapFormRenderer(
-            $container->get('Core\Services\ThemeServiceInterface'),
-            $container->get(ThemeServiceInterface::class),
-            $container->get(FormatterService::class),
-            $container->get(LoggerInterface::class)
-        );
-    },
-
 
 
 
@@ -1071,10 +1060,10 @@ return [
     RepositoryRegistryInterface::class => \DI\autowire(RepositoryRegistry::class)
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // Pass the container itself
         ->constructorParameter('repositoryMap', [
-            'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the Post repo service ID/interface
-            'gallery' => GalleryRepositoryInterface::class, // Map 'gallery' string to the Post repo service ID/interface
-            'image' => ImageRepositoryInterface::class, // Map 'image' string to the Post repo service ID/interface
-            'post' => PostRepositoryInterface::class, // Map 'post' string to the Post repo service ID/interface
+            'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the repo service ID/interface
+            'gallery' => GalleryRepositoryInterface::class, // Map 'gallery' string to the repo service ID/interface
+            'image' => ImageRepositoryInterface::class, // Map 'image' string to the repo service ID/interface
+            'post' => PostRepositoryInterface::class, // Map 'post' string to the repo service ID/interface
             'store' => StoreRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
             'user' => UserRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
             // *** Add mappings for all entity types you want the GenericDataService to handle ***
@@ -1627,6 +1616,10 @@ return [
         ->constructorParameter('repositoryGenerator', \DI\get(\Core\Console\Generators\RepositoryGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
 
+    \Core\Console\Commands\MakeLangFileCommand::class => \DI\autowire()
+        ->constructorParameter('langFileGenerator', \DI\get(\Core\Console\Generators\LangFileGenerator::class))
+        ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
+
     \Core\Console\Commands\MakeConfigFieldsCommand::class => \DI\autowire()
         ->constructorParameter('configFieldsGenerator', \DI\get(\Core\Console\Generators\ConfigFieldsGenerator::class))
         ->constructorParameter('schemaLoaderService', \DI\get(SchemaLoaderService::class)),
@@ -1683,6 +1676,14 @@ return [
             \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
         ),
 
+    // Register LangFileGenerator
+    \Core\Console\Generators\LangFileGenerator::class
+                                            => \DI\autowire(\Core\Console\Generators\LangFileGenerator::class)
+        ->constructorParameter(
+            'generatorOutputService',
+            \DI\get(\Core\Console\Generators\GeneratorOutputService::class)
+        ),
+
     // Register ConfigFieldsGenerator
     \Core\Console\Generators\ConfigFieldsGenerator::class
                                             => \DI\autowire(\Core\Console\Generators\ConfigFieldsGenerator::class)
@@ -1692,8 +1693,7 @@ return [
         ),
 
     // Register ConfigViewGenerator
-    \Core\Console\Generators\ConfigViewGenerator::class
-                                                    => \DI\autowire(\Core\Console\Generators\ConfigViewGenerator::class)
+    ConfigViewGenerator::class => \DI\autowire(\Core\Console\Generators\ConfigViewGenerator::class)
         ->constructorParameter('generatorOutputService', \DI\get(GeneratorOutputService::class)),
 
 
@@ -1961,15 +1961,6 @@ return [
 
 
 
-    // Form Renderers
-    'form.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\Form\Renderer\BootstrapFormRenderer(
-            $c->get('Core\Services\ThemeServiceInterface'),
-            $c->get('Core\I18n\I18nTranslator'),
-            $c->get('Core\Services\FormatterService'),
-            $c->get(LoggerInterface::class)
-        );
-    }),
 
 
     // List renderer with theme service
@@ -1979,6 +1970,21 @@ return [
         // Get the ListRendererRegistry and ask it for the currently active renderer
         return $container->get(\Core\List\Renderer\ListRendererRegistry::class)->getRenderer();
     },
+
+
+    // Form renderer with theme service
+    'Core\Form\Renderer\FormRendererInterface' => function (
+        \Psr\Container\ContainerInterface $container
+    ) {
+        return $container->get(\Core\Form\Renderer\FormRendererRegistry::class)->getRenderer();
+        // return new \Core\Form\Renderer\BootstrapFormRenderer(
+        //     $container->get('Core\Services\ThemeServiceInterface'),
+        //     $container->get(ThemeServiceInterface::class),
+        //     $container->get(FormatterService::class),
+        //     $container->get(LoggerInterface::class)
+        // );
+    },
+
 
 
     // List Renderers - Keep this as it's used by the ListRendererRegistry
@@ -2010,6 +2016,22 @@ return [
             $c->get(\Psr\Log\LoggerInterface::class)
         );
     }),
+
+
+
+    // Form Renderers
+    'form.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\Form\Renderer\BootstrapFormRenderer(
+            $c->get('Core\Services\ThemeServiceInterface'),
+            $c->get('Core\I18n\I18nTranslator'),
+            $c->get('Core\Services\FormatterService'),
+            $c->get(LoggerInterface::class)
+        );
+    }),
+
+
+
+
 
     // Notes-: This is called 'factory closure'
     // Update the renderer registry
@@ -2105,7 +2127,8 @@ return [
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
         ->constructorParameter('repository', \DI\get('App\Features\Testy\TestyRepositoryInterface'))
-        ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface')),
+        ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface'))
+        ->constructorParameter('formRenderer', \DI\get('Core\Form\Renderer\FormRendererInterface')),
 
 
 

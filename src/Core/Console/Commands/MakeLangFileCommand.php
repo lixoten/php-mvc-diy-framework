@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Console\Commands;
 
 use Core\Console\Generators\ConfigFieldsGenerator;
+use Core\Console\Generators\LangFileGenerator;
 use Core\Exceptions\SchemaDefinitionException;
 use Core\Services\SchemaLoaderService;
 use Symfony\Component\Console\Command\Command;
@@ -23,17 +24,17 @@ use Symfony\Component\Console\Style\SymfonyStyle;
  * @author    GitHub Copilot
  * @copyright Copyright (c) 2025
  */
-class MakeConfigFieldsCommand extends Command
+class MakeLangFileCommand extends Command
 {
-    protected static $defaultName = 'make:config-fields';
-    protected static $defaultDescription = 'Generates a feature-specific fields configuration file from schema.';
+    protected static $defaultName = 'make:lang-file';
+    protected static $defaultDescription = 'Generates a Language File file from schema.';
 
     /**
-     * @param ConfigFieldsGenerator $configFieldsGenerator The service for generating field config files.
+     * @param LangFileGenerator $langFileGenerator The service for generating language files.
      * @param SchemaLoaderService $schemaLoaderService The service for loading schema definitions.
      */
     public function __construct(
-        private ConfigFieldsGenerator $configFieldsGenerator,
+        private LangFileGenerator $langFileGenerator,
         private SchemaLoaderService $schemaLoaderService
     ) {
         parent::__construct();
@@ -51,10 +52,10 @@ class MakeConfigFieldsCommand extends Command
             ->addArgument(
                 'configType',
                 InputArgument::OPTIONAL,
-                'An optional type for the config (e.g., "list", "edit").',
-                'root'
+                'An optional type for the config (e.g., "common").',
+                'main'
             );
-        }
+    }
 
     /**
      * Executes the command.
@@ -70,7 +71,7 @@ class MakeConfigFieldsCommand extends Command
         $configType = strtolower($input->getArgument('configType'));
 
         // --- VALIDATION ---
-        $allowedConfigTypes = ['list', 'edit', 'root', 'base']; // Defined allowed types
+        $allowedConfigTypes = ['common', 'main']; // Defined allowed types
 
         if (!in_array($configType, $allowedConfigTypes, true)) {
             $io->error("Invalid configType '{$configType}'. Allowed types are: " . implode(', ', $allowedConfigTypes));
@@ -78,21 +79,21 @@ class MakeConfigFieldsCommand extends Command
         }
         // --- END VALIDATION ---
 
-        $io->title("Generating Field Configuration for '{$entityName}'");
+        $io->title("Generating Language File for '{$entityName}'");
 
         try {
             // Load the schema for the given entity
             $schema = $this->schemaLoaderService->load($entityName);
 
             // Pass the loaded schema (array) to the generator
-            $filePath = $this->configFieldsGenerator->generate($schema, $configType);
-            $io->success("Field configuration for '{$entityName}' - '{$configType}'generated successfully at: {$filePath}");
+            $filePath = $this->langFileGenerator->generate($schema, $configType);
+            $io->success("Language File for '{$entityName}' - '{$configType}'generated successfully at: {$filePath}");
             return Command::SUCCESS;
         } catch (SchemaDefinitionException $e) {
             $io->error("Schema error for '{$entityName}': " . $e->getMessage());
             return Command::FAILURE;
         } catch (\Throwable $e) {
-            $io->error("Error generating field configuration for '{$entityName}': " . $e->getMessage());
+            $io->error("Error generating Language File for '{$entityName}': " . $e->getMessage());
             return Command::FAILURE;
         }
     }

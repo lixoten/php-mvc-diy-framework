@@ -68,13 +68,13 @@ interface FormInterface
      */
     public function setData($data): self;
 
-    /**
-     * Render the form
-     *
-     * @param array $options Rendering options
-     * @return string HTML representation of the form
-     */
-    public function render(array $options = []): string;
+    // /**
+    //  * Render the form
+    //  *
+    //  * @param array $options Rendering options
+    //  * @return string HTML representation of the form
+    //  */
+    // public function render(array $options = []): string;
 
     /**
      * Add a field to the form
@@ -90,6 +90,20 @@ interface FormInterface
      * @return string
      */
     public function getName(): string;
+
+    /**
+     * Get the form PageKey
+     *
+     * @return string
+     */
+    public function getPageKey(): string;
+
+    /**
+     * Get the form PageNme
+     *
+     * @return string
+     */
+    public function getPageName(): string;
 
     /**
      * Add an error to the form

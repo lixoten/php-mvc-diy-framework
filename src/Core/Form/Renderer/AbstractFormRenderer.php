@@ -57,7 +57,8 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      *
      * @param FieldInterface $field The field to generate hints for
      * @param string $pageKey The page/form context for translation lookup
-     * @return array<string, array<int, array<string, mixed>>> Categorized hints ['always' => [...], 'on_focus' => [...]]
+     * @return array<string, array<int, array<string, mixed>>> Categorized hints ['always' => [...],
+     *                      'on_focus' => [...]]
      */
     protected function generateConstraintHints(FieldInterface $field, string $pageKey): array
     {
@@ -73,7 +74,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (!empty($attrs['required'])) {
             $alwaysVisible[] = [
                 'icon' => '●',
-                'text' => $this->translator->get('form.hints.required', $pageKey),
+                'text' => $this->translator->get('form.hints.required'),
                 'class' => 'constraint-required'
             ];
         }
@@ -83,7 +84,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '↓',
                 'text' => sprintf(
-                    $this->translator->get('form.hints.minlength', $pageKey),
+                    $this->translator->get('form.hints.minlength'),
                     $attrs['minlength']
                 ),
                 'class' => 'constraint-minlength'
@@ -94,7 +95,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '↑',
                 'text' => sprintf(
-                    $this->translator->get('form.hints.maxlength', $pageKey),
+                    $this->translator->get('form.hints.maxlength'),
                     $attrs['maxlength']
                 ),
                 'class' => 'constraint-maxlength'
@@ -107,7 +108,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '≥',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.min', $pageKey),
+                        $this->translator->get('form.hints.min'),
                         $attrs['min']
                     ),
                     'class' => 'constraint-min'
@@ -117,7 +118,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '≤',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.max', $pageKey),
+                        $this->translator->get('form.hints.max'),
                         $attrs['max']
                     ),
                     'class' => 'constraint-max'
@@ -131,7 +132,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '📅',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.date_min', $pageKey),
+                        $this->translator->get('form.hints.date_min'),
                         $attrs['min']
                     ),
                     'class' => 'constraint-date-min'
@@ -141,7 +142,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '📅',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.date_max', $pageKey),
+                        $this->translator->get('form.hints.date_max'),
                         $attrs['max']
                     ),
                     'class' => 'constraint-date-max'
@@ -152,7 +153,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ⚠️ ON FOCUS: Pattern constraint (complex explanation)
         if (!empty($attrs['pattern'])) {
             $patternMsg = $attrs['pattern_message'] ??
-                        $this->translator->get('form.hints.pattern', $pageKey);
+                        $this->translator->get('form.hints.pattern');
             $onFocus[] = [
                 'icon' => '⚙',
                 'text' => $patternMsg,
@@ -164,7 +165,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'email') {
             $onFocus[] = [
                 'icon' => '@',
-                'text' => $this->translator->get('form.hints.email', $pageKey),
+                'text' => $this->translator->get('form.hints.email'),
                 'class' => 'constraint-email'
             ];
         }
@@ -172,7 +173,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'tel') {
             $onFocus[] = [
                 'icon' => '☎',
-                'text' => $this->translator->get('form.hints.tel', $pageKey),
+                'text' => $this->translator->get('form.hints.tel'),
                 'class' => 'constraint-tel'
             ];
         }
@@ -180,7 +181,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'url') {
             $onFocus[] = [
                 'icon' => '🔗',
-                'text' => $this->translator->get('form.hints.url', $pageKey),
+                'text' => $this->translator->get('form.hints.url'),
                 'class' => 'constraint-url'
             ];
         }
@@ -211,10 +212,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         $errorType  = $parts[array_key_last($parts)];
         $attrs      = $field->getAttributes();
-        $errorAttr  = [$errorType => $attrs[$errorType] ?? []];
-        $errorAttr  = [$errorType => $attrs["foo"] ?? null];
-        $errorAttr  = [];
-        $translation = $this->translator->get($error, $pageKey, $errorAttr);
+        $translation = $this->translator->get($error);
 
         if (!array_key_exists($errorType, $attrs)) {
             // Log a warning for missing attribute, but do not mask the bug

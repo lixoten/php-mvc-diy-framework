@@ -14,5 +14,5 @@ return [
     'content' => [
         'placeholder' => 'Enter testy content',
     ],
-    // Add any other specific labels for the 'testy' feature here
+    // Add any other specific labels for the 'testy' feature here..
 ];

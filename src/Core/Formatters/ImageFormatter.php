@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace Core\Formatters;
 
 /**
- * Formatter for rendering image HTML elements.
+ * Formatter for transforming an image path/filename into a complete URL string.
+ * It does NOT generate HTML <img> tags.
  */
 class ImageFormatter extends AbstractFormatter
 {
@@ -19,34 +20,48 @@ class ImageFormatter extends AbstractFormatter
         return is_string($value) || is_null($value);
     }
 
-    public function transform(mixed $value, array $options = []): string
+    /**
+     * Transforms an image path/filename into a complete URL string.
+     * It does not generate HTML markup.
+     *
+     * @param mixed $value The image path/filename.
+     * @param array<string, mixed> $options Options for formatting (e.g., 'base_url').
+     * @return string The complete image URL.
+     */
+    protected function transform(mixed $value, array $options = []): string
     {
         if (empty($value)) {
             return '';
         }
 
-        $baseUrl = $options['base_url'] ?? '/';
-        $src = rtrim($baseUrl, '/') . '/' . ltrim((string)$value, '/');
-        $alt = $options['alt'] ?? 'Image';
-        $class = $options['class'] ?? '';
-        $classAttr = $class ? ' class="' . htmlspecialchars($class) . '" ' : '';
+        $imagePath = (string)$value;
 
-        // return '<img src="' . htmlspecialchars($src) . '" alt="' . htmlspecialchars($alt) . '"' . $classAttr . '>';
-           return '<img src="' . htmlspecialchars($src, ENT_QUOTES, 'UTF-8') . '" alt="' .
-               htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '"' . $classAttr . '>';
+        // Apply base_url if provided in options
+        if (isset($options['base_url']) && is_string($options['base_url'])) {
+            $baseUrl = rtrim($options['base_url'], '/');
+            // Ensure proper path concatenation, handling absolute paths/URLs
+            // If imagePath is already absolute or a full URL, return as-is
+            if (str_starts_with($imagePath, '/') || str_contains($imagePath, '://')) {
+                return $imagePath;
+            }
+            // Otherwise, prepend base_url
+            return $baseUrl . '/' . $imagePath;
+        }
+
+        // If no base_url, assume value is already a complete URL or relative path handled by frontend
+        return $imagePath;
     }
 
     /**
-     * Image formatter emits safe HTML (attributes already escaped).
+     * This formatter returns a plain URL string, not HTML.
+     * Therefore, it is NOT inherently safe HTML and should be escaped by AbstractFormatter
+     * when placed into HTML attributes or content.
      */
     protected function isSafeHtml(): bool
     {
-        return true;
+        return false; // Crucial change: It returns a URL string, which needs htmlspecialchars
     }
 
-    // public function sanitize(mixed $value): string
-    // {
-    //     // For images, sanitization is handled in format() via htmlspecialchars
-    //     return $this->format($value);
-    // }
+    // The inherited `sanitize` method from AbstractFormatter will now correctly
+    // apply htmlspecialchars to the URL string returned by `transform`.
 }

@@ -1,137 +1,83 @@
 <?php
 
+/**
+ * Generated File - Date: 20251120_161617cccc
+ *
+ * Language File for testy_main.
+ *
+ * This file provides localized strings for the application, specifically for a given entity.
+ * Depending on the configuration type ('main' or 'common'), it contains:
+ * - Labels for fields in lists and forms.
+ * - Placeholder texts for input elements.
+ * - Button texts (e.g., 'Add', 'Edit', 'Delete', 'Cancel').
+ * - Validation messages (e.g., 'is required', 'minlength').
+ * - Other general UI texts and actions.
+ *
+ * The 'main' type includes the entity name in relevant translations (e.g., "Post title is required"),
+ * while the 'common' type provides generic, entity-agnostic phrases (e.g., "title is required").
+ */
+
 declare(strict_types=1);
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-// Grouped by Text String (Item-Centric)
-    // 'title'  => 'Title',
+
 return [
     'actions' => 'Testy Actions',
-    'id'  => [
+    'button'  => [
+        'delete' => 'Testy Delete',
+        'edit'   => 'Testy Edit',
+        'add'    => 'Testy Add',
+        'create' => 'Testy CREAdd',
+        'view'   => 'Testy View',
+        'save'   => 'Testy Save',
+        'cancel' => 'Testy Cancel',
+    ],
+    'form' => [
+        'heading' => 'Edit Recordttttttt',
+    ],
+    'id' => [
         'list' => [
-            'label'         => 'ID',
+            'label'       => 'xID',
         ],
     ],
-    'generic_text'  => [
+    'generic_text' => [
         'list' => [
-            'label'         => 'Generic Text',
+            'label'       => 'xGeneric text',
         ],
         'form' => [
-            'label'         => 'Generic Text',
-            'placeholder'   => 'Enter Generic Text',
+            'label'       => 'xGeneric text',
+            'placeholder' => 'Enter xGeneric text',
+        ],
+        'formatters' => [
+
         ],
         'validation' => [
-            'required'      => 'The Testy Generic Text is required.',
-            'minlength'     => 'Testy Generic Text must be at least %d characters.',
-            'maxlength'     => 'Testy Generic Text must not exceed %d characters.',
-            'invalid'       => 'Invalid Testy Generic Text.',
-            'pattern'       => 'Testy Generic Text does not match the required pattern.',
-            'allowed'       => 'Please select a valid Testy Generic Text.',
-            'forbidden'     => 'This Testy Generic Text is not allowed.',
-        ],
-         'hints' => [
-            'required'      => 'Required field',
-            'minlength'     => 'At least %d characters',
-            'maxlength'     => 'Maximum %d characters',
-            'min'           => 'Minimum value: %s',
-            'max'           => 'Maximum value: %s',
-            'date_min'      => 'Not before: %s',
-            'date_max'      => 'Not after: %s',
-            'pattern'       => 'Must match required format',
-            'email'         => 'Must be a valid email address',
-            'tel'           => 'Enter with country code (e.g., +1234567890)',
-            'url'           => 'Must start with http:// or https://',
+                    'required'  => 'Testy xGeneric text is required.',
+                'invalid'   => 'Testy xGeneric text must be at least %d characters.',
+                'minlength' => 'Testy xGeneric text must not exceed %d characters.',
+                'maxlength' => 'Invalid Testy xGeneric text.',
+                'pattern'   => 'Testy xGeneric text does not match the required pattern.',
+                'allowed'   => 'Please select a valid Testy xGeneric text.',
+                'forbidden' => 'This Testy xGeneric text is not allowed.',
         ],
     ],
+    'primary_email' => [
+        'list' => [
+            'label'       => 'xPrimary email',
+        ],
+        'form' => [
+            'label'       => 'xPrimary email',
+            'placeholder' => 'lixoten@gmail.com',
+        ],
+        'formatters' => [
 
-    //     'message' => [
-    //         'created_success'   => 'Testy item created successfully!',
-    //         'updated_success'   => 'Testy item updated successfully!',
-    //         'deleted_success'   => 'Testy item deleted.',
-    //     ],
-
-
-
-    // ],
-
-    // // List-specific translations
-    // 'list' => [
-    //     'label'         => 'Generic text111xx',
-    //     // 'generic_text'  => 'Generic Text 123',
-    //     'title'                 => 'Testy Items List',
-    //     'status'                => 'Testy Status', // Assuming you'd have a specific Testy status translation here if needed
-    //     'generic_code'  => 'Generic Code',
-    //     'primary_email' => 'Primary Email',
-    //     'column_id'             => 'Testy ID', // If you need a specific ID label for the list
-    //     'action_add'            => 'Add New Testy',
-    //     'empty_state_message'   => 'No Testy items found.',
-    // ],
-
-    // // Form-specific translations (for both add and edit)
-    // 'form' => [
-    //     // 'generic_text'  => 'Generic Text 999',
-    //         'label'       => 'Generic text',
-    //     'add_title'             => 'Create New Testy Item',
-    //     'edit_title'            => 'Edit Testy Item',
-    //     'save_button'           => 'Save Testy',
-    //     'cancel_button'         => 'Cancel',
-    //     'placeholder' => [
-    //         'title'             => 'Enter a descriptive title for the testy item',
-    //         'primary_email'     => 'e.g., testy@example.com',
-    //         'telephone'         => 'e.g., +1 555 123 4567',
-    //         'generic_text'      => 'Enter generic text',
-    //     ],
-
-    //     'hints' => [
-    //         'required'  => 'Required field_testy',
-    //         'minlength' => 'At least %d characters_testy',
-    //         'maxlength' => 'Maximum %d characters',
-    //         'min'       => 'Minimum value: %s',
-    //         'max'       => 'Maximum value: %s',
-    //         'date_min'  => 'Not before: %s',
-    //         'date_max'  => 'Not after: %s',
-    //         'pattern'   => 'Must match required format',
-    //         'email'     => 'Must be a valid email address',
-    //         'tel'       => 'Enter with country code (e.g., +1234567890)',
-    //         'url'       => 'Must start with http:// or https://',
-    //     ],
-
-
-    // ],
-
-    // // Validation messages for Testy fields
-    // 'validation' => [
-    //     'title' => [
-    //         'required'          => 'xThe Testy title is required.',
-    //         'minlength'        => 'xTesty title must be at least {min} characters.',
-    //         'maxlength'        => 'xTesty title must not exceed {max} characters.',
-    //     ],
-    //     'primary_email' => [
-    //         'required'          => 'Testy primary email is required.',
-    //         'invalid'           => 'Please enter a valid email address for the Testy item.',
-    //         'forbidden_domain'  => 'This email domain is not allowed for Testy items.',
-    //     ],
-    //     'telephone' => [
-    //         'invalid'           => 'Please enter a valid telephone number for the Testy item.',
-    //     ],
-    // ],
-
-    // // Other specific messages
-    // 'message' => [
-    //     'created_success'   => 'Testy item created successfully!',
-    //     'updated_success'   => 'Testy item updated successfully!',
-    //     'deleted_success'   => 'Testy item deleted.',
-    // ],
-
-
-
-    // Add any other specific labels for the 'testy' feature here
+        ],
+        'validation' => [
+                    'required'   => 'Testy xPrimary email is required.',
+                'invalid'   => 'Testy xPrimary email must be at least %d characters.',
+                'minlength' => 'Testy xPrimary email must not exceed %d characters.',
+                'maxlength' => 'Invalid Testy xPrimary email.',
+                'pattern'   => 'Testy xPrimary email does not match the required pattern.',
+                'allowed'   => 'Please select a valid Testy xPrimary email.',
+                'forbidden' => 'This Testy xPrimary email is not allowed.',
+        ],
+    ],
 ];

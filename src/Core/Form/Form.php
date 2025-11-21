@@ -16,6 +16,8 @@ use Core\Form\Renderer\FormRendererInterface;
 class Form implements FormInterface
 {
     private string $name;
+    private string $pageKey;
+    private string $pageName;
     private array $fields = [];
     private array $data = [];
     private array $errors = [];
@@ -37,9 +39,11 @@ class Form implements FormInterface
      * @param string $name Form name
      * @param CSRFToken $csrf CSRF token service
      */
-    public function __construct(string $name, CSRFToken $csrf)
+    public function __construct(string $name, string $pageName, CSRFToken $csrf)
     {
-        $this->name = $name;
+        $this->name     = $name;
+        $this->pageKey  = $name;
+        $this->pageName = $pageName;
         $this->csrf = $csrf;
     }
 
@@ -61,6 +65,22 @@ class Form implements FormInterface
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPageKey(): string
+    {
+        return $this->pageKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getPageName(): string
+    {
+        return $this->pageName;
     }
 
     /**
@@ -316,104 +336,104 @@ class Form implements FormInterface
         return $this->csrf->validate($token);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function render(array $options = []): string
-    {
-        // Merge stored options with any provided now (new ones override stored ones)
-        $mergedOptions = array_merge($this->renderOptions, $options);
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function render(array $options = []): string
+    // {
+    //     // Merge stored options with any provided now (new ones override stored ones)
+    //     $mergedOptions = array_merge($this->renderOptions, $options);
 
-        if ($this->renderer) {
-            return $this->renderer->renderForm($this, $mergedOptions);
-        }
+    //     if ($this->renderer) {
+    //         return $this->renderer->renderForm($this, $mergedOptions);
+    //     }
 
-        // if ($this->renderer) {
-        //     return $this->renderer->renderForm($this, $options);
-        // }
+    //     // if ($this->renderer) {
+    //     //     return $this->renderer->renderForm($this, $options);
+    //     // }
 
-        $output = '<form';
+    //     $output = '<form';
 
-        // Add form attributes
-        foreach ($this->attributes as $name => $value) {
-            $output .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
-        }
+    //     // Add form attributes
+    //     foreach ($this->attributes as $name => $value) {
+    //         $output .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
+    //     }
 
-        $output .= '>';
+    //     $output .= '>';
 
-        $token = $this->getCSRFToken();
-        $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+    //     $token = $this->getCSRFToken();
+    //     $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
 
-        // Add form fields
-        foreach ($this->fields as $name => $field) {
-            $output .= $this->renderField($name, $field);
-        }
+    //     // Add form fields
+    //     foreach ($this->fields as $name => $field) {
+    //         $output .= $this->renderField($name, $field);
+    //     }
 
-        // Add submit button
-        $output .= '<button type="submit" class="btn btn-primary">Submit</button>';
+    //     // Add submit button
+    //     $output .= '<button type="submit" class="btn btn-primary">Submit</button>';
 
-        $output .= '</form>';
+    //     $output .= '</form>';
 
-        return $output;
-    }
+    //     return $output;
+    // }
 
-    /**
-     * Render a field
-     *
-     * @param string $name Field name
-     * @param FieldInterface $field Field
-     * @return string HTML
-     */
-    private function renderField(string $name, FieldInterface $field): string
-    {
-        $type = $field->getType();
-        $label = $field->getLabel();
-        $value = $field->getValue();
-        $attributes = $field->getAttributes();
-        $hasError = $field->hasError();
+    // /**
+    //  * Render a field
+    //  *
+    //  * @param string $name Field name
+    //  * @param FieldInterface $field Field
+    //  * @return string HTML
+    //  */
+    // private function renderField(string $name, FieldInterface $field): string
+    // {
+    //     $type = $field->getType();
+    //     $label = $field->getLabel();
+    //     $value = $field->getValue();
+    //     $attributes = $field->getAttributes();
+    //     $hasError = $field->hasError();
 
-        $output = '<div class="form-group' . ($hasError ? ' has-error' : '') . '">';
+    //     $output = '<div class="form-group' . ($hasError ? ' has-error' : '') . '">';
 
-        // Label
-        $output .= '<label for="' . $name . '">' . htmlspecialchars($label) . '</label>';
+    //     // Label
+    //     $output .= '<label for="' . $name . '">' . htmlspecialchars($label) . '</label>';
 
-        // Input
-        if ($type === 'textarea') {
-            $output .= '<textarea name="' . $name . '" id="' . $name . '"';
+    //     // Input
+    //     if ($type === 'textarea') {
+    //         $output .= '<textarea name="' . $name . '" id="' . $name . '"';
 
-            // Add attributes
-            foreach ($attributes as $attrName => $attrValue) {
-                $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
-            }
+    //         // Add attributes
+    //         foreach ($attributes as $attrName => $attrValue) {
+    //             $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+    //         }
 
-            $output .= '>' . htmlspecialchars((string)$value) . '</textarea>';
-        } else {
-            $output .= '<input type="' . $type . '"';
-            $output .= ' name="' . $name . '"';
-            $output .= ' id="' . $name . '"';
-            $output .= ' value="' . htmlspecialchars((string)$value) . '"';
+    //         $output .= '>' . htmlspecialchars((string)$value) . '</textarea>';
+    //     } else {
+    //         $output .= '<input type="' . $type . '"';
+    //         $output .= ' name="' . $name . '"';
+    //         $output .= ' id="' . $name . '"';
+    //         $output .= ' value="' . htmlspecialchars((string)$value) . '"';
 
-            // Add attributes
-            foreach ($attributes as $attrName => $attrValue) {
-                $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
-            }
+    //         // Add attributes
+    //         foreach ($attributes as $attrName => $attrValue) {
+    //             $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+    //         }
 
-            $output .= '>';
-        }
+    //         $output .= '>';
+    //     }
 
-        // Error messages
-        if ($hasError) {
-            $output .= '<div class="invalid-feedback d-block">';
-            foreach ($field->getErrors() as $error) {
-                $output .= '<div>' . htmlspecialchars($error) . '</div>';
-            }
-            $output .= '</div>';
-        }
+    //     // Error messages
+    //     if ($hasError) {
+    //         $output .= '<div class="invalid-feedback d-block">';
+    //         foreach ($field->getErrors() as $error) {
+    //             $output .= '<div>' . htmlspecialchars($error) . '</div>';
+    //         }
+    //         $output .= '</div>';
+    //     }
 
-        $output .= '</div>';
+    //     $output .= '</div>';
 
-        return $output;
-    }
+    //     return $output;
+    // }
 
     /**
      * {@inheritdoc}

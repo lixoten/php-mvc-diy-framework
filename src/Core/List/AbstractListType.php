@@ -239,6 +239,7 @@ abstract class AbstractListType implements ListTypeInterface
             /** @var Url $editUrl */
             $editUrl = $urlEnums['edit'];
             $generatedUrl = $editUrl->url(['id' => '{id}'], $routeType);
+            $label        = $editUrl->label();
 
             // $this->logger->debug('AbstractListType::addActions() Adding edit action', [
             //     'enum_name' => $editUrl->name,
@@ -247,8 +248,7 @@ abstract class AbstractListType implements ListTypeInterface
 
             $builder->addAction('edit', [
                 'url' => $generatedUrl,
-                'label' => 'Edit', // need translator
-                'icon' => 'pencil',
+                'label' => $label,
             ]);
             $actionsAdded++;
         }
@@ -265,9 +265,9 @@ abstract class AbstractListType implements ListTypeInterface
 
         if ($showDel && $hasDelEnum) {
             /** @var Url $deleteUrl */
-            $deleteUrl = $urlEnums['delete'];
+            $deleteUrl    = $urlEnums['delete'];
             $generatedUrl = $deleteUrl->url(['id' => '{id}'], $routeType);
-
+            $label        = $deleteUrl->label();
             // $this->logger->debug('AbstractListType::addActions() Adding delete action', [
             //     'enum_name' => $deleteUrl->name,
             //     'generated_url' => $generatedUrl,
@@ -275,8 +275,7 @@ abstract class AbstractListType implements ListTypeInterface
 
             $builder->addAction('delete', [
                 'url' => $generatedUrl,
-                'label' => 'Delete',
-                'icon' => 'trash',
+                'label' => $label,
                 'attributes' => $this->getDeleteActionAttributes(),
             ]);
             $actionsAdded++;
@@ -294,8 +293,9 @@ abstract class AbstractListType implements ListTypeInterface
 
         if ($showView && $hasViewEnum) {
             /** @var Url $viewUrl */
-            $viewUrl = $urlEnums['view'];
+            $viewUrl      = $urlEnums['view'];
             $generatedUrl = $viewUrl->url(['id' => '{id}'], $routeType);
+            $label        = $viewUrl->label();
 
             // $this->logger->debug('AbstractListType::addActions() Adding view action', [
             //     'enum_name' => $viewUrl->name,
@@ -304,8 +304,7 @@ abstract class AbstractListType implements ListTypeInterface
 
             $builder->addAction('view', [
                 'url' => $generatedUrl,
-                'label' => 'View',
-                'icon' => 'eye',
+                'label' => $label ,
             ]);
             $actionsAdded++;
         }

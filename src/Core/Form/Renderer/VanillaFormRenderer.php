@@ -20,6 +20,8 @@ class VanillaFormRenderer extends AbstractFormRenderer
      */
     public function renderForm(FormInterface $form, array $options = []): string
     {
+        $pageName = $form->getPageName();
+
         $options = $this->mergeOptions($form, $options);
 
         $output = $this->renderStart($form, $options);
@@ -60,7 +62,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         // Render hidden fields first
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getName(), $field, $options);
+                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
                // $field->setType('display');
             }
         }
@@ -68,7 +70,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         // Render visible fields with constraint hints
         foreach ($form->getFields() as $field) {
             if ($field->getType() !== 'hidden') {
-                $output .= $this->renderField($form->getName(), $field, $options);
+                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
 
                 if ($options['show_constraint_hints'] ?? true) {
                     $output .= $this->generateConstraintHints($field, $form->getName());
@@ -80,7 +82,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         if ($form->isCaptchaRequired()) {
             $output .= '<div class="vanilla-card">';
             $output .= '<h5>Security Verification</h5>';
-            $output .= $this->renderField($form->getName(), $form->getField('captcha'), $options);
+            $output .= $this->renderField($form->getName(), $pageName, $form->getField('captcha'), $options);
             $output .= '</div>';
         }
 
@@ -171,12 +173,12 @@ class VanillaFormRenderer extends AbstractFormRenderer
      * @param array<string, mixed> $options
      * @return string
      */
-    public function renderField(string $formName, FieldInterface $field, array $options = []): string
+    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
     {
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
-        $label = htmlspecialchars($this->translator->get($field->getLabel(), $formName));
+        $label = htmlspecialchars($this->translator->get($field->getLabel()));
         $value = htmlspecialchars((string)$field->getValue() ?? '');
         $errors = $field->getErrors();
 

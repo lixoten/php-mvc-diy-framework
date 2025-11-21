@@ -22,6 +22,9 @@ use RuntimeException;
 class ConfigFieldsGenerator
 {
     private GeneratorOutputService $generatorOutputService;
+    private string $entityName;
+    private array $fields;
+    private string $configType;
 
     /**
      * param SchemaLoaderService $schemaLoaderService The service for loading schema definitions.
@@ -37,7 +40,7 @@ class ConfigFieldsGenerator
      * Generate the fields configuration file for a given entity schema.
      *
      * @param array<string, mixed> $schema The entity schema definition.
-     * @param string $configType The type of configuration to generate (e.g., 'list', 'form', 'edit', 'root').
+     * @param string $configType The type of configuration to generate (e.g., 'list', 'form', 'edit', 'root', 'base').
      * @return string The absolute path to the generated field config file.
      * @throws SchemaDefinitionException If the schema is invalid or not found.
      * @throws \RuntimeException If the output directory cannot be created or file cannot be written.
@@ -47,15 +50,27 @@ class ConfigFieldsGenerator
         if (empty($schema['entity']['name'])) {
             throw new SchemaDefinitionException('Invalid schema: missing entity name.');
         }
-        $entityName = $schema['entity']['name'];
-        $fields = $schema['fields'] ?? [];
+        $entity = $schema['entity']['name'];
 
-        if (empty($fields)) {
-            throw new SchemaDefinitionException("Schema for '{$entityName}' has no fields defined.");
+        // $this->entityName = strtolower($schema['entity']['name']);
+
+        if ($configType === 'base') {
+            $this->entityName          = 'basefield';
+            //$this->entityNameLowercase = 'basefield';
+        } else {
+            $this->entityName          = strtolower($schema['entity']['name']);
+            //$this->entityNameLowercase = strtolower($schema['entity']['name']);
+        }
+
+        $this->configType = $configType;
+        $this->fields     = $schema['fields'] ?? [];
+
+        if (empty($this->fields)) {
+            throw new SchemaDefinitionException("Schema for '{$entity}' has no fields defined.");
         }
 
         // Get the output directory for the feature's config
-        $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
+        $outputDir = $this->generatorOutputService->getEntityOutputDir($entity);
 
         // Ensure the directory exists
         if (!is_dir($outputDir)) {
@@ -64,8 +79,14 @@ class ConfigFieldsGenerator
             }
         }
 
-        $filePath = $outputDir . strtolower($entityName) . "_fields_{$configType}" . '.php';
-        $fileContent = $this->generateConfigFieldFileContent($entityName, $fields, $configType);
+        if ($configType === 'base') {
+            $filePath = $outputDir . "base_fields" . '.php';
+        } else {
+            $filePath = $outputDir . strtolower($entity) . "_fields_{$this->configType}" . '.php';
+        }
+
+
+        $fileContent = $this->generateContent();
 
         $success = file_put_contents($filePath, $fileContent);
         if ($success === false) {
@@ -80,23 +101,26 @@ class ConfigFieldsGenerator
      *
      * @param string $entityName The name of the entity.
      * @param array<string, array<string, mixed>> $fields Schema field definitions.
-     * @param string $configType The type of configuration to generate (e.g., 'list', 'form', 'edit', 'root').
+     * @param string $configType The type of configuration to generate (e.g., 'list', 'form', 'edit', 'root', 'base').
      * @return string The PHP code for the field config file.
      */
-    protected function generateConfigFieldFileContent(string $entityName, array $fields, string $configType): string
+    // protected function generateConfigFieldFileContent(string $entityName, array $fields, string $configType): string
+    protected function generateContent(): string
     {
         $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
-        $entityNameLower = strtolower($entityName);
+        // $entityNameLower = strtolower($this->entityName);
         $fieldDefinitions = [];
 
-        foreach ($fields as $fieldName => $config) {
+        foreach ($this->fields as $fieldName => $config) {
             if (
                 !in_array(
                     $fieldName,
                     [
                         // 'primary_email',
                         // 'title',
+                        'id',
                         'generic_text',
+                        'primary_email',
                         // 'slug',
                         // 'status',
                         // 'super_powers',
@@ -106,7 +130,7 @@ class ConfigFieldsGenerator
             ) {
                 continue;
             }
-            if ($configType === 'root') {
+            if ($this->configType === 'root') {
                 if (
                     in_array(
                         $fieldName,
@@ -119,12 +143,25 @@ class ConfigFieldsGenerator
                     continue;
                 }
             }
-            if ($configType === 'list') {
+            if ($this->configType === 'base') {
+                if (
+                    in_array(
+                        $fieldName,
+                        [
+                            'idXxx', 'store_id', 'user_id', 'name', 'content', 'description',
+                            'created_at', 'updated_at', 'xxx', 'xxx', 'xxx', 'xxx'
+                        ]
+                    )
+                ) {
+                    continue;
+                }
+            }
+            if ($this->configType === 'list') {
                 if (!in_array($fieldName, ['id', 'xxx', 'xxx'])) {
                     continue;
                 }
             }
-            if ($configType === 'edit') {
+            if ($this->configType === 'edit') {
                 if (!in_array($fieldName, ['id', 'xxx', 'xxx'])) {
                     continue;
                 }
@@ -148,8 +185,8 @@ class ConfigFieldsGenerator
                 $defaultValidatorName = $fieldType;
                 $defaultFormatterName = $fieldType;
             }
-            // $labelKey = "{$entityNameLower}.{$fieldName}";
-            $placeholderKey = "{$entityNameLower}.{$fieldName}.placeholder";
+            // $labelKey = "{$this->entityName}.{$fieldName}";
+            $placeholderKey = "{$this->entityName}.{$fieldName}.form.placeholder";
 
             // Build the 'list' section if defined in schema
             $listSection = '';
@@ -170,51 +207,65 @@ class ConfigFieldsGenerator
 
             $formAttr = $this->getFormAttr($fieldName, $config, $placeholderKey, $fieldType);
 
-
-
-            $someListStuff      = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'list');
-            $someFormStuff      = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'form', formAttr: $formAttr);
-            $someFormatterStuff = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'formatter');
-            $someValidatorStuff = $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'validator');
-
-
-
-            // 'formatter' => {$formatter},
-            $listSection = <<<PHP
-        'list' => [
-            {$someListStuff}
-        ],
-
-PHP;
-            //}
-
-            // ADDED: Build the 'form' section as a variable for consistency
-            $formSection = <<<PHP
-        'form' => [
-            {$someFormStuff}
-        ],
-PHP;
-
-            if (($config['primary'] ?? false) === true) {
-                $formSection = '';
+            $skipList      = false;
+            $skipForm      = false;
+            $skipFormatter = false;
+            $skipValidator = false;
+            if (isset($config['primary']) && (bool)$config['primary'] === true) {
+                $skipList      = false;
+                $skipForm      = true;
+                $skipFormatter = true;
+                $skipValidator = true;
             }
-        // 'label' => '{$labelKey}',
 
+            $s08 = '        ';
+            $sections = [];
+            if (!$skipList) {
+                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'list');
+                $sections[] = <<<PHP
+                    'list' => [
+                        {$temp}
+                            ],
+                    PHP;
+            }
+            if (!$skipForm) {
+                $temp =  $this->getCodeBlock(
+                    fieldName: $fieldName,
+                    type: $fieldType,
+                    blockName: 'form',
+                    formAttr: $formAttr
+                );
+                $sections[] = <<<PHP
+                    $s08'form' => [
+                        {$temp}
+                            ],
+                    PHP;
+            }
+            if (!$skipFormatter) {
+                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'formatter');
+                $sections[] = <<<PHP
+                    $s08'formatters' => [
+                        {$temp}
+                            ],
+                    PHP;
+            }
+            if (!$skipValidator) {
+                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'validator');
+                $sections[] = <<<PHP
+                    $s08'validators' => [
+                        {$temp}
+                            ],
+                    PHP;
+            }
+
+            $x = implode("\n", $sections);
             $fieldDefinitions[] = <<<PHP
-    '{$fieldName}' => [ // gen
-{$listSection}{$formSection}
-        'formatters' => [
-            '{$defaultFormatterName}' => [
-            {$someFormatterStuff}
-            ],
+        '{$fieldName}' => [
+            $x
         ],
-        'validators' => [
-            '{$defaultValidatorName}' => [ // Default validator, can be refined based on db_type
-            {$someValidatorStuff}
-            ],
-        ]
-    ],
-PHP;
+    PHP;
+
+            $rrr = 4;
         }
 
         $fieldDefinitionsString = implode("\n", $fieldDefinitions);
@@ -224,7 +275,7 @@ PHP;
 
 /**
  * Generated File - Date: {$generatedTimestamp}
- * Field definitions for the {$entityName}_{$configType} entity.
+ * Field definitions for the {$this->entityName}_{$this->configType} entity.
  *
  * This file defines how each field should be rendered in forms and lists,
  * including labels, input types, attributes, formatters, and validators.
@@ -250,7 +301,7 @@ PHP;
         string $placeholderKey,
         string $fieldType,
     ): ?string {
-         if (stripos($fieldName, 'slug') !== false) {
+        if (stripos($fieldName, 'slug') !== false) {
             return null;
         }
 
@@ -284,7 +335,11 @@ PHP;
             if ((isset($config['pattern']))) {
                 $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
             } else {
-                $formAttr[] = "$spaces// 'pattern'     => '[a-z0-9]/',";
+                if ($fieldType == 'email') {
+                    $formAttr[] = "$spaces// 'pattern'     => '/^user[a-z0-9._%+-]*@/',";
+                } else {
+                    $formAttr[] = "$spaces// 'pattern'     => '/^[a-z0-9]/',";
+                }
             }
 
             if ((isset($config['style']))) {
@@ -329,7 +384,6 @@ PHP;
             // } else {
             //     $formAttr[] = "$spaces// 'ttttt'    => false,";
             // }
-
         }
         $formAttr = implode("\n", $formAttr);
 
@@ -343,56 +397,175 @@ PHP;
         string $formAttr = null
     ): string {
         $block = '';
+        $s04 = '    ';
+        $s08 = '        ';
+        $s12 = '            ';
+        $s14 = '                ';
+        $s16 = '                    ';
+        $snn = '    ';
         switch ($type) {
             // TEXT /////////////////////////////////////////////////////////
             case 'text':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
-                'sortable'   => false,
-    PHP;
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
-                'type'       => 'text',
-                'attributes' => [
-    $formAttr
-                ],
-    PHP;
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
                 } elseif ($blockName === 'formatter') {
                     $block = <<<PHP
-        // 'max_length' => 5,
-                    // 'truncate_suffix',                   // Defaults to ...
-                    // 'truncate_suffix' => '...Read More',
-                    // 'null_value' => 'Nothing here',      // Replaces null value with string
-                    // 'suffix'     => "Boo",               // Appends to end of text
-                    // 'transform'  => 'lowercase',
-                    // 'transform'  => 'uppercase',
-                    // 'transform'  => 'capitalize',
-                    // 'transform'  => 'title',
-                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                    // 'transform'  => 'last2char_upper',
-    PHP;
+                    $s08'{$type}' => [
+                        $s12// 'max_length' => 5,
+                        $s12// 'truncate_suffix',                   // Defaults to ...
+                        $s12// 'truncate_suffix' => '...Read More',
+                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
+                        $s12// 'suffix'     => "Boo",               // Appends to end of text
+                        $s12// 'transform'  => 'lowercase',
+                        $s12// 'transform'  => 'uppercase',
+                        $s12// 'transform'  => 'capitalize',
+                        $s12// 'transform'  => 'title',
+                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                        $s12// 'transform'  => 'last2char_upper',
+                    $s12]
+                    PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
-        'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                    'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                    // 'ignore_forbidden'  => true,  // Default is false
-                    // 'ignore_allowed'    => false, // Default is true
-                    //---
-                    'required_message'  => "Custom: This field is required.",
-                    // 'invalid_message'   => "Custom: Please enter a valid text.",
-                    // 'minlength_message' => "Custom: Text must be at least ___ characters.",
-                    // 'maxlength_message' => "Custom: Text must not exceed ___ characters.",
-                    // 'pattern_message'   => "Custom: Text does not match the required pattern.",
-                    // 'allowed_message'   => "Custom: Please select a valid word.",
-                    // 'forbidden_message' => "Custom: This word is not allowed.",
-    PHP;
+                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
+                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
+                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
+                        $s12// 'ignore_forbidden'  => true,  // Default is false
+                        $s12// 'ignore_allowed'    => false, // Default is true
+                        $s12//---
+                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
+                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
+                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
+                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
+                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
+                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
+                    $s12]
+                    PHP;
                 }
                 break;
+
+            // number /////////////////////////////////////////////////////////
+            case 'number':
+                # code...
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [
+                        $s12// 'max_length' => 5,
+                        $s12// 'truncate_suffix',                   // Defaults to ...
+                        $s12// 'truncate_suffix' => '...Read More',
+                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
+                        $s12// 'suffix'     => "Boo",               // Appends to end of text
+                        $s12// 'transform'  => 'lowercase',
+                        $s12// 'transform'  => 'uppercase',
+                        $s12// 'transform'  => 'capitalize',
+                        $s12// 'transform'  => 'title',
+                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                        $s12// 'transform'  => 'last2char_upper',
+                    $s12]
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
+                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
+                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
+                        $s12// 'ignore_forbidden'  => true,  // Default is false
+                        $s12// 'ignore_allowed'    => false, // Default is true
+                        $s12//---
+                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
+                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
+                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
+                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
+                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
+                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
+                    $s12]
+                    PHP;
+                }
+                break;
+
+
             // EMAIL /////////////////////////////////////////////////////////
             case 'email':
+                # code...
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [
+                        $s12// 'max_length' => 5,
+                        $s12// 'truncate_suffix',                   // Defaults to ...
+                        $s12// 'truncate_suffix' => '...Read More',
+                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
+                        $s12// 'suffix'     => "Boo",               // Appends to end of text
+                        $s12// 'transform'  => 'lowercase',
+                        $s12// 'transform'  => 'uppercase',
+                        $s12// 'transform'  => 'capitalize',
+                        $s12// 'transform'  => 'title',
+                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                        $s12// 'transform'  => 'last2char_upper',
+                    $s12],
+                    $s12'text' => [
+                        $s12 // 'mask'             => true, // Or false, or omit for default
+                    $s12]
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
+                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
+                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
+                        $s12// 'ignore_forbidden'  => true,  // Default is false
+                        $s12// 'ignore_allowed'    => false, // Default is true
+                        $s12//---
+                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
+                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
+                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
+                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
+                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
+                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
+                    $s12],
+                    PHP;
+                }
+
+                break;
+            // EMAIL /////////////////////////////////////////////////////////
+            case 'email2':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP

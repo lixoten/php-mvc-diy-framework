@@ -2,6 +2,10 @@
 <ruleset name="MyProjectStandards">
     <rule ref="PSR12"/>
 
+    <rule ref="Generic.WhiteSpace.ScopeIndent">
+        <severity>0</severity> <!-- 0 = disable, 5 = warning, 10 = error -->
+    </rule>
+
     <file>src</file>
     <file>app</file>
     <file>index.php</file>

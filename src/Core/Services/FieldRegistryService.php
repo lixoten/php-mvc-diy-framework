@@ -98,10 +98,6 @@ class FieldRegistryService
      */
     public function getFieldWithFallbacks(string $fieldName, string $pageKey, string $entityName): ?array
     {
-        // Local  - field_testy_edit
-        // Entity - field_testy
-        // Base   - field_base
-
         // 1. Page-Context-specific config: src/App/Features/{Entity}/Config/{pageKey}_fields.php
         // This assumes pageKey for a feature is like 'testy_list' or 'testy_edit'
         // and the config file is field_testy.php
@@ -110,6 +106,7 @@ class FieldRegistryService
 
         // fixme shit2 - ok
         $devOnly = 'L-';
+        // findloc - Read testy_fields_edit.php /..._fields_list.root.php
         $field = $this->configService->getFromFeature($entityName, $key . ".$fieldName");
         if ($field !== null) {
             // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
@@ -121,6 +118,7 @@ class FieldRegistryService
         // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/{entityName}_fields.php
         // fixme shit2 - ok
         $devOnly = 'R-';
+        // findloc - Read testy_fields_root.php
         $field = $this->configService->getFromFeature($entityName, $entityName . '_fields_root' . ".$fieldName");
         if ($field !== null) {
             //contains '_list'
@@ -133,7 +131,8 @@ class FieldRegistryService
 
         // 3. Base config: config/render/fields_base.php
         $devOnly = 'B-';
-        $field = $this->configService->get('render/field_base' . '.' . $fieldName);
+        // findloc - Read base_fields.php
+        $field = $this->configService->get('render/base_field' . '.' . $fieldName);
         if ($field !== null) {
             // $field['label'] = $devOnly . $field['label'];
             return $field;

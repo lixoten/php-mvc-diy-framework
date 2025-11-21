@@ -30,8 +30,8 @@ class GenericFormType extends AbstractFormType
         'html5_validation' => true,
         'css_form_theme_class' => '', // Or get from global config
         'css_form_theme_file' => '',  // Or get from global config
-        'form_heading' => 'Edit genContent',
-        'submit_text' => 'Save',
+        'form_heading' => 'Edit genContentfook',
+        'submit_text' => 'Savefook',
     ];
 
     public function __construct(

@@ -33,18 +33,20 @@ class I18nTranslator implements TranslatorInterface
         }
     }
 
-    /**
-     * Get a translation with optional placeholder replacements.
-     *
-     * @param string $key Translation key (e.g., 'form.hints.minlength')
-     * @param string $name Context name (e.g., 'testy_list')
-     * @param array<string, mixed> $replacements Placeholder values (e.g., ['min' => 5])
-     * @return string
-     */
-    public function get(string $key, string $name, array $replacements = []): string
+
+    /** {@inheritdoc} */
+    public function get(string $key, array $replacements = [], string $pageName = null): string
     {
-        if (!empty($replacements)) {
-            $rrr = $replacements;
+        // if (!empty($replacements)) {
+        //     $rrr = $replacements;
+        // }
+        $keySegments =  explode('.', $key);
+        // 1. Check the first segment AND validate $pageName
+        if ($keySegments[0] === 'basefield' && is_string($pageName) && $pageName !== '') {
+            // 2. Replace only the first segment
+            $keySegments[0] = $pageName;
+            // 3. Rebuild the key
+            $key = implode('.', $keySegments);
         }
 
         $resolvePath = fn(array $array, string $path): mixed => (function (array $array, string $path): mixed {
@@ -60,7 +62,6 @@ class I18nTranslator implements TranslatorInterface
         })($array, $path);
 
         $current = null;
-        $useEntity = explode('_', $name)[0];
         $fullSpecificKeyParts = [];
 
         // Build the specific key path dynamically, handling 'base' replacement
@@ -76,14 +77,25 @@ class I18nTranslator implements TranslatorInterface
         }
 
         /////////////////////////////////////////////////////
-
-
+        // "testy.generic_text.form.label"
+        // "testy.generic_text.validation.required"
 
         if (is_string($current)) {
             return $this->replacePlaceholders($current, $replacements);
         }
 
-
+        // Not found, last ditch effort to locate in common file.
+        if ($keySegments[0] !== 'common') {
+            $keySegments[0] = 'common';
+            $specificLookupKey = implode('.', $keySegments);
+            $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
+            if (is_string($resolvedValue)) {
+                $current = $resolvedValue . ' -' . substr($specificLookupKey, 0, 4);
+            }
+            if (is_string($current)) {
+                return $this->replacePlaceholders($current, $replacements);
+            }
+        }
         return 'NF_' . $key;
     }
 
@@ -113,32 +125,5 @@ class I18nTranslator implements TranslatorInterface
 
         return $translation;
     }
-
-
-    // /**
-    //  * Resolve a dot-path against an array, return null when not found.
-    //  */
-    // private function resolvePath(array $parts): mixed
-    // {
-    //     $langNamespace = array_shift($parts);
-
-    //     // 1. ✅ Safely retrieve the base array for the namespace
-    //     // Check if the namespace exists AND is an array before proceeding
-    //     if (!array_key_exists($langNamespace, $this->translations) || !is_array($this->translations[$langNamespace])) {
-    //         return null; // Namespace not found or not an array
-    //     }
-
-    //     $current = $this->translations[$langNamespace];
-    //     foreach ($parts as $part) {
-    //         // If $current is not an array (meaning we've hit a scalar value too early in the path)
-    //         // or if the key 'part' does not exist in the current array, then the path cannot be resolved.
-    //         if (!is_array($current) || !array_key_exists($part, $current)) {
-    //             return null; // Path segment not found at this level or path leads to scalar prematurely
-    //         }
-    //         $current = $current[$part];
-    //     }
-    //     return $current;
-    // }
-
 }
 

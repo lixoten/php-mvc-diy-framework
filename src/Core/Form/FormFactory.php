@@ -134,7 +134,7 @@ class FormFactory implements FormFactoryInterface
         //$formType->revisitShit();
 
         // Create form instance
-        $form = new Form($formType->pageKey, $this->csrf);
+        $form = new Form($formType->pageKey, $formType->pageName, $this->csrf);
         //$form = new Form($formType->viewName, $this->csrf);
 
         // Create form builder

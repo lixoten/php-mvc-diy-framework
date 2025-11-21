@@ -28,12 +28,15 @@ class FormConfigurationService
      * Load and merge form configuration for a specific page/entity context
      *
      * @param string $pageKey Page identifier (e.g., 'testy_edit', 'user_login')
+     * @param string $pageName Page name (e.g., 'testy', 'user')
      * @param string $pageFeature Feature name (e.g., 'Testy', 'Auth')
      * @param string $pageEntity Entity name (e.g., 'testy', 'user')
      * @return array<string, mixed> Merged configuration array
      */
     public function loadConfiguration(
         string $pageKey,
+        string $pageName,
+        string $pageAction,
         string $pageFeature,
         string $pageEntity,
     ): array {
@@ -41,7 +44,7 @@ class FormConfigurationService
         $baseConfig = $this->loadBaseConfiguration();
 
         // 2. Load page-specific configuration
-        $pageConfig = $this->loadPageConfiguration($pageFeature, $pageKey);
+        $pageConfig = $this->loadPageConfiguration($pageFeature, $pageKey, $pageName, $pageAction);
 
         // 3. Merge configurations (page > base)
         $mergedRenderOptions = $this->deepMerge(
@@ -92,15 +95,20 @@ class FormConfigurationService
      * @param string $pageKey Page name (e.g., 'testy_edit')
      * @return array<string, mixed>
      */
-    protected function loadPageConfiguration(string $pageFeature, string $pageKey): array
-    {
+    protected function loadPageConfiguration(
+        string $pageFeature,
+        string $pageKey,
+        string $pageName,
+        string $pageAction
+    ): array {
         try {
             // Extract entity name from page name (e.g., 'testy_edit' -> 'testy')
-            $useEntity = explode('_', $pageKey)[0];
-            $action = explode('_', $pageKey)[1] ?? 'form';
+            // $useEntity = explode('_', $pageKey)[0];
+            // $action = explode('_', $pageKey)[1] ?? 'form';
 
+            // Loads from src/Config/view.form.php
             // Build config key: testy_view_edit
-            $configKey = "{$useEntity}_view_{$action}";
+            $configKey = "{$pageName}_view_{$pageAction}";
             $config = $this->configService->getFromFeature($pageFeature, $configKey) ?? [];
 
             return $config;

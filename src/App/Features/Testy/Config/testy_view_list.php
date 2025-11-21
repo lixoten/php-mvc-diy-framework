@@ -17,10 +17,14 @@ return [
     ],
     'pagination' => [
         'per_page' => 12,
-        'window_size' => 2, // Optional: for pagination link window
+        'window_size' => 2,
     ],
     'render_options' => [
-        'title'                 =>  'list.posts.title 111',
+        'from'                  => 'testy_view_list-config',
+        'title'                 =>  'list.posts.title 222', //shithead2
+        // 'form_heading_level'         => 'h3', // Default is 'h2'
+        'form_heading'               => "testy.form.heading",
+        'form_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
         'show_actions'          => true,
         'show_action_add'       => true,
         'show_action_edit'      => true,
@@ -35,7 +39,7 @@ return [
         // 'is_verified',
         'generic_text',
         // 'telephone',
-        // 'primary_email',
+        'primary_email',
         // ------
         // 'store_id',
         // 'user_id',

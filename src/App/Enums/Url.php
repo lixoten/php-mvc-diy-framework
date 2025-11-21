@@ -139,12 +139,62 @@ enum Url
     case BASE_STORE;
 
 
+
+    /**
+     * Helper to derive a translation key for common CRUD actions based on enum case name.
+     *
+     * Example: CORE_TESTY_DELETE -> 'testy.button.text.delete'
+     */
+    public function buildTranslationKeyForCrudAction(string $entityName, string $action): string
+    {
+        return "{$entityName}.button.{$action}";
+    }
+
+
+    /**
+     * Helper to derive a translation key for common CRUD actions based on enum case name.
+     *
+     * Example: CORE_TESTY_DELETE -> 'testy.button.text.delete'
+     */
+    public function extraEntity(): array
+    {
+        // Example: $this->name could be 'CORE_TESTY_DELETE'
+        // We want to extract 'testy' and 'delete'
+        $parts = explode('_', $this->name);
+
+        // This pattern expects CORE_{ENTITY_NAME}_{ACTION_NAME}
+        if (count($parts) >= 3 && $parts[0] === 'CORE') {
+            $entityName = strtolower($parts[1]); // e.g., 'testy' from 'TESTY'
+            $action = strtolower($parts[2]);    // e.g., 'delete' from 'DELETE'
+
+            // For now, assuming simple actions like 'delete', 'create', 'edit', 'view'
+            // You can refine this logic if actions also have sub-segments (e.g., 'delete_confirm')
+            return ['entity' => $entityName, 'action' => $action];
+        }
+
+        // Fallback for cases that do not match the expected CRUD pattern.
+        // Returning the lowercased enum name itself, or you might throw an exception.
+        return [];
+    }
+
+
+
+
     /**
      * Get URL data as an array with all properties
      */
     public function data(): array
     {
+        $rrr = $this->extraEntity();
 
+        $entity = '';
+        $action = '';
+        if (isset($rrr['entity'])) {
+            $entity = $rrr['entity'];
+        }
+        if (isset($rrr['action'])) {
+            $action = $rrr['action'];
+        }
 
         $foo =  match ($this) {
             // Core URLs
@@ -479,39 +529,59 @@ enum Url
                 [],
             ),
             self::CORE_TESTY_LIST => $this->routeData(
-                'testy/list',
-                'testy/list',
-                'list',
-                'Testy',
+                // 'testy/list',
+                // 'testy/list',
+                // 'list',
+                // 'Testy',
+                "$entity/$action",
+                "$entity/$action",
+                $action,
+                $this->buildTranslationKeyForCrudAction($entity, $action),
                 [],
             ),
             self::CORE_TESTY_CREATE => $this->routeData(
-                'testy/create',
-                'testy/create',
-                'create',
-                'Create Testy',
+                // 'testy/create',
+                // 'testy/create',
+                // 'create',
+                // 'Create Testy',
+                "$entity/$action",
+                "$entity/$action",
+                $action,
+                $this->buildTranslationKeyForCrudAction($entity, $action),
                 [],
             ),
             self::CORE_TESTY_EDIT => $this->routeData(
-                'testy/edit/{id}',
-                'testy/edit',
-                'edit',
-                'Edit Testy',
+                // 'testy/edit/{id}',
+                // 'testy/edit',
+                // 'edit',
+                // 'Edit Testy',
+                "$entity/$action/{id}",
+                "$entity/$action",
+                $action,
+                $this->buildTranslationKeyForCrudAction($entity, $action),
                 ['id'],
             ),
 
             self::CORE_TESTY_VIEW => $this->routeData(
-                'testy/view/{id}',
-                'testy/view',
-                'view',
-                'VIEW Testy',
+                // 'testy/view/{id}',
+                // 'testy/view',
+                // 'view',
+                // 'VIEW Testy',
+                "$entity/$action/{id}",
+                "$entity/$action",
+                $action,
+                $this->buildTranslationKeyForCrudAction($entity, $action),
                 ['id'],
             ),
             self::CORE_TESTY_DELETE => $this->routeData(
-                'testy/delete/{id}',
-                'testy/delete',
-                'delete',
-                'Delete Testy',
+                // 'testy/delete/{id}',
+                // 'testy/delete',
+                // 'delete',
+                "$entity/$action/{id}",
+                "$entity/$action",
+                $action,
+                // 'Delete Testy',
+                $this->buildTranslationKeyForCrudAction($entity, $action),
                 ['id'],
             ),
             self::CORE_TESTY_DELETE_CONFIRM => $this->routeData(
@@ -536,7 +606,7 @@ enum Url
             //     'list',
             //     'Testy',
             //     [],
-            // ),
+            // ),\
             self::CORE_ALBUMS_CREATE => $this->routeData(
                 'albums/create',
                 'albums/create',
@@ -823,6 +893,31 @@ enum Url
     }
 
 
+    /**
+     * Helper to derive a translation key for common CRUD actions based on enum case name.
+     *
+     * Example: CORE_TESTY_DELETE -> 'testy.button.text.delete'
+     */
+    private function buildTranslationKeyForCrudActionOld(): string
+    {
+        // Example: $this->name could be 'CORE_TESTY_DELETE'
+        // We want to extract 'testy' and 'delete'
+        $parts = explode('_', $this->name);
+
+        // This pattern expects CORE_{ENTITY_NAME}_{ACTION_NAME}
+        if (count($parts) >= 3 && $parts[0] === 'CORE') {
+            $entityName = strtolower($parts[1]); // e.g., 'testy' from 'TESTY'
+            $action = strtolower($parts[2]);    // e.g., 'delete' from 'DELETE'
+
+            // For now, assuming simple actions like 'delete', 'create', 'edit', 'view'
+            // You can refine this logic if actions also have sub-segments (e.g., 'delete_confirm')
+            return "{$entityName}.button.text.{$action}";
+        }
+
+        // Fallback for cases that do not match the expected CRUD pattern.
+        // Returning the lowercased enum name itself, or you might throw an exception.
+        return strtolower($this->name);
+    }
 
     /**
      * Helper method to create route data without repeating empty params

@@ -146,6 +146,17 @@ class PathResolverService
         return $this->getSrcPath() . 'Database/Seeders/';
     }
 
+    /**
+     * Get the absolute path to the 'lang/en' directory.
+     *
+     * @return string
+     */
+    public function getLangFilePath(): string
+    {
+        return $this->projectRoot . 'lang/en/';
+    }
+
+
     // --- Feature-Specific Config Paths ---
 
     /**
@@ -219,6 +230,15 @@ class PathResolverService
     }
 
 
+    /**
+     * Get the absolute path to base_fields config file.
+     *
+     * @return string
+     */
+    public function getConfigFieldRenderBaseFilePath(): string
+    {
+        return $this->getSrcPath() . 'Config/render/';
+    }
 
 
     /**

@@ -172,7 +172,6 @@ return [
 
             'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
             'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            // 'minlength_message' => ['values' => 'string', 'default' => 'zzText must be at least ___ characters.'],
             'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
             'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
             'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
@@ -218,14 +217,13 @@ return [
             'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
             'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
 
-            'required_message'         => ['values' => 'string', 'default' => null],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease ???.'],
-            'minlength_message' => ['values' => 'string', 'default' => 'zzText must be at least ___ characters.'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'zzText must not exceed ___ characters.'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'zzText does not match the required pattern.'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'zzPlease select a valid word.'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'zzThis word is not allowed.'],
-        ],
+            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
+            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
+            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
+            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
+            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],        ],
     ],
     'password' => [
         // Global Like if not applicable set to null
@@ -291,6 +289,15 @@ return [
                 'values' => 'string',
                 'default' => 'zzPassword must contain at least one special character.'
             ],
+            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
+            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
+            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
+            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
+            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
+
+
         ],
     ],
     'email' => [
@@ -323,13 +330,13 @@ return [
             'allowed'           => ['values' => 'array', 'default' => ['good.com', 'heaven.org']],
             'forbidden'         => ['values' => 'array', 'default' => ['xxx.com', 'bad.com']],
 
-            'required_message'  => ['values' => 'string', 'default' => 'zzEmail is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid email address.'],
-            'minlength_message' => ['values' => 'string', 'default' => 'zzEmail must be at least ___ characters.'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'zzEmail must not exceed ___ characters.'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'zzEmail does not match the required pattern.'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'zzPlease select a valid domain.'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'zzThis domain is not allowed.'],
+            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
+            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
+            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
+            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
+            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
         ],
     ],
     'url' => [
@@ -934,4 +941,4 @@ return [
         // <datalist>
         // <progress>
         // <meter>
-// 668 // 491 606 616 651 724
+// 668 // 491 606 616 651 724 937

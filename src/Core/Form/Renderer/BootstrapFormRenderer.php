@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\Form\Renderer;
 
+use App\Helpers\DebugRt;
 use Core\Form\FormInterface;
 use Core\Form\Field\FieldInterface;
 use Core\I18n\I18nTranslator;
@@ -121,7 +122,33 @@ class BootstrapFormRenderer extends AbstractFormRenderer
      */
     public function renderForm(FormInterface $form, array $options = []): string
     {
-        $output = $this->renderStart($form, $options);
+        // Initial Form Entry we get all options
+        $renderOptions = $form->getRenderOptions();
+        $options = array_merge($renderOptions, $options);
+
+
+       // $cardClass = $this->themeService->getElementClass('card');
+        //$output = '<div class="xxx' . $cardClass . '">';
+
+
+
+        //---------------------------------------------------------------------
+
+        // Render the form header (title + ajax spinner) *outside* the <form> tag
+        $output = $this->renderFormHeader($options);
+
+        //---------------------------------------------------------------------
+
+
+
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+        $output .= '<div class="' . $cardBodyClass . ' pt-0">';
+
+
+        $output .= $this->renderStart($form, $options);
+        $pageName = $form->getPageName();
+
+        //---------------------------------------------------------------------
 
         // Get error display style option
         $errorDisplay = $options['error_display'] ?? 'inline';
@@ -163,35 +190,21 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $output .= $this->renderErrors($form, $options);
         }
 
-        // Check if we have a layout configuration
-        $layout = $form->getLayout();
-        // $layout = [];
-        // $layout[0]['fields'] = $options['form_fields'];
-        // $layout = $options['layout'];
-
-        //if (!is_array($layout) || empty($layout)) {
-         //   $layout[0]['fields'] = $options['form_fields'];
-        //}
-
-        $layout_type = $options['layout_type'] ?? 'sequential';
-
-
-
-
-        // Track if we have a captcha field
-        $isCaptchaRequired = $form->isCaptchaRequired();
-        //DebugRt::j('1', '', $isCaptchaRequired);
-        //$captchaFieldName = 'captcha';
-        //$hasCaptcha = $form->hasField($captchaFieldName);
+        //---------------------------------------------------------------------
 
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getName(), $field, $options);
+                $output .= $this->renderField($form->getPageKey(), $form->getPageName(), $field, $options);
                 $field->setType('display');
                 $rrr = 4;
             }
         }
 
+        //---------------------------------------------------------------------
+
+        // Check if we have a layout configuration
+        $layout = $form->getLayout();
+        $layout_type = $options['layout_type'] ?? 'sequential';
 
         if ($layout_type === 'fieldsets' && !empty($layout)) {
             // Determine column class based on layout
@@ -221,7 +234,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 // Render fields in this fieldset
                 foreach ($fieldset['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
+                        $output .= $this->renderField(
+                            $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
                     }
                 }
 
@@ -245,7 +263,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 $fields = $section['fields'] ?? [];
                 foreach ($fields as $fieldName) {
                     if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
+                        $output .= $this->renderField(
+                            $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
                     }
                 }
             }
@@ -255,7 +278,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 foreach ($set['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
                         if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
+                            $output .= $this->renderField(
+                                $form->getName(),
+                                $pageName,
+                                $form->getField($fieldName),
+                                $options
+                            );
                         }
                     }
                 }
@@ -266,9 +294,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 foreach ($set['fields'] as $fieldName) {
                     if ($form->hasField($fieldName)) {
                         if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
-
-
+                            $output .= $this->renderField(
+                                $form->getName(),
+                                $pageName,
+                                $form->getField($fieldName),
+                                $options
+                            );
                         }
                     }
                 }
@@ -278,76 +309,63 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             // foreach ($layout['fields'] as $fieldName) {
             //     if ($form->hasField($fieldName)) {
             //         if ($fieldName !== 'captcha') {
-            //             $output .= $this->renderField($form->getName(), $form->getField($fieldName), $options);
+            //             $output .= $this->renderField(
+            //                 $form->getName(), $pageName,
+            //                 $form->getField($fieldName),
+            //                 $options
+            //             );
             //         }
             //     }
             // }
         }
+
+        //---------------------------------------------------------------------
+
+        // Track if we have a captcha field
+        $isCaptchaRequired = $form->isCaptchaRequired();
 
         // Now render CAPTCHA in a consistent place before submit button
         if ($isCaptchaRequired) {
             $captchaFieldName = 'captcha';
             $output .= '<div class="security-wrapper mb-4">';
             $output .= '<h5 class="security-heading mb-3">Security Verification</h5>';
-            $output .= $this->renderField($form->getName(), $form->getField($captchaFieldName), $options);
+            $output .= $this->renderField($form->getName(), $pageName, $form->getField($captchaFieldName), $options);
             $output .= '</div>';
         }
 
-        if (!empty($options['ajax_save'])) {
-            $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2">'
-                . '<span class="spinner-border spinner-border-sm"></span> Saving...'
-                . '</div>';
-        }
+        //---------------------------------------------------------------------
 
-        // Render submit button if requested
-        if (!isset($options['no_submit_button']) || !$options['no_submit_button']) {
-            $buttonText = $options['submit_text'] ?? 'Submit';
-            $buttonClass = $options['submit_class'] ?? 'btn btn-primary';
-            $output .= sprintf(
-                '<div class="mb-3"><button type="submit" class="%s">%s</button></div>',
-                htmlspecialchars($buttonClass),
-                htmlspecialchars($buttonText)
-            );
-
-            // ✅ NEW: Add Cancel/Back button if cancel_url is provided via render options
-            if (!empty($options['cancel_url'])) {
-                $cancelText = $options['cancel_text'] ?? 'Cancel';
-                $cancelClass = $options['cancel_class'] ?? 'btn btn-secondary ms-2';
-                $output .= sprintf(
-                    ' <a href="%s" class="%s">%s</a>',
-                    htmlspecialchars($options['cancel_url']),
-                    htmlspecialchars($cancelClass),
-                    htmlspecialchars($cancelText)
-                );
-            }
-        }
+        $output .= $this->renderFormButtons($options);
 
         $output .= $this->renderDraftNotification($options); // js-feature
 
         $output .= $this->renderEnd($form, $options);
 
+        $output .= '</div>';
+        //$output .= '</div>';
+
         return $output;
     }
+
 
     /**
      * {@inheritdoc}
      */
-    public function renderField(string $formName, FieldInterface $field, array $options = []): string
+    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
     {
         static $autofocusSet = false;
 
+        //---------------------------------------------------------------------
 
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
-        // $label = $field->getLabel();
-        // $label = htmlspecialchars($field->getLabel());  // Escape first for security
-        $label = htmlspecialchars($this->translator->get($field->getLabel(), $formName));
+        $label = htmlspecialchars($this->translator->get($field->getLabel(), pageName: $pageName));
 
+        //---------------------------------------------------------------------
 
-        //$value = htmlspecialchars((string)$field->getValue());
         // Get the raw value
-        $rawValue = $field->getValue();
+        $rawValue     = $field->getValue();
         $fieldOptions = $field->getOptions();
         $value = '';
 
@@ -358,10 +376,9 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $formatters = null;
         }
 
+        //---------------------------------------------------------------------
 
-        //$accesskey = $fieldConfig['form']['attributes']['accesskey'] ?? null;
         $accesskey = $field->getAttribute('accesskey');
-
         if ($accesskey) {
             // Underline the access key in the label (case-insensitive)
             $pos = stripos($label, $accesskey);
@@ -378,6 +395,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             }
         }
 
+        //---------------------------------------------------------------------
 
         // Important!!! - Uber_GEO, Uber_Formatter, Uber_Phone
         if (!empty($field->getErrors())) {
@@ -393,8 +411,6 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             if (!is_array($formatters)) {
                 $formatters = [$formatters];
             }
-
-
 
             // Start with the raw value
             $currentValue = $rawValue;
@@ -471,10 +487,9 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         $attributes = $field->getAttributes();
         if (isset($attributes['placeholder'])) {
             $attributes['placeholder'] = htmlspecialchars(
-                $this->translator->get($attributes['placeholder'], $formName)
+                $this->translator->get($attributes['placeholder'], pageName: $pageName)
             );
         }
-
 
         // Autofocus logic: set autofocus on the first field with errors
         if (!empty($field->getErrors()) && !$autofocusSet) {
@@ -1097,127 +1112,13 @@ class BootstrapFormRenderer extends AbstractFormRenderer
      */
     public function renderStart(FormInterface $form, array $options = []): string
     {
-        $attributes = $form->getAttributes();
-
-
-        // ✅ NEW: Merge render options to get injected URLs from controller
-        $renderOptions = $form->getRenderOptions();
-        $options = array_merge($renderOptions, $options);
-
-        // ✅ NEW: Use action_url from render options if available (injected by controller)
-        // Falls back to form's action attribute if not set via render options
-        if (!empty($options['action_url'])) {
-            $attributes['action'] = $options['action_url'];
-        } elseif (!isset($attributes['action'])) {
-            // Fallback to current URL if no action is specified anywhere
-            $attributes['action'] = '';
-        }
-
-        // ✅ NEW: Add AJAX attributes if provided via render options
-        if (!empty($options['ajax_update_url'])) {
-            $attributes['data-ajax-action'] = $options['ajax_update_url'];
-        } elseif (!empty($options['ajax_store_url'])) {
-            $attributes['data-ajax-action'] = $options['ajax_store_url'];
-        }
-
-
-
-        // Add enctype if any field is of type 'file'
-        foreach ($form->getFields() as $field) {
-            if ($field->getType() === 'file') {
-                $attributes['enctype'] = 'multipart/form-data';
-                break;
-            }
-        }
-
-
-
-        // Include HTML attributes from options (ADD THIS CODE)
-        $htmlAttributes = $options['attributes'] ?? [];
-        if (!empty($htmlAttributes)) {
-            $attributes = array_merge($attributes, $htmlAttributes);
-        }
-
-        // Add auto-save and localStorage flags from render_options
-        //$renderOptions = $options['render_options'] ?? [];
-        if (!empty($options['auto_save'])) { // jas-feature
-            $attributes['data-auto-save'] = 'true';
-        }
-        if (!empty($options['use_local_storage'])) {
-            $attributes['data-use-local-storage'] = 'true';
-        }
-
-        if (!empty($options['ajax_save'])) {
-            $attributes['data-ajax-save'] = 'true';
-        }
-
-
-
-        // Handle direct HTML attributes like onsubmit (ADD THIS CODE)
-        $directAttributes = ['onsubmit', 'onclick', 'onchange', 'onblur', 'onfocus'];
-        foreach ($directAttributes as $attr) {
-            if (isset($options[$attr])) {
-                $attributes[$attr] = $options[$attr];
-            }
-        }
-
-
-        // Set default method if not provided
-        if (!isset($attributes['method'])) {
-            $attributes['method'] = 'post';
-        }
-
-        // Apply CSS theme if specified - NO CONFIG ACCESS
-        // Just use the class name directly from options
-        $themeClass = $options['css_form_theme_class'] ?? '';
-
-        if ($themeClass) {
-            // Add theme class if defined
-            if (!isset($attributes['class'])) {
-                $attributes['class'] = $themeClass;
-            } else {
-                $attributes['class'] .= ' ' . $themeClass;
-            }
-        }
-
-        // Add Bootstrap validation class
-        if (!isset($attributes['class'])) {
-            $attributes['class'] = 'needs-validation';
-        } elseif (strpos($attributes['class'], 'needs-validation') === false) {
-            $attributes['class'] .= ' needs-validation';
-        }
-
-
-
-        // novalidate attribute for custom validation
-        if (!($options['html5_validation'] ?? false)) {
-            $attributes['novalidate'] = '';
-        }
-
-        // Build attribute string
-        $attrString = '';
-        foreach ($attributes as $name => $value) {
-            if ($value === '') {
-                $attrString .= ' ' . $name;
-            } else {
-                $attrString .= ' ' . $name . '="' . htmlspecialchars((string)$value) . '"';
-            }
-        }
+        $attrString = $this->buildFormAttributes($form, $options);
 
         $output = '<form' . $attrString . '>';
 
-        // Add CSRF token
+        // CSRF token
         $token = $form->getCSRFToken();
         $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
-
-        // NEW: Add form heading if specified
-        if (!empty($options['form_heading'])) {
-            $headingLevel = $options['form_heading_level'] ?? 'h2';
-            $headingClass = $options['form_heading_class'] ?? 'form-heading mb-4';
-            $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
-                    htmlspecialchars($options['form_heading']) .
-                    "</{$headingLevel}>";
-        }
 
         return $output;
     }
@@ -1229,4 +1130,245 @@ class BootstrapFormRenderer extends AbstractFormRenderer
     {
         return '</form>';
     }
+
+    /**
+     * Renders the form's submit and optional cancel buttons.
+     *
+     * @param array<string, mixed> $options The rendering options.
+     * @return string The HTML string for the buttons.
+     */
+    protected function renderFormButtons(array $options): string
+    {
+        $output = '';
+
+        // Render submit button if requested
+        if (!isset($options['no_submit_button']) || !$options['no_submit_button']) {
+            $buttonText = $options['submit_text'] ?? 'common.button.save';
+            $buttonText = $this->translator->get($buttonText);
+
+            $buttonButtonVariant = $options['submit_button_variant'] ?? 'primary';
+            $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant);
+
+
+            $output .= sprintf(
+                '<div class="mb-3"><button type="submit" class="%s">%s</button></div>',
+                htmlspecialchars($buttonClass),
+                htmlspecialchars($buttonText)
+            );
+
+            // ✅ NEW: Add Cancel/Back button if cancel_url is provided via render options
+            if (!empty($options['cancel_url'])) {
+                $buttonText = $options['cancel_text'] ?? 'common.button.cancel';
+                $buttonText = $this->translator->get($buttonText);
+
+                $buttonButtonVariant = $options['cancel_button_variant'] ?? 'secondary';
+                $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant) . ' ms-2';
+
+                $output .= sprintf(
+                    ' <a href="%s" class="%s">%s</a>',
+                    htmlspecialchars($options['cancel_url']),
+                    htmlspecialchars($buttonClass),
+                    htmlspecialchars($buttonText)
+                );
+            }
+        }
+
+        return $output;
+    }
+
+
+
+    //  * @param FormInterface $form The form instance.
+    /**
+     * Renders the overall form header, including the main heading and any pre-form elements.
+     * This ensures consistency with BootstrapListRenderer's renderHeader by placing the heading
+     * (and related status indicators) outside the <form> element.
+     *
+     * @param array<string, mixed> $options The rendering options.
+     * @return string The HTML for the form header.
+     */
+    protected function renderFormHeader(array $options): string
+    {
+        $output = '';
+
+        // Render the form heading if configured
+        if (!empty($options['form_heading'])) {
+            $headerClass = $this->themeService->getElementClass('card.header'); // Consistent with list header
+            $output = '<div class="' . $headerClass . '">';
+
+            // Resolve heading level, defaulting to 'h2'
+            $headingLevelCandidate = $options['form_heading_level'] ?? 'h2';
+            $headingLevel = (is_string($headingLevelCandidate) && preg_match('/^h[1-6]$/i', $headingLevelCandidate))
+                            ? $headingLevelCandidate
+                            : 'h2'; // Safe fallback for invalid or empty values
+
+            // $headingLevel = $options['form_heading_level'] ?? 'h2';
+            $headingClass = $options['form_heading_class'] ?? $this->themeService->getElementClass('form.heading');
+            // $wrapperClass = $options['form_heading_wrapper_class'] ??
+                                                        // $this->themeService->getElementClass('form.heading.wrapper');
+            $headingText  = $options['form_heading'] ?? 'common.form.heading';
+            $headingText = $this->translator->get($headingText);
+
+
+            // $output .= "<div class=\"{$wrapperClass}\">";
+            $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
+                    htmlspecialchars($headingText) .
+                    "</{$headingLevel}>";
+            $output .= "</div>";
+        }
+
+        // Render ajax_save_spinner here, as it's typically an overall form status indicator,
+        // often appearing before or after the form, not strictly inside.
+        if (!empty($options['ajax_save'])) {
+            $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2">'
+                . '<span class="spinner-border spinner-border-sm"></span> Saving...'
+                . '</div>';
+        }
+
+        return $output;
+    }
+
+
+    /**
+     * Renders the form's submit and optional cancel buttons.
+     *
+     * @param FormInterface<form> $options The rendering options.
+     * @param array<string, mixed> $options The rendering options.
+     * @return string Stringed attributes.
+     */
+    protected function buildFormAttributes(FormInterface $form, array $options): string
+    {
+        $attributes = $form->getAttributes();
+
+        // Set default method if not provided
+        if (!isset($attributes['method'])) {
+            $attributes['method'] = 'post';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Use action_url from render options if available (injected by controller)
+        // Falls back to form's action attribute if not set via render options
+        if (!empty($options['action_url'])) {
+            $attributes['action'] = $options['action_url'];
+        } elseif (!isset($attributes['action'])) {
+            // Fallback to current URL if no action is specified anywhere
+            $attributes['action'] = '';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Add enctype if any field is of type 'file'
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'file') {
+                $attributes['enctype'] = 'multipart/form-data';
+                break;
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // SearchFor 'ajax_update_url'
+        // //  AJAX attributes if provided via render options
+        // if (!empty($options['ajax_update_url'])) {
+        //     $attributes['data-ajax-action'] = $options['ajax_update_url'];
+        // } elseif (!empty($options['ajax_store_url'])) {
+        //     $attributes['data-ajax-action'] = $options['ajax_store_url'];
+        // }
+
+        //---------------------------------------------------------------------
+
+        // Include HTML attributes from options
+        $htmlAttributes = $options['attributes'] ?? [];
+        if (!empty($htmlAttributes)) {
+            $attributes = array_merge($attributes, $htmlAttributes);
+        }
+
+        if (!empty($options['ajax_save'])) { // js-feature
+            $attributes['data-ajax-save'] = 'true';
+        }
+        if (!empty($options['auto_save'])) { // js-feature
+            $attributes['data-auto-save'] = 'true';
+        }
+        if (!empty($options['use_local_storage'])) { // js-feature
+            $attributes['data-use-local-storage'] = 'true';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Handle direct HTML attributes like onsubmit (ADD THIS CODE)
+        $directAttributes = ['onsubmit', 'onclick', 'onchange', 'onblur', 'onfocus'];
+        foreach ($directAttributes as $attr) {
+            if (isset($options[$attr])) {
+                $attributes[$attr] = $options[$attr];
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // Theme
+        $themeClass = $options['css_form_theme_class'] ?? '';
+        if ($themeClass) {
+            if (!isset($attributes['class'])) {
+                $attributes['class'] = $themeClass;
+            } else {
+                $attributes['class'] .= ' ' . $themeClass;
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // Bootstrap validation class
+        $existingClass = trim($attributes['class'] ?? '');
+        if ($existingClass === '') {
+            $attributes['class'] = 'needs-validation';
+        } else {
+            // Ensure exact token match, avoid partial matches
+            if (!preg_match('/\bneeds-validation\b/', $existingClass)) {
+                $attributes['class'] = $existingClass . ' needs-validation';
+            } else {
+                $attributes['class'] = $existingClass; // keep normalized value
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // novalidate attribute for custom validation
+        if (!($options['html5_validation'] ?? false)) {
+            $attributes['novalidate'] = '';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Build attribute string
+        $attrString = '';
+        foreach ($attributes as $name => $value) {
+            if ($value === '') {
+                $attrString .= ' ' . $name;
+            } else {
+                $attrString .= ' ' . $name . '="' . htmlspecialchars((string)$value) . '"';
+            }
+        }
+
+        return $attrString;
+    }
+
+
+    /**
+     * Renders the form's submit and optional cancel buttons.
+     *
+     * @param array<string, mixed> $options The rendering options.
+     * @return string The HTML string for the buttons.
+     */
+    protected function renderFormButtonsXxx(array $options): string
+    {
+        $output = '';
+
+
+        return $output;
+    }
+
+
+
+    //////
 }

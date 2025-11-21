@@ -62,7 +62,7 @@ abstract class AbstractListRenderer implements ListRendererInterface
         if ($env !== null) {
             $this->strictFormatterValidation = ($env === '1' || strtolower($env) === 'true');
         }
-        // Todo use this: $this->strictFormatterValidation = $this->config->get('app.strict_formatter_validation', false);
+        // Todo use : $this->strictFormatterValidation = $this->config->get('app.strict_formatter_validation', false);
     }
 
     /**
@@ -126,19 +126,60 @@ abstract class AbstractListRenderer implements ListRendererInterface
         $columnConfig = $columns[$column] ?? [];
         $formattersConfig = $columnConfig['formatters'] ?? [];
 
-        // ✅ NEW: Validate formatter chains to prevent accidental incompatibilities
+        // Validate formatter chains to prevent accidental incompatibilities
         if (is_array($formattersConfig) && count($formattersConfig) > 1) {
             $this->validateFormatterChain($column, $formattersConfig);
         }
 
-        // Check if this column has explicit formatters (array-based config)
-        if (isset($columnConfig['formatters']) && is_array($columnConfig['formatters'])) {
-            // If explicit formatters are defined, the child renderer (e.g., BootstrapListRenderer)
-            // has already applied them via FormatterService.
-            // We trust that the FormatterService respected isSafeHtml() and handled escaping correctly.
-            // Return the value as-is WITHOUT additional escaping.
+        // Apply class-based formatters via FormatterService directly in the abstract class.
+        // This logic is generic and not Bootstrap-specific.
+        if (is_array($formattersConfig)) {
+            foreach ($formattersConfig as $formatterName => $formatterOptions) {
+                try {
+                    // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined.
+                    // This logic is generic for formatter configuration.
+                    if (isset($formatterOptions['options_provider'])) { // Check existence first
+                        $provider = $formatterOptions['options_provider'];
+                        if (is_callable($provider)) {
+                            // Call the provider (e.g., [TestyStatus::class, 'getFormatterOptions'])
+                            // passing the current field value and the full record.
+                            $resolvedOptions = call_user_func($provider, $value, $record);
+                            $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
+                        } else {
+                            $this->logger->warning(sprintf(
+                                'Formatter options_provider for column "%s", formatter "%s" is not callable.',
+                                $column,
+                                $formatterName
+                            ));
+                        }
+                    }
+
+                    // Apply each formatter in sequence with the resolved options
+                    $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
+                } catch (\Core\Exceptions\FormatterNotFoundException $e) {
+                    $this->logger->warning(sprintf(
+                        'Formatter "%s" not found for column "%s". Error: %s',
+                        $formatterName,
+                        $column,
+                        $e->getMessage()
+                    ));
+                    // Continue with the unformatted value or apply default HTML escaping
+                } catch (\Throwable $e) {
+                    $this->logger->error(sprintf(
+                        'Error applying formatter "%s" to column "%s": %s',
+                        $formatterName,
+                        $column,
+                        $e->getMessage()
+                    ));
+                    // Continue with the unformatted value or apply default HTML escaping
+                }
+            }
+            // After applying all formatters, return the final value.
+            // We trust the formatters have handled HTML safety.
             return (string)$value;
         }
+
+
 
         // ⚠️ LEGACY: Support old-style single 'formatter' closure (deprecated pattern)
         $columnOptions = $columnConfig['options'] ?? [];
@@ -217,7 +258,8 @@ abstract class AbstractListRenderer implements ListRendererInterface
                     'Invalid formatter chain for column "%s": ' .
                     'Formatter "%s" (HTML-producing) is followed by "%s" (HTML-escaping). ' .
                     'The "%s" formatter will escape the HTML produced by "%s", causing it to display as plain text. ' .
-                    'Solution: Remove "%s" from the formatters array, or move it BEFORE "%s" in your field config file.',
+                    'Solution: Remove "%s" from the formatters array, or move it BEFORE "%s" in your field ' .
+                    'config file.',
                     $column,
                     $htmlFormatterName,
                     $escapingFormatterName,
@@ -234,22 +276,23 @@ abstract class AbstractListRenderer implements ListRendererInterface
 
                 // ⚠️ Non-strict mode - just log a warning
                 $this->logger->warning('⚠️ CONFIGURATION WARNING: ' . $errorMessage);
-
             }
         }
     }
 
 
     /**
-     * Helper to find the first field of a specific type
+     * Helper to find the first field of a specific type within the list's column definitions.
+     * This logic is framework-agnostic and belongs in the abstract renderer.
      *
      * @param array<string, mixed> $columns Column definitions
-     * @param string $type The field type to look for
+     * @param string $type The field type to look for (e.g., 'image', 'title')
      * @return string|null The field name if found, null otherwise
      */
     protected function findFirstFieldOfType(array $columns, string $type): ?string
     {
         foreach ($columns as $name => $column) {
+            // Check the explicit 'type' option first
             $options = $column['options'] ?? [];
             $fieldType = $options['type'] ?? '';
 
@@ -257,14 +300,29 @@ abstract class AbstractListRenderer implements ListRendererInterface
                 return $name;
             }
 
-            // Check field name for common patterns
-            if (strpos($name, $type) !== false || strpos($name, 'image') !== false) {
+            // Fallback: Check field name for common patterns (e.g., 'image_url' for 'image' type)
+            // This is a heuristic and might need refinement based on your naming conventions.
+            if (strpos($name, $type) !== false) {
                 return $name;
             }
         }
 
         return null;
     }
+
+
+    /**
+     * Get action button CSS class from ThemeService.
+     * This logic is framework-agnostic as it delegates to the ThemeService abstraction.
+     *
+     * @param string $actionName The action name (e.g., 'edit', 'delete', 'view')
+     * @return string The CSS class for the button
+     */
+    protected function getActionButtonClass(string $actionName): string
+    {
+        return $this->themeService->getElementClass('button.' . $actionName);
+    }
+
 
     /**
      * Render view toggle buttons

@@ -63,6 +63,8 @@ abstract class AbstractFormType implements FormTypeInterface
         // ✅ NEW: Delegate configuration loading to FormConfigurationService
         $config = $this->formConfigService->loadConfiguration(
             $pageKey,
+            $pageName,
+            $pageAction,
             $pageFeature,
             $pageEntity,
         );
