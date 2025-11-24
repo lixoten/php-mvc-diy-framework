@@ -145,9 +145,10 @@ enum Url
      *
      * Example: CORE_TESTY_DELETE -> 'testy.button.text.delete'
      */
-    public function buildTranslationKeyForCrudAction(string $entityName, string $action): string
+    public function buildTranslationKeyForCrudAction(string $entityName, string $action): string // fixme we do not need $entityName
     {
-        return "{$entityName}.button.{$action}";
+        // return "{$entityName}.button.{$action}";
+        return "button.{$action}";
     }
 
 
@@ -291,8 +292,7 @@ enum Url
                 'home',
                 'home/index',
                 'index',
-                'Home-just',
-                [],
+                'menu.home',
             ),
             self::CORE_HOME_ROOT => $this->routeData(
                 '',
@@ -310,7 +310,8 @@ enum Url
                 'home/test',
                 'home/test',
                 'test',
-                'Test',
+                // 'Test',
+                'menu.test',
                 [],
                 null,
             ),
@@ -319,7 +320,8 @@ enum Url
                 'about/index',
                 'about/index',
                 'index',
-                'About',
+                // 'About',
+                'menu.about',
                 [],
                 null,
             ),
@@ -327,7 +329,8 @@ enum Url
                 'contact/index',
                 'contact/index',
                 'index',
-                'Contact',
+                // 'Contact',
+                'menu.contact',
                 [],
                 null,
             ),
@@ -443,21 +446,24 @@ enum Url
                 'account/dashboard/index',
                 'account/dashboard/index',
                 'index',
-                'User Dashboard',
+                // 'User Dashboard',
+                'menu.user_dashboard',
                 [],
             ),
             self::ACCOUNT_PROFILE => $this->routeData(
                 'account/profile/index',
                 'account/profile/index',
                 'index',
-                'Profile',
+                // 'Profile',
+                'menu.user_profile',
                 [],
             ),
             self::ACCOUNT_MYNOTES => $this->routeData(
                 'account/mynotes/index',
                 'account/mynotes/index',
                 'index',
-                'Notes',
+                // 'Notes',
+                'menu.user_notes',
                 [],
             ),
 
@@ -479,7 +485,8 @@ enum Url
                 'user/list',
                 'user/list',
                 'list',
-                'User List',
+                // 'User List',
+                'menu.user_list',
                 [],
             ),
             self::CORE_USER_CREATE => $this->routeData(
@@ -525,7 +532,8 @@ enum Url
                 'testy',
                 'testy/list',
                 'index',
-                'Testy',
+                // 'Testy',
+                'menu.testy',
                 [],
             ),
             self::CORE_TESTY_LIST => $this->routeData(
@@ -836,21 +844,24 @@ enum Url
                 'store/dashboard/index',
                 'store/dashboard/index',
                 'index',
-                'Store Dashboard2',
+                // 'Store Dashboard2',
+                'menu.store_dashboard',
                 [],
             ),
             self::STORE_PROFILE => $this->routeData(
                 'store/profile/index',
                 'store/profile/index',
                 'index',
-                'Profile',
+                // 'Profile',
+                'menu.store_profile',
                 [],
             ),
             self::STORE_SETTINGS => $this->routeData(
                 'store/settings/index',
                 'store/settings/index',
                 'index',
-                'Settings',
+                // 'Settings',
+                'menu.store_settings',
                 [],
             ),
             self::STORE_CREATE => $this->routeData(
@@ -877,14 +888,16 @@ enum Url
                 'admin/dashboard/index',
                 'admin/dashboard/index',
                 'index',
-                'Admin Dashboard',
+                // 'Admin Dashboard',
+                'menu.admin_dashboard',
                 [],
             ),
             self::ADMIN_USERS => $this->routeData(
                 'admin/user/index',
                 'admin/user/index',
                 'index',
-                'Manage Users',
+                // 'Manage Users',
+                'menu.admin_dashboard',
                 [],
             ),
         };
@@ -911,7 +924,8 @@ enum Url
 
             // For now, assuming simple actions like 'delete', 'create', 'edit', 'view'
             // You can refine this logic if actions also have sub-segments (e.g., 'delete_confirm')
-            return "{$entityName}.button.text.{$action}";
+            // return "{$entityName}.button.text.{$action}";
+            return "button.text.{$action}";
         }
 
         // Fallback for cases that do not match the expected CRUD pattern.

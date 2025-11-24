@@ -6,6 +6,7 @@ namespace Core\Navigation\Bootstrap;
 
 use Core\Navigation\NavigationRendererInterface;
 use App\ValueObjects\NavigationData;
+use Core\I18n\I18nTranslator;
 use Core\Services\ThemeServiceInterface;
 
 /**
@@ -20,7 +21,8 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
      * @param ThemeServiceInterface $themeService Theme service for visual styling classes
      */
     public function __construct(
-        private ThemeServiceInterface $themeService
+        private ThemeServiceInterface $themeService,
+        private I18nTranslator $translator,
     ) {
     }
 
@@ -98,6 +100,8 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
         foreach ($items as $item) {
             $url = $item['url'] ?? '#';
             $label = htmlspecialchars($item['label'] ?? '');
+            $label = $this->translator->get($label);
+
             $icon = isset($item['icon']) ? $this->themeService->getIconHtml($item['icon']) : '';
             $isActive = $this->isActiveUrl($url, $currentPath);
             $activeClass = $isActive ? ' ' . ($this->themeService->getElementClass('active') ?: 'active') : '';
@@ -134,6 +138,7 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
 
         foreach ($nestedItems as $group) {
             $label = $group['label'] ?? '';
+            $label = $this->translator->get($label);
             $items = $group['items'] ?? [];
 
             if (empty($items)) {
@@ -163,6 +168,7 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
             foreach ($items as $item) {
                 $url = $item['url'] ?? '#';
                 $itemLabel = $item['label'] ?? '';
+                $itemLabel = $this->translator->get($itemLabel);
                 $isActive = $this->isActiveUrl($url, $currentPath);
                 $itemActiveClass = $isActive ? ' active' : '';
 
@@ -209,6 +215,8 @@ class BootstrapNavigationRendererService implements NavigationRendererInterface
         foreach ($items as $item) {
             $url = $item['url'] ?? '#';
             $label = htmlspecialchars($item['label'] ?? '');
+            $label = $this->translator->get($label);
+
             $isActive = $this->isActiveUrl($url, $currentPath);
             $activeClass = $isActive ? ' active' : '';
             $ariaCurrent = $isActive ? ' aria-current="page"' : '';

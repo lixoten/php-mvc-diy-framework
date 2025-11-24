@@ -37,16 +37,12 @@ class I18nTranslator implements TranslatorInterface
     /** {@inheritdoc} */
     public function get(string $key, array $replacements = [], string $pageName = null): string
     {
-        // if (!empty($replacements)) {
-        //     $rrr = $replacements;
-        // }
         $keySegments =  explode('.', $key);
-        // 1. Check the first segment AND validate $pageName
-        if ($keySegments[0] === 'basefield' && is_string($pageName) && $pageName !== '') {
-            // 2. Replace only the first segment
-            $keySegments[0] = $pageName;
-            // 3. Rebuild the key
-            $key = implode('.', $keySegments);
+
+        if (isset($pageName)) {
+            $firstPassKey = "$pageName.$key";
+        } else {
+            $firstPassKey = "common.$key";
         }
 
         $resolvePath = fn(array $array, string $path): mixed => (function (array $array, string $path): mixed {
@@ -65,37 +61,31 @@ class I18nTranslator implements TranslatorInterface
         $fullSpecificKeyParts = [];
 
         // Build the specific key path dynamically, handling 'base' replacement
-        foreach (explode('.', $key) as $part) {
+        foreach (explode('.', $firstPassKey) as $part) {
             $fullSpecificKeyParts[] = $part;
         }
         $specificLookupKey = implode('.', $fullSpecificKeyParts);
 
-        // 1. Attempt to find the specific translation using the dynamically resolved key
+        // Attempt to find the specific translation using the dynamically resolved key
         $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
-        if (is_string($resolvedValue)) {
-            $current = $resolvedValue . ' -' . substr($specificLookupKey, 0, 4);
+        if (is_string($resolvedValue)) { // findloc - c
+            $current = $resolvedValue . ' - ' . substr($specificLookupKey, 0, 1);
         }
-
-        /////////////////////////////////////////////////////
-        // "testy.generic_text.form.label"
-        // "testy.generic_text.validation.required"
 
         if (is_string($current)) {
             return $this->replacePlaceholders($current, $replacements);
         }
 
-        // Not found, last ditch effort to locate in common file.
-        if ($keySegments[0] !== 'common') {
-            $keySegments[0] = 'common';
-            $specificLookupKey = implode('.', $keySegments);
-            $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
-            if (is_string($resolvedValue)) {
-                $current = $resolvedValue . ' -' . substr($specificLookupKey, 0, 4);
-            }
-            if (is_string($current)) {
-                return $this->replacePlaceholders($current, $replacements);
-            }
+        array_unshift($keySegments, 'common');
+        $specificLookupKey = implode('.', $keySegments);
+        $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
+        if (is_string($resolvedValue)) {
+            $current = $resolvedValue . ' -' . substr($specificLookupKey, 0, 1);
         }
+        if (is_string($current)) {
+            return $this->replacePlaceholders($current, $replacements);
+        }
+
         return 'NF_' . $key;
     }
 

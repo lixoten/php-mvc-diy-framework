@@ -26,11 +26,19 @@ abstract class AbstractListRenderer implements ListRendererInterface
      * Default options
      */
     protected array $defaultOptions = [
-        'show_actions' => true,
-        'show_pagination' => true,
-        'show_view_toggle' => true,
-        'view_type' => self::VIEW_TABLE,
-        'add_button_label' => 'Add New',
+        'css_framework'         => 'bootstrap',
+        'title'                 => 'list.posts.title default',//shithead2
+        'show_actions'          => true,
+        'show_action_add'       => false,
+        'show_action_edit'      => false,
+        'show_action_del'       => false,
+        'show_action_status'    => false,
+
+        'show_actions'       => true,
+        'show_pagination'       => true,
+        'show_view_toggle'      => true,
+        'view_type'             => 'table',
+        'add_button_label'      => 'Add xxNew',
     ];
 
     /**

@@ -9,25 +9,6 @@ namespace Core\Form;
  */
 interface FormTypeInterface
 {
-    // /**
-    //  * Validate and set the form fields for rendering.
-    //  *
-    //  * @param array $listFields Array of field names to set.
-    //  * @return void
-    //  */
-    // public function setFormFields(array $listFields): void;
-
-
-    // // todo
-    // /**
-    //  * Merge the given options into the current list options.
-    //  *
-    //  * @param array $options Associative array of options to merge.
-    //  * @return void
-    //  */
-    // public function mergeFormOptions(array $options): void;
-
-
     /**
      * Get the render options array for this form type.
      *
@@ -87,24 +68,6 @@ interface FormTypeInterface
     public function getLayout(): array;
 
 
-
-
-    // /**
-    //  * Get all options for the form.
-    //  *
-    //  * @return array Options array.
-    //  */
-    // public function getOptions(): array;
-
-
-
-    // /**
-    //  * Set all options for the form.
-    //  *
-    //  * @param array $options Associative array of options.
-    //  * @return void
-    //  */
-    // public function setFormOptions(array $options): void;
 
 
     /**

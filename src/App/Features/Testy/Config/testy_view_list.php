@@ -23,14 +23,20 @@ return [
         'from'                  => 'testy_view_list-config',
         'title'                 =>  'list.posts.title 222', //shithead2
         // 'form_heading_level'         => 'h3', // Default is 'h2'
-        'form_heading'               => "testy.form.heading",
-        'form_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        'heading'               => "form.heading",
+        'heading_class'         => null, // Use ThemeService default, or provide custom class if needed
         'show_actions'          => true,
         'show_action_add'       => true,
         'show_action_edit'      => true,
         'show_action_del'       => true,
         'show_action_view'      => true,
         'show_action_status'    => false,
+
+            'show_pagination'       => true,
+            'show_view_toggle'      => true,
+            'view_type'             => 'table',
+            'add_button_label'      => 'button.add',
+
     ],
     'list_fields' => [
         'id',
@@ -40,6 +46,7 @@ return [
         'generic_text',
         // 'telephone',
         'primary_email',
+        'primary_emailccc',
         // ------
         // 'store_id',
         // 'user_id',

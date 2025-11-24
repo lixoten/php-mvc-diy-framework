@@ -132,7 +132,7 @@ class FieldRegistryService
         // 3. Base config: config/render/fields_base.php
         $devOnly = 'B-';
         // findloc - Read base_fields.php
-        $field = $this->configService->get('render/base_field' . '.' . $fieldName);
+        $field = $this->configService->get('render/base_fields' . '.' . $fieldName);
         if ($field !== null) {
             // $field['label'] = $devOnly . $field['label'];
             return $field;

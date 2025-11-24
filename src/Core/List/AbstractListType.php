@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Core\List;
 
 use App\Enums\Url;
-use App\Helpers\DebugRt;
 use Core\Interfaces\ConfigInterface;
 use Core\Services\ListConfigurationService;
 use Core\Services\FieldRegistryService;
@@ -76,19 +75,13 @@ abstract class AbstractListType implements ListTypeInterface
         $this->options = $config['options'];
         $this->paginationOptions = $config['pagination'];
         $this->renderOptions = $config['render_options'];
-        $this->fields = $config['list_fields'];
+        $this->setFields($config['list_fields']);
     }
 
     /** {@inheritdoc} */
     public function getOptions(): array
     {
         return $this->options;
-    }
-
-    /** {@inheritdoc} */
-    public function setOptions(array $options): void
-    {
-        $this->options = $options;
     }
 
     /** {@inheritdoc} */
@@ -139,26 +132,12 @@ abstract class AbstractListType implements ListTypeInterface
     }
 
 
-    // /**
-    //  * Get the base URL for pagination links.
-    //  *
-    //  * @return Url|null The URL enum for the base URL, or null if not set
-    //  */
-    // public function getPaginationBaseUrl(): ?Url
-    // {
-    //     // ⚠️ TEMPORARY: This is a hack for Phase 2
-    //     // Will be properly handled by UrlService in Phase 3
-    //     return $this->renderOptions['pagination_url'] ?? $this->paginationBaseUrl;
-    // }
-
     /** {@inheritdoc} */
     public function buildList(ListBuilderInterface $builder): void
     {
         $builder->setListTitle($this->renderOptions['title'] ?? 'List');
         $builder->setOptions($this->options);
         $builder->setRenderOptions($this->renderOptions);
-
-        //$fieldNames = $this->getFields();
 
         // Add columns from field definitions
         foreach ($this->fields as $fieldName) {
@@ -180,16 +159,6 @@ abstract class AbstractListType implements ListTypeInterface
                 ]);
             }
         }
-
-        // // ✅ FIXED: Check if ANY action is enabled instead of requiring 'show_actions' flag
-        // $hasActions = ($this->renderOptions['show_action_edit'] ?? false)
-        //     || ($this->renderOptions['show_action_del'] ?? false)
-        //     || ($this->renderOptions['show_action_view'] ?? false);
-
-        // if ($hasActions) {
-        //     $this->addActions($builder);
-        // }
-
 
         $this->addActions($builder);
     }
@@ -282,7 +251,7 @@ abstract class AbstractListType implements ListTypeInterface
         }
 
         // ✅ View action
-        $showView = $renderOptions['show_action_view'] ?? false;
+        $showView    = $renderOptions['show_action_view'] ?? false;
         $hasViewEnum = isset($urlEnums['view']);
 
         // $this->logger->debug('AbstractListType::addActions() Checking view action', [
@@ -319,52 +288,4 @@ abstract class AbstractListType implements ListTypeInterface
      * @return array<string, mixed>
      */
     abstract protected function getDeleteActionAttributes(): array;
-
-
-
-    /**
-     * Validate that the configured fields exist and are accessible
-     *
-     * @param array<string> $fields Array of field names to validate
-     * @return array<string> Array of valid field names
-     */
-    public function validateFields(array $fields): array
-    {
-        $validFields = [];
-
-        foreach ($fields as $fieldName) {
-            $fieldDef = $this->fieldRegistryService->getFieldWithFallbacks(
-                $fieldName,
-                $this->pageKey,
-                $this->pageEntity
-            );
-
-            if ($fieldDef !== null) {
-                $validFields[] = $fieldName;
-            } else {
-                $this->logger->warning('AbstractListType: Invalid field configured', [
-                    'fieldName' => $fieldName,
-                    'pageKey' => $this->pageKey,
-                    'pageEntity' => $this->pageEntity,
-                ]);
-            }
-        }
-
-        return $validFields;
-    }
-
-
-    /**
-     * Log a warning message in development mode
-     *
-     * @param string $message Warning message
-     * @return void
-     */
-    private function logWarning(string $message): void
-    {
-        if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("List Warning: {$message}", E_USER_WARNING);
-        }
-        error_log("List Warning: {$message}");
-    }
 }

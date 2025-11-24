@@ -1,10 +1,41 @@
 {
+  "c982b29f-04b7-441f-bd65-6a10609e7703": {
+    "label": "List",
+    "items": [
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\AbstractCrudController.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\Renderer\\ListRendererInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\Renderer\\AbstractListRenderer.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\Renderer\\ListRendererRegistry.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\Renderer\\BootstrapListRenderer.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_view_list.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_fields_root.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Config\\view.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_view_edit.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Database\\temp.md",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListTypeInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\AbstractListType.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ZzzzListType.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListFactoryInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListFactory.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListView.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListBuilderInterface.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\ListBuilder.php"
+    ],
+    "creationTime": "2025-11-22T07:42:53.889Z",
+    "colorName": "terminal.ansiRed"
+  },
   "5d362287-6513-44d7-a3b2-fd0a96f47b71": {
     "label": "Options Form",
     "items": [
-      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\AbstractFormType.php"
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\Form\\AbstractFormType.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Config\\view.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\App\\Features\\Testy\\Config\\testy_view_edit.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\lang\\en\\common_lang.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\lang\\en\\testy_lang.php",
+      "d:\\xampp\\htdocs\\my_projects\\mvclixo\\src\\Core\\List\\Renderer\\AbstractListRenderer.php"
     ],
-    "creationTime": "2025-11-21T00:09:24.824Z",
+    "creationTime": "2025-11-22T06:04:15.679Z",
     "colorName": "terminal.ansiRed"
   }
 }

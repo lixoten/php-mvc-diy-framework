@@ -67,6 +67,13 @@ return [
             'show_action_edit'      => false,
             'show_action_del'       => false,
             'show_action_status'    => false,
+
+            // 'show_actions'       => true,
+            'show_pagination'       => true,
+            'show_view_toggle'      => true,
+            'view_type'             => 'table',
+            'add_button_label'      => 'Add xxNew',
+
         ],
         'list_fields' => [
             'id'
@@ -93,13 +100,13 @@ return [
             'default_form_theme'    => 'christmas' ?? 'default',
 
             'form_heading_level'    => "h2",
-            'form_heading'          => "common.form.heading",
+            'form_heading'          => "form.heading",
             'form_heading_class'         => null, // Do-not change. It uses ThemeService default, See note-#53
             'form_heading_wrapper_class' => null, // Do-not change. It uses ThemeService default, See note-#53
 
-            'submit_text'           => "common.button.save",
+            'submit_text'           => "button.save",
             'submit_button_variant' => 'primary',
-            'cancel_text'           => 'common.button.cancel', // Added for translation
+            'cancel_text'           => 'button.cancel', // Added for translation
             'cancel_button_variant' => 'secondary',
 
 

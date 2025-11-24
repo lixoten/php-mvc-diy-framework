@@ -20,14 +20,7 @@ use App\Helpers\DebugRt;
         <?= $form->getCaptchaScripts() ?>
     <?php endif; ?>
 
-    <!-- <div class="card"> -->
-        <!-- <div class="card-body"> -->
-            <!-- Auto-rendering the entire form -->
-            <!-- <= $form->render() > -->
-            <?php echo $renderedForm ?>
-
-        <!-- </div> -->
-    <!-- </div> -->
+    <?php echo $renderedForm ?>
 
     <div class="mt-3">
         <p><a href="/contact">View component-based form rendering</a></p>

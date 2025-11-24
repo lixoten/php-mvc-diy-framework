@@ -49,7 +49,9 @@ class BootstrapListRenderer extends AbstractListRenderer
         if (($options['show_action_add'] ?? false) && !empty($options['add_url'])) {
             $output .= '<a href="' . htmlspecialchars($options['add_url'] ?? '') . '" class="' . $addButtonClass . '">';
             $output .= $this->themeService->getIconHtml('add') . ' ' .
-                htmlspecialchars($options['add_button_label'] ?? '');
+                //htmlspecialchars($options['add_button_label'] ?? '');
+                htmlspecialchars($this->translator->get($options['add_button_label'], pageName: $list->getPageName()));
+
             $output .= '</a>';
         }
 
@@ -80,9 +82,9 @@ class BootstrapListRenderer extends AbstractListRenderer
             self::VIEW_LIST => 'list',
         ];
         $viewTitles = [
-            self::VIEW_TABLE => 'Table View',
-            self::VIEW_GRID => 'Grid View',
-            self::VIEW_LIST => 'List View',
+            self::VIEW_TABLE => 'button.view_table',
+            self::VIEW_GRID  => 'button.view_grid',
+            self::VIEW_LIST  => 'button.view_list',
         ];
 
         // ✅ Get the list URL enum and route type from options
@@ -110,7 +112,8 @@ class BootstrapListRenderer extends AbstractListRenderer
 
             $output .= '<a href="' . htmlspecialchars($toggleUrl) . '" ';
             $output .= 'class="btn btn-outline-secondary' . $activeClass . '" title="' .
-                                                                        htmlspecialchars($viewTitles[$viewType]) . '">';
+                htmlspecialchars($this->translator->get($viewTitles[$viewType], pageName: $list->getPageName())) . '">';
+                                                        //  htmlspecialchars($viewTitles[$viewType]) . '">';
             $output .= $this->themeService->getIconHtml($viewIcons[$viewType]) . '</a>';
         }
 
@@ -145,13 +148,14 @@ class BootstrapListRenderer extends AbstractListRenderer
         $output .= '<thead><tr>';
         foreach ($list->getColumns() as $name => $column) {
             // $output .= '<th>' . htmlspecialchars($column['label']) . '</th>';
-            $temp = htmlspecialchars($this->translator->get($column['label']));
+            $temp = htmlspecialchars($this->translator->get($column['label'], pageName: $list->getPageName()));
             $output .= '<th>' . $temp . '</th>';
         }
 
         // Add actions column if needed
         if ($options['show_actions'] && !empty($list->getActions())) {
-            $actionsLabel = $this->translator->get($list->getPageName() . '.actions');
+            // $actionsLabel = $this->translator->get($list->getPageName() . '.actions', pageName: $list->getPageName());
+            $actionsLabel = htmlspecialchars($this->translator->get('actions', pageName: $list->getPageName()));
             $output .= "<th>$actionsLabel</th>";
         }
 

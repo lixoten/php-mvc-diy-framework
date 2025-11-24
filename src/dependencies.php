@@ -293,7 +293,8 @@ return [
 
     // Register BootstrapNavigationRendererService for navigation rendering
     'Core\Navigation\Bootstrap\BootstrapNavigationRendererService' => \DI\autowire()
-        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
+        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface'))
+        ->constructorParameter('translator', \DI\get('Core\I18n\I18nTranslator')),
 
     // Optionally, bind the interface to the Bootstrap implementation as the default
     'Core\Navigation\NavigationRendererInterface' =>
@@ -766,21 +767,6 @@ return [
         ->constructorParameter('rememberTokenRepository', \DI\get('App\Repository\RememberTokenRepositoryInterface'))
         ->constructorParameter('session', \DI\get('Core\Session\SessionManagerInterface')),
 
-    // // Update LoginController to use LoginService
-    // 'App\Features\Auth\LoginController' => \DI\autowire()
-    //     ->constructorParameter('route_params', \DI\get('route_params'))
-    //     ->constructorParameter('flash', \DI\get('flash'))
-    //     ->constructorParameter('view', \DI\get('view'))
-    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
-    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-    //     //->constructorParameter('loginService', \DI\get('App\Services\LoginService'))
-    //     ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-    //     // ->constructorParameter('loginFormType', \DI\get('App\Features\Auth\Form\LoginFormType')),
-    //     ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
-    //     // ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
-
 
     // 'App\Features\Auth\LoginController' => \DI\autowire()
     'App\Features\Login\LoginController' => \DI\autowire()
@@ -811,22 +797,6 @@ return [
         ->constructorParameter('registrationFormType', \DI\get('App\Features\Auth\Form\RegistrationFormType'))
         ->constructorParameter('registrationService', \DI\get('App\Services\RegistrationService')),
 
-
-
-
-    // // RegistrationController with all dependencies
-    // 'App\Features\Auth\RegistrationController' => \DI\autowire()
-    //     ->constructorParameter('route_params', \DI\get('route_params'))
-    //     ->constructorParameter('flash', \DI\get('flash'))
-    //     ->constructorParameter('view', \DI\get('view'))
-    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
-    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-    //     ->constructorParameter('userRepository', \DI\get('App\Repository\UserRepositoryInterface'))
-    //     ->constructorParameter('registrationFormType', \DI\get('App\Features\Auth\Form\RegistrationFormType'))
-    //     ->constructorParameter('authService', \DI\get('Core\Auth\AuthenticationServiceInterface'))
-    //     ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
 
 
 
@@ -927,33 +897,6 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
 
-
-    // 'App\Features\Post\PostController' => \DI\autowire()
-    //     ->constructorParameter('route_params', \DI\get('route_params'))
-    //     ->constructorParameter('flash', \DI\get('flash'))
-    //     ->constructorParameter('view', \DI\get('view'))
-    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
-    //     // ->constructorParameter('currentContext', \DI\get(CurrentContext::class))
-    //     ->constructorParameter('scrap', \DI\get(CurrentContext::class))
-    //     ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-    //     ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-    //     ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface'))
-    //     ->constructorParameter('formType', \DI\get('App\Features\Post\Form\PostFormType'))
-    //     ->constructorParameter('listFactory', \DI\get('Core\List\ListFactory'))
-    //     ->constructorParameter('listType', \DI\get('App\Features\Post\List\PostListType')),
-
-
-    // 'App\Features\Admin\Generic\GenericController' => \DI\autowire()
-    //     ->constructorParameter('route_params', \DI\get('route_params'))
-    //     ->constructorParameter('flash', \DI\get('flash'))
-    //     ->constructorParameter('view', \DI\get('view'))
-    //     ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-    //     ->constructorParameter('container', \DI\get(ContainerInterface::class))
-    //     // ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-    //     // ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-    //     ->constructorParameter('postRepository', \DI\get('App\Repository\PostRepositoryInterface')),
-    //     // ->constructorParameter('postFormType', \DI\get('App\Features\Store\Post\Form\PostFormType')),
 
     // Dynamic-me 3
     // Update GenericController definition to use the GenericDataService
@@ -1761,6 +1704,7 @@ return [
 
 
 
+
     // Section - Form types
     // 'App\Features\Testy\Form\ZzzzFormType' => \DI\autowire()
     'Core\Form\ZzzzFormType' => \DI\autowire()
@@ -1770,16 +1714,16 @@ return [
         ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
         ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
-    'App\Features\Testy\Form\TestyFormType' => \DI\autowire()
-        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
-        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+    // 'App\Features\Testy\Form\TestyFormType' => \DI\autowire()
+    //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+    //     ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+    //     ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
-    'App\Features\Post\Form\PostFormType' => \DI\autowire()
-        // ->constructorParameter('viewFocus2', \DI\get('viewFocus2'))
-        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
-        ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+    // 'App\Features\Post\Form\PostFormType' => \DI\autowire()
+    //     // ->constructorParameter('viewFocus2', \DI\get('viewFocus2'))
+    //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+    //     ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+    //     ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
 
 
     // 'App\Features\Auth\Form\LoginFormType' => \DI\autowire()
@@ -1827,10 +1771,10 @@ return [
         ->constructorParameter('listConfigService', \DI\get(\Core\Services\ListConfigurationService::class))
         ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
 
-    'App\Features\Testy\List\TestyListType' => \DI\autowire()
-        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
-        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
-        // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
+    // 'App\Features\Testy\List\TestyListType' => \DI\autowire()
+    //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+    //     ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+    //     // ->constructorParameter('pathResolverService', \DI\get(\Core\Services\PathResolverService::class)),
 
     'App\Features\Post\List\PostListType' => \DI\autowire()
         ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
@@ -1910,6 +1854,43 @@ return [
 
 
 
+    // ✅ View Factory //viewfeat
+    \Core\View\ViewFactoryInterface::class => \DI\autowire(\Core\View\ViewFactory::class),
+
+    // ✅ View Renderer (Bootstrap)
+    'view.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\View\Renderer\BootstrapViewRenderer(
+            $c->get(\Core\Services\ThemeServiceInterface::class),
+            $c->get(\Core\I18n\I18nTranslator::class),
+            $c->get(\Core\Services\FormatterService::class),
+            $c->get(\Psr\Log\LoggerInterface::class)
+        );
+    }),
+
+
+    // ✅ View Renderer (Material)
+    'view.renderer.material' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\View\Renderer\MaterialViewRenderer(
+            $c->get(\Core\Services\ThemeServiceInterface::class),
+            $c->get(\Core\I18n\I18nTranslator::class),
+            $c->get(\Core\Services\FormatterService::class),
+            $c->get(\Psr\Log\LoggerInterface::class)
+        );
+    }),
+
+    // ✅ View Renderer (Vanilla)
+    'view.renderer.vanilla' => \DI\factory(function (ContainerInterface $c) {
+        return new \Core\View\Renderer\VanillaViewRenderer(
+            $c->get(\Core\Services\ThemeServiceInterface::class),
+            $c->get(\Core\I18n\I18nTranslator::class),
+            $c->get(\Core\Services\FormatterService::class),
+            $c->get(\Psr\Log\LoggerInterface::class)
+        );
+    }),
+
+
+
+
 
 
     // 1.Bind the Interface to the Implementation
@@ -1932,7 +1913,7 @@ return [
         ->constructorParameter('csrf', \DI\get('Core\Form\CSRF\CSRFToken'))
         ->constructorParameter('fieldTypeRegistry', \DI\get('Core\Form\Field\Type\FieldTypeRegistry'))
         // ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
-        ->constructorParameter('formRendererRegistry', \DI\get('Core\Form\Renderer\FormRendererRegistry'))
+        // ->constructorParameter('formRendererRegistry', \DI\get('Core\Form\Renderer\FormRendererRegistry'))
         ->constructorParameter('validator', \DI\get('Core\Form\Validation\Validator')),
 
 
@@ -2030,6 +2011,49 @@ return [
     }),
 
 
+    // ✅ Default View Renderer Interface
+    \Core\View\Renderer\ViewRendererInterface::class => \DI\factory(function (ContainerInterface $c) {
+        return $c->get(\Core\View\Renderer\ViewRendererRegistry::class)->getRenderer();
+    }),
+
+    // // ✅ Generic ViewType (Zzzzz pattern)
+    // 'Core\View\ZzzzViewType' => \DI\autowire(\Core\View\AbstractViewType::class) // Abstract, so use concrete impl
+    //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+    //     ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface')),
+
+     // SECTION: View Configuration Service
+    \Core\Services\ViewConfigurationService::class => \DI\autowire()
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+    // END SECTION: View Configuration Service
+
+    // Section - View types
+    'Core\View\ZzzzViewType' => \DI\autowire()
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('configService', \DI\get('Core\Interfaces\ConfigInterface'))
+        ->constructorParameter('viewConfigService', \DI\get(\Core\Services\ViewConfigurationService::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+
+
+
+    // Testy View Type
+    // \Core\View\TestyViewType::class => \DI\autowire()
+    //     ->constructorParameter('fieldRegistryService', \DI\get(\Core\Services\FieldRegistryService::class))
+    //     ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class)),
+
+    // ✅ Update the View renderer registry
+    \Core\View\Renderer\ViewRendererRegistry::class => \DI\factory(function (ContainerInterface $c) {
+        $registry = new \Core\View\Renderer\ViewRendererRegistry();
+        $registry->register('bootstrap', $c->get('view.renderer.bootstrap'));
+        $registry->register('material', $c->get('view.renderer.material'));
+        $registry->register('vanilla', $c->get('view.renderer.vanilla'));
+
+        // Get default renderer from environment or config
+        $defaultRenderer = $_ENV['VIEW_CSS_FRAMEWORK'] ?? 'bootstrap';
+        $registry->setDefaultRenderer($defaultRenderer);
+        return $registry;
+    }),
+
 
 
 
@@ -2098,6 +2122,7 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType'))
         ->constructorParameter('repository', \DI\get('App\Repository\ImageRepositoryInterface')),
 
     'App\Features\User\UserController' => \DI\autowire()
@@ -2111,6 +2136,7 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType'))
         ->constructorParameter('repository', \DI\get('App\Features\User\UserRepositoryInterface'))
         ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface'))
         ->constructorParameter('userService', \DI\get(UserService::class)),
@@ -2126,30 +2152,8 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
-        ->constructorParameter('repository', \DI\get('App\Features\Testy\TestyRepositoryInterface'))
-        ->constructorParameter('listRenderer', \DI\get('Core\List\Renderer\ListRendererInterface'))
-        ->constructorParameter('formRenderer', \DI\get('Core\Form\Renderer\FormRendererInterface')),
-
-
-
-
-        // ->constructorParameter('repository', \DI\get(\App\Features\Testy\TestyRepositoryInterface::class)),
-        // ->constructorParameter('route_params', \DI\get('route_params'))
-        // ->constructorParameter('flash22', \DI\get('flash'))
-        // ->constructorParameter('view', \DI\get('view'))
-        // ->constructorParameter('httpFactory', \DI\get('httpFactory'))
-        // ->constructorParameter('container', \DI\get(ContainerInterface::class))
-        //     /////////////
-        // ->constructorParameter('config', \DI\get('config'))
-        // ->constructorParameter('formFactory', \DI\get(FormFactoryInterface::class))
-        // ->constructorParameter('formHandler', \DI\get(FormHandlerInterface::class))
-        // ->constructorParameter('repository', \DI\get('App\Repository\TestyRepositoryInterface'))
-        // ->constructorParameter('formType', \DI\get('App\Features\Testy\Form\TestyFormType'))
-        // ->constructorParameter('listFactory', \DI\get(ListFactoryInterface::class))
-        // ->constructorParameter('listType', \DI\get('App\Features\Testy\List\TestyListType'))
-        //     /////////////
-        // ->constructorParameter('logger', \DI\get('logger'))
-        // ->constructorParameter('emailNotificationService', \DI\get('App\Services\Email\EmailNotificationService')),
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType')),
+        // ->constructorParameter('viewType', \DI\get('Core\List\ZzzzViewType')),
 
     'App\Features\Gallery\GalleryController' => \DI\autowire()
         ->constructorParameter(
@@ -2176,6 +2180,7 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType'))
         ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface')),
 
         // dynamic-fix
@@ -2191,6 +2196,7 @@ return [
         )
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType'))
         ->constructorParameter('repository', \DI\get('App\Repository\PostRepositoryInterface')),
 
 ];

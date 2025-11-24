@@ -63,7 +63,12 @@ class MaterialFormRenderer extends AbstractFormRenderer
         // Render hidden fields first
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
+                $output .= $this->renderField(
+                    // $form->getName(),
+                    $pageName,
+                    $field,
+                    $options
+                );
                 //$field->setType('display');
             }
         }
@@ -71,7 +76,7 @@ class MaterialFormRenderer extends AbstractFormRenderer
         // Render visible fields with constraint hints
         foreach ($form->getFields() as $field) {
             if ($field->getType() !== 'hidden') {
-                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
+                $output .= $this->renderField($pageName, $field, $options);
 
                 if ($options['show_constraint_hints'] ?? true) {
                     $output .= $this->generateConstraintHints($field, $pageName, $form->getName());
@@ -84,7 +89,7 @@ class MaterialFormRenderer extends AbstractFormRenderer
             $output .= '<div class="mdc-card mdc-card--outlined mb-4">';
             $output .= '<div class="mdc-card__content">';
             $output .= '<h5 class="mdc-typography--headline6 mb-3">Security Verification</h5>';
-            $output .= $this->renderField($form->getName(), $form->getField('captcha'), $options);
+            $output .= $this->renderField($form->getField('captcha'), $options);
             $output .= '</div></div>';
         }
 
@@ -179,7 +184,7 @@ class MaterialFormRenderer extends AbstractFormRenderer
      * @param array<string, mixed> $options
      * @return string
      */
-    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
+    public function renderField(string $pageName, FieldInterface $field, array $options = []): string
     {
         $type = $field->getType();
         $name = $field->getName();

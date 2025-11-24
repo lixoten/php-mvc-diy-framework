@@ -152,66 +152,6 @@ abstract class AbstractFormType implements FormTypeInterface
     }
 
 
-
-
-    // /** {@inheritdoc} */
-    // public function mergeFormOptions(array $options): void
-    // {
-    //     $this->options = array_replace_recursive($this->options, $options);
-    // }
-
-
-
-
-    // /** {@inheritdoc} */
-    // public function getFormRenderOptions(): array
-    // {
-    //     return $this->options['render_options'];
-    // }
-    // /** {@inheritdoc} */
-    // public function mergeFormRenderOptions(array $renderOptions): void
-    // {
-    //     $this->options['render_options'] = array_merge($this->options['render_options'], $renderOptions);
-    // }
-
-
-    // /** {@inheritdoc} */
-    // public function setFormOptions(array $options): void
-    // {
-    //     $this->options = $options;
-    // }
-
-
-
-    // /** {@inheritdoc} */
-    // public function setFormFields(array $listFields): void
-    // {
-    //     $validFields = $this->fieldRegistryService->filterAndValidateFields($listFields);
-    //     $this->options['render_options']['form_fields'] = $validFields;
-    // }
-
-
-
-
-
-
-    // // /**
-    // //  * Get client IP address from current request
-    // //  */
-    // // protected function getIpAddress(): string
-    // // {
-    // //     return $this->request->getServerParams()['REMOTE_ADDR'] ?? '0.0.0.0';
-    // // }
-
-    // // /**
-    // //  * Check if CAPTCHA is being forced via query parameter
-    // //  */
-    // // protected function isForcedCaptcha(): bool
-    // // {
-    // //     return (bool)($this->request->getQueryParams()['show_captcha'] ?? false);
-    // // }
-
-
     ////////////////////////////////////////////////////////////////////////////////////
     // Private Methods /////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////

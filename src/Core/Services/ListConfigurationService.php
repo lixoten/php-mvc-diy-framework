@@ -38,6 +38,7 @@ class ListConfigurationService
         string $pageEntity,
     ): array {
         // 1. Load base/default configuration
+        // Findloc Load Config for base and page 
         $baseConfig = $this->loadBaseConfiguration();
 
         // 2. Load page-specific configuration

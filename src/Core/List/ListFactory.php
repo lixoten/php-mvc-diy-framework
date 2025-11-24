@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Core\List;
 
-use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
-use Core\List\Renderer\ListRendererRegistry;
 use App\Services\PaginationService;
 
 //use Core\Form\Validation\Validator;
@@ -20,8 +18,6 @@ class ListFactory implements ListFactoryInterface
     private CSRFToken $csrfToken;
     private FieldTypeRegistry $fieldTypeRegistry;
     private PaginationService $paginationService;
-    // private ?ListRendererRegistry $listRendererRegistry = null;
-    // private ?Validator $validator;
 
    /**
      * Constructor
@@ -29,21 +25,16 @@ class ListFactory implements ListFactoryInterface
      * @param CSRFToken $csrf
      * @param FieldTypeRegistry $fieldTypeRegistry
      * @param PaginationService $paginationService
-     * @param ListRendererRegistry|null $listRendererRegistry
      *
      */
     public function __construct(
         CSRFToken $csrfToken,
         FieldTypeRegistry $fieldTypeRegistry,
         PaginationService $paginationService,
-        // ?ListRendererRegistry $listRendererRegistry = null,
-        //?Validator $validator = null,
     ) {
         $this->csrfToken = $csrfToken;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
         $this->paginationService = $paginationService;
-        // $this->listRendererRegistry = $listRendererRegistry;
-        // $this->validator = $validator;
     }
 
 

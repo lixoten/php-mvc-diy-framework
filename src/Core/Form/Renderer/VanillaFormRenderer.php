@@ -62,7 +62,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         // Render hidden fields first
         foreach ($form->getFields() as $field) {
             if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
+                $output .= $this->renderField($pageName, $field, $options);
                // $field->setType('display');
             }
         }
@@ -70,7 +70,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         // Render visible fields with constraint hints
         foreach ($form->getFields() as $field) {
             if ($field->getType() !== 'hidden') {
-                $output .= $this->renderField($form->getName(), $pageName, $field, $options);
+                $output .= $this->renderField($pageName, $field, $options);
 
                 if ($options['show_constraint_hints'] ?? true) {
                     $output .= $this->generateConstraintHints($field, $form->getName());
@@ -82,7 +82,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         if ($form->isCaptchaRequired()) {
             $output .= '<div class="vanilla-card">';
             $output .= '<h5>Security Verification</h5>';
-            $output .= $this->renderField($form->getName(), $pageName, $form->getField('captcha'), $options);
+            $output .= $this->renderField($pageName, $form->getField('captcha'), $options);
             $output .= '</div>';
         }
 
@@ -173,7 +173,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
      * @param array<string, mixed> $options
      * @return string
      */
-    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
+    public function renderField(string $pageName, FieldInterface $field, array $options = []): string
     {
         $type = $field->getType();
         $name = $field->getName();

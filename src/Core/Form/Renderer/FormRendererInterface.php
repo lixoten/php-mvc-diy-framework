@@ -30,7 +30,12 @@ interface FormRendererInterface
      * @param array $options
      * @return string
      */
-    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string;
+    public function renderField(
+        // string $formName,
+        string $pageName,
+        FieldInterface $field,
+        array $options = []
+    ): string;
 
     /**
      * Render form errors
@@ -41,21 +46,21 @@ interface FormRendererInterface
      */
     public function renderErrors(FormInterface $form, array $options = []): string;
 
-    /**
-     * Render form start tag
-     *
-     * @param FormInterface $form
-     * @param array $options
-     * @return string
-     */
-    public function renderStart(FormInterface $form, array $options = []): string;
+    // /**
+    //  * Render form start tag
+    //  *
+    //  * @param FormInterface $form
+    //  * @param array $options
+    //  * @return string
+    //  */
+    // public function renderStartTag(FormInterface $form, array $options = []): string;
 
-    /**
-     * Render form end tag
-     *
-     * @param FormInterface $form
-     * @param array $options
-     * @return string
-     */
-    public function renderEnd(FormInterface $form, array $options = []): string;
+    // /**
+    //  * Render form end tag
+    //  *
+    //  * @param FormInterface $form
+    //  * @param array $options
+    //  * @return string
+    //  */
+    // public function renderEndTag(FormInterface $form, array $options = []): string;
 }

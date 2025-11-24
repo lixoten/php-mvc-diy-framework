@@ -43,6 +43,9 @@ use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
 use Core\List\Renderer\ListRendererInterface;
 use Core\Services\BaseFeatureService;
+use Core\View\ViewFactoryInterface;
+use Core\View\ViewTypeInterface;
+use Core\View\Renderer\ViewRendererInterface;
 
 /**
  * Testy controller
@@ -61,22 +64,25 @@ class TestyController extends AbstractCrudController
         CurrentContext $scrap,
         //-----------------------------------------
         FeatureMetadataService $featureMetadataService,
-        FormFactoryInterface $formFactory,
-        FormHandlerInterface $formHandler,
-        FormTypeInterface $formType,
-        ListFactoryInterface $listFactory,
-        ListTypeInterface $listType,
+        FormFactoryInterface $formFactory, // 1
+        FormHandlerInterface $formHandler, //
+        FormTypeInterface $formType,       // 2
+        ListFactoryInterface $listFactory, // 1
+        ListTypeInterface $listType,       // 2
+        ViewFactoryInterface $viewFactory,
+        ViewTypeInterface $viewType,
         TestyRepositoryInterface $repository,
         TypeResolverService $typeResolver,
         ListRendererInterface $listRenderer,
         FormRendererInterface $formRenderer,
+        ViewRendererInterface $viewRenderer,
+        BaseFeatureService $baseFeatureService,
         //-----------------------------------------
         protected ConfigInterface $config,
         protected LoggerInterface $logger,
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
         private FormatterService $formatter,
-        protected BaseFeatureService $baseFeatureService
     ) {
         parent::__construct(
             $route_params,
@@ -92,10 +98,13 @@ class TestyController extends AbstractCrudController
             $formType,
             $listFactory,
             $listType,
+            $viewFactory,
+            $viewType,
             $repository,
             $typeResolver,
             $listRenderer,
             $formRenderer,
+            $viewRenderer,
             $baseFeatureService
         );
         // constructor uses promotion php8+
@@ -172,6 +181,81 @@ class TestyController extends AbstractCrudController
 
         return parent::editAction(request: $request);
     }
+
+    public function viewAction(ServerRequestInterface $request): ResponseInterface
+    {
+        // return parent::viewAction(request: $request);
+        // ✅ NEW: Implement viewAction following the new pattern
+        $recordId = (int)($this->route_params['id'] ?? 0);
+        if (!$recordId) {
+            $this->flash22->add("Invalid record ID for view.", FlashMessageType::Error);
+            return $this->redirect($this->feature->listUrlEnum->url());
+        }
+
+        // ✅ Set focus on ViewType
+        $pageKey = $this->scrap->getPageKey();
+        $pageName = $this->scrap->getPageName();
+        $pageAction = $this->scrap->getPageAction();
+        $pageFeature = $this->scrap->getPageFeature();
+        $pageEntity = $this->scrap->getPageEntity();
+
+        $this->viewType->setFocus(
+            $pageKey,
+            $pageName,
+            $pageAction,
+            $pageFeature,
+            $pageEntity
+        );
+
+        // ✅ Fetch record data using fields defined in ViewType
+        $fields = $this->viewType->getFields();
+        $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
+
+        if (!$recordArray) {
+            $this->flash22->add("Record not found.", FlashMessageType::Error);
+            return $this->redirect($this->feature->listUrlEnum->url());
+        }
+
+        // ✅ Check permissions (reusing checkForEditPermissions as it checks ownership)
+        // Note: checkForEditPermissions throws ForbiddenException if not allowed
+        if (!$this->scrap->isAdmin()) {
+            $this->checkForEditPermissions($recordArray);
+        }
+
+        // ✅ Transform data for display using BaseFeatureService
+        $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
+
+
+        // ✅ Inject action URLs into render options for the view renderer
+        $routeType = $this->scrap->getRouteType();
+        $this->viewType->mergeRenderOptions([
+            'edit_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType),
+            'delete_url' => $this->feature->deleteUrlEnum?->url(['id' => $recordId], $routeType) ?? '', // Use null coalescing for optional delete URL
+            'back_url' => $this->feature->listUrlEnum->url([], $routeType),
+            'record_id' => $recordId,
+            'route_type' => $routeType,
+        ]);
+
+        // ✅ Create View via ViewFactory
+        $view = $this->viewFactory->create(
+            viewType: $this->viewType,
+            data: $recordArray
+        );
+
+        // ✅ Render View using the injected ViewRenderer
+        $renderedView = $this->viewRenderer->renderView($view, []);
+
+        // Prepare view data for the overall page layout
+        $viewData = [
+            // 'title' => $this->translator->get('view.record.title', ['pageName' => $pageName]), // Use translator for title
+            'title' => 'view.record.title',
+            'renderedView' => $renderedView,
+            'actionLinks' => $this->getReturnActionLinks(), // Include navigation links
+        ];
+
+        return $this->view($this->feature->viewUrlEnum->view(), $this->buildCommonViewData($viewData));
+    }
+
 
     protected function overrideFormTypeRenderOptions(): void
     {

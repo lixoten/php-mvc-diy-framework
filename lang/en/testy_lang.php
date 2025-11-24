@@ -22,7 +22,7 @@ declare(strict_types=1);
 return [
     'actions' => 'Testy Actions',
     'button'  => [
-        'delete' => 'Testy Delete',
+        'delete' => 'Testy Deletettt',
         'edit'   => 'Testy Edit',
         'add'    => 'Testy Add',
         'create' => 'Testy CREAdd',
@@ -40,7 +40,7 @@ return [
     ],
     'generic_text' => [
         'list' => [
-            'label'       => 'xGeneric text',
+            'label'       => 'xGeneric textxxx',
         ],
         'form' => [
             'label'       => 'xGeneric text',

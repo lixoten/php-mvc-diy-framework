@@ -23,12 +23,15 @@ use Core\Form\FormTypeInterface;
 use Core\Form\Renderer\FormRendererInterface;
 use Core\List\ListFactoryInterface;
 use Core\List\ListTypeInterface;
+use Core\View\ViewFactoryInterface;
+use Core\View\ViewTypeInterface;
 use Core\Repository\BaseRepositoryInterface;
 use Core\Services\TypeResolverService;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Core\List\Renderer\ListRendererInterface;
 use Core\Services\BaseFeatureService;
+use Core\View\Renderer\ViewRendererInterface;
 
 /**
  * Provides a base for controllers that handle standard CRUD operations.
@@ -52,10 +55,13 @@ abstract class AbstractCrudController extends Controller
         protected FormTypeInterface $formType,
         protected ListFactoryInterface $listFactory,
         protected ListTypeInterface $listType,
+        protected ViewFactoryInterface $viewFactory,
+        protected ViewTypeInterface $viewType,
         protected BaseRepositoryInterface $repository,
         protected TypeResolverService $typeResolver,
         protected ListRendererInterface $listRenderer,
         protected FormRendererInterface $formRenderer,
+        protected ViewRendererInterface $viewRenderer,
         protected BaseFeatureService $baseFeatureService
         //-----------------------------------------
     ) {
@@ -415,6 +421,54 @@ abstract class AbstractCrudController extends Controller
 
         return $response;
     }
+
+    public function viewAction(ServerRequestInterface $request): ResponseInterface
+    {
+        // $recordId = (int)($this->route_params['id'] ?? 0);
+        // if (!$recordId) {
+        //     return $this->redirect($this->feature->listUrlEnum->url());
+        // }
+
+        // // ✅ Set focus on ViewType
+        // $this->viewType->setFocus(
+        //     $this->scrap->getPageKey(),
+        //     $this->scrap->getPageName(),
+        //     'view',
+        //     $this->scrap->getPageFeature(),
+        //     $this->scrap->getPageEntity()
+        // );
+
+        // // ✅ Fetch record data
+        // $fields = $this->viewType->getFields();
+        // $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
+
+        // if (!$recordArray) {
+        //     $this->flash->add("Record not found", FlashMessageType::Error);
+        //     return $this->redirect($this->feature->listUrlEnum->url());
+        // }
+
+        // // ✅ Check permissions
+        // $this->checkForEditPermissions($recordArray);
+
+        // // ✅ Inject action URLs
+        // $this->viewType->mergeRenderOptions([
+        //     'edit_url' => $this->feature->editUrlEnum->url(['id' => $recordId]),
+        //     'delete_url' => $this->feature->deleteUrlEnum->url(['id' => $recordId]),
+        // ]);
+
+        // // ✅ Create View via ViewFactory
+        // $view = $this->viewFactory->create($this->viewType, $recordArray);
+
+        // // ✅ Render View
+        // $renderedView = $view->render();
+
+        return $this->view($this->feature->viewUrlEnum->view(), [
+            'title' => 'View Record',
+            // 'renderedView' => $renderedView,
+        ]);
+    }
+
+
 
 
 /**

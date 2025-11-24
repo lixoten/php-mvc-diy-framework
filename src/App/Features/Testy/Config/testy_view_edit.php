@@ -27,8 +27,10 @@ return [
 
         // 'force_captcha'        => false,
         // 'security_level'       => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
-        'layout_type'          => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
+        // 'layout_type'           => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
+        'layout_type'           => 'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
         // 'error_display'        => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
+        'error_display'         => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
         'css_form_theme_class'  => '', // "form-theme-christmas",
@@ -36,13 +38,13 @@ return [
         'default_form_theme'    => '', // 'christmas' ?? 'default',
 
         // 'form_heading_level'         => 'h3', // Default is 'h2'
-        'form_heading'               => "testy.form.heading",
+        'form_heading'               => "form.heading",
         'form_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
         'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
 
-        'submit_text'           => "testy.button.save",
+        'submit_text'           => "button.save",
         'submit_button_variant' => 'primary',
-        'cancel_text'           => 'testy.button.cancel', // Added for translation
+        'cancel_text'           => 'button.cancel', // Added for translation
         'cancel_button_variant' => 'secondary',
 
 
@@ -50,12 +52,24 @@ return [
     ],
     'form_layout' => [
         [
+            'title' => 'Your Favorite',
+           'fields'    => [
+                // 'id',
+                // 'title',
+                // 'status',
+                'generic_text',
+                // 'telephone',
+                // 'primary_email',
+            ],
+            'divider' => true,
+        ],
+        [
             'title'     => 'Your Title',
             'fields'    => [
                 // 'id',
                 // 'title',
                 // 'status',
-                'generic_text',
+                // 'generic_text',
                 // 'telephone',
                 'primary_email',
                 // 'super_powers',

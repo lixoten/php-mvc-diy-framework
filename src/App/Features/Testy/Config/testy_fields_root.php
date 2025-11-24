@@ -13,20 +13,20 @@ declare(strict_types=1);
 return [
     'id' => [
         'list' => [
-            'label'      => 'testy.id.list.label',
+            'label'      => 'id.list.label',
             'sortable'   => false,
         ],
     ],
     'generic_text' => [
         'list' => [
-            'label'      => 'testy.generic_text.list.label',
+            'label'      => 'generic_text.list.label',
             'sortable'   => false,
         ],
         'form' => [
-            'label'      => 'testy.generic_text.form.label',
+            'label'      => 'generic_text.form.label',
             'type'       => 'text',
             'attributes' => [
-                'placeholder' => 'testy.generic_text.form.placeholder',
+                'placeholder' => 'generic_text.form.placeholder',
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 50,
@@ -58,26 +58,26 @@ return [
                 // 'ignore_forbidden'  => true,  // Default is false
                 // 'ignore_allowed'    => false, // Default is true
                 //---
-                'required_message'  => 'testy.generic_text.validation.required',
-                'invalid_message'   => 'testy.generic_text.validation.invalid',
-                'minlength_message' => 'testy.generic_text.validation.minlength',
-                'maxlength_message' => 'testy.generic_text.validation.maxlength',
-                'pattern_message'   => 'testy.generic_text.validation.pattern',
-                'allowed_message'   => 'testy.generic_text.validation.allowed',
-                'forbidden_message' => 'testy.generic_text.validation.forbidden',
+                'required_message'  => 'generic_text.validation.required',
+                'invalid_message'   => 'generic_text.validation.invalid',
+                'minlength_message' => 'generic_text.validation.minlength',
+                'maxlength_message' => 'generic_text.validation.maxlength',
+                'pattern_message'   => 'generic_text.validation.pattern',
+                'allowed_message'   => 'generic_text.validation.allowed',
+                'forbidden_message' => 'generic_text.validation.forbidden',
             ]
         ],
     ],
     'primary_email' => [
         'list' => [
-            'label'      => 'testy.primary_email.list.label',
+            'label'      => 'primary_email.list.label',
             'sortable'   => false,
         ],
         'form' => [
-            'label'      => 'testy.primary_email.form.label',
+            'label'      => 'primary_email.form.label',
             'type'       => 'email',
             'attributes' => [
-                'placeholder' => 'testy.primary_email.form.placeholder',
+                'placeholder' => 'primary_email.form.placeholder',
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 255,
@@ -112,13 +112,13 @@ return [
                 // 'ignore_forbidden'  => true,  // Default is false
                 // 'ignore_allowed'    => false, // Default is true
                 //---
-                'required_message'  => 'testy.primary_email.validation.required',
-                'invalid_message'   => 'testy.primary_email.validation.invalid',
-                'minlength_message' => 'testy.primary_email.validation.minlength',
-                'maxlength_message' => 'testy.primary_email.validation.maxlength',
-                'pattern_message'   => 'testy.primary_email.validation.pattern',
-                'allowed_message'   => 'testy.primary_email.validation.allowed',
-                'forbidden_message' => 'testy.primary_email.validation.forbidden',
+                'required_message'  => 'primary_email.validation.required',
+                'invalid_message'   => 'primary_email.validation.invalid',
+                'minlength_message' => 'primary_email.validation.minlength',
+                'maxlength_message' => 'primary_email.validation.maxlength',
+                'pattern_message'   => 'primary_email.validation.pattern',
+                'allowed_message'   => 'primary_email.validation.allowed',
+                'forbidden_message' => 'primary_email.validation.forbidden',
             ],
         ],
     ],

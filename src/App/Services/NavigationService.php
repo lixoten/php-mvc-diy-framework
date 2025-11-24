@@ -94,7 +94,7 @@ class NavigationService
 
         return [
             [
-                'label' => 'Core',
+                'label' => 'menu.head.core',
                 'items' => [
                     Url::CORE_POST->toLinkData(),
                     Url::CORE_TESTY->toLinkData(),
@@ -114,7 +114,7 @@ class NavigationService
 
         return [
             [
-                'label' => 'User',
+                'label' => 'menu.head.user',
                 'items' => [
                     Url::ACCOUNT_DASHBOARD->toLinkData(),
                     Url::ACCOUNT_PROFILE->toLinkData(),
@@ -156,7 +156,7 @@ class NavigationService
 
         return [
             [
-                'label' => 'Store',
+                'label' => 'menu.head.store',
                 'items' => [
                     Url::STORE_DASHBOARD->toLinkData(),
                     Url::STORE_PROFILE->toLinkData(),
@@ -183,7 +183,7 @@ class NavigationService
 
         return [
             [
-                'label' => 'Admin',
+                'label' => 'menu.head.admin',
                 'items' => [
                     Url::ADMIN_DASHBOARD->toLinkData(),
                     Url::ADMIN_USERS->toLinkData(),

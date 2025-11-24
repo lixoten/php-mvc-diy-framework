@@ -1,5 +1,7 @@
 <?php
 
+// xdebug_start_trace('d:\xampp\tmp\traces\manual_trace');
+
 declare(strict_types=1);
 
 $uri = $_SERVER['REQUEST_URI'] ?? '';

@@ -22,20 +22,205 @@ use Psr\Log\LoggerInterface;
  */
 class BootstrapFormRenderer extends AbstractFormRenderer
 {
-    // /**
-    //  * @param FormatterService $formatterService
-    //  */
-    // public function __construct(
-    //     protected ThemeServiceInterface $themeService,
-    //     private I18nTranslator $translator,
-    //     private FormatterService $formatterService,
-    //     private LoggerInterface $logger
-    // ) {
-    //     $this->themeService     = $themeService;
-    //     $this->translator    = $translator;
-    //     $this->formatterService = $formatterService;
-    //     $this->logger           = $logger;
-    // }
+    /**
+     * {@inheritdoc}
+     */
+    protected function renderHeader(FormInterface $form, array $options): string
+    {
+        $output = '';
+
+        // Render the form heading if configured
+        if (!empty($options['form_heading'])) {
+            $headerClass = $this->themeService->getElementClass('card.header');
+            $output .= '<div class="' . htmlspecialchars($headerClass) . '">';
+
+            // Resolve heading level, defaulting to 'h2'
+            $headingLevelCandidate = $options['form_heading_level'] ?? 'h2';
+            $headingLevel = (is_string($headingLevelCandidate) && preg_match('/^h[1-6]$/i', $headingLevelCandidate))
+                            ? $headingLevelCandidate
+                            : 'h2';
+
+            $headingClass = $options['form_heading_class'] ?? $this->themeService->getElementClass('form.heading');
+            $headingText  = $options['form_heading'] ?? 'common.form.heading';
+            $headingText = $this->translator->get($headingText, pageName: $form->getPageName());
+
+            $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
+                       htmlspecialchars($headingText) .
+                       "</{$headingLevel}>";
+            $output .= '</div>';
+        }
+
+        // Render ajax_save_spinner here (global form status indicator)
+        if (!empty($options['ajax_save'])) {
+            $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2 mt-3">'
+                . '<span class="spinner-border spinner-border-sm"></span> Saving...'
+                . '</div>';
+        }
+
+        return $output;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function renderStartTag(FormInterface $form, array $options): string
+    {
+        $attrString = $this->buildFormAttributes($form, $options);
+        $output = '<form' . $attrString . '>';
+
+        // CSRF token
+        $token = $form->getCSRFToken();
+        $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+
+        return $output;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function renderBodyContent(FormInterface $form, array $options): string
+    {
+        $output = '';
+        $pageName = $form->getPageName();
+
+        // Render hidden fields first
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'hidden') {
+                $output .= $this->renderField(
+                    // $form->getPageKey(),
+                    $form->getPageName(),
+                    $field,
+                    $options
+                );
+                // Note: RRR means reset type to 'display' so it's not removed after rendering as hidden.
+                // Commented out for now as this behavior needs clarification:
+                // $field->setType('display');
+            }
+        }
+
+        $errorDisplay = $options['error_display'] ?? 'inline';
+
+
+        if ($errorDisplay === 'summary') {
+            // Render all errors (including field errors) in summary at the top
+            $output .= $this->renderErrors($form, $options);
+            // Set flag to prevent duplicate inline errors on individual fields
+            $options['hide_inline_errors'] = true;
+        } else {
+            // Render only form-level errors before fields (field errors are inline)
+            $output .= $this->renderErrors($form, $options);
+        }
+
+
+        // ✅ Delegate layout rendering to helper method
+        $output .= $this->renderLayoutFields($form, $options);
+
+        // Render CAPTCHA in a consistent place before submit button
+        if ($form->isCaptchaRequired()) {
+            $captchaFieldName = 'captcha';
+            $output .= '<div class="security-wrapper mb-4">';
+            $output .= '<h5 class="security-heading mb-3">' .
+                       htmlspecialchars($this->translator->get('common.security.verification', pageName: $pageName)) .
+                       '</h5>';
+            $output .= $this->renderField(
+                // $form->getName(),
+                $pageName,
+                $form->getField($captchaFieldName),
+                $options
+            );
+            $output .= '</div>';
+        }
+
+        return $output;
+    }
+
+
+
+    /**
+     * ✅ NEW HELPER METHOD: Renders fields based on layout configuration.
+     * Supports 'fieldsets', 'sections', and 'sequential' layout types.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Bootstrap HTML for the layout
+     */
+    protected function renderLayoutFields(FormInterface $form, array $options): string
+    {
+        $output = '';
+        $pageName = $form->getPageName();
+        $layout = $form->getLayout();
+        $layout_type = $options['layout_type'] ?? 'sequential';
+
+        if ($layout_type === 'fieldsets' && !empty($layout)) {
+            $columns = count($layout);
+            $columnClass = $columns > 1 ? 'row' : '';
+            $output .= '<div class="' . $columnClass . '">';
+
+            foreach ($layout as $fieldsetId => $fieldset) {
+                $colWidth = $columns > 1 ? 'col-md-' . (12 / $columns) : '';
+                $output .= '<div class="fieldset-container ' . $colWidth . '">';
+                $fldId = $fieldset['id'] ?? "fieldset-" . htmlspecialchars("$fieldsetId");
+                $output .= '<fieldset id="' . $fldId . '" class="mb-4">';
+
+                if (!empty($fieldset['title'])) {
+                    $output .= '<legend>' . htmlspecialchars($fieldset['title']) . '</legend>';
+                }
+
+                foreach ($fieldset['fields'] as $fieldName) {
+                    if ($form->hasField($fieldName)) {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+
+                $output .= '</fieldset></div>';
+            }
+            $output .= '</div>';
+        } elseif ($layout_type === 'sections' && !empty($layout)) {
+            foreach ($layout as $sectionId => $section) {
+                $title = $section['title'] ?? '';
+                $secId = $section['id'] ?? "section-" . htmlspecialchars("$sectionId");
+                $output .= '<h3 class="form-section-header my-3" id="section-' . $secId . '">' .
+                    htmlspecialchars($title) . '</h3>';
+
+                if (!empty($section['divider'])) {
+                    $output .= '<hr class="form-divider my-4" style="border:2px solid red;">';
+                }
+
+                $fields = $section['fields'] ?? [];
+                foreach ($fields as $fieldName) {
+                    if ($form->hasField($fieldName)) {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+            }
+        } else {
+            // Default: Sequential rendering
+            foreach ($layout as $setId => $set) {
+                foreach ($set['fields'] as $fieldName) {
+                    if ($form->hasField($fieldName) && $fieldName !== 'captcha') {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+            }
+        }
+
+        return $output;
+    }
 
 
     protected function renderDraftNotification(array $options): string
@@ -60,17 +245,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
     }
 
 
-    /**
-     * ✅ BOOTSTRAP-SPECIFIC: Render categorized constraint hints with visibility tiers.
-     *
-     * @param FieldInterface $field The field being rendered
-     * @param array<string, array<int, array<string, string>>>
-     *                                                 $hints Categorized hints ['always' => [...], 'on_focus' => [...]]
-     * @return string Bootstrap HTML for constraint hints
-     */
-    protected function renderConstraintHintsHtml(FieldInterface $field, array $hints): string
+
+    /** {@inheritdoc} */
+    protected function renderConstraintHintsHtml(string $pageName, FieldInterface $field, array $hints): string
     {
         $fieldName = $field->getName();
+
         $html = '';
 
         // ✅ Always-visible hints (high-priority constraints)
@@ -80,12 +260,14 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $html .= '<ul class="constraints-list list-unstyled">';
 
             foreach ($hints['always'] as $hint) {
+                $translatedText = $this->translator->get($hint['text'], pageName: $pageName);
+
                 $html .= sprintf(
                     '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
                                                                   '</span><span class="constraint-text">%s</span></li>',
                     htmlspecialchars($hint['class']),
                     $hint['icon'],
-                    htmlspecialchars($hint['text'])
+                    htmlspecialchars($translatedText)
                 );
             }
 
@@ -99,12 +281,13 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $html .= '<ul class="constraints-list list-unstyled">';
 
             foreach ($hints['on_focus'] as $hint) {
+                $translatedText = $this->translator->get($hint['text'], pageName: $pageName);
                 $html .= sprintf(
                     '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
                                                                   '</span><span class="constraint-text">%s</span></li>',
                     htmlspecialchars($hint['class']),
                     $hint['icon'],
-                    htmlspecialchars($hint['text'])
+                    htmlspecialchars($translatedText)
                 );
             }
 
@@ -117,241 +300,215 @@ class BootstrapFormRenderer extends AbstractFormRenderer
 
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function renderForm(FormInterface $form, array $options = []): string
-    {
-        // Initial Form Entry we get all options
-        $renderOptions = $form->getRenderOptions();
-        $options = array_merge($renderOptions, $options);
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function renderForm(FormInterface $form, array $options = []): string
+    // {
+
+            //important!!!
+    //     // Get error display style option
+    //     $errorDisplay = $options['error_display'] ?? 'inline';
+
+    //     // If summary display is requested, render all errors at the top
+    //     if ($errorDisplay === 'summary') {
+    //         $allErrors = [];
+
+    //         // Collect all field errors
+    //         foreach ($form->getFields() as $field) {
+    //             $fieldErrors = $field->getErrors();
+    //             if (!empty($fieldErrors)) {
+    //                 $fieldLabel = $field->getLabel();
+    //                 foreach ($fieldErrors as $error) {
+    //                     $allErrors[] = '<li><strong>' . htmlspecialchars($fieldLabel) . ':</strong> ' .
+    //                                 htmlspecialchars($error) . '</li>';
+    //                 }
+    //             }
+    //         }
+
+    //         // Add form-level errors
+    //         $formErrors = $form->getErrors('_form');
+    //         foreach ($formErrors as $error) {
+    //             $allErrors[] = '<li>' . htmlspecialchars($error) . '</li>';
+    //         }
+
+    //         // Output error summary if there are errors
+    //         if (!empty($allErrors)) {
+    //             $output .= '<div class="alert alert-danger mb-4" role="alert">';
+    //             $output .= '<h5>Please correct the following errors:</h5>';
+    //             $output .= '<ul>' . implode('', $allErrors) . '</ul>';
+    //             $output .= '</div>';
+    //         }
+
+    //         // Set option to prevent duplicate errors
+    //         $options['hide_inline_errors'] = true;
+    //     } else {
+    //         // Render just form-level errors
+    //         $output .= $this->renderErrors($form, $options);
+    //     }
+
+    //     //---------------------------------------------------------------------
+
+    //     foreach ($form->getFields() as $field) {
+    //         if ($field->getType() === 'hidden') {
+    //             $output .= $this->renderField($form->getPageKey(), $form->getPageName(), $field, $options);
+    //             $field->setType('display');
+    //             $rrr = 4;
+    //         }
+    //     }
+
+    //     //---------------------------------------------------------------------
+
+    //     // Check if we have a layout configuration
+    //     $layout = $form->getLayout();
+    //     $layout_type = $options['layout_type'] ?? 'sequential';
+
+    //     if ($layout_type === 'fieldsets' && !empty($layout)) {
+    //         // Determine column class based on layout
+    //         // $columns = $layout['columns'] ?? 1;
+    //         $columns = count($layout);
+
+    //         $columnClass = $columns > 1 ? 'row' : '';
+
+    //         $output .= '<div class="' . $columnClass . '">';
+
+    //         // Render fieldsets
+    //         foreach ($layout as $fieldsetId => $fieldset) {
+    //             // Calculate column width for Bootstrap
+    //             $colWidth = $columns > 1 ? 'col-md-' . (12 / $columns) : '';
+
+    //             $output .= '<div class="fieldset-container ' . $colWidth . '">';
+    //             // $fldId = $fieldset['id'] ?? "fielsdset-" . htmlspecialchars("$fieldsetId");
+    //             $fldId = $fieldset['id'] ?? "fieldset-" . htmlspecialchars("$fieldsetId");
+
+    //             $output .= '<fieldset id="' . $fldId . '" class="mb-4">';
+
+    //             // Add title as legend if specified
+    //             if (!empty($fieldset['title'])) {
+    //                 $output .= '<legend>' . htmlspecialchars($fieldset['title']) . '</legend>';
+    //             }
+
+    //             // Render fields in this fieldset
+    //             foreach ($fieldset['fields'] as $fieldName) {
+    //                 if ($form->hasField($fieldName)) {
+    //                     $output .= $this->renderField(
+    //                         $form->getName(),
+    //                         $pageName,
+    //                         $form->getField($fieldName),
+    //                         $options
+    //                     );
+    //                 }
+    //             }
+
+    //             $output .= '</fieldset>';
+    //             $output .= '</div>';
+    //         }
+
+    //         $output .= '</div>';
+    //     } elseif ($layout_type === 'sections' && !empty($layout)) {
+    //         foreach ($layout as $sectionId => $section) {
+    //             $title = $section['title'] ?? '';
+    //             $secId = $section['id'] ?? "section-" . htmlspecialchars("$sectionId");
+
+    //             $output .= '<h3 class="form-section-header my-3" id="section-' . $secId . '">' .
+    //                 htmlspecialchars($title) . '</h3>';
+
+    //             if (!empty($section['divider'])) {
+    //                 $output .= '<hr class="form-divider my-4" style="border:2px solid red;">';
+    //             }
+
+    //             $fields = $section['fields'] ?? [];
+    //             foreach ($fields as $fieldName) {
+    //                 if ($form->hasField($fieldName)) {
+    //                     $output .= $this->renderField(
+    //                         $form->getName(),
+    //                         $pageName,
+    //                         $form->getField($fieldName),
+    //                         $options
+    //                     );
+    //                 }
+    //             }
+    //         }
+    //     } elseif ($layout_type === 'sequentialXxxxxxxxxx' && !empty($layout)) {
+    //         // Sequential layout rendering
+    //         foreach ($layout as $setId => $set) {
+    //             foreach ($set['fields'] as $fieldName) {
+    //                 if ($form->hasField($fieldName)) {
+    //                     if ($fieldName !== 'captcha') {
+    //                         $output .= $this->renderField(
+    //                             $form->getName(),
+    //                             $pageName,
+    //                             $form->getField($fieldName),
+    //                             $options
+    //                         );
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     } else {
+    //         // Defaults to Sequential and Fallback if somehow nothing is set
+    //         foreach ($layout as $setId => $set) {
+    //             foreach ($set['fields'] as $fieldName) {
+    //                 if ($form->hasField($fieldName)) {
+    //                     if ($fieldName !== 'captcha') {
+    //                         $output .= $this->renderField(
+    //                             $form->getName(),
+    //                             $pageName,
+    //                             $form->getField($fieldName),
+    //                             $options
+    //                         );
+    //                     }
+    //                 }
+    //             }
+    //         }
 
 
-       // $cardClass = $this->themeService->getElementClass('card');
-        //$output = '<div class="xxx' . $cardClass . '">';
+    //         // foreach ($layout['fields'] as $fieldName) {
+    //         //     if ($form->hasField($fieldName)) {
+    //         //         if ($fieldName !== 'captcha') {
+    //         //             $output .= $this->renderField(
+    //         //                 $form->getName(), $pageName,
+    //         //                 $form->getField($fieldName),
+    //         //                 $options
+    //         //             );
+    //         //         }
+    //         //     }
+    //         // }
+    //     }
 
+    //     //---------------------------------------------------------------------
 
+    //     // Track if we have a captcha field
+    //     $isCaptchaRequired = $form->isCaptchaRequired();
 
-        //---------------------------------------------------------------------
+    //     // Now render CAPTCHA in a consistent place before submit button
+    //     if ($isCaptchaRequired) {
+    //         $captchaFieldName = 'captcha';
+    //         $output .= '<div class="security-wrapper mb-4">';
+    //         $output .= '<h5 class="security-heading mb-3">Security Verification</h5>';
+    //         $output .= $this->renderField($form->getName(), $pageName, $form->getField($captchaFieldName), $options);
+    //         $output .= '</div>';
+    //     }
 
-        // Render the form header (title + ajax spinner) *outside* the <form> tag
-        $output = $this->renderFormHeader($options);
+    //     //---------------------------------------------------------------------
 
-        //---------------------------------------------------------------------
+    //     $output .= $this->renderButtons($options);
 
+    //     $output .= $this->renderDraftNotification($options); // js-feature
 
+    //     $output .= $this->renderEnd($form, $options);
 
-        $cardBodyClass = $this->themeService->getElementClass('card.body');
-        $output .= '<div class="' . $cardBodyClass . ' pt-0">';
+    //     $output .= '</div>';
+    //     //$output .= '</div>';
 
-
-        $output .= $this->renderStart($form, $options);
-        $pageName = $form->getPageName();
-
-        //---------------------------------------------------------------------
-
-        // Get error display style option
-        $errorDisplay = $options['error_display'] ?? 'inline';
-
-        // If summary display is requested, render all errors at the top
-        if ($errorDisplay === 'summary') {
-            $allErrors = [];
-
-            // Collect all field errors
-            foreach ($form->getFields() as $field) {
-                $fieldErrors = $field->getErrors();
-                if (!empty($fieldErrors)) {
-                    $fieldLabel = $field->getLabel();
-                    foreach ($fieldErrors as $error) {
-                        $allErrors[] = '<li><strong>' . htmlspecialchars($fieldLabel) . ':</strong> ' .
-                                    htmlspecialchars($error) . '</li>';
-                    }
-                }
-            }
-
-            // Add form-level errors
-            $formErrors = $form->getErrors('_form');
-            foreach ($formErrors as $error) {
-                $allErrors[] = '<li>' . htmlspecialchars($error) . '</li>';
-            }
-
-            // Output error summary if there are errors
-            if (!empty($allErrors)) {
-                $output .= '<div class="alert alert-danger mb-4" role="alert">';
-                $output .= '<h5>Please correct the following errors:</h5>';
-                $output .= '<ul>' . implode('', $allErrors) . '</ul>';
-                $output .= '</div>';
-            }
-
-            // Set option to prevent duplicate errors
-            $options['hide_inline_errors'] = true;
-        } else {
-            // Render just form-level errors
-            $output .= $this->renderErrors($form, $options);
-        }
-
-        //---------------------------------------------------------------------
-
-        foreach ($form->getFields() as $field) {
-            if ($field->getType() === 'hidden') {
-                $output .= $this->renderField($form->getPageKey(), $form->getPageName(), $field, $options);
-                $field->setType('display');
-                $rrr = 4;
-            }
-        }
-
-        //---------------------------------------------------------------------
-
-        // Check if we have a layout configuration
-        $layout = $form->getLayout();
-        $layout_type = $options['layout_type'] ?? 'sequential';
-
-        if ($layout_type === 'fieldsets' && !empty($layout)) {
-            // Determine column class based on layout
-            // $columns = $layout['columns'] ?? 1;
-            $columns = count($layout);
-
-            $columnClass = $columns > 1 ? 'row' : '';
-
-            $output .= '<div class="' . $columnClass . '">';
-
-            // Render fieldsets
-            foreach ($layout as $fieldsetId => $fieldset) {
-                // Calculate column width for Bootstrap
-                $colWidth = $columns > 1 ? 'col-md-' . (12 / $columns) : '';
-
-                $output .= '<div class="fieldset-container ' . $colWidth . '">';
-                // $fldId = $fieldset['id'] ?? "fielsdset-" . htmlspecialchars("$fieldsetId");
-                $fldId = $fieldset['id'] ?? "fieldset-" . htmlspecialchars("$fieldsetId");
-
-                $output .= '<fieldset id="' . $fldId . '" class="mb-4">';
-
-                // Add title as legend if specified
-                if (!empty($fieldset['title'])) {
-                    $output .= '<legend>' . htmlspecialchars($fieldset['title']) . '</legend>';
-                }
-
-                // Render fields in this fieldset
-                foreach ($fieldset['fields'] as $fieldName) {
-                    if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField(
-                            $form->getName(),
-                            $pageName,
-                            $form->getField($fieldName),
-                            $options
-                        );
-                    }
-                }
-
-                $output .= '</fieldset>';
-                $output .= '</div>';
-            }
-
-            $output .= '</div>';
-        } elseif ($layout_type === 'sections' && !empty($layout)) {
-            foreach ($layout as $sectionId => $section) {
-                $title = $section['title'] ?? '';
-                $secId = $section['id'] ?? "section-" . htmlspecialchars("$sectionId");
-
-                $output .= '<h3 class="form-section-header my-3" id="section-' . $secId . '">' .
-                    htmlspecialchars($title) . '</h3>';
-
-                if (!empty($section['divider'])) {
-                    $output .= '<hr class="form-divider my-4" style="border:2px solid red;">';
-                }
-
-                $fields = $section['fields'] ?? [];
-                foreach ($fields as $fieldName) {
-                    if ($form->hasField($fieldName)) {
-                        $output .= $this->renderField(
-                            $form->getName(),
-                            $pageName,
-                            $form->getField($fieldName),
-                            $options
-                        );
-                    }
-                }
-            }
-        } elseif ($layout_type === 'sequentialXxxxxxxxxx' && !empty($layout)) {
-            // Sequential layout rendering
-            foreach ($layout as $setId => $set) {
-                foreach ($set['fields'] as $fieldName) {
-                    if ($form->hasField($fieldName)) {
-                        if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField(
-                                $form->getName(),
-                                $pageName,
-                                $form->getField($fieldName),
-                                $options
-                            );
-                        }
-                    }
-                }
-            }
-        } else {
-            // Defaults to Sequential and Fallback if somehow nothing is set
-            foreach ($layout as $setId => $set) {
-                foreach ($set['fields'] as $fieldName) {
-                    if ($form->hasField($fieldName)) {
-                        if ($fieldName !== 'captcha') {
-                            $output .= $this->renderField(
-                                $form->getName(),
-                                $pageName,
-                                $form->getField($fieldName),
-                                $options
-                            );
-                        }
-                    }
-                }
-            }
-
-
-            // foreach ($layout['fields'] as $fieldName) {
-            //     if ($form->hasField($fieldName)) {
-            //         if ($fieldName !== 'captcha') {
-            //             $output .= $this->renderField(
-            //                 $form->getName(), $pageName,
-            //                 $form->getField($fieldName),
-            //                 $options
-            //             );
-            //         }
-            //     }
-            // }
-        }
-
-        //---------------------------------------------------------------------
-
-        // Track if we have a captcha field
-        $isCaptchaRequired = $form->isCaptchaRequired();
-
-        // Now render CAPTCHA in a consistent place before submit button
-        if ($isCaptchaRequired) {
-            $captchaFieldName = 'captcha';
-            $output .= '<div class="security-wrapper mb-4">';
-            $output .= '<h5 class="security-heading mb-3">Security Verification</h5>';
-            $output .= $this->renderField($form->getName(), $pageName, $form->getField($captchaFieldName), $options);
-            $output .= '</div>';
-        }
-
-        //---------------------------------------------------------------------
-
-        $output .= $this->renderFormButtons($options);
-
-        $output .= $this->renderDraftNotification($options); // js-feature
-
-        $output .= $this->renderEnd($form, $options);
-
-        $output .= '</div>';
-        //$output .= '</div>';
-
-        return $output;
-    }
+    //     return $output;
+   // }
 
 
     /**
      * {@inheritdoc}
      */
-    public function renderField(string $formName, string $pageName, FieldInterface $field, array $options = []): string
+    public function renderField(string $pageName, FieldInterface $field, array $options = []): string
     {
         static $autofocusSet = false;
 
@@ -1030,11 +1187,11 @@ class BootstrapFormRenderer extends AbstractFormRenderer
 
         // ✅ Generate constraint hints (categorized by visibility tier)
         if (($options['show_constraint_hints'] ?? true) && $type !== 'hidden') {
-            $hints = $this->generateConstraintHints($field, $formName);
+            $hints = $this->generateConstraintHints($field, $pageName);
 
             // Only render if there are hints to display
             if (!empty($hints['always']) || !empty($hints['on_focus'])) {
-                $output .= $this->renderConstraintHintsHtml($field, $hints);
+                $output .= $this->renderConstraintHintsHtml($pageName, $field, $hints);
             }
         }
 
@@ -1107,29 +1264,29 @@ class BootstrapFormRenderer extends AbstractFormRenderer
     }
 
 
-     /**
-     * {@inheritdoc}
-     */
-    public function renderStart(FormInterface $form, array $options = []): string
-    {
-        $attrString = $this->buildFormAttributes($form, $options);
+    //  /**
+    //  * {@inheritdoc}
+    //  */
+    // public function renderStart(FormInterface $form, array $options = []): string
+    // {
+    //     $attrString = $this->buildFormAttributes($form, $options);
 
-        $output = '<form' . $attrString . '>';
+    //     $output = '<form' . $attrString . '>';
 
-        // CSRF token
-        $token = $form->getCSRFToken();
-        $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+    //     // CSRF token
+    //     $token = $form->getCSRFToken();
+    //     $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
 
-        return $output;
-    }
+    //     return $output;
+    // }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function renderEnd(FormInterface $form, array $options = []): string
-    {
-        return '</form>';
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function renderEnd(FormInterface $form, array $options = []): string
+    // {
+    //     return '</form>';
+    // }
 
     /**
      * Renders the form's submit and optional cancel buttons.
@@ -1137,14 +1294,14 @@ class BootstrapFormRenderer extends AbstractFormRenderer
      * @param array<string, mixed> $options The rendering options.
      * @return string The HTML string for the buttons.
      */
-    protected function renderFormButtons(array $options): string
+    protected function renderButtons(FormInterface $form, array $options): string
     {
         $output = '';
 
         // Render submit button if requested
         if (!isset($options['no_submit_button']) || !$options['no_submit_button']) {
-            $buttonText = $options['submit_text'] ?? 'common.button.save';
-            $buttonText = $this->translator->get($buttonText);
+            $buttonText = $options['submit_text'] ?? 'button.save';
+            $buttonText = $this->translator->get($buttonText, pageName: $form->getPageName());
 
             $buttonButtonVariant = $options['submit_button_variant'] ?? 'primary';
             $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant);
@@ -1159,7 +1316,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             // ✅ NEW: Add Cancel/Back button if cancel_url is provided via render options
             if (!empty($options['cancel_url'])) {
                 $buttonText = $options['cancel_text'] ?? 'common.button.cancel';
-                $buttonText = $this->translator->get($buttonText);
+                $buttonText = $this->translator->get($buttonText, pageName: $form->getPageName());
 
                 $buttonButtonVariant = $options['cancel_button_variant'] ?? 'secondary';
                 $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant) . ' ms-2';
@@ -1176,57 +1333,65 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         return $output;
     }
 
-
-
-    //  * @param FormInterface $form The form instance.
+    // ✅ NEW: Implement renderEndTag (closing form tag)
     /**
-     * Renders the overall form header, including the main heading and any pre-form elements.
-     * This ensures consistency with BootstrapListRenderer's renderHeader by placing the heading
-     * (and related status indicators) outside the <form> element.
-     *
-     * @param array<string, mixed> $options The rendering options.
-     * @return string The HTML for the form header.
+     * {@inheritdoc}
      */
-    protected function renderFormHeader(array $options): string
+    protected function renderEndTag(FormInterface $form, array $options): string
     {
-        $output = '';
-
-        // Render the form heading if configured
-        if (!empty($options['form_heading'])) {
-            $headerClass = $this->themeService->getElementClass('card.header'); // Consistent with list header
-            $output = '<div class="' . $headerClass . '">';
-
-            // Resolve heading level, defaulting to 'h2'
-            $headingLevelCandidate = $options['form_heading_level'] ?? 'h2';
-            $headingLevel = (is_string($headingLevelCandidate) && preg_match('/^h[1-6]$/i', $headingLevelCandidate))
-                            ? $headingLevelCandidate
-                            : 'h2'; // Safe fallback for invalid or empty values
-
-            // $headingLevel = $options['form_heading_level'] ?? 'h2';
-            $headingClass = $options['form_heading_class'] ?? $this->themeService->getElementClass('form.heading');
-            // $wrapperClass = $options['form_heading_wrapper_class'] ??
-                                                        // $this->themeService->getElementClass('form.heading.wrapper');
-            $headingText  = $options['form_heading'] ?? 'common.form.heading';
-            $headingText = $this->translator->get($headingText);
-
-
-            // $output .= "<div class=\"{$wrapperClass}\">";
-            $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
-                    htmlspecialchars($headingText) .
-                    "</{$headingLevel}>";
-            $output .= "</div>";
-        }
-
-        // Render ajax_save_spinner here, as it's typically an overall form status indicator,
-        // often appearing before or after the form, not strictly inside.
-        if (!empty($options['ajax_save'])) {
-            $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2">'
-                . '<span class="spinner-border spinner-border-sm"></span> Saving...'
-                . '</div>';
-        }
-
-        return $output;
+        return '</form>';
     }
+
+
+    // //  * @param FormInterface $form The form instance.
+    // /**
+    //  * Renders the overall form header, including the main heading and any pre-form elements.
+    //  * This ensures consistency with BootstrapListRenderer's renderHeader by placing the heading
+    //  * (and related status indicators) outside the <form> element.
+    //  *
+    //  * @param array<string, mixed> $options The rendering options.
+    //  * @return string The HTML for the form header.
+    //  */
+    // protected function renderFormHeader(array $options): string
+    // {
+    //     $output = '';
+
+    //     // Render the form heading if configured
+    //     if (!empty($options['form_heading'])) {
+    //         $headerClass = $this->themeService->getElementClass('card.header'); // Consistent with list header
+    //         $output = '<div class="' . $headerClass . '">';
+
+    //         // Resolve heading level, defaulting to 'h2'
+    //         $headingLevelCandidate = $options['form_heading_level'] ?? 'h2';
+    //         $headingLevel = (is_string($headingLevelCandidate) && preg_match('/^h[1-6]$/i', $headingLevelCandidate))
+    //                         ? $headingLevelCandidate
+    //                         : 'h2'; // Safe fallback for invalid or empty values
+
+    //         // $headingLevel = $options['form_heading_level'] ?? 'h2';
+    //         $headingClass = $options['form_heading_class'] ?? $this->themeService->getElementClass('form.heading');
+    //         // $wrapperClass = $options['form_heading_wrapper_class'] ??
+    //                                                     // $this->themeService->getElementClass('form.heading.wrapper');
+    //         $headingText  = $options['form_heading'] ?? 'common.form.heading';
+    //         $headingText = $this->translator->get($headingText);
+
+
+    //         // $output .= "<div class=\"{$wrapperClass}\">";
+    //         $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
+    //                 htmlspecialchars($headingText) .
+    //                 "</{$headingLevel}>";
+    //         $output .= "</div>";
+    //     }
+
+    //     // Render ajax_save_spinner here, as it's typically an overall form status indicator,
+    //     // often appearing before or after the form, not strictly inside.
+    //     if (!empty($options['ajax_save'])) {
+    //         $output .= '<div id="ajax-save-spinner" style="display:none;" class="text-info mb-2">'
+    //             . '<span class="spinner-border spinner-border-sm"></span> Saving...'
+    //             . '</div>';
+    //     }
+
+    //     return $output;
+    // }
 
 
     /**
@@ -1354,19 +1519,6 @@ class BootstrapFormRenderer extends AbstractFormRenderer
     }
 
 
-    /**
-     * Renders the form's submit and optional cancel buttons.
-     *
-     * @param array<string, mixed> $options The rendering options.
-     * @return string The HTML string for the buttons.
-     */
-    protected function renderFormButtonsXxx(array $options): string
-    {
-        $output = '';
-
-
-        return $output;
-    }
 
 
 

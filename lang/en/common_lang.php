@@ -19,6 +19,55 @@
 declare(strict_types=1);
 
 return [
+    'form' => [
+        'hints' => [
+            'required'      => 'Required field',
+            'minlength'     => 'At least %d characters',
+            'maxlength'     => 'Maximum %d characters',
+            'min'           => 'Minimum value: %s',
+            'max'           => 'Maximum value: %s',
+            'date_min'      => 'Not before: %s',
+            'date_max'      => 'Not after: %s',
+            'pattern'       => 'Must match required format',
+            'email'         => 'Must be a valid email address',
+            'tel'           => 'Enter with country code (e.g., +1234567890)',
+            'url'           => 'Must start with http:// or https://',
+        ],
+        'heading' => 'Edit Recordccccc',
+    ],
+    'menu'  => [
+        'home' => 'Home',
+        'test' => 'Test',
+        'about' => 'About',
+        'contact' => 'Contact',
+        'testy' => 'Testy',
+
+        'head' => [
+            'core' => 'Core',
+            'user' => 'User',
+            'store' => 'Store',
+            'admin' => 'Admin',
+        ],
+
+        'profile' => 'Profile',
+        // 'settings' => 'Settings',
+        'user_manage'     => 'Manage Users',
+        'admin_dashboard' => 'Admin Dashboard',
+
+        'store_dashboard' => 'Store Dashboard',
+        'store_profile'   => 'Store Profile',
+        'store_settings'  => 'Store Settings',
+
+        'user_dashboard' => 'User Dashboard',
+        'user_profile'   => 'User Profile',
+        'user_settings'  => 'User Settings',
+        'user_notes'  => 'User Notes',
+        'user_list'  => 'User List',
+
+    ],
+
+
+
     'actions' => 'Actions',
     'button'  => [
         'delete' => 'Delete',
@@ -28,9 +77,9 @@ return [
         'view'   => 'View',
         'save'   => 'Save',
         'cancel' => 'Cancel',
-    ],
-    'form' => [
-        'heading' => 'Edit Recordccccc',
+        'view_table' => 'Table View',
+        'view_list'  => 'List View',
+        'view_grid'  => 'Grid View',
     ],
     'id' => [
         'list' => [

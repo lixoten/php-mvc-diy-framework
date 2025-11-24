@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Validation\Validator;
-use Core\Form\Renderer\FormRendererInterface;
 
 /**
  * Default form implementation
@@ -28,7 +26,7 @@ class Form implements FormInterface
         'action' => '',
         'enctype' => 'multipart/form-data',
     ];
-    private ?FormRendererInterface $renderer = null;
+    // private ?FormRendererInterface $renderer = null;
     // private array $layout = [];
     private array $renderOptions = [];
     private array $layout = [];
@@ -339,110 +337,11 @@ class Form implements FormInterface
     // /**
     //  * {@inheritdoc}
     //  */
-    // public function render(array $options = []): string
+    // public function setRenderer(FormRendererInterface $renderer): self
     // {
-    //     // Merge stored options with any provided now (new ones override stored ones)
-    //     $mergedOptions = array_merge($this->renderOptions, $options);
-
-    //     if ($this->renderer) {
-    //         return $this->renderer->renderForm($this, $mergedOptions);
-    //     }
-
-    //     // if ($this->renderer) {
-    //     //     return $this->renderer->renderForm($this, $options);
-    //     // }
-
-    //     $output = '<form';
-
-    //     // Add form attributes
-    //     foreach ($this->attributes as $name => $value) {
-    //         $output .= ' ' . $name . '="' . htmlspecialchars($value) . '"';
-    //     }
-
-    //     $output .= '>';
-
-    //     $token = $this->getCSRFToken();
-    //     $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
-
-    //     // Add form fields
-    //     foreach ($this->fields as $name => $field) {
-    //         $output .= $this->renderField($name, $field);
-    //     }
-
-    //     // Add submit button
-    //     $output .= '<button type="submit" class="btn btn-primary">Submit</button>';
-
-    //     $output .= '</form>';
-
-    //     return $output;
+    //     $this->renderer = $renderer;
+    //     return $this;
     // }
-
-    // /**
-    //  * Render a field
-    //  *
-    //  * @param string $name Field name
-    //  * @param FieldInterface $field Field
-    //  * @return string HTML
-    //  */
-    // private function renderField(string $name, FieldInterface $field): string
-    // {
-    //     $type = $field->getType();
-    //     $label = $field->getLabel();
-    //     $value = $field->getValue();
-    //     $attributes = $field->getAttributes();
-    //     $hasError = $field->hasError();
-
-    //     $output = '<div class="form-group' . ($hasError ? ' has-error' : '') . '">';
-
-    //     // Label
-    //     $output .= '<label for="' . $name . '">' . htmlspecialchars($label) . '</label>';
-
-    //     // Input
-    //     if ($type === 'textarea') {
-    //         $output .= '<textarea name="' . $name . '" id="' . $name . '"';
-
-    //         // Add attributes
-    //         foreach ($attributes as $attrName => $attrValue) {
-    //             $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
-    //         }
-
-    //         $output .= '>' . htmlspecialchars((string)$value) . '</textarea>';
-    //     } else {
-    //         $output .= '<input type="' . $type . '"';
-    //         $output .= ' name="' . $name . '"';
-    //         $output .= ' id="' . $name . '"';
-    //         $output .= ' value="' . htmlspecialchars((string)$value) . '"';
-
-    //         // Add attributes
-    //         foreach ($attributes as $attrName => $attrValue) {
-    //             $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
-    //         }
-
-    //         $output .= '>';
-    //     }
-
-    //     // Error messages
-    //     if ($hasError) {
-    //         $output .= '<div class="invalid-feedback d-block">';
-    //         foreach ($field->getErrors() as $error) {
-    //             $output .= '<div>' . htmlspecialchars($error) . '</div>';
-    //         }
-    //         $output .= '</div>';
-    //     }
-
-    //     $output .= '</div>';
-
-    //     return $output;
-    // }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setRenderer(FormRendererInterface $renderer): self
-    {
-        $this->renderer = $renderer;
-        return $this;
-    }
 
     /**
      * Set form layout configuration
@@ -490,16 +389,16 @@ class Form implements FormInterface
     }
 
 
-    /**
-     * {@inheritdoc}
-     */
-    public function getRenderer(): FormRendererInterface
-    {
-        if (!$this->renderer) {
-            throw new \RuntimeException('Form renderer is not set');
-        }
-        return $this->renderer;
-    }
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function getRenderer(): FormRendererInterface
+    // {
+    //     if (!$this->renderer) {
+    //         throw new \RuntimeException('Form renderer is not set');
+    //     }
+    //     return $this->renderer;
+    // }
 
     /**
      * Get the form rendering options

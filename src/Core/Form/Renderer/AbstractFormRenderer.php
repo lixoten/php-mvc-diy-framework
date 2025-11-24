@@ -49,6 +49,188 @@ abstract class AbstractFormRenderer implements FormRendererInterface
     ) {
     }
 
+
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+
+
+    // ✅ NEW: Template Method - orchestrates the form rendering flow (framework-agnostic)
+    /**
+     * Renders the entire form using the Template Method pattern.
+     * This method defines the overall flow and delegates HTML generation to abstract methods.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string The complete rendered HTML for the form
+     */
+    public function renderForm(FormInterface $form, array $options = []): string
+    {
+        // Merge options: defaultOptions -> form's render options -> method-provided options
+        $options = $this->mergeOptions($form, $options);
+
+        $output = '';
+
+        $cardClass = $this->themeService->getElementClass('card');
+        $output = '<div class="' . $cardClass . '">';
+
+        // Step 1: Render the form's header (e.g., title, AJAX spinner) - outside <form> tag
+        $output .= $this->renderHeader($form, $options);
+
+        $cardBodyClass = $this->themeService->getElementClass('card.body');
+        $output .= '<div class="' . $cardBodyClass . '">';
+
+        // Step 2: Render the opening <form> tag and hidden fields (CSRF, etc.)
+        $output .= $this->renderStartTag($form, $options);
+
+        // Step 3: Render the main body content (errors, visible fields, captcha)
+        $output .= $this->renderBodyContent($form, $options);
+
+        // Step 4: Render the action buttons (submit, cancel)
+        $output .= $this->renderButtons($form, $options);
+
+        // Step 5: Render any notification/draft features
+        $output .= $this->renderDraftNotification($options);
+
+        // Step 6: Render the closing </form> tag (and any final wrapper elements)
+        $output .= $this->renderEndTag($form, $options);
+
+        $output .= '</div>';
+        $output .= '</div>';
+
+
+        return $output;
+    }
+
+    // ✅ NEW: Abstract method - child renderers implement framework-specific header HTML
+    /**
+     * Renders the form's header section (typically outside the <form> tag).
+     * May include the form title, AJAX spinner, or other global status indicators.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the form header
+     */
+    abstract protected function renderHeader(FormInterface $form, array $options): string;
+
+    // ✅ NEW: Abstract method - child renderers implement framework-specific start tag HTML
+    /**
+     * Renders the opening <form> tag and any initial hidden fields (e.g., CSRF token).
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the form start
+     */
+    abstract protected function renderStartTag(FormInterface $form, array $options): string;
+
+    // ✅ NEW: Abstract method - child renderers implement framework-specific body HTML
+    /**
+     * Renders the main content within the <form> tag.
+     * Includes errors, visible fields (or layout-based field groups), and captcha.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the form body content
+     */
+    abstract protected function renderBodyContent(FormInterface $form, array $options): string;
+
+    // ✅ NEW: Abstract method - child renderers implement framework-specific button HTML
+    /**
+     * Renders the form's action buttons (e.g., submit, cancel).
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the form buttons
+     */
+    abstract protected function renderButtons(FormInterface $form, array $options): string;
+
+    // ✅ NEW: Abstract method - child renderers implement framework-specific end tag HTML
+    /**
+     * Renders the closing </form> tag and any final wrapper elements.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the form end
+     */
+    abstract protected function renderEndTag(FormInterface $form, array $options): string;
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
+
+    //  * @param string $formName The name of the form
+    // ✅ KEPT: Existing abstract methods that child renderers already implement
+    /**
+     * Renders a single field of the form.
+     *
+     * @param string $pageName The current page name for translation context
+     * @param FieldInterface $field The field to render
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the field
+     */
+    abstract public function renderField(
+        // string $formName,
+        string $pageName,
+        FieldInterface $field,
+        array $options = []
+    ): string;
+
+    //  * @param string|null $fieldName Optional field name to render errors for
+        // ?string $fieldName = null
+    /**
+     * Renders error messages for the form or a specific field.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Framework-specific HTML for the errors
+     */
+    abstract public function renderErrors(
+        FormInterface $form,
+        array $options = [],
+    ): string;
+
+    /**
+     * ✅ ABSTRACT METHOD: Child renderers implement framework-specific HTML structure.
+     *
+     * @param string $pageName The current page name for translation context
+     * @param FieldInterface $field The field being rendered
+     * @param array<int, array<string, string>> $hints Array of hint data (icon, text, class)
+     * @return string Framework-specific HTML for constraint hints
+     */
+    abstract protected function renderConstraintHintsHtml(
+        string $pageName,
+        FieldInterface $field,
+        array $hints
+    ): string;
+
+
+    /**
+     * ✅ ABSTRACT METHOD: Child renderers implement framework-specific draft notification HTML.
+     *
+     * @return string Framework-specific HTML for draft notification
+     */
+    abstract protected function renderDraftNotificationHtml(): string;
+
+
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+
     /**
      * C: Generate constraint hints with visibility tiers.
      *
@@ -56,11 +238,11 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * It uses the translator to get localized hint messages.
      *
      * @param FieldInterface $field The field to generate hints for
-     * @param string $pageKey The page/form context for translation lookup
+     * @param string $pageName The page/form context for translation lookup
      * @return array<string, array<int, array<string, mixed>>> Categorized hints ['always' => [...],
      *                      'on_focus' => [...]]
      */
-    protected function generateConstraintHints(FieldInterface $field, string $pageKey): array
+    protected function generateConstraintHints(FieldInterface $field, string $pageName): array
     {
         $alwaysVisible = []; // High-visibility hints (always shown)
         $onFocus = [];       // Focus-based hints (shown on field focus)
@@ -74,7 +256,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (!empty($attrs['required'])) {
             $alwaysVisible[] = [
                 'icon' => '●',
-                'text' => $this->translator->get('form.hints.required'),
+                'text' => 'form.hints.required',
                 'class' => 'constraint-required'
             ];
         }
@@ -84,7 +266,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '↓',
                 'text' => sprintf(
-                    $this->translator->get('form.hints.minlength'),
+                    'form.hints.minlength',
                     $attrs['minlength']
                 ),
                 'class' => 'constraint-minlength'
@@ -95,7 +277,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '↑',
                 'text' => sprintf(
-                    $this->translator->get('form.hints.maxlength'),
+                    'form.hints.maxlength',
                     $attrs['maxlength']
                 ),
                 'class' => 'constraint-maxlength'
@@ -108,7 +290,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '≥',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.min'),
+                        'form.hints.min',
                         $attrs['min']
                     ),
                     'class' => 'constraint-min'
@@ -118,7 +300,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '≤',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.max'),
+                        'form.hints.max',
                         $attrs['max']
                     ),
                     'class' => 'constraint-max'
@@ -132,7 +314,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '📅',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.date_min'),
+                        'form.hints.date_min',
                         $attrs['min']
                     ),
                     'class' => 'constraint-date-min'
@@ -142,7 +324,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
                 $alwaysVisible[] = [
                     'icon' => '📅',
                     'text' => sprintf(
-                        $this->translator->get('form.hints.date_max'),
+                        'form.hints.date_max',
                         $attrs['max']
                     ),
                     'class' => 'constraint-date-max'
@@ -153,7 +335,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ⚠️ ON FOCUS: Pattern constraint (complex explanation)
         if (!empty($attrs['pattern'])) {
             $patternMsg = $attrs['pattern_message'] ??
-                        $this->translator->get('form.hints.pattern');
+                        'form.hints.pattern';
             $onFocus[] = [
                 'icon' => '⚙',
                 'text' => $patternMsg,
@@ -165,7 +347,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'email') {
             $onFocus[] = [
                 'icon' => '@',
-                'text' => $this->translator->get('form.hints.email'),
+                'text' => 'form.hints.email',
                 'class' => 'constraint-email'
             ];
         }
@@ -173,7 +355,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'tel') {
             $onFocus[] = [
                 'icon' => '☎',
-                'text' => $this->translator->get('form.hints.tel'),
+                'text' => 'form.hints.tel',
                 'class' => 'constraint-tel'
             ];
         }
@@ -181,7 +363,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'url') {
             $onFocus[] = [
                 'icon' => '🔗',
-                'text' => $this->translator->get('form.hints.url'),
+                'text' => 'form.hints.url',
                 'class' => 'constraint-url'
             ];
         }
@@ -212,7 +394,10 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         $errorType  = $parts[array_key_last($parts)];
         $attrs      = $field->getAttributes();
-        $translation = $this->translator->get($error);
+        $errorAttr  = [$errorType => $attrs[$errorType] ?? []];
+        //$errorAttr  = [$errorType => $attrs["foo"] ?? null];
+        // $errorAttr  = [];
+        $translation = $this->translator->get($error, $errorAttr, $pageKey);
 
         if (!array_key_exists($errorType, $attrs)) {
             // Log a warning for missing attribute, but do not mask the bug
@@ -231,15 +416,6 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
 
     /**
-     * ✅ ABSTRACT METHOD: Child renderers implement framework-specific HTML structure.
-     *
-     * @param FieldInterface $field The field being rendered
-     * @param array<int, array<string, string>> $hints Array of hint data (icon, text, class)
-     * @return string Framework-specific HTML for constraint hints
-     */
-    abstract protected function renderConstraintHintsHtml(FieldInterface $field, array $hints): string;
-
-    /**
      * ✅ FRAMEWORK-AGNOSTIC: Render draft notification HTML.
      *
      * Used for auto-save/localStorage features.
@@ -255,12 +431,6 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         return '';
     }
 
-    /**
-     * ✅ ABSTRACT METHOD: Child renderers implement framework-specific draft notification HTML.
-     *
-     * @return string Framework-specific HTML for draft notification
-     */
-    abstract protected function renderDraftNotificationHtml(): string;
 
     /**
      * ✅ SHARED HELPER: Merge default options with form and method options.

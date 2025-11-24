@@ -8,15 +8,15 @@ use Core\Interfaces\ConfigInterface;
 use Psr\Log\LoggerInterface;
 
 /**
- * Service responsible for loading and merging form configurations
+ * Service responsible for loading and merging view configurations
  * from various sources (default, feature-specific, page-specific)
  *
  * Configuration hierarchy (highest to lowest priority):
  * 1. Page-specific: src/App/Features/{Feature}/Config/{page}_view.php
  * 2. Entity-specific: src/App/Features/{Feature}/Config/{entity}_view.php (if needed)
- * 3. Base/default: src/Config/view.form.php
+ * 3. Base/default: src/Config/view.view.php
  */
-class FormConfigurationService
+class ViewConfigurationService
 {
     public function __construct(
         protected ConfigInterface $configService,
@@ -25,7 +25,7 @@ class FormConfigurationService
     }
 
     /**
-     * Load and merge form configuration for a specific page/entity context
+     * Load and merge view configuration for a specific page/entity context
      *
      * @param string $pageKey Page identifier (e.g., 'testy_edit', 'user_login')
      * @param string $pageName Page name (e.g., 'testy', 'user')
@@ -54,10 +54,10 @@ class FormConfigurationService
         );
 
         // Layout: page-specific takes precedence
-        $layout = $pageConfig['form_layout'] ?? [];
+        $layout = $pageConfig['view_layout'] ?? [];
 
         // Hidden fields: page-specific takes precedence
-        $hiddenFields = $pageConfig['form_hidden_fields'] ?? [];
+        $hiddenFields = $pageConfig['view_hidden_fields'] ?? [];
 
         return [
             'render_options' => $mergedRenderOptions,
@@ -67,20 +67,20 @@ class FormConfigurationService
     }
 
     /**
-     * Load base/global form configuration
+     * Load base/global view configuration
      *
      * @return array<string, mixed>
      */
     protected function loadBaseConfiguration(): array
     {
         try {
-            // Loads from src/Config/view.form.php
-            $config = $this->configService->get('view.form') ?? [];
+            // Loads from src/Config/view.view.php
+            $config = $this->configService->get('view.view') ?? [];
             return [
                 'render_options' => $config['render_options'] ?? []
             ];
         } catch (\Exception $e) {
-            $this->logger->warning('FormConfigurationService: Failed to load base configuration', [
+            $this->logger->warning('ViewConfigurationService: Failed to load base configuration', [
                 'error' => $e->getMessage()
             ]);
             return [];
@@ -88,7 +88,7 @@ class FormConfigurationService
     }
 
     /**
-     * Load page-specific form configuration
+     * Load page-specific view configuration
      *
      * Example: src/App/Features/Testy/Config/testy_view_edit.php
      *
@@ -105,16 +105,16 @@ class FormConfigurationService
         try {
             // Extract entity name from page name (e.g., 'testy_edit' -> 'testy')
             // $useEntity = explode('_', $pageKey)[0];
-            // $action = explode('_', $pageKey)[1] ?? 'form';
+            // $action = explode('_', $pageKey)[1] ?? 'view';
 
-            // Loads from src/Config/view.form.php
+            // Loads from src/Config/view.view.php
             // Build config key: testy_view_edit
             $configKey = "{$pageName}_view_{$pageAction}";
             $config = $this->configService->getFromFeature($pageFeature, $configKey) ?? [];
 
             return $config;
         } catch (\Exception $e) {
-            $this->logger->debug('FormConfigurationService: No page-specific configuration found', [
+            $this->logger->debug('ViewConfigurationService: No page-specific configuration found', [
                 'feature' => $pageFeature,
                 'page' => $pageKey,
                 'error' => $e->getMessage()

@@ -145,13 +145,13 @@ interface FormInterface
      */
     public function getField(string $name): ?FieldInterface;
 
-    /**
-     * Set the form renderer.
-     *
-     * @param FormRendererInterface $renderer
-     * @return self
-     */
-    public function setRenderer(FormRendererInterface $renderer): self;
+    // /**
+    //  * Set the form renderer.
+    //  *
+    //  * @param FormRendererInterface $renderer
+    //  * @return self
+    //  */
+    // public function setRenderer(FormRendererInterface $renderer): self;
 
     /**
      * Validate CSRF token
@@ -198,12 +198,12 @@ interface FormInterface
      */
     public function hasField(string $name): bool;
 
-    /**
-     * Get the form renderer
-     *
-     * @return FormRendererInterface
-     */
-    public function getRenderer(): FormRendererInterface;
+    // /**
+    //  * Get the form renderer
+    //  *
+    //  * @return FormRendererInterface
+    //  */
+    // public function getRenderer(): FormRendererInterface;
 
     /**
      * Get the form rendering options
