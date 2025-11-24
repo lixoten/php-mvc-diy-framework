@@ -135,8 +135,6 @@ class TestyController extends AbstractCrudController
      */
     public function listAction(ServerRequestInterface $request): ResponseInterface
     {
-
-        // $rrr = $this->scrap();
         return parent::listAction(request: $request);
     }
 
@@ -184,108 +182,79 @@ class TestyController extends AbstractCrudController
 
     public function viewAction(ServerRequestInterface $request): ResponseInterface
     {
-        // return parent::viewAction(request: $request);
-        // ✅ NEW: Implement viewAction following the new pattern
-        $recordId = (int)($this->route_params['id'] ?? 0);
-        if (!$recordId) {
-            $this->flash22->add("Invalid record ID for view.", FlashMessageType::Error);
-            return $this->redirect($this->feature->listUrlEnum->url());
-        }
-
-        // ✅ Set focus on ViewType
-        $pageKey = $this->scrap->getPageKey();
-        $pageName = $this->scrap->getPageName();
-        $pageAction = $this->scrap->getPageAction();
-        $pageFeature = $this->scrap->getPageFeature();
-        $pageEntity = $this->scrap->getPageEntity();
-
-        $this->viewType->setFocus(
-            $pageKey,
-            $pageName,
-            $pageAction,
-            $pageFeature,
-            $pageEntity
-        );
-
-        // ✅ Fetch record data using fields defined in ViewType
-        $fields = $this->viewType->getFields();
-        $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
-
-        if (!$recordArray) {
-            $this->flash22->add("Record not found.", FlashMessageType::Error);
-            return $this->redirect($this->feature->listUrlEnum->url());
-        }
-
-        // ✅ Check permissions (reusing checkForEditPermissions as it checks ownership)
-        // Note: checkForEditPermissions throws ForbiddenException if not allowed
-        if (!$this->scrap->isAdmin()) {
-            $this->checkForEditPermissions($recordArray);
-        }
-
-        // ✅ Transform data for display using BaseFeatureService
-        $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
-
-
-        // ✅ Inject action URLs into render options for the view renderer
-        $routeType = $this->scrap->getRouteType();
-        $this->viewType->mergeRenderOptions([
-            'edit_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType),
-            'delete_url' => $this->feature->deleteUrlEnum?->url(['id' => $recordId], $routeType) ?? '', // Use null coalescing for optional delete URL
-            'back_url' => $this->feature->listUrlEnum->url([], $routeType),
-            'record_id' => $recordId,
-            'route_type' => $routeType,
-        ]);
-
-        // ✅ Create View via ViewFactory
-        $view = $this->viewFactory->create(
-            viewType: $this->viewType,
-            data: $recordArray
-        );
-
-        // ✅ Render View using the injected ViewRenderer
-        $renderedView = $this->viewRenderer->renderView($view, []);
-
-        // Prepare view data for the overall page layout
-        $viewData = [
-            // 'title' => $this->translator->get('view.record.title', ['pageName' => $pageName]), // Use translator for title
-            'title' => 'view.record.title',
-            'renderedView' => $renderedView,
-            'actionLinks' => $this->getReturnActionLinks(), // Include navigation links
-        ];
-
-        return $this->view($this->feature->viewUrlEnum->view(), $this->buildCommonViewData($viewData));
+        return parent::viewAction(request: $request);
     }
 
 
+    /** {@inheritdoc} */
     protected function overrideFormTypeRenderOptions(): void
     {
+        // $options = [
+            // 'options' can contain general form options if defined in your config
+            // For example, if you had a 'force_recaptcha' in form options config:
+            // 'options' => [
+            //     'force_recaptcha' => true,
+            // ],
+            // 'render_options' => [
+            //     'error_display' => 'summary', // Override how errors are displayed
+            //     'layout_type'   => 'fieldsets', // Specify layout type
+            //     // 'submit_text'   => "Custom Submit Text", // Override submit button text
+            //     // You can specify which fields to display in a form (if not all in config)
+            //     // 'form_fields'   => [
+            //     //     'content', 'title', 'generic_text',
+            //     // ],
+            //     'layout'        => [ // Override the entire layout structure if needed
+            //         [
+            //             'title' => 'Your Primary Information',
+            //             'fields' => ['title', 'content'],
+            //             'divider' => true
+            //         ],
+            //         [
+            //             'title' => 'Additional Details',
+            //             'fields' => ['generic_text'],
+            //             'divider' => true,
+            //         ],
+            //     ],
+            // ],
+            // 'hidden_fields' can be merged if you need to add more hidden fields
+            // 'hidden_fields' => ['additional_hidden_field'],
+        // ];
+
+        // ✅ IMPORTANT: UNCOMMENT this line to apply the overrides
+        $this->formType->overrideConfig(options: []);
+    }
+
+    /** {@inheritdoc} */
+    protected function overrideViewTypeRenderOptions(): void
+    {
+        $this->viewType->overrideConfig(options: []);
+    }
+
+
+    /** {@inheritdoc} */
+    protected function overrideListTypeRenderOptions(): void
+    {
+        // By default, no overrides are applied.
+        // If you need to override list options, uncomment and use this:
         /*
         $options = [
-            // 'ip_address' => $this->getIpAddress(),
-            // 'boo' => 'boo',
+            'options' => [
+                'default_sort_key' => 'title',
+                'default_sort_direction' => 'ASC',
+            ],
+            'pagination' => [
+                'per_page' => 10,
+            ],
             'render_options' => [
-                'error_display' => 'summary', // 'summary, inline'
-                'layout_type'   => 'fieldsets', // fieldsets / sections / sequential
-                // 'submit_text'   => "add fook",
-                'form_fields'   => [
-                    'content', 'title', 'generic_text',
-                ],
-                'layout'        => [
-                    [
-                        'title' => 'Your Title',
-                        'fields' => ['title', 'content'],
-                        'divider' => true
-                    ],
-                    [
-                        'title' => 'Your Favorite',
-                        'fields' => ['generic_text'],
-                        'divider' => true,
-                    ],
-                ],
-            ]
+                'title' => 'Custom Testy List Title',
+                'show_action_edit' => false,
+            ],
+            // 'list_fields' => ['id', 'title', 'created_at'], // Override displayed fields
         ];
-        ***********/
-        //$this->formType->overrideConfig(options: $options ?? []);
+        $this->listType->overrideConfig(options: $options);
+        */
+        // Or, for an empty override:
+        $this->listType->overrideConfig(options: []); // Call with empty array if no overrides
     }
 
 

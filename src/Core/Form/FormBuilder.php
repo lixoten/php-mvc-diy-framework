@@ -29,7 +29,6 @@ class FormBuilder implements FormBuilderInterface
         $this->fieldTypeRegistry = $fieldTypeRegistry;
     }
 
-
     /**
      * {@inheritdoc}
      */

@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
  */
 class ZzzzListType extends AbstractListType
 {
-    protected array $options = [];
+    //protected array $options = [];
 
     /** {@inheritdoc} */
     public function __construct(

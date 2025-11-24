@@ -18,19 +18,4 @@ interface ListFactoryInterface
      * @return ListInterface The created list
      */
     public function create(ListTypeInterface $listType, array $data = [], array $options = []): ListInterface;
-
-    // /**
-    //  * Set the default renderer
-    //  *
-    //  * @param ListRendererInterface $renderer The renderer to use
-    //  * @return self
-    //  */
-    // public function setDefaultRenderer(ListRendererInterface $renderer): self;
-
-    // /**
-    //  * Get the default renderer
-    //  *
-    //  * @return ListRendererInterface
-    //  */
-    // public function getDefaultRenderer(): ListRendererInterface;
 }

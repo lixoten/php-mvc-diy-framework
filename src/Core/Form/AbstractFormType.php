@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use App\Enums\Url;
 use Core\Services\FieldRegistryService;
 use Core\Interfaces\ConfigInterface;
 use Core\Security\Captcha\CaptchaServiceInterface;
@@ -17,10 +16,11 @@ use Psr\Log\LoggerInterface;
  */
 abstract class AbstractFormType implements FormTypeInterface
 {
-    // public string $routeType = 'root';
-    // protected array $route_params = [];
-    // protected array $urlEnumArray;
-    protected array $options = [];
+    protected array $options = []; // For general form-wide options (e.g., default behavior flags)
+    protected array $renderOptions = [];
+    protected array $layout = [];
+    protected array $hiddenFields = [];
+    protected array $fields = [];
 
     public readonly string $pageKey;
     public readonly string $pageName;
@@ -60,7 +60,7 @@ abstract class AbstractFormType implements FormTypeInterface
         $this->pageFeature   = $pageFeature;
         $this->pageEntity    = $pageEntity;
 
-        // ✅ NEW: Delegate configuration loading to FormConfigurationService
+        // ✅ Delegate configuration loading to FormConfigurationService
         $config = $this->formConfigService->loadConfiguration(
             $pageKey,
             $pageName,
@@ -70,15 +70,16 @@ abstract class AbstractFormType implements FormTypeInterface
         );
 
         // ✅ Apply loaded configuration to properties
-        $this->options['render_options'] = $config['render_options'];
-        $this->options['layout'] = $config['layout'];
-        $this->options['hidden_fields'] = $config['hidden_fields'];
-        $this->options['fields'] = []; // Will be populated by filterValidateFormFields()
+        // Use ?? [] to ensure it's an array if not defined in config
+        $this->options       = $config['options'] ?? []; // For general form options
+        $this->renderOptions = $config['render_options'] ?? [];
+        $this->layout        = $config['layout'] ?? [];
+        $this->hiddenFields  = $config['hidden_fields'] ?? [];
+        // $this->fields is populated by filterValidateFormFields()
 
         // ✅ Validate and clean fields based on layout
         $this->filterValidateFormFields();
     }
-
 
     /** {@inheritdoc} */
     public function getOptions(): array
@@ -86,235 +87,67 @@ abstract class AbstractFormType implements FormTypeInterface
         return $this->options;
     }
 
-
-
     /** {@inheritdoc} */
     public function getRenderOptions(): array
     {
-        return $this->options['render_options'];
+        return $this->renderOptions;
     }
+
     /** {@inheritdoc} */
     public function setRenderOptions(array $renderOptions): void
     {
-        $this->options['render_options'] = $renderOptions;
+        $this->renderOptions = $renderOptions;
     }
-
 
     /** {@inheritdoc} */
-    public function getFields(): array
-    {
-        return $this->options['fields'];
-    }
-   /** {@inheritdoc} */
-    public function setFields(array $fields): void
-    {
-        $this->options['fields'] = $fields;
-    }
-
-
-    /** {@inheritdoc} */
-    public function setLayout(array $layout): void
-    {
-        $this->options['layout'] = $layout;
-    }
-    /** {@inheritdoc} */
-    public function getLayout(): array
-    {
-        return $this->options['layout'];
-    }
-
-
-    /** {@inheritdoc} */
-    public function getHiddenFields(): array
-    {
-        return $this->options['hidden_fields'];
-    }
-    /** {@inheritdoc} */
-    public function setHiddenFields(array $hiddenFields): void
-    {
-        $this->options['hidden_fields'] = $hiddenFields;
-    }
-
-
-
-    /**
-     * Merge new render options with existing options (preserves existing options)
-     *
-     * @param array<string, mixed> $renderOptions Options to merge with existing render options
-     * @return void
-     */
     public function mergeRenderOptions(array $renderOptions): void
     {
-        $this->options['render_options'] = array_merge(
-            $this->options['render_options'] ?? [],
+        $this->renderOptions = array_merge(
+            $this->renderOptions,
             $renderOptions
         );
     }
 
-
-    ////////////////////////////////////////////////////////////////////////////////////
-    // Private Methods /////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-    public function overrideConfig(array $options): void
+    /** {@inheritdoc} */
+    public function getFields(): array
     {
-        // todo Apply overrides
-        // if (!isset($viewFormFields) || !is_array($viewFormFields) || empty($viewFormFields)) {
-        //     $finalFormFields   = $defaultFormFields;
-        // } else {
-        //     $finalFormFields   = $viewFormFields;
-        // }
-        // $this->setOptions($finalOptions);
-
-        // Clean up after applying controller overrides
-        $this->filterValidateFormFields();
+        return $this->fields;
     }
-
-
-    public function filterValidateFormFields(): void
-    {
-        $layout             = $this->getLayout();
-        $viewHiddenFields   = $this->getHiddenFields();
-
-        // 2. Get all Fields used in layout
-        $layoutFields = [];
-        foreach ($layout as $section) {
-            if (isset($section['fields']) && is_array($section['fields'])) {
-                foreach ($section['fields'] as $field) {
-                    // Skip commented-out fields (if present as strings with //)
-                    if (is_string($field) && strpos($field, '//') !== 0) {
-                        $layoutFields[] = $field;
-                    }
-                }
-            }
-        }
-
-        // 3. Merge layout fields with hidden form fields we might have
-        $fields = array_merge($layoutFields, $viewHiddenFields);
-
-
-        // 3. Filter and Validate ALL Fields
-        $validFields = $this->fieldRegistryService->filterAndValidateFields(
-            $fields,
-            $this->pageKey,
-            $this->pageEntity
-        );
-
-        // 4. Validate Layout fields against against All fields and remove invalid ones from layout
-        $validatedLayout = $this->validateAndFixLayoutFields($layout, $validFields);
-
-        // 5. Set Form Fields
-        $this->setFields($validFields);
-
-        // 6. Set Form Layout
-        $this->setLayout($validatedLayout);
-
-
-        // 7. Clean up
-        unset($this->options['hidden_fields']);
-
-        // DebugRt::j('0', 'validFields', $validFields);
-        // DebugRt::j('0', 'validatedLayout', $validatedLayout);
-        // DebugRt::j('1', 'validatedLayout', $this);
-    }
-
-
-
-
-
-
-    /**
-     * Extension point for child forms to determine if CAPTCHA should be applied.
-     *
-     * Child classes should override this method to implement custom CAPTCHA logic.
-     * If CAPTCHA is needed, this method should return true; otherwise, false.
-     *
-     * @return bool True if CAPTCHA should be applied, false otherwise.
-     */
-    private function applyCaptchaIfNeeded(): bool // fixme protected
-    {
-        return false;
-    }
-
-
-
-
-
-    /**
-     * Validate and fix layout so only existing fields are used
-     */
-    private function validateAndFixLayoutFields(array $layout, array $availableFields): array
-    {
-        // For section layout
-        if (!empty($layout)) {
-            foreach ($layout as $secId => &$section) {
-                if (isset($section['fields'])) {
-                    //$invalidFields = [];
-                    $section['fields'] = array_filter(
-                        $section['fields'],
-                        function ($field) use ($availableFields, &$invalidFields) {
-                            $isValid = in_array($field, $availableFields);
-                            // if (!$isValid) {
-                            //     $invalidFields[] = $field;
-                            // }
-                            return $isValid;
-                        }
-                    );
-
-                    // if (!empty($invalidFields)) {
-                    //     $this->logWarning(
-                    //         "Removed invalid fields from section {$secId}: " .
-                    //         implode(', ', $invalidFields) . ' - ERR-DEV89'
-                    //     );
-                    // }
-
-                    // If no fields left in this section, remove it
-                    if (empty($section['fields'])) {
-                        unset($layout[$secId]);
-                        $this->logWarning("Removed empty section at index {$secId} - ERR-DEV90");
-                    }
-                } else {
-                     unset($layout[$secId]);
-                     $this->logWarning("Removed empty section at index {$secId} - ERR-DEV91");
-                }
-            }
-
-            // Re-index sections array if any were removed
-            if (isset($layout)) {
-                $layout = array_values($layout);
-            }
-        }
-        return $layout;
-    }
-
 
     /** {@inheritdoc} */
-    public function validateFields(array $fields): array
+    public function setFields(array $fields): void
     {
-        if (!isset($fields) || !is_array($fields) || empty($fields)) {
-            $this->logWarning("No Fields/Columns found. - ERR-DEV85");
-        }
-
-        $validFields = $this->fieldRegistryService->filterAndValidateFields(
-            $fields,
-            $this->pageKey,
-            $this->pageEntity
-        );
-
-        return $validFields;
+        $this->fields = $fields;
     }
 
+    /** {@inheritdoc} */
+    public function getLayout(): array
+    {
+        return $this->layout;
+    }
 
     /** {@inheritdoc} */
-    // public function buildForm(FormBuilderInterface $builder, array $options = []): void
+    public function setLayout(array $layout): void
+    {
+        $this->layout = $layout;
+    }
+
+    /** {@inheritdoc} */
+    public function getHiddenFields(): array
+    {
+        return $this->hiddenFields;
+    }
+
+    /** {@inheritdoc} */
+    public function setHiddenFields(array $hiddenFields): void
+    {
+        $this->hiddenFields = $hiddenFields;
+    }
+
+    /** {@inheritdoc} */
     public function buildForm(FormBuilderInterface $builder): void
     {
         // Set Render Options for the builder
-        // $builder->setRenderOptions($this->options['render_options']);
-        // $builder->setLayout($this->options['layout']);
         $builder->setRenderOptions($this->getRenderOptions());
         $builder->setLayout($this->getLayout());
 
@@ -331,7 +164,12 @@ abstract class AbstractFormType implements FormTypeInterface
 
         // Process each field
         foreach ($fieldNames as $fieldName) {
-            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks($fieldName, $this->pageKey, $this->pageEntity);
+            $columnDef = $this->fieldRegistryService->getFieldWithFallbacks(
+                $fieldName,
+                $this->pageKey,
+                $this->pageEntity
+            );
+
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
                 $options['formatters'] = $columnDef['formatters'] ?? null;
@@ -356,7 +194,7 @@ abstract class AbstractFormType implements FormTypeInterface
                         }
                         unset($validator);
                     }
-                 }
+                }
 
                 $builder->add($fieldName, $options);
             } else {
@@ -367,7 +205,6 @@ abstract class AbstractFormType implements FormTypeInterface
                 ]);
             }
         }
-
 
         // if ($captchaNeeded) {
             // $this->renderOptions['captcha_required'] = $captchaNeeded;
@@ -380,130 +217,139 @@ abstract class AbstractFormType implements FormTypeInterface
         // $builder->setLayout($validatedLayout);
     }
 
-
-    /**
-     * Log a warning message in development mode
-     */
-    private function logWarning(string $message): void
+    /** {@inheritdoc} */
+    public function overrideConfig(array $options): void
     {
-        if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("Form Warning: {$message}", E_USER_WARNING);
+        // ✅ Apply overrides to the distinct, flat properties
+        if (isset($options['options']) && is_array($options['options'])) {
+            $this->options = array_merge($this->options, $options['options']);
         }
 
-        // Always log to system log
-        error_log("Form Warning: {$message}");
+        if (isset($options['render_options']) && is_array($options['render_options'])) {
+            $this->renderOptions = array_merge($this->renderOptions, $options['render_options']);
+        }
+
+        if (isset($options['layout']) && is_array($options['layout'])) {
+            // Note: Merging layouts can be complex. For simplicity, this replaces.
+            // If deeper merging is needed (e.g., merging fields within sections),
+            // a dedicated layout merging service/method would be required.
+            $this->layout = $options['layout'];
+        }
+
+        if (isset($options['hidden_fields']) && is_array($options['hidden_fields'])) {
+            $this->hiddenFields = array_merge($this->hiddenFields, $options['hidden_fields']);
+        }
+
+        // Clean up after applying controller overrides
+        $this->filterValidateFormFields();
     }
 
 
-    // private function init(): void
-    // {
-    //     $securityConfig = $this->configService->get('security');
-    //     if ($securityConfig === null) {
-    //         throw new \RuntimeException('Fatal error: Required config file "security.php" is missing.');
-    //     }
-    //     $forceCaptcha = $securityConfig['captcha']['force_captcha'] ?? false;
+    ////////////////////////////////////////////////////////////////////////////////////
+    // Private / Protected  Methods ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
+    protected function filterValidateFormFields(): void
+    {
+        $layout             = $this->getLayout();
+        $viewHiddenFields   = $this->getHiddenFields();
+
+        // 1. Collect all field names from layout sections
+        $layoutFields = [];
+        foreach ($layout as $section) {
+            if (isset($section['fields']) && is_array($section['fields'])) {
+                foreach ($section['fields'] as $field) {
+                    // Skip commented-out fields (if present as strings with //)
+                    if (is_string($field) && strpos($field, '//') !== 0) {
+                        $layoutFields[] = $field;
+                    }
+                }
+            }
+        }
+
+        // 2. Merge layout fields with explicit hidden form fields
+        $allConfiguredFields = array_merge($layoutFields, $viewHiddenFields);
 
 
-    //     ///////////////////////////////////////////////////////////////////////
-    //     // Retrieve Default Config values
-    //     ///////////////////////////////////////////////////////////////////////
-    //     $defaultConfig  = $this->configService->get('view.form', []);
-    //     $formTheme          = $defaultConfig['default_form_theme'] ?? "christmas";
+        // 3. Filter and Validate ALL Fields
+        $validFields = $this->fieldRegistryService->filterAndValidateFields(
+            $allConfiguredFields,
+            $this->pageKey,
+            $this->pageEntity
+        );
 
-    //     $defaultRenderOptions       = [
-    //         'testFoo' => 'config value',
-    //         'force_captcha'         => $forceCaptcha,   // ok
-    //         'layout_type'           => $defaultConfig['render_options']['layout_type'] ?? CONST_L::SEQUENTIAL,
-    //         'security_level'        => CONST_SL::LOW ?? 'low',      // HIGH / MEDIUM / LOW
-    //         'error_display'         => $defaultConfig['render_options']['error_display'] ??  CONST_ED::SUMMARY,
-    //         'html5_validation'      => $defaultConfig['render_options']['html5_validation'] ?? false,
-    //         'css_form_theme_class'  => $this->configService->getConfigValue(
-    //             'view',
-    //             'form.themes.$formTheme.class'
-    //         ) ?? 'form-theme-christmas',
-    //         'css_form_theme_file'   => 'christmas',
-    //         'form_heading'          => 'Create Record',
-    //         'submit_text'           => $defaultConfig['render_options']['submit_text'] ?? 'Submit',
-    //         'submit_class'          => $defaultConfig['render_options']['submit_class'] ?? 'btn btn-primary', // extra?
-    //         'show_error_container'  => $defaultConfig['render_options']['show_error_container'] ?? false, // extra?
-    //         'default_form_theme'    => $formTheme,  // extra??v// fixme
-    //                     // ip_address
-    //         // 'layout'                => [],
-    //     ];
-    //     //$defaultFormFields       = [];
-    //     ///////////////////////////////////////////////////////////////////////
+        // 4. Validate Layout fields against against All fields and remove invalid ones from layout
+        $validatedLayout = $this->validateAndFixLayoutFields($layout, $validFields);
 
+        // 5. Filter hidden fields against the now-known valid fields
+        // ✅ Ensure only valid fields remain in hiddenFields
+        $validatedHiddenFields = array_values(array_intersect($viewHiddenFields, $validFields));
 
-    //     ///////////////////////////////////////////////////////////////////////
-    //     // Retrieve View Config values
-    //     ///////////////////////////////////////////////////////////////////////
-    //     // // Form View Defaults - These will be applied on top of the Form Defaults
-    //     // $pageKey->pageKey;
-    //     // $viewConfig  = $this->configService->get('view_options/' . $pageKey// loads "list_fields/posts.php"
-    //     // if ($viewConfig === null) {
-    //     //     throw new \RuntimeException(
-    //     //         "Fatal error: Required config file \"view_options/{$pageKey}.php\" is missing."
-    //     //     );
-    //     // }
-    //     ///////////////////////////////////////////////////////////////////////
-    //     // Retrieve View Config values
-    //     ///////////////////////////////////////////////////////////////////////
-    //     $pageKey = $this->pageKey;
-    //     $pageFeature = $this->pageFeature;
+        // 5. Set Form Fields
+        $this->setFields($validFields);
 
-    //     // fixme shit2 ok
-    //     // ✅ Get entire config file
-    //     $viewConfig = $this->configService->getFromFeature($pageFeature, $pageKey . '_view');
+        // 6. Set the cleaned and validated properties
+        $this->setFields($validFields);
+        $this->setLayout($validatedLayout);
+        $this->setHiddenFields($validatedHiddenFields);
+    }
 
-    //     // // ✅ Get nested value with dot notation
-    //     // $ajaxSave = $this->configService->getFromFeature('Testy', 'view_testy_edit.render_options.ajax_save');
+    /**
+     * Extension point for child forms to determine if CAPTCHA should be applied.
+     *
+     * Child classes should override this method to implement custom CAPTCHA logic.
+     * If CAPTCHA is needed, this method should return true; otherwise, false.
+     *
+     * @return bool True if CAPTCHA should be applied, false otherwise.
+     */
+    protected function applyCaptchaIfNeeded(): bool
+    {
+        return false;
+    }
 
-    //     // // ✅ Get deeply nested value
-    //     // $entityName = $this->configService->getFromFeature('Testy', 'view_testy_edit.metadata.entityName', 'testy');
+    /**
+     * Validate and fix layout so only existing fields are used
+     */
+    protected function validateAndFixLayoutFields(array $layout, array $availableFields): array
+    {
+        // For section layout
+        if (!empty($layout)) {
+            foreach ($layout as $secId => &$section) {
+                if (isset($section['fields'])) {
+                    //$invalidFields = [];
+                    $section['fields'] = array_filter(
+                        $section['fields'],
+                        function ($field) use ($availableFields, &$invalidFields) {
+                            $isValid = in_array($field, $availableFields);
+                            // if (!$isValid) {
+                            //     $invalidFields[] = $field;
+                            // }
+                            return $isValid;
+                        }
+                    );
 
-    //     // $viewConfig = $this->configService->get('view_options/' . $pageKey); // loads "list_fields/posts.php"
-    //     if ($viewConfig === null) {
-    //         throw new \RuntimeException(
-    //             "Fatal error: Required config file \"App\Features/Config/{$pageKey}_view.php\" is missing."
-    //         );
-    //     }
-    //     //D:\xampp\htdocs\my_projects\mvclixo\src\App\Features\Auth\Config\view_user_login.php
+                    // if (!empty($invalidFields)) {
+                    //     $this->logger->warning(
+                    //         "Removed invalid fields from section {$secId}: " .
+                    //         implode(', ', $invalidFields) . ' - ERR-DEV89'
+                    //     );
+                    // }
 
+                    // If no fields left in this section, remove it
+                    if (empty($section['fields'])) {
+                        unset($layout[$secId]);
+                        $this->logger->warning("Removed empty section at index {$secId} - ERR-DEV90");
+                    }
+                } else {
+                     unset($layout[$secId]);
+                     $this->logger->warning("Removed empty section at index {$secId} - ERR-DEV91");
+                }
+            }
 
-
-
-    //     $viewRenderOptions  = $viewConfig['render_options'] ?? [];
-    //     $viewLayout         = $viewConfig['form_layout'] ?? [];
-    //     $viewHiddenFields   = $viewConfig['form_hidden_fields'] ?? [];
-    //     ///////////////////////////////////////////////////////////////////////
-
-    //     // Why allow overrides in Controller?
-    //     // 1. We might want to display the form with different layout, sequence, fieldset, sections
-    //     // 2. We might want to display different fields used in the layout
-    //     // 3. Rules.
-    //     // ---Controller overrides FormType used merge Array
-    //     // ---Layout is not merged, Layouts from controller replace
-    //     // ---Fields are not merged, Fields from controller replace
-
-
-
-    //     ///////////////////////////////////////////////////////////////////////
-    //     // Merge default and view Config values
-    //     // Except for List_field values, they replace if set
-    //     ///////////////////////////////////////////////////////////////////////
-    //     $finalRenderOptions = array_merge($defaultRenderOptions, $viewRenderOptions);
-    //     $this->setRenderOptions($finalRenderOptions);
-
-
-    //     // 5. Set Form Fields
-    //     //$this->setFormFields($viewFormHiddenFields);
-    //     $this->setHiddenFields($viewHiddenFields);
-
-    //     // 6. Set Form Layout
-    //     // $this->options['layout'] = $viewLayout;
-    //     $this->setLayout($viewLayout);
-
-
-    //     $this->filterValidateFormFields();
-    // }
+            // Re-index sections array if any were removed
+            if (isset($layout)) {
+                $layout = array_values($layout);
+            }
+        }
+        return $layout;
+    }
 }

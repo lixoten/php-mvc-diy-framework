@@ -112,4 +112,17 @@ interface ListTypeInterface
      * @return void
      */
     public function buildList(ListBuilderInterface $builder): void;
+
+    /**
+     * Overrides parts of the list's configuration with new values.
+     *
+     * This method allows controllers or other components to dynamically adjust
+     * list options, pagination options, render options, or fields after initial setup.
+     * The provided $options array should contain keys that correspond to the
+     * list's configuration segments (e.g., 'options', 'pagination', 'render_options', 'list_fields').
+     *
+     * @param array<string, mixed> $options An associative array of configuration overrides.
+     * @return void
+     */
+    public function overrideConfig(array $options): void;
 }

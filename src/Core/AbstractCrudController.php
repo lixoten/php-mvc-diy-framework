@@ -91,6 +91,8 @@ abstract class AbstractCrudController extends Controller
             $pageEntity,
         );
 
+        // ✅ Allow child controllers to override list rendering or other list configs
+        $this->overrideListTypeRenderOptions();
 
         $options            = $this->listType->getOptions() ?? [];
         $renderOptions      = [];
@@ -273,6 +275,7 @@ abstract class AbstractCrudController extends Controller
             $pageEntity
         );
 
+        // ✅ Allow child controllers to override form rendering or other form configs
         $this->overrideFormTypeRenderOptions();
 
         $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
@@ -281,7 +284,7 @@ abstract class AbstractCrudController extends Controller
             return $this->redirect($this->feature->baseUrlEnum->view());
         }
 
-        // ✅ NEW: Inject form URLs and route context via render options
+        // ✅ Inject form URLs and route context via render options
         $routeType = $this->scrap->getRouteType();
 
         // $this->formType->mergeRenderOptions([
@@ -403,7 +406,7 @@ abstract class AbstractCrudController extends Controller
 
         // This block handles the initial page load (GET) or a failed submission
         $viewData = [
-            'title' => 'Edit Recordeeeeeeeeetitlr',
+            'title' => 'Edit RecordTitleOk',
             'form' => $form,
             'formTheme' => $form->getCssFormThemeFile(),
             'renderedForm' => $renderedForm,
@@ -424,54 +427,82 @@ abstract class AbstractCrudController extends Controller
 
     public function viewAction(ServerRequestInterface $request): ResponseInterface
     {
-        // $recordId = (int)($this->route_params['id'] ?? 0);
-        // if (!$recordId) {
-        //     return $this->redirect($this->feature->listUrlEnum->url());
-        // }
+        // ✅ NEW: Implement viewAction following the new pattern
+        $recordId = (int)($this->route_params['id'] ?? 0);
+        if (!$recordId) {
+            $this->flash22->add("Invalid record ID for view.", FlashMessageType::Error);
+            return $this->redirect($this->feature->listUrlEnum->url());
+        }
 
-        // // ✅ Set focus on ViewType
-        // $this->viewType->setFocus(
-        //     $this->scrap->getPageKey(),
-        //     $this->scrap->getPageName(),
-        //     'view',
-        //     $this->scrap->getPageFeature(),
-        //     $this->scrap->getPageEntity()
-        // );
+        // ✅ Set focus on ViewType
+        $pageKey = $this->scrap->getPageKey();
+        $pageName = $this->scrap->getPageName();
+        $pageAction = $this->scrap->getPageAction();
+        $pageFeature = $this->scrap->getPageFeature();
+        $pageEntity = $this->scrap->getPageEntity();
 
-        // // ✅ Fetch record data
-        // $fields = $this->viewType->getFields();
-        // $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
+        $this->viewType->setFocus(
+            $pageKey,
+            $pageName,
+            $pageAction,
+            $pageFeature,
+            $pageEntity
+        );
 
-        // if (!$recordArray) {
-        //     $this->flash->add("Record not found", FlashMessageType::Error);
-        //     return $this->redirect($this->feature->listUrlEnum->url());
-        // }
+        // ✅ Allow child controllers to override view type rendering or other view configs
+        $this->overrideViewTypeRenderOptions();
 
-        // // ✅ Check permissions
-        // $this->checkForEditPermissions($recordArray);
+        // ✅ Fetch record data using fields defined in ViewType
+        $fields = $this->viewType->getFields();
+        $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
 
-        // // ✅ Inject action URLs
-        // $this->viewType->mergeRenderOptions([
-        //     'edit_url' => $this->feature->editUrlEnum->url(['id' => $recordId]),
-        //     'delete_url' => $this->feature->deleteUrlEnum->url(['id' => $recordId]),
-        // ]);
+        if (!$recordArray) {
+            $this->flash22->add("Record not found.", FlashMessageType::Error);
+            return $this->redirect($this->feature->listUrlEnum->url());
+        }
 
-        // // ✅ Create View via ViewFactory
-        // $view = $this->viewFactory->create($this->viewType, $recordArray);
+        // ✅ Check permissions (reusing checkForEditPermissions as it checks ownership)
+        // Note: checkForEditPermissions throws ForbiddenException if not allowed
+        if (!$this->scrap->isAdmin()) {
+            $this->checkForEditPermissions($recordArray);
+        }
 
-        // // ✅ Render View
-        // $renderedView = $view->render();
+        // ✅ Transform data for display using BaseFeatureService
+        $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
 
-        return $this->view($this->feature->viewUrlEnum->view(), [
-            'title' => 'View Record',
-            // 'renderedView' => $renderedView,
+
+        // ✅ Inject action URLs into render options for the view renderer
+        $routeType = $this->scrap->getRouteType();
+        $this->viewType->mergeRenderOptions([
+            'edit_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType),
+            'delete_url' => $this->feature->deleteUrlEnum?->url(['id' => $recordId], $routeType) ?? '',
+            'back_url' => $this->feature->listUrlEnum->url([], $routeType),
+            'record_id' => $recordId,
+            'route_type' => $routeType,
         ]);
+
+        // ✅ Create View via ViewFactory
+        $view = $this->viewFactory->create(
+            viewType: $this->viewType,
+            data: $recordArray
+        );
+
+        // ✅ Render View using the injected ViewRenderer
+        $renderedView = $this->viewRenderer->renderView($view, []);
+
+        // Prepare view data for the overall page layout
+        $viewData = [
+            // 'title' => $this->translator->get('view.record.title', ['pageName' => $pageName]),
+            'title' => 'view.record.title',
+            'renderedView' => $renderedView,
+            'actionLinks' => $this->getReturnActionLinks(), // Include navigation links
+        ];
+
+        return $this->view($this->feature->viewUrlEnum->view(), $this->buildCommonViewData($viewData));
     }
 
 
-
-
-/**
+    /**
      * Create a new record. Handles standard GET requests.
      *
      * @param ServerRequestInterface $request The incoming server request.
@@ -798,7 +829,36 @@ abstract class AbstractCrudController extends Controller
         ];
     }
 
+    /**
+     * Abstract method to allow child controllers to override form type rendering options.
+     *
+     * This method is called during form processing to apply feature-specific
+     * display adjustments or configuration overrides to the FormType.
+     *
+     * @return void
+     */
     abstract protected function overrideFormTypeRenderOptions(): void;
+
+    /**
+     * Abstract method to allow child controllers to override view type rendering options.
+     *
+     * This method is called during view processing to apply feature-specific
+     * display adjustments or configuration overrides to the ViewType.
+     *
+     * @return void
+     */
+    abstract protected function overrideViewTypeRenderOptions(): void;
+
+    /**
+     * Abstract method to allow child controllers to override list type rendering options.
+     *
+     * This method is called during list processing to apply feature-specific
+     * display adjustments or configuration overrides to the ListType.
+     *
+     * @return void
+     */
+    abstract protected function overrideListTypeRenderOptions(): void;
+
 
     // // Notes-: this is an example of a Helper Method
     // /**

@@ -129,6 +129,7 @@ return [
         // ],
     ],
     'form_hidden_fields' => [
+        'primary_emailsssccc',
         // 'id',
         // 'store_id',
         // 'testyXxxx_user_id',

@@ -23,16 +23,10 @@ use Psr\Log\LoggerInterface;
  */
 abstract class AbstractViewType implements ViewTypeInterface
 {
-    /** @var array<string, mixed> */
-    protected array $options = [];
-    /** @var array<string, mixed> */
+    protected array $options = []; // For general view-wide options (e.g., default behavior flags)
     protected array $renderOptions = [];
-    /** @var array<string, mixed> */
-    protected array $fields = [];
-    /** @var array<string, mixed> */
     protected array $layout = [];
-    /** @var array<string> */
-    protected array $hiddenFields = []; // Fields that are part of the view but not explicitly in layout
+    protected array $fields = [];
 
     public readonly string $pageKey;
     public readonly string $pageName;
@@ -73,7 +67,7 @@ abstract class AbstractViewType implements ViewTypeInterface
         $this->pageFeature = $pageFeature;
         $this->pageEntity  = $pageEntity;
 
-        // Delegate configuration loading to service.
+        // ✅ Delegate configuration loading to ViewConfigurationService
         $config = $this->viewConfigService->loadConfiguration(
             $pageKey,
             $pageName,
@@ -82,15 +76,24 @@ abstract class AbstractViewType implements ViewTypeInterface
             $pageEntity,
         );
 
-        // Apply loaded configuration to properties.
+        // ✅ Apply loaded configuration to properties
+        // Use ?? [] to ensure it's an array if not defined in config
         $this->options = $config['options'] ?? [];
         $this->renderOptions = $config['render_options'] ?? [];
         $this->layout = $config['layout'] ?? [];
-        $this->hiddenFields = $config['hidden_fields'] ?? [];
+        // $this->fields = $config['fields'] ?? [];
+        $this->setFields($config['fields'] ?? []);
 
-        // Validate and clean fields based on layout and hidden fields.
-        $this->filterValidateViewFields();
+        $this->filterAndValidateViewStructure();
     }
+
+
+    /** {@inheritdoc} */
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
 
     /**
      * {@inheritdoc}
@@ -129,8 +132,12 @@ abstract class AbstractViewType implements ViewTypeInterface
      */
     public function setFields(array $fields): void
     {
-        // Internal fields property updated directly, but validation is done via filterValidateViewFields.
-        $this->fields = $fields;
+        $validFields = $this->fieldRegistryService->filterAndValidateFields(
+            $fields,
+            $this->pageKey,
+            $this->pageEntity
+        );
+        $this->fields = $validFields;
     }
 
     /**
@@ -150,81 +157,6 @@ abstract class AbstractViewType implements ViewTypeInterface
     }
 
     /**
-     * Validates and filters the fields based on the loaded layout and hidden fields.
-     *
-     * This method ensures that only valid fields from the field registry are included
-     * in the final view configuration and that the layout correctly reflects these fields.
-     *
-     * @return void
-     */
-    protected function filterValidateViewFields(): void
-    {
-        $currentLayout = $this->getLayout();
-        $currentHiddenFields = $this->hiddenFields;
-
-        // 1. Get all fields explicitly defined in the layout.
-        $layoutFields = [];
-        foreach ($currentLayout as $section) {
-            if (isset($section['fields']) && is_array($section['fields'])) {
-                foreach ($section['fields'] as $field) {
-                    // Skip commented-out fields (if present as strings with //)
-                    if (is_string($field) && strpos($field, '//') !== 0) {
-                        $layoutFields[] = $field;
-                    }
-                }
-            }
-        }
-
-        // 2. Merge layout fields with any explicitly defined hidden fields.
-        $allConfiguredFields = array_unique(array_merge($layoutFields, $currentHiddenFields));
-
-        // 3. Filter and validate ALL identified fields against the FieldRegistryService.
-        // This sets the context for field resolution.
-        $validFields = $this->fieldRegistryService->filterAndValidateFields(
-            $allConfiguredFields,
-            $this->pageKey,
-            $this->pageEntity
-        );
-
-        // 4. Validate and fix the layout, removing any fields not present in $validFields.
-        $validatedLayout = $this->validateAndFixLayoutFields($currentLayout, $validFields);
-
-        // 5. Update the internal fields property with only the valid fields.
-        $this->fields = $validFields;
-
-        // 6. Update the layout property with the validated layout.
-        $this->setLayout($validatedLayout);
-
-        // 7. Clean up internal hidden_fields array, as they are now merged into `fields`.
-        $this->hiddenFields = [];
-    }
-
-    /**
-     * Validates an array of field names against the known schema for this View type.
-     *
-     * Sets the entity and page context on the FieldRegistryService before validation.
-     * Returns only valid field names, while logging and triggering warnings for any invalid ones.
-     *
-     * @param array<string> $fields Array of field names to validate.
-     * @return array<string> Array of valid field names.
-     */
-    public function validateFields(array $fields): array
-    {
-        if (empty($fields)) {
-            $this->logWarning("No fields provided for validation.");
-            return [];
-        }
-
-        $validFields = $this->fieldRegistryService->filterAndValidateFields(
-            $fields,
-            $this->pageKey,
-            $this->pageEntity
-        );
-
-        return $validFields;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function buildView(ViewBuilderInterface $builder): void
@@ -232,7 +164,7 @@ abstract class AbstractViewType implements ViewTypeInterface
         // Set Render Options and Layout for the builder.
         $builder->setRenderOptions($this->getRenderOptions());
         $builder->setLayout($this->getLayout());
-        $builder->setTitle($this->renderOptions['title'] ?? $this->pageName); // Set title from render options or page name
+        $builder->setTitle($this->renderOptions['title'] ?? $this->pageName); 
 
         // Add fields to the builder.
         foreach ($this->fields as $fieldName) {
@@ -258,6 +190,69 @@ abstract class AbstractViewType implements ViewTypeInterface
         }
     }
 
+
+    /** {@inheritdoc} */
+    public function overrideConfig(array $options): void
+    {
+        // ✅ Apply overrides to the distinct, flat properties
+        if (isset($options['options']) && is_array($options['options'])) {
+            $this->options = array_merge($this->options, $options['options']);
+        }
+        if (isset($options['render_options']) && is_array($options['render_options'])) {
+            $this->renderOptions = array_merge($this->renderOptions, $options['render_options']);
+        }
+        if (isset($options['layout']) && is_array($options['layout'])) {
+            // Note: Merging layouts can be complex. For simplicity, this replaces.
+            // If deeper merging is needed (e.g., merging fields within sections),
+            // a dedicated layout merging service/method would be required.
+            $this->layout = $options['layout'];
+        }
+
+        // ✅ Allow controllers to override 'fields' directly, consistent with setFocus()
+        if (isset($options['fields']) && is_array($options['fields'])) {
+            // Use setFields() to ensure these new fields are validated against the registry
+            $this->setFields($options['fields']);
+        }
+
+        // Clean up after applying controller overrides
+        // ✅ Always call the central validation method to ensure consistency
+        $this->filterAndValidateViewStructure();
+    }
+
+
+    /**
+     * Orchestrates the validation and fixing of the view's fields and layout.
+     *
+     * This method should be called after initial configuration in setFocus()
+     * and after applying any overrides in overrideConfig() to ensure the
+     * internal state of fields and layout is consistent and valid.
+     *
+     * @return void
+     */
+    protected function filterAndValidateViewStructure(): void // ✅ This method is correct as previously proposed
+    {
+        // 1. Get the current fields (which would have been validated by setFields())
+        $currentFields = $this->getFields();
+        $currentLayout = $this->getLayout();
+
+        // 2. Re-validate current fields against the registry.
+        // This ensures $this->fields is clean and reflects only valid fields.
+        // It's technically redundant if setFields() was the last setter, but harmless and ensures robustness.
+        $validatedFields = $this->fieldRegistryService->filterAndValidateFields(
+            $currentFields,
+            $this->pageKey,
+            $this->pageEntity
+        );
+
+        // 3. Validate and fix the layout based on the *validated* fields
+        $validatedLayout = $this->validateAndFixLayoutFields($currentLayout, $validatedFields);
+
+        // 4. Update the internal properties with the validated results
+        $this->fields = $validatedFields; // Direct assignment after re-validation
+        $this->layout = $validatedLayout;
+    }
+
+
     /**
      * Validates the layout configuration against the available fields and fixes it by
      * removing any references to non-existent fields or empty sections.
@@ -266,7 +261,7 @@ abstract class AbstractViewType implements ViewTypeInterface
      * @param array<string> $availableFields An array of field names that are considered valid.
      * @return array<string, mixed> The validated and fixed layout configuration.
      */
-    private function validateAndFixLayoutFields(array $layout, array $availableFields): array
+    protected function validateAndFixLayoutFields(array $layout, array $availableFields): array
     {
         if (empty($layout)) {
             return [];
@@ -283,32 +278,18 @@ abstract class AbstractViewType implements ViewTypeInterface
                 // If no fields left in this section, remove the section itself.
                 if (empty($section['fields'])) {
                     unset($layout[$secId]);
-                    $this->logWarning("Removed empty section at index {$secId} from view layout - ERR-VIEW90");
+                    $this->logger->warning("Removed empty section at index {$secId} from view layout - ERR-VIEW90");
                 }
             } else {
                 // If a section has no 'fields' key or it's not an array, it's invalid.
                 unset($layout[$secId]);
-                $this->logWarning("Removed invalid or empty section at index {$secId} from view layout - ERR-VIEW91");
+                $this->logger->warning("Removed invalid or empty section at index {$secId} ' .
+                                       'from view layout - ERR-VIEW91");
             }
         }
         unset($section); // Unset reference to avoid unexpected behavior.
 
         // Re-index sections array if any were removed to ensure a clean array.
         return array_values($layout);
-    }
-
-    /**
-     * Log a warning message in development mode.
-     *
-     * @param string $message Warning message.
-     * @return void
-     */
-    private function logWarning(string $message): void
-    {
-        if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("View Warning: {$message}", E_USER_WARNING);
-        }
-        // Always log to system log.
-        error_log("View Warning: {$message}");
     }
 }

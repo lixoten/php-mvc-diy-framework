@@ -8,8 +8,6 @@ use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
 use App\Services\PaginationService;
 
-//use Core\Form\Validation\Validator;
-
 /**
  * Factory for creating lists
  */
@@ -25,7 +23,6 @@ class ListFactory implements ListFactoryInterface
      * @param CSRFToken $csrf
      * @param FieldTypeRegistry $fieldTypeRegistry
      * @param PaginationService $paginationService
-     *
      */
     public function __construct(
         CSRFToken $csrfToken,
@@ -47,10 +44,7 @@ class ListFactory implements ListFactoryInterface
         array $options = [],
     ): ListInterface {
         // Create list instance
-        $list = new ListView(
-            $listType->pageKey,
-            $listType->pageName,
-        );
+        $list = new ListView($listType->pageKey, $listType->pageName);
 
         // Create list builder
         $builder = new ListBuilder($list, $this->fieldTypeRegistry);

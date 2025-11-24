@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
-use App\Helpers\DebugRt;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
-// use Core\Form\Renderer\FormRendererRegistry;
 use Core\Form\Validation\Validator;
 
 /**
@@ -17,7 +15,6 @@ class FormFactory implements FormFactoryInterface
 {
     private CSRFToken $csrf;
     private FieldTypeRegistry $fieldTypeRegistry;
-    // private ?FormRendererRegistry $formRendererRegistry = null;
     private ?Validator $validator;
 
     /**
@@ -30,12 +27,10 @@ class FormFactory implements FormFactoryInterface
     public function __construct(
         CSRFToken $csrf,
         FieldTypeRegistry $fieldTypeRegistry,
-        // ?FormRendererRegistry $formRendererRegistry = null,
         ?Validator $validator = null,
     ) {
         $this->csrf = $csrf;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
-        // $this->formRendererRegistry = $formRendererRegistry;
         $this->validator = $validator;
     }
 
@@ -61,14 +56,6 @@ class FormFactory implements FormFactoryInterface
         if ($this->validator) {
             $form->setValidator($this->validator);
         }
-
-        // // Set form renderer if available
-        // if ($this->formRendererRegistry) {
-        //     $renderOptions = $formType->getRenderOptions();
-        //     $rendererName = $renderOptions['renderer'] ?? 'bootstrap';
-        //     $renderer = $this->formRendererRegistry->getRenderer($rendererName);
-        //     $form->setRenderer($renderer);
-        // }
 
         // Set initial data if provided
         if (!empty($data)) {

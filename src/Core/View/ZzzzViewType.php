@@ -46,7 +46,6 @@ class ZzzzViewType extends AbstractViewType
         //     'zzzz'           // pageEntity
         // );
     }
-
 }
 /*
 

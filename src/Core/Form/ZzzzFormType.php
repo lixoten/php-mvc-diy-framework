@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 class ZzzzFormType extends AbstractFormType
 {
     //use CaptchaAwareTrait;
-    protected array $options = [];
+    //protected array $options = [];
 
     /**
      * Constructor
@@ -30,7 +30,6 @@ class ZzzzFormType extends AbstractFormType
         protected FormConfigurationService $formConfigService,
         protected LoggerInterface $logger,
         protected CaptchaServiceInterface $captchaService,
-
     ) {
         parent::__construct(
             fieldRegistryService: $fieldRegistryService,

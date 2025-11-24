@@ -72,10 +72,11 @@ abstract class AbstractListType implements ListTypeInterface
         );
 
         // ✅ Apply loaded configuration to flat properties
-        $this->options = $config['options'];
-        $this->paginationOptions = $config['pagination'];
-        $this->renderOptions = $config['render_options'];
-        $this->setFields($config['list_fields']);
+        // Use ?? [] to ensure it's an array if not defined in config
+        $this->options = $config['options'] ?? [];
+        $this->paginationOptions = $config['pagination'] ?? [];
+        $this->renderOptions = $config['render_options'] ?? [];
+        $this->setFields($config['list_fields'] ?? []);
     }
 
     /** {@inheritdoc} */
@@ -163,7 +164,44 @@ abstract class AbstractListType implements ListTypeInterface
         $this->addActions($builder);
     }
 
+    /** {@inheritdoc} */
+    public function overrideConfig(array $options): void
+    {
+        if (isset($options['options']) && is_array($options['options'])) {
+            $this->options = array_merge($this->options, $options['options']);
+        }
+        if (isset($options['pagination']) && is_array($options['pagination'])) {
+            $this->paginationOptions = array_merge($this->paginationOptions, $options['pagination']);
+        }
+        if (isset($options['render_options']) && is_array($options['render_options'])) {
+            $this->renderOptions = array_merge($this->renderOptions, $options['render_options']);
+        }
+        if (isset($options['list_fields']) && is_array($options['list_fields'])) {
+            // Overriding fields directly usually means replacing them
+            $this->setFields($options['list_fields']);
+        }
 
+        // Re-validate fields if any field-related config was overridden
+        // Note: setFields already handles validation, so this is primarily for layout/render updates
+        // If layout or render options influence field validity, a re-validation might be needed.
+        // For simplicity and to match FormType, we can run a minimal validation or rely on setFields().
+        // If list_fields were directly set, setFields() would have validated.
+        // If a separate validation is needed for options/render_options, it would go here.
+        // For now, assume setFields() is sufficient if 'list_fields' were directly provided.
+        // If options or render_options changed something that could affect fields
+        // that are NOT in list_fields, then a re-run of fieldRegistryService->filterAndValidateFields()
+        // on the current $this->fields would be appropriate, but setFields already covers it.
+        // Let's ensure this is robust by re-validating if fields were overridden.
+        if (isset($options['list_fields']) && is_array($options['list_fields'])) {
+            $this->setFields($this->fields); // Re-run setFields to re-validate against registry
+        }
+    }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////
+    // Private / Protected  Methods ////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////
     /**
      * Add action columns (edit, delete, view) based on render options and Url enums
      *
