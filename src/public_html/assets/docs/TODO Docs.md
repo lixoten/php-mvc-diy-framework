@@ -1,4 +1,25 @@
 
+
+
+need to add all the fields resourced to generate lang.
+
+
+need to update generate fields... we remove 'testy.' and 'common.'
+
+
+
+
+need to get Status and SuperPowers to work, display and update and insert
+
+
+need to continue with Abstract logic for view, edit, list and delete
+
+
+
+
+
+
+
 we need to create additional generators
 --- xxxx_metadata
 --- xxxx_list_view - very generic like ...really just common fields

@@ -122,4 +122,38 @@ return [
             ],
         ],
     ],
+    'status' => [
+        'list' => [
+            'label' => 'status',
+            'sortable' => false,
+            'formatter' => null,
+        ],
+        'form' => [
+            'label' => 'status',
+            'type'          => 'text',
+            'required'      => true, // Required if not nullable
+            'attributes'    => [
+                'placeholder' => 'basefield.status.form.placeholder',
+            ],
+        ],
+        'formatters' => [
+        ],
+        'validators' => [
+            'text' => [ // Default validator, can be refined based on db_type
+            ],
+        ]
+    ],
+    // 'statusxxx' => [
+    //     'label' => 'acrStatus',
+    //     'list' => [
+    //         'sortable' => true,
+    //         'formatter' => function ($value) {
+    //             if ($value === null || $value === '') {
+    //                 return '';
+    //             }
+    //             $statusClass = ($value == 'Published' || $value == 'Active' || $value === true || $value === 1) ? 'success' : 'warning';
+    //             return '<span class="badge bg-' . $statusClass . '">' . htmlspecialchars((string)$value) . '</span>';
+    //         },
+    //     ],
+    // ],
 ];

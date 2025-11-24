@@ -164,7 +164,7 @@ abstract class AbstractViewType implements ViewTypeInterface
         // Set Render Options and Layout for the builder.
         $builder->setRenderOptions($this->getRenderOptions());
         $builder->setLayout($this->getLayout());
-        $builder->setTitle($this->renderOptions['title'] ?? $this->pageName); 
+        $builder->setTitle($this->renderOptions['title'] ?? $this->pageName);
 
         // Add fields to the builder.
         foreach ($this->fields as $fieldName) {

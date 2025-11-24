@@ -6,8 +6,6 @@ namespace Core;
 
 use App\Enums\FlashMessageType;
 use App\Enums\PostFields2;
-use App\Enums\Url;
-use App\Features\Testy\TestyRepositoryInterface;
 use App\Services\FeatureMetadataService;
 use Core\Context\CurrentContext;
 use Core\Controller;
@@ -116,17 +114,7 @@ abstract class AbstractCrudController extends Controller
 
         $totalRecords = 0;
         // 1. Fetch total records first to determine total pages
-        if ($this->scrap->getRouteType() === "account") {
-            $userId = $this->scrap->getUserId();
-            $totalRecords = $this->repository->countByUserId($userId);
-        } else {
-            if ($pageEntity === 'user') {
-                $totalRecords = $this->repository->countAll();
-            } else {
-                $storeId = $this->scrap->getStoreId();
-                $totalRecords = $this->repository->countByStoreId($storeId);
-            }
-        }
+        $totalRecords = $this->fetchTotalListRecords($request);
 
         // 2. Calculate total pages. Ensure it's at least 1, even if no records.
         $totalPages = ($totalRecords > 0) ? ceil($totalRecords / $limit) : 1;
@@ -141,73 +129,17 @@ abstract class AbstractCrudController extends Controller
         // 4. Recalculate offset with the potentially corrected page number
         $offset = ($page - 1) * $limit;
 
-        $records = [];
-
         // 5. Fetch actual records
-        if ($this->scrap->getRouteType() === "account") {
-            $userId = $this->scrap->getUserId();
-            $records = $this->repository->findByUserIdWithFields(
-                $userId,
-                $listFields,
-                [$sortField => $sortDirection],
-                $limit,
-                $offset
-            );
-
-            // $totalRecords = $this->repository->countByUserId($userId);
-        } else {
-            if ($pageEntity === 'user') {
-                $records = $this->repository->findAllWithFields(
-                    $listFields,
-                    [$sortField => $sortDirection],
-                    $limit,
-                    $offset
-                );
-
-                // $totalRecords = $this->repository->countAll();
-            } else {
-                $storeId = $this->scrap->getStoreId();
-
-                $records = $this->repository->findByStoreIdWithFields(
-                    $storeId,
-                    $listFields,
-                    [$sortField => $sortDirection],
-                    $limit,
-                    $offset
-                );
-
-                // $totalRecords = $this->repository->countByStoreId($storeId);
-            }
-        }
+        $records = $this->fetchListRecords($request, $limit, $offset, [$sortField => $sortDirection]);
 
         $paginationOptions['current_page'] = $page;
         $paginationOptions['total_pages'] = $totalPages;
         $paginationOptions['total_items'] = $totalRecords;
         $paginationOptions['listUrlEnum'] = $this->feature->listUrlEnum;
 
-        // $cols = !empty($listFields) ? $listFields : $this->listType->getFields();
-        // if (!empty($listFields)) {
-        //     $cols = $listFields;
-        //     $cols = $this->listType->validateFields($cols);
-        //     // we need to update listType when incoming Col from controller
-        //     // $this->listType->setFields($cols);
-        // }
-        // else {
-        //     $cols = $this->listType->getFields();
-        // }
-
-
-        // // Map entities to simple arrays for view
-        // // deleteme $validColumns = $this->fieldRegistryService->filterAndValidateFields($listColumns);
-        // $dataRecords = array_map(
-        //     function ($record) use ($cols) {
-        //         return $this->repository->toArray($record, $cols);
-        //     },
-        //     $records
-        // );
         $dataRecords = $records;
 
-        // ✅ NEW: Update the ListType with the calculated runtime pagination options
+        // ✅ Update the ListType with the calculated runtime pagination options
         $this->listType->setPaginationOptions($paginationOptions);
 
         $this->listType->mergeRenderOptions([
@@ -229,13 +161,7 @@ abstract class AbstractCrudController extends Controller
             data: $dataRecords,
             // The 'options' array is now empty as all configuration is on the ListType.
             // You can remove it entirely or leave it as an empty array for future factory-specific flags.
-            // options: [],
-            options: [
-                // 'options'           => $options,
-                // 'pagination'        => $paginationOptions,
-                // 'render_options'    => $renderOptions,
-                // 'list_fields'       => $listFields,
-            ],
+            options: [],
         );
 
         $renderedList = $this->listRenderer->renderList($list, []);
@@ -245,12 +171,9 @@ abstract class AbstractCrudController extends Controller
             'renderedList' => $renderedList,
         ];
 
-
         $url = $this->feature->listUrlEnum;
         return $this->view($url->view(), $this->buildCommonViewData($viewData));
     }
-
-
 
 
     /**
@@ -287,22 +210,11 @@ abstract class AbstractCrudController extends Controller
         // ✅ Inject form URLs and route context via render options
         $routeType = $this->scrap->getRouteType();
 
-        // $this->formType->mergeRenderOptions([
-        //     'url_enums' => [
-        //         'action' => $this->feature->editUrlEnum, // Form action URL enum
-        //         'cancel' => $this->feature->listUrlEnum, // Cancel/back button URL enum
-        //         'delete' => $this->feature->deleteUrlEnum ?? null, // Optional delete button
-        //     ],
-        //     'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType), // Full action URL
-        //     'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Full cancel URL
-        //     'route_type' => $routeType, // Current route context
-        //     'record_id' => $recordId, // Current record ID (for AJAX updates)
-        //     'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
-        // ]);
         $this->formType->mergeRenderOptions([
             'action_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType), // Form action URL enum
             'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Cancel/back button URL enum
             'route_type' => $routeType, // Current route context
+            'record_id'  => $recordId,
             // 'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
         ]);
 
@@ -317,7 +229,7 @@ abstract class AbstractCrudController extends Controller
 
         if ($request->getMethod() === 'GET') {
             // 2. Fetch the required data ONCE as an array.
-            $recordArray = $this->repository->findByIdWithFields($recordId, $requiredFields);
+            $recordArray = $this->fetchSingleRecord($recordId, $requiredFields);
 
             // 3. Check for existence and permissions using the fetched array.
             if (!$this->scrap->isAdmin()) {
@@ -334,12 +246,10 @@ abstract class AbstractCrudController extends Controller
         $form   = $result['form'];
 
         // Prepare the form for JavaScript
-        ///$form->setAttribute('data-ajax-action', '/testy/edit/' . $recordId . '/update');
         $form->setAttribute(
             'data-ajax-action',
             $this->feature->editUrlEnum->url(['id' => $recordId]) . '/update'
         );
-        //$form->setAttribute('data-ajax-action', '/testy/edit/' . $recordId . '/update');
         //$form->setAttribute('data-ajax-save', 'true');
 
         // This block handles the submission AFTER the form has been processed
@@ -380,7 +290,9 @@ abstract class AbstractCrudController extends Controller
             //     }
             // }
 
-            if ($this->repository->updateFields($recordId, $data)) {
+            $savedId = $this->saveRecord($data, $recordId);
+            // if ($this->repository->updateFields($recordId, $data)) {
+            if ($savedId) {
                 $this->flash22->add("Record updated successfully", FlashMessageType::Success);
                 return $this->redirect($this->getRedirectUrlAfterSave($recordId));
             } else {
@@ -454,7 +366,8 @@ abstract class AbstractCrudController extends Controller
 
         // ✅ Fetch record data using fields defined in ViewType
         $fields = $this->viewType->getFields();
-        $recordArray = $this->repository->findByIdWithFields($recordId, $fields);
+        //$recordArray = $this->repository->findByIdWithFields($recordId, $fields);
+        $recordArray = $this->fetchSingleRecord($recordId); // ✅ Calls abstract method
 
         if (!$recordArray) {
             $this->flash22->add("Record not found.", FlashMessageType::Error);
@@ -524,6 +437,9 @@ abstract class AbstractCrudController extends Controller
             $pageEntity,
         );
 
+
+        // ✅ Allow child controllers to override form rendering or other form configs
+        $this->overrideFormTypeRenderOptions();
         $this->overrideFormTypeRenderOptions();
 
 
@@ -595,7 +511,9 @@ abstract class AbstractCrudController extends Controller
             }
 
             // Transform form data before saving
-            $data = $this->baseFeatureService->transformForStorage($data, $pageKey);
+            // $data = $this->baseFeatureService->transformToStorage($data, $pageKey);
+            // Transform form data before saving
+            $data = $this->baseFeatureService->transformToStorage($data, $pageKey, $pageEntity);
 
 
             // foreach ($data as $name => $field) {
@@ -606,7 +524,9 @@ abstract class AbstractCrudController extends Controller
             // }
 
 
-            $newRecordId = $this->repository->insertFields($data);
+            //$newRecordId = $this->repository->insertFields($data);
+            $newRecordId = $this->saveRecord($data);
+
             if ($newRecordId) {
                 $this->flash22->add("Record added successfully", FlashMessageType::Success);
                 return $this->redirect($this->getRedirectUrlAfterSave((int)$newRecordId));
@@ -615,6 +535,7 @@ abstract class AbstractCrudController extends Controller
             $form->addError('_form', 'Failed to save the record in the database.');
         }
 
+        $renderedForm = $this->formRenderer->renderForm($form, []);
 
 
         // This block handles the initial page load (GET)
@@ -622,6 +543,7 @@ abstract class AbstractCrudController extends Controller
             'title' => 'Create New Record',
             'form' => $form,
             'formTheme' => $form->getCssFormThemeFile(),
+            'renderedForm' => $renderedForm,
         ];
 
         $url = $this->feature->editUrlEnum;
@@ -657,7 +579,8 @@ abstract class AbstractCrudController extends Controller
             $requiredFields = array_unique(array_merge($formFields, ['user_id']));//hardcoded
 
             // 2. Fetch the required data ONCE as an array.
-            $recordArray = $this->repository->findByIdWithFields($recordId, $requiredFields);
+            // $recordArray = $this->repository->findByIdWithFields($recordId, $requiredFields);
+            $recordArray = $this->fetchSingleRecord($recordId); // Need existing data for context/validation
 
             // 3. Check permissions.
             $this->checkForEditPermissions($recordArray);
@@ -669,7 +592,11 @@ abstract class AbstractCrudController extends Controller
             if ($result['handled'] && $result['valid']) {
                 $data = $form->getUpdatableData();
 
-                if ($this->repository->updateFields($recordId, $data)) {
+                $savedId = $this->saveRecord($data, $recordId); // ✅ Calls abstract method
+
+
+                // if ($this->repository->updateFields($recordId, $data)) {
+                if ($savedId) {
                     $redirectUrl = null;
                     if ($this->feature->redirectAfterSave === 'list') {
                         $redirectUrl = $this->getRedirectUrlAfterSave($recordId);
@@ -860,22 +787,6 @@ abstract class AbstractCrudController extends Controller
     abstract protected function overrideListTypeRenderOptions(): void;
 
 
-    // // Notes-: this is an example of a Helper Method
-    // /**
-    //  * Determines where to redirect after a successful save.
-    //  *
-    //  * @param int $recordId
-    //  * @return ResponseInterface
-    //  */
-    // protected function redirectAfterSave(int $recordId): ResponseInterface
-    // {
-    //     if ($this->feature->redirectAfterSave === 'list') {
-    //         return $this->redirect($this->feature->baseUrlEnum->url());
-    //     }
-
-    //     return $this->redirect($this->feature->editUrlEnum->url(['id' => $recordId]));
-    // }
-
     // Notes-: this is an example of a Helper Method
     /**
      * Determines where to redirect after a successful save.
@@ -923,4 +834,150 @@ abstract class AbstractCrudController extends Controller
             throw new ForbiddenException("You do not have permission to edit this record.", 403);
         }
     }
+
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////
+
+    /**
+     * Fetches a list of records for display.
+     * Child controllers can override this to define how list data is retrieved,
+     * e.g., using a specific service or repository methods with custom filtering/sorting.
+     *
+     * @param ServerRequestInterface $request The current server request, useful for query parameters.
+     * @param int $limit The number of records to fetch.
+     * @param int $offset The starting offset for records.
+     * @param array<string, string> $orderBy Associative array of column => direction (ASC/DESC).
+     * @return array<array<string, mixed>> An array of record data.
+     */
+    protected function fetchListRecords(ServerRequestInterface $request, int $limit, int $offset, array $orderBy): array
+    {
+        $listFields = $this->listType->getFields(); // Get fields from ListType
+        $pageEntity = $this->scrap->getPageEntity();
+        $routeType  = $this->scrap->getRouteType();
+
+        // Implement Testy-specific logic to fetch records
+        if ($routeType === "account") {
+            $userId = $this->scrap->getUserId();
+            return $this->repository->findByUserIdWithFields(
+                $userId,
+                $listFields,
+                $orderBy,
+                $limit,
+                $offset
+            );
+        } else { // 'core' route or other default
+            // Assuming for 'user' entity in core, we fetch all, otherwise by store ID
+            if ($pageEntity === 'user') { // This logic would typically be in UserController
+                return $this->repository->findAllWithFields(
+                    $listFields,
+                    $orderBy,
+                    $limit,
+                    $offset
+                );
+            } else {
+                $storeId = $this->scrap->getStoreId();
+                return $this->repository->findByStoreIdWithFields(
+                    $storeId,
+                    $listFields,
+                    $orderBy,
+                    $limit,
+                    $offset
+                );
+            }
+        }
+    }
+
+    /**
+     * Gets the total count of records for the list.
+     * Child controllers can override this to define how the total count is retrieved,
+     * considering any filters or specific conditions.
+     *
+     * @param ServerRequestInterface $request The current server request.
+     * @return int The total number of records.
+     */
+    // abstract protected function fetchTotalListRecords(ServerRequestInterface $request): int;
+    protected function fetchTotalListRecords(ServerRequestInterface $request): int
+    {
+        $pageEntity = $this->scrap->getPageEntity();
+        $routeType  = $this->scrap->getRouteType();
+
+        // Implement Testy-specific logic to get total count
+        if ($routeType === "account") {
+            $userId = $this->scrap->getUserId();
+            return $this->repository->countByUserId($userId);
+        } elseif ($routeType === "public") {
+            $storeId = $this->scrap->getStoreId();
+            return $this->repository->countByStoreId($storeId);
+        } else { // 'core' route or other default
+            if ($pageEntity === 'user') { // This logic would typically be in UserController
+                return $this->repository->countAll();
+            } else {
+                return $this->repository->countAll();
+            }
+        }
+    }
+
+    /**
+     * Fetches a single record by its ID.
+     * Child controllers can override this to define how a single record's data is retrieved.
+     *
+     * @param int $id The ID of the record to fetch.
+     * @param array<string> $fields An array of fields to retrieve for the record.
+     * @return array<string, mixed>|null The record data as an associative array, or null if not found.
+     */
+    // abstract protected function fetchSingleRecord(int $id, array $fields = []): ?array;
+    protected function fetchSingleRecord(int $id, array $fields = []): ?array
+    {
+        // This uses the injected TestyRepositoryInterface for Testy-specific data.
+        // return $this->repository->findById($id);
+        return $this->repository->findByIdWithFields($id, $fields);
+    }
+
+
+    /**
+     * Persists (creates or updates) a record based on form data.
+     * Child controllers can override this to define how record data is saved,
+     * e.g., using a specific service for business logic and validation, then a repository.
+     *
+     * @param array<string, mixed> $formData The validated data from the form.
+     * @param int|null $id The ID of the record to update, or null for a new record.
+     * @return int|null The ID of the saved record (new ID for create, existing for update), or null on failure.
+     */
+    // abstract protected function saveRecord(array $formData, ?int $id = null): ?int;
+    protected function saveRecord(array $formData, ?int $id = null): ?int
+    {
+        // This is where TestyController uses its specific repository (or service) to save data.
+        // If you had a TestyService with business logic, you'd call it here:
+        // return $this->testyService->save($formData, $id);
+        if ($id) {
+            // Update existing record
+            return $this->repository->updateFields($id, $formData) ? $id : null;
+        } else {
+            // Create new record
+            return $this->repository->insertFields($formData);
+        }
+    }
+
+    /**
+     * Deletes a record by its ID.
+     * Child controllers can override this to define how a record is deleted,
+     * e.g., using a specific service for business rules before repository deletion.
+     *
+     * @param int $id The ID of the record to delete.
+     * @return bool True if deletion was successful, false otherwise.
+     */
+    // abstract protected function deleteRecord(int $id): bool;
+    protected function deleteRecord(int $id): bool
+    {
+        // This uses the injected TestyRepositoryInterface for Testy-specific deletion.
+        return $this->repository->delete($id);
+    }
+
+    // 1011 1052 977
 }

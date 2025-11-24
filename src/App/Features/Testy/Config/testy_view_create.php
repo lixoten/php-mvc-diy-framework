@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 return [
     'render_options' => [ // gen
-        'from'                  => 'testy_view_create-config',
+        'from'                  => 'testy_view_edit-config',
 
         // HTML attributes (id, data-*, aria-*)
         'attributes' => [
@@ -56,7 +56,7 @@ return [
            'fields'    => [
                 // 'id',
                 // 'title',
-                'status',
+                // 'status',
                 'generic_text',
                 // 'telephone',
                 // 'primary_email',
@@ -129,7 +129,7 @@ return [
         // ],
     ],
     'form_hidden_fields' => [
-        // 'primary_emailsssccc',
+        'primary_emailsssccc',
         // 'id',
         // 'store_id',
         // 'testyXxxx_user_id',
