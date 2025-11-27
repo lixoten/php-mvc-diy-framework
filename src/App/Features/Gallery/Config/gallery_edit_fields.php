@@ -823,8 +823,8 @@ return [
         'form' => [
             'type' => 'select',
             // 'placeholder' => '-- Please select --', // Optional: for UI hint, not a real <option>
-            // 'default_choice' => '-- Please select --', // Optional: for UI hint, not a real <option>
-            'choices' => [
+            // 'default_option' => '-- Please select --', // Optional: for UI hint, not a real <option>
+            'options' => [
                 'm'  => 'Male',
                 'f'  => 'Female',
                 'o'  => 'Other',

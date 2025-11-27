@@ -130,13 +130,7 @@ class MaterialFormRenderer extends AbstractFormRenderer
         return $output;
     }
 
-    /**
-     * ✅ MATERIAL-SPECIFIC: Render constraint hints with Material Design HTML structure.
-     *
-     * @param FieldInterface $field
-     * @param array<int, array<string, string>> $hints
-     * @return string
-     */
+    /** {@inheritdoc} */
     protected function renderConstraintHintsHtml(FieldInterface $field, array $hints): string
     {
         $fieldName = $field->getName();

@@ -110,62 +110,52 @@ class ConfigFieldsGenerator
         $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
         // $entityNameLower = strtolower($this->entityName);
         $fieldDefinitions = [];
+        $rolling = [];
 
         foreach ($this->fields as $fieldName => $config) {
-            if (
-                !in_array(
-                    $fieldName,
-                    [
-                        // 'primary_email',
-                        // 'title',
-                        'id',
-                        'generic_text',
-                        'primary_email',
-                        // 'slug',
-                        // 'status',
-                        // 'super_powers',
-                        // 'primary_email', 'telephone', 'status', 'super_powers'
-                    ]
-                )
-            ) {
-                continue;
-            }
             if ($this->configType === 'root') {
                 if (
-                    in_array(
+                    !in_array(
                         $fieldName,
                         [
-                            'idXxx', 'store_id', 'user_id', 'name', 'content', 'description',
-                            'created_at', 'updated_at', 'xxx', 'xxx', 'xxx', 'xxx'
+                            // 'primary_email',
+                            // 'title',
+                            // 'created_at', 'updated_at',
+                            'id',
+                            'generic_text',
+                            'primary_email',
+                            // 'slug',
+                            // 'status',
+                            // 'super_powers',
+                            'gender_id',
+                            // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )
                 ) {
                     continue;
                 }
-            }
-            if ($this->configType === 'base') {
+            } elseif ($this->configType === 'base') {
                 if (
-                    in_array(
+                    !in_array(
                         $fieldName,
                         [
-                            'idXxx', 'store_id', 'user_id', 'name', 'content', 'description',
                             'created_at', 'updated_at', 'xxx', 'xxx', 'xxx', 'xxx'
                         ]
                     )
                 ) {
                     continue;
                 }
-            }
-            if ($this->configType === 'list') {
+            } elseif ($this->configType === 'list') {
+                if (!in_array($fieldName, ['id', 'xxx', 'xxx'])) {
+                    continue;
+                }
+            } elseif ($this->configType === 'edit') {
                 if (!in_array($fieldName, ['id', 'xxx', 'xxx'])) {
                     continue;
                 }
             }
-            if ($this->configType === 'edit') {
-                if (!in_array($fieldName, ['id', 'xxx', 'xxx'])) {
-                    continue;
-                }
-            }
+
+            $rolling[] = "// {$fieldName}";
 
             // if ($configType !== 'root' && !in_array($fieldName, ['id', 'email'])) {
                 // continue;
@@ -186,7 +176,6 @@ class ConfigFieldsGenerator
                 $defaultFormatterName = $fieldType;
             }
             // $labelKey = "{$this->entityName}.{$fieldName}";
-            $placeholderKey = "{$this->entityName}.{$fieldName}.form.placeholder";
 
             // Build the 'list' section if defined in schema
             $listSection = '';
@@ -205,7 +194,7 @@ class ConfigFieldsGenerator
 
 
 
-            $formAttr = $this->getFormAttr($fieldName, $config, $placeholderKey, $fieldType);
+            $formAttr = $this->getFormAttr($fieldName, $config, $fieldType);
 
             $skipList      = false;
             $skipForm      = false;
@@ -221,7 +210,12 @@ class ConfigFieldsGenerator
             $s08 = '        ';
             $sections = [];
             if (!$skipList) {
-                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'list');
+                $temp =  $this->getCodeBlock(
+                    config: $config,
+                    fieldName: $fieldName,
+                    type: $fieldType,
+                    blockName: 'list'
+                );
                 $sections[] = <<<PHP
                     'list' => [
                         {$temp}
@@ -230,6 +224,7 @@ class ConfigFieldsGenerator
             }
             if (!$skipForm) {
                 $temp =  $this->getCodeBlock(
+                    config: $config,
                     fieldName: $fieldName,
                     type: $fieldType,
                     blockName: 'form',
@@ -242,15 +237,25 @@ class ConfigFieldsGenerator
                     PHP;
             }
             if (!$skipFormatter) {
-                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'formatter');
+                $temp =  $this->getCodeBlock(
+                    config: $config,
+                    fieldName: $fieldName,
+                    type: $fieldType,
+                    blockName: 'formatter'
+                );
                 $sections[] = <<<PHP
                     $s08'formatters' => [
-                        {$temp}
+                    {$temp}
                             ],
                     PHP;
             }
             if (!$skipValidator) {
-                $temp =  $this->getCodeBlock(fieldName: $fieldName, type: $fieldType, blockName: 'validator');
+                $temp =  $this->getCodeBlock(
+                    config: $config,
+                    fieldName: $fieldName,
+                    type: $fieldType,
+                    blockName: 'validator'
+                );
                 $sections[] = <<<PHP
                     $s08'validators' => [
                         {$temp}
@@ -268,6 +273,7 @@ class ConfigFieldsGenerator
             $rrr = 4;
         }
 
+        $rolling = implode("\n", $rolling);
         $fieldDefinitionsString = implode("\n", $fieldDefinitions);
 
         $php = <<<PHP
@@ -283,6 +289,7 @@ class ConfigFieldsGenerator
 
 declare(strict_types=1);
 
+{$rolling}
 return [
 {$fieldDefinitionsString}
 ];
@@ -298,7 +305,6 @@ PHP;
     protected function getFormAttr(
         string $fieldName,
         array $config,
-        string $placeholderKey,
         string $fieldType,
     ): ?string {
         if (stripos($fieldName, 'slug') !== false) {
@@ -307,68 +313,91 @@ PHP;
 
         $formAttr = [];
         $spaces = '                ';
-        if ($config['db_type'] === 'string') {
-            $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
-
-            if (isset($config['required']) && $config['required']) {
-                $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
-            } else {
-                $formAttr[] = "$spaces// 'required'    => false,";
+        //if ($config['db_type'] === 'string') {
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                $placeholderKey = "{$fieldName}.form.placeholder";
+                $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
+            }
+            if (in_array($fieldType, ['select'])) {
+                // $formAttr[] = "$spaces'class'       => 'form-select',";
             }
 
-            if ((isset($config['minlength']))) {
-                $formAttr[] = "$spaces'minlength'   => {$config['minlength']},";
-            } else {
-                $formAttr[] = "$spaces// 'minlength'   => 1,";
-            }
-
-            if (isset($config['length'])) {
-                if ((isset($config['maxlength']) && $config['maxlength'] <= $config['length'])) {
-                    $formAttr[] = "$spaces'maxlength'   => {$config['maxlength']},";
+            if (in_array($config['db_type'], ['string'])) {
+                if (isset($config['required']) && $config['required']) {
+                    $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
                 } else {
-                    $formAttr[] = "$spaces'maxlength'   => {$config['length']},";
-                }
-            } else {
-                $formAttr[] = "$spaces// 'maxlength'    => 1,";
-            }
-
-            if ((isset($config['pattern']))) {
-                $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
-            } else {
-                if ($fieldType == 'email') {
-                    $formAttr[] = "$spaces// 'pattern'     => '/^user[a-z0-9._%+-]*@/',";
-                } else {
-                    $formAttr[] = "$spaces// 'pattern'     => '/^[a-z0-9]/',";
+                    $formAttr[] = "$spaces// 'required'    => false,";
                 }
             }
 
-            if ((isset($config['style']))) {
-                $formAttr[] = "$spaces'style'       => {$config['style']},";
-            } else {
-                $formAttr[] = "$spaces// 'style'       => 'background:yellow;',";
-            }
-
-            if (in_array('text', ['text'])) {
-                if (isset($config['data-char-counter']) && $config['data-char-counter']) {
-                    $formAttr[] = "$spaces'data-char-counter'    => {$this->formatBool($config['data-char-counter'])},";
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if ((isset($config['minlength']))) {
+                    $formAttr[] = "$spaces'minlength'   => {$config['minlength']},";
                 } else {
-                    $formAttr[] = "$spaces// 'data-char-counter'    => false,";
+                    $formAttr[] = "$spaces// 'minlength'   => 1,";
                 }
             }
 
-            if (isset($config['data-live-validation']) && $config['data-live-validation']) {
-                $formAttr[] =
-                "$spaces'data-live-validation' => {$this->formatBool($config['data-live-validation'])},";
-            } else {
-                $formAttr[] = "$spaces// 'data-live-validation' => false,";
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if (isset($config['length'])) {
+                    if ((isset($config['maxlength']) && $config['maxlength'] <= $config['length'])) {
+                        $formAttr[] = "$spaces'maxlength'   => {$config['maxlength']},";
+                    } else {
+                        $formAttr[] = "$spaces'maxlength'   => {$config['length']},";
+                    }
+                } else {
+                    $formAttr[] = "$spaces// 'maxlength'    => 1,";
+                }
+            }
+
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if ((isset($config['pattern']))) {
+                    $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
+                } else {
+                    if ($fieldType == 'email') {
+                        $formAttr[] = "$spaces// 'pattern'     => '/^user[a-z0-9._%+-]*@/',";
+                    } else {
+                        $formAttr[] = "$spaces// 'pattern'     => '/^[a-z0-9]/',";
+                    }
+                }
+            }
+
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if ((isset($config['style']))) {
+                    $formAttr[] = "$spaces'style'       => {$config['style']},";
+                } else {
+                    $formAttr[] = "$spaces// 'style'       => 'background:yellow;',";
+                }
+            }
+
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if (in_array('text', ['text'])) {
+                    if (isset($config['data-char-counter']) && $config['data-char-counter']) {
+                        $val = $this->formatBool($config['data-char-counter']);
+                        $formAttr[] = $spaces . "'data-char-counter'    => " . $val . ",";
+                    } else {
+                        $formAttr[] = "$spaces// 'data-char-counter'    => false,";
+                    }
+                }
+            }
+
+            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+                if (isset($config['data-live-validation']) && $config['data-live-validation']) {
+                    $formAttr[] =
+                    "$spaces'data-live-validation' => {$this->formatBool($config['data-live-validation'])},";
+                } else {
+                    $formAttr[] = "$spaces// 'data-live-validation' => false,";
+                }
             }
 
 
-            if (in_array($fieldType, ['telephone'])) {
-                if ((isset($config['data-mask']))) {
-                    $formAttr[] = "$spaces'data-mask' => {$config['data-mask']},";
-                } else {
-                    $formAttr[] = "$spaces// 'data-mask' => 'data-mask',";
+            if (in_array($fieldType, ['text', 'textarea'])) {
+                if (in_array($fieldType, ['telephone'])) {
+                    if ((isset($config['data-mask']))) {
+                        $formAttr[] = "$spaces'data-mask' => {$config['data-mask']},";
+                    } else {
+                        $formAttr[] = "$spaces// 'data-mask' => 'data-mask',";
+                    }
                 }
             }
 
@@ -384,13 +413,14 @@ PHP;
             // } else {
             //     $formAttr[] = "$spaces// 'ttttt'    => false,";
             // }
-        }
+        //}
         $formAttr = implode("\n", $formAttr);
 
         return $formAttr;
     }
 
     protected function getCodeBlock(
+        array $config = null,
         string $fieldName,
         string $type,
         string $blockName,
@@ -404,90 +434,24 @@ PHP;
         $s16 = '                    ';
         $snn = '    ';
         switch ($type) {
-            // TEXT /////////////////////////////////////////////////////////
-            case 'text':
-                # code...
-                if ($blockName === 'list') {
-                    $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
-                    PHP;
-                } elseif ($blockName === 'form') {
-                    $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
-                    $s12'attributes' => [
-                    $formAttr
-                    $s12],
-                    PHP;
-                } elseif ($blockName === 'formatter') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12// 'max_length' => 5,
-                        $s12// 'truncate_suffix',                   // Defaults to ...
-                        $s12// 'truncate_suffix' => '...Read More',
-                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
-                        $s12// 'suffix'     => "Boo",               // Appends to end of text
-                        $s12// 'transform'  => 'lowercase',
-                        $s12// 'transform'  => 'uppercase',
-                        $s12// 'transform'  => 'capitalize',
-                        $s12// 'transform'  => 'title',
-                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                        $s12// 'transform'  => 'last2char_upper',
-                    $s12]
-                    PHP;
-                } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
-                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                        $s12// 'ignore_forbidden'  => true,  // Default is false
-                        $s12// 'ignore_allowed'    => false, // Default is true
-                        $s12//---
-                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
-                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
-                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
-                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
-                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
-                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
-                    $s12]
-                    PHP;
-                }
-                break;
-
-            // number /////////////////////////////////////////////////////////
             case 'number':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'type'       => '{$type}',
                     $s12'attributes' => [
                     $formAttr
                     $s12],
                     PHP;
                 } elseif ($blockName === 'formatter') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12// 'max_length' => 5,
-                        $s12// 'truncate_suffix',                   // Defaults to ...
-                        $s12// 'truncate_suffix' => '...Read More',
-                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
-                        $s12// 'suffix'     => "Boo",               // Appends to end of text
-                        $s12// 'transform'  => 'lowercase',
-                        $s12// 'transform'  => 'uppercase',
-                        $s12// 'transform'  => 'capitalize',
-                        $s12// 'transform'  => 'title',
-                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                        $s12// 'transform'  => 'last2char_upper',
-                    $s12]
-                    PHP;
+                    $textFormatterSample = $this->getTextFormatterSample();
+                    $block .= $textFormatterSample;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
                     $s08'{$type}' => [ // Default validator, can be refined based on db_type
@@ -496,13 +460,13 @@ PHP;
                         $s12// 'ignore_forbidden'  => true,  // Default is false
                         $s12// 'ignore_allowed'    => false, // Default is true
                         $s12//---
-                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
-                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
-                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
-                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
-                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
-                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
+                        $s12'required_message'  => '{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                        $s12'minlength_message' => '{$fieldName}.validation.minlength',
+                        $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
+                        $s12'pattern_message'   => '{$fieldName}.validation.pattern',
+                        $s12'allowed_message'   => '{$fieldName}.validation.allowed',
+                        $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
                     $s12]
                     PHP;
                 }
@@ -514,12 +478,12 @@ PHP;
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$this->entityName}.{$fieldName}.{$blockName}.label',
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'type'       => '{$type}',
                     $s12'attributes' => [
                     $formAttr
@@ -527,63 +491,117 @@ PHP;
                     PHP;
                 } elseif ($blockName === 'formatter') {
                     $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12// 'max_length' => 5,
-                        $s12// 'truncate_suffix',                   // Defaults to ...
-                        $s12// 'truncate_suffix' => '...Read More',
-                        $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
-                        $s12// 'suffix'     => "Boo",               // Appends to end of text
-                        $s12// 'transform'  => 'lowercase',
-                        $s12// 'transform'  => 'uppercase',
-                        $s12// 'transform'  => 'capitalize',
-                        $s12// 'transform'  => 'title',
-                        $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                        $s12// 'transform'  => 'last2char_upper',
-                    $s12],
-                    $s12'text' => [
-                        $s12 // 'mask'             => true, // Or false, or omit for default
-                    $s12]
+                    $s12'{$type}' => [
+                        $s12// 'mask'             => true, // Or false, or omit for default
+                    $s12],\n
                     PHP;
+                    $block .= $this->getTextFormatterSample();
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
-                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                        $s12// 'ignore_forbidden'  => true,  // Default is false
-                        $s12// 'ignore_allowed'    => false, // Default is true
-                        $s12//---
-                        $s12'required_message'  => '{$this->entityName}.{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$this->entityName}.{$fieldName}.validation.invalid',
-                        $s12'minlength_message' => '{$this->entityName}.{$fieldName}.validation.minlength',
-                        $s12'maxlength_message' => '{$this->entityName}.{$fieldName}.validation.maxlength',
-                        $s12'pattern_message'   => '{$this->entityName}.{$fieldName}.validation.pattern',
-                        $s12'allowed_message'   => '{$this->entityName}.{$fieldName}.validation.allowed',
-                        $s12'forbidden_message' => '{$this->entityName}.{$fieldName}.validation.forbidden',
-                    $s12],
-                    PHP;
+                    $block .= $this->getTextValidatorSample($fieldName, $type);
                 }
 
                 break;
-            // EMAIL /////////////////////////////////////////////////////////
+            // TEXT /////////////////////////////////////////////////////////
+            case 'text':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $block .= $this->getTextFormatterSample();
+                } elseif ($blockName === 'validator') {
+                    $block .= $this->getTextValidatorSample($fieldName, $type);
+                }
+                break;
+
+            // xxxxxx /////////////////////////////////////////////////////////
+            // select /////////////////////////////////////////////////////////
+            case 'select':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectOptions'],
+                    $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    $s12'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $s12'text' => [
+                        $s12'options_provider' => [
+                            $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
+                        $s12],
+                        $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = '';
+                }
+                break;
+
+            // xxxxxx /////////////////////////////////////////////////////////
+            // DATETIME-LOCAL /////////////////////////////////////////////////
+            case 'datetime-local':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $block = '';
+                } elseif ($blockName === 'validator') {
+                    $block = '';
+                }
+                break;
+
+            // xxxxxx /////////////////////////////////////////////////////////
+
             case 'email2':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
+                'label'      => '{$blockName}.{$fieldName}',
                 'sortable'   => false,
-    PHP;
+                PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
+                    'label'      => '{$blockName}.{$fieldName}',
                 'type'       => 'email',
                 'attributes'    => [
-    $formAttr
+                    $formAttr
                     // 'pattern'     => '/^user[a-z0-9._%+-]*@/',
-                ],
-    PHP;
+                    ],
+                PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
-        'allowed'           => ['ok.com', 'gmail.com'],   // Allowed domains
+                    'allowed'           => ['ok.com', 'gmail.com'],   // Allowed domains
                     'forbidden'         => ['fook.com'],              // Not allowed domains
                     // 'ignore_forbidden'  => true,  // Default is false
                     // 'ignore_allowed'    => false, // Default is true
@@ -595,14 +613,14 @@ PHP;
                     // 'pattern_message'   => "Custom: Email does not match the required pattern.",
                     // 'forbidden_message' => 'Custom: This domain is not allowed.',
                     // 'allowed_message'   => 'Custom: Please select a valid domain.',
-    PHP;
+                    PHP;
                 } elseif ($blockName === 'formatter') {
                     $block = <<<PHP
-        // 'mask' => true, // Or false, or omit for default
-                ],
-                'text' => [
+                    // 'mask' => true, // Or false, or omit for default
+                    ],
+                    'text' => [
                     'transform' => 'lowercase',
-    PHP;
+                    PHP;
                 }
                 break;
             // TEL /////////////////////////////////////////////////////////
@@ -676,9 +694,53 @@ PHP;
     }
 
 
+    private function getTextFormatterSample(): string
+    {
+        $s04 = '    ';
+        $s08 = '        ';
+        $s12 = '            ';
+        $block = <<<PHP
+        $s12'text' => [
+            $s12// 'xxxxxxmax_length' => 5,
+            $s12// 'truncate_suffix' => '...',          // Defaults to ...
+            $s12// 'null_value' => 'Nothing here',      // Replaces null value with string
+            $s12// 'suffix'     => "Boo",               // Appends to end of text
+            $s12// 'transform'  => 'lowercase',
+            $s12// 'transform'  => 'uppercase',
+            $s12// 'transform'  => 'capitalize',
+            $s12// 'transform'  => 'title',
+            $s12// 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+            $s12// 'transform'  => 'last2char_upper',
+        $s12],
+        PHP;
+        return $block;
+    }
 
 
 
+    private function getTextValidatorSample($fieldName, $type): string
+    {
+        $s04 = '    ';
+        $s08 = '        ';
+        $s12 = '            ';
+        $block = <<<PHP
+        $s08'{$type}' => [ // Default validator, can be refined based on db_type
+            $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
+            $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
+            $s12// 'ignore_forbidden'  => true,  // Default is false
+            $s12// 'ignore_allowed'    => false, // Default is true
+            $s12//---
+            $s12'required_message'  => '{$fieldName}.validation.required',
+            $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+            $s12'minlength_message' => '{$fieldName}.validation.minlength',
+            $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
+            $s12'pattern_message'   => '{$fieldName}.validation.pattern',
+            $s12'allowed_message'   => '{$fieldName}.validation.allowed',
+            $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
+        $s12],
+        PHP;
+        return $block;
+    }
 
 
 
@@ -694,6 +756,15 @@ PHP;
     {
         $dbType = $config['db_type'] ?? 'string';
         $length = $config['length'] ?? 0;
+
+        if (isset($config['codes']) && is_array($config['codes'])) {
+            if (isset($config['form_input_type'])) {
+                return $config['form_input_type'];
+            } else {
+                return 'select';
+            }
+        }
+
 
         return match ($dbType) {
             'bigIncrements', 'bigInteger', 'integer', 'foreignId' => 'number',

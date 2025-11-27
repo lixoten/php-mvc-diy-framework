@@ -1,8 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251120_161617cccc
- *
+ * Generated File - Date: 20251127_122004
  * Language File for testy_main.
  *
  * This file provides localized strings for the application, specifically for a given entity.
@@ -20,19 +19,7 @@
 declare(strict_types=1);
 
 return [
-    'actions' => 'Testy Actions',
-    'button'  => [
-        'delete' => 'Testy Deletettt',
-        'edit'   => 'Testy Edit',
-        'add'    => 'Testy Add',
-        'create' => 'Testy CREAdd',
-        'view'   => 'Testy View',
-        'save'   => 'Testy Save',
-        'cancel' => 'Testy Cancel',
-    ],
-    'form' => [
-        'heading' => 'Edit Recordttttttt',
-    ],
+
     'id' => [
         'list' => [
             'label'       => 'xID',
@@ -40,23 +27,44 @@ return [
     ],
     'generic_text' => [
         'list' => [
-            'label'       => 'xGeneric textxxx',
+            'label'       => 'xGeneric text',
         ],
         'form' => [
             'label'       => 'xGeneric text',
             'placeholder' => 'Enter xGeneric text',
         ],
         'formatters' => [
-
+    
         ],
         'validation' => [
                     'required'  => 'Testy xGeneric text is required.',
-                'invalid'   => 'Testy xGeneric text must be at least %d characters.',
-                'minlength' => 'Testy xGeneric text must not exceed %d characters.',
-                'maxlength' => 'Invalid Testy xGeneric text.',
+                'invalid'   => 'Invalid Testy xGeneric text.',
+                'minlength' => 'Testy xGeneric text must be at least %d characters.',
+                'maxlength' => 'Testy xGeneric text must not exceed %d characters.',
                 'pattern'   => 'Testy xGeneric text does not match the required pattern.',
                 'allowed'   => 'Please select a valid Testy xGeneric text.',
                 'forbidden' => 'This Testy xGeneric text is not allowed.',
+        ],
+    ],
+    'gender_id' => [
+        'list' => [
+            'label'       => 'xGender',
+        ],
+        'form' => [
+            'label'       => 'xGender',
+            'default_choice' => 'Please select your Testy xGender.',
+        ],
+        'formatters' => [
+    
+        ],
+        'validation' => [
+                    'required'  => 'Testy xGender is required.',
+                'invalid'   => 'Invalid Testy xGender.',
+                'minlength' => 'Testy xGender must be at least %d characters.',
+                'maxlength' => 'Testy xGender must not exceed %d characters.',
+                'pattern'   => 'Testy xGender does not match the required pattern.',
+                'allowed'   => 'Please select a valid Testy xGender.',
+                'forbidden' => 'This Testy xGender is not allowed.',
         ],
     ],
     'primary_email' => [
@@ -68,13 +76,13 @@ return [
             'placeholder' => 'lixoten@gmail.com',
         ],
         'formatters' => [
-
+    
         ],
         'validation' => [
-                    'required'   => 'Testy xPrimary email is required.',
-                'invalid'   => 'Testy xPrimary email must be at least %d characters.',
-                'minlength' => 'Testy xPrimary email must not exceed %d characters.',
-                'maxlength' => 'Invalid Testy xPrimary email.',
+                    'required'  => 'Testy xPrimary email is required.',
+                'invalid'   => 'Invalid Testy xPrimary email.',
+                'minlength' => 'Testy xPrimary email must be at least %d characters.',
+                'maxlength' => 'Testy xPrimary email must not exceed %d characters.',
                 'pattern'   => 'Testy xPrimary email does not match the required pattern.',
                 'allowed'   => 'Please select a valid Testy xPrimary email.',
                 'forbidden' => 'This Testy xPrimary email is not allowed.',

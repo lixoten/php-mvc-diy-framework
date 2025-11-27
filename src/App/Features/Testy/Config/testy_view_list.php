@@ -41,12 +41,14 @@ return [
     'list_fields' => [
         'id',
         // 'title',
-        // 'status',
         // 'is_verified',
         'generic_text',
+        'gender_id',
+        // 'status',
+        // 'super_powers',
         // 'telephone',
         'primary_email',
-        'primary_emailccc',
+        // 'primary_emailccc',
         // ------
         // 'store_id',
         // 'user_id',

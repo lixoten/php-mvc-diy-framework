@@ -8,6 +8,7 @@ use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -25,9 +26,15 @@ class VanillaListRenderer extends AbstractListRenderer
     public function __construct(
         ThemeServiceInterface $themeService,
         FormatterService $formatterService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ContainerInterface $container
     ) {
-        parent::__construct($themeService, $formatterService, $logger);
+        parent::__construct(
+            $themeService,
+            $formatterService,
+            $logger,
+            $container
+        );
 
         // Vanilla CSS-specific default options
         $this->defaultOptions = array_merge($this->defaultOptions, [

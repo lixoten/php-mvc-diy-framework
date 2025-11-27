@@ -11,6 +11,7 @@ use Core\Security\Captcha\CaptchaServiceInterface;
 use Core\Services\FieldRegistryService;
 use Core\Interfaces\ConfigInterface;
 use Core\Services\FormConfigurationService;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -30,6 +31,7 @@ class ZzzzFormType extends AbstractFormType
         protected FormConfigurationService $formConfigService,
         protected LoggerInterface $logger,
         protected CaptchaServiceInterface $captchaService,
+        protected ContainerInterface $container // ✅ ADD THIS NEW DEPENDENCY
     ) {
         parent::__construct(
             fieldRegistryService: $fieldRegistryService,
@@ -37,6 +39,7 @@ class ZzzzFormType extends AbstractFormType
             formConfigService: $formConfigService,
             logger: $logger,
             captchaService: $captchaService,
+            container: $this->container // ✅ PASS THE NEW DEPENDENCY TO PARENT
         );
     }
 }

@@ -8,6 +8,7 @@ use Core\Services\FieldRegistryService;
 use Core\Interfaces\ConfigInterface;
 use Core\Security\Captcha\CaptchaServiceInterface;
 use Core\Services\FormConfigurationService;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -42,6 +43,7 @@ abstract class AbstractFormType implements FormTypeInterface
         protected FormConfigurationService $formConfigService,
         protected LoggerInterface $logger,
         protected CaptchaServiceInterface $captchaService,
+        protected ContainerInterface $container // ✅ ADD THIS LINE
     ) {
         // No manual property assignments - handled by 'protected' promotion
     }
@@ -174,6 +176,42 @@ abstract class AbstractFormType implements FormTypeInterface
                 $options = $columnDef['form'];
                 $options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
+
+
+                if (isset($options['type']) && $options['type'] === 'select' && isset($options['options_provider'])) {
+                    [$serviceClass, $methodName] = $options['options_provider'];
+                    $params = $options['options_provider_params'] ?? [];
+                    // ❌ REMOVE: $currentValue is not part of getSelectOptions signature
+                    // $currentValue = $options['value'] ?? null; // Pass current value if available (for pre-selection)
+
+                    try {
+                        // Get service from container
+                        $service = $this->container->get($serviceClass);
+
+                        // Call provider method with parameters from config and potentially the current pageName
+                        // ✅ CHANGE: Pass only the parameters from $params.
+                        //    If getSelectOptions needs $pageName, it should be included in $options_provider_params.
+                        $resolvedOptions = $service->$methodName(...array_values($params));
+
+                        // Store the resolved options in the 'options' key for the renderer
+                        $options['options'] = $resolvedOptions;
+
+                        // Clean up provider keys (no longer needed by the renderer)
+                        unset($options['options_provider'], $options['options_provider_params']);
+
+                    } catch (\Throwable $e) {
+                        $this->logger->error(sprintf(
+                            'Error resolving options_provider for field "%s" (%s::%s): %s',
+                            $fieldName,
+                            $serviceClass,
+                            $methodName,
+                            $e->getMessage()
+                        ));
+                        // Fail gracefully: ensure 'options' key is an empty array if provider fails
+                        $options['options'] = [];
+                    }
+                }
+
 
                 if (isset($options['region'])) {
                     // Formatter

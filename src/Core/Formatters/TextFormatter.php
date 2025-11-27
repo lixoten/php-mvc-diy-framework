@@ -23,15 +23,20 @@ class TextFormatter extends AbstractFormatter
     {
         $options = $this->mergeOptions($options);
 
-        if ($value === null) {
-            return $options['null_value'] ?? '';
+        // ✅ NEW: Check if a 'label' is provided (from options_provider like CodeLookupService)
+        if (isset($options['label'])) {
+            $text = (string) $options['label'];
         }
-
-        $text = (string) $value;
-
-        // Apply truncation if specified
-        if (isset($options['max_length']) && strlen($text) > $options['max_length']) {
-            $text = substr($text, 0, $options['max_length']) . ($options['truncate_suffix'] ?? '...');
+        // ✅ NEW: Check if translation_prefix is provided (simple pattern: 'gender.f')
+        elseif (isset($options['translation_prefix']) && isset($options['translator'])) {
+            $translationKey = $options['translation_prefix'] . '.' . $value;
+            $text = $options['translator']->get($translationKey, pageName: $options['page_name'] ?? null);
+        }
+        // ✅ Fallback: Use raw value
+        elseif ($value === null) {
+            return $options['null_value'] ?? '';
+        } else {
+            $text = (string) $value;
         }
 
         // Apply text transformation
@@ -80,7 +85,11 @@ class TextFormatter extends AbstractFormatter
             'truncate_suffix' => '...',
             'null_value' => '',
             'transform'  => null,
-            'suffix'     => null
+            'suffix'     => null,
+            'label'      => null, // For CodeLookupService pattern
+            'translation_prefix' => null, // ✅ For simple translation pattern
+            'translator' => null, // ✅ Injected by renderer
+            'page_name' => null,  // ✅ For context-aware translation
         ];
     }
 }

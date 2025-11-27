@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251119_151200
+ * Generated File - Date: 20251127_122226
  * Field definitions for the testy_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
@@ -10,6 +10,10 @@
 
 declare(strict_types=1);
 
+// id
+// generic_text
+// gender_id
+// primary_email
 return [
     'id' => [
         'list' => [
@@ -38,9 +42,8 @@ return [
         ],
         'formatters' => [
             'text' => [
-                // 'max_length' => 5,
-                // 'truncate_suffix',                   // Defaults to ...
-                // 'truncate_suffix' => '...Read More',
+                // 'xxxxxxmax_length' => 5,
+                // 'truncate_suffix' => '...',          // Defaults to ...
                 // 'null_value' => 'Nothing here',      // Replaces null value with string
                 // 'suffix'     => "Boo",               // Appends to end of text
                 // 'transform'  => 'lowercase',
@@ -49,7 +52,7 @@ return [
                 // 'transform'  => 'title',
                 // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
                 // 'transform'  => 'last2char_upper',
-            ]
+            ],
         ],
         'validators' => [
             'text' => [ // Default validator, can be refined based on db_type
@@ -65,7 +68,34 @@ return [
                 'pattern_message'   => 'generic_text.validation.pattern',
                 'allowed_message'   => 'generic_text.validation.allowed',
                 'forbidden_message' => 'generic_text.validation.forbidden',
-            ]
+            ],
+        ],
+    ],
+    'gender_id' => [
+        'list' => [
+            'label'      => 'gender_id.list.label',
+            'sortable'   => false,
+        ],
+        'form' => [
+            'label'      => 'gender_id.form.label',
+            'type'       => 'select',
+            'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectOptions'],
+            'options_provider_params' => ['type' => 'gender'],
+            'default_choice' => 'gender_id.form.default_choice',
+            'attributes' => [
+                // 'required'    => false,
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+                'options_provider' => [
+                            \Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
+                ],
+                'options_provider_params' => ['type' => 'gender'],
+            ],
+        ],
+        'validators' => [
+    
         ],
     ],
     'primary_email' => [
@@ -89,9 +119,11 @@ return [
         ],
         'formatters' => [
             'email' => [
-                // 'max_length' => 5,
-                // 'truncate_suffix',                   // Defaults to ...
-                // 'truncate_suffix' => '...Read More',
+                // 'mask'             => true, // Or false, or omit for default
+            ],
+            'text' => [
+                // 'xxxxxxmax_length' => 5,
+                // 'truncate_suffix' => '...',          // Defaults to ...
                 // 'null_value' => 'Nothing here',      // Replaces null value with string
                 // 'suffix'     => "Boo",               // Appends to end of text
                 // 'transform'  => 'lowercase',
@@ -101,9 +133,6 @@ return [
                 // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
                 // 'transform'  => 'last2char_upper',
             ],
-            'text' => [
-                 // 'mask'             => true, // Or false, or omit for default
-            ]
         ],
         'validators' => [
             'email' => [ // Default validator, can be refined based on db_type

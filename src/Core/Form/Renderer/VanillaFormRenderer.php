@@ -123,13 +123,7 @@ class VanillaFormRenderer extends AbstractFormRenderer
         return $output;
     }
 
-    /**
-     * ✅ VANILLA-SPECIFIC: Render constraint hints with vanilla CSS HTML structure.
-     *
-     * @param FieldInterface $field
-     * @param array<int, array<string, string>> $hints
-     * @return string
-     */
+    /** {@inheritdoc} */
     protected function renderConstraintHintsHtml(FieldInterface $field, array $hints): string
     {
         $fieldName = $field->getName();

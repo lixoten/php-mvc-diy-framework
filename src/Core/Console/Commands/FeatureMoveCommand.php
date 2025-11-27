@@ -243,16 +243,16 @@ class FeatureMoveCommand extends Command
                 $destinationFilePath = rtrim($info['dest'], '/\\') . DIRECTORY_SEPARATOR . $finalFilename;
 
                 // Check if a file with the FINAL FILENAME already exists in the DESTINATION
-                if (file_exists($destinationFilePath)) {
-                    $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity);
-                    $this->ensureDirectoryExists($archiveDir, $io);
-                    $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR
-                                                       . $this->addTimestampToFilename(basename($destinationFilePath));
-                    rename($destinationFilePath, $archiveExistingPath);
-                    $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath)
-                                                                              . "</comment> to <comment>"
-                                                                              . basename($archiveDir) . "</comment>");
-                }
+                // if (file_exists($destinationFilePath)) {
+                //     $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity);
+                //     $this->ensureDirectoryExists($archiveDir, $io);
+                //     $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR
+                //                                        . $this->addTimestampToFilename(basename($destinationFilePath));
+                //     rename($destinationFilePath, $archiveExistingPath);
+                //     $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath)
+                //                                                               . "</comment> to <comment>"
+                //                                                               . basename($archiveDir) . "</comment>");
+                // }
 
                 // Ensure destination directory exists
                 $this->ensureDirectoryExists(dirname($destinationFilePath), $io);
@@ -264,6 +264,17 @@ class FeatureMoveCommand extends Command
                 $answer = $io->ask('Proceed? [y/N/s] (y = yes, N = no, s = skip all)', 'n');
 
                 if (strtolower($answer) === 'y') {
+                    if (file_exists($destinationFilePath)) {
+                        $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity);
+                        $this->ensureDirectoryExists($archiveDir, $io);
+                        $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR
+                                                           . $this->addTimestampToFilename(basename($destinationFilePath));
+                        rename($destinationFilePath, $archiveExistingPath);
+                        $io->text("Archived existing destination file: <comment>" . basename($destinationFilePath)
+                                                                                  . "</comment> to <comment>"
+                                                                                  . basename($archiveDir) . "</comment>");
+                    }
+
                     if (rename($sourceFile, $destinationFilePath)) {
                         $io->success("Moved: {$sourceFile} -> {$destinationFilePath}");
                         $movedCount++;

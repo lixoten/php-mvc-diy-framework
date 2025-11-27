@@ -8,6 +8,7 @@ use App\Helpers\DebugRt;
 use Core\List\ListInterface;
 use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -61,7 +62,9 @@ abstract class AbstractListRenderer implements ListRendererInterface
     public function __construct(
         protected ThemeServiceInterface $themeService,
         protected FormatterService $formatterService,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected ContainerInterface $container
+
     ) {
         // Todo Change it to use configService  (single source of truth)
         // Use $_ENV instead of getenv() (Dotenv populates $_ENV by default)
@@ -144,23 +147,44 @@ abstract class AbstractListRenderer implements ListRendererInterface
         if (is_array($formattersConfig)) {
             foreach ($formattersConfig as $formatterName => $formatterOptions) {
                 try {
-                    // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined.
-                    // This logic is generic for formatter configuration.
-                    if (isset($formatterOptions['options_provider'])) { // Check existence first
-                        $provider = $formatterOptions['options_provider'];
-                        if (is_callable($provider)) {
-                            // Call the provider (e.g., [TestyStatus::class, 'getFormatterOptions'])
-                            // passing the current field value and the full record.
-                            $resolvedOptions = call_user_func($provider, $value, $record);
-                            $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
-                        } else {
-                            $this->logger->warning(sprintf(
-                                'Formatter options_provider for column "%s", formatter "%s" is not callable.',
-                                $column,
-                                $formatterName
-                            ));
-                        }
+                    // // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined.
+                    // // This logic is generic for formatter configuration.
+                    // if (isset($formatterOptions['options_provider'])) { // Check existence first
+                    //     $provider = $formatterOptions['options_provider'];
+                    //     if (is_callable($provider)) {
+                    //         // Call the provider (e.g., [TestyStatus::class, 'getFormatterOptions'])
+                    //         // passing the current field value and the full record.
+                    //         $resolvedOptions = call_user_func($provider, $value, $record);
+                    //         $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
+                    //     } else {
+                    //         $this->logger->warning(sprintf(
+                    //             'Formatter options_provider for column "%s", formatter "%s" is not callable.',
+                    //             $column,
+                    //             $formatterName
+                    //         ));
+                    //     }
+                    // }
+
+
+                    // ✅ NEW: Resolve 'options_provider' if present
+                    if (isset($formatterOptions['options_provider'])) {
+                        [$serviceClass, $methodName] = $formatterOptions['options_provider'];
+                        $params = $formatterOptions['options_provider_params'] ?? [];
+
+                        // ✅ Get service from container (need to inject ContainerInterface)
+                        $service = $this->container->get($serviceClass);
+
+                        // ✅ Call provider method with type and value
+                        $resolvedOptions = $service->$methodName(...array_merge(array_values($params), [$value]));
+
+                        // ✅ Merge resolved options with any static options
+                        $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
+
+                        // ✅ Clean up provider keys (no longer needed)
+                        unset($formatterOptions['options_provider'], $formatterOptions['options_provider_params']);
                     }
+
+
 
                     // Apply each formatter in sequence with the resolved options
                     $value = $this->formatterService->format($formatterName, $value, $formatterOptions);

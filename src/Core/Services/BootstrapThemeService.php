@@ -31,6 +31,16 @@ class BootstrapThemeService implements ThemeServiceInterface
         'nav.item' => 'nav-item',
         'nav.link' => 'nav-link',
 
+        // specific form element classes
+        'form.input.control'   => 'form-control',       // For text, email, password, etc.
+        'form.input.select'    => 'form-select',        // For select dropdowns
+        'form.input.file'      => 'form-control',       // For file inputs
+        'form.check.input'     => 'form-check-input',   // For checkbox/radio inputs
+        'form.check.label'     => 'form-check-label',   // For checkbox/radio labels
+        'form.check.container' => 'form-check',         // For wrapping individual checks
+        'form.check.inline'    => 'form-check-inline',  // For inline checks
+
+
 
         'table' => 'table table-striped',
         'card' => 'card mb-4',

@@ -260,7 +260,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $html .= '<ul class="constraints-list list-unstyled">';
 
             foreach ($hints['always'] as $hint) {
-                $translatedText = $this->translator->get($hint['text'], pageName: $pageName);
+                $translatedText = $this->translator->get($hint['text'], $hint['replacements'], pageName: $pageName);
 
                 $html .= sprintf(
                     '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
@@ -281,7 +281,11 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $html .= '<ul class="constraints-list list-unstyled">';
 
             foreach ($hints['on_focus'] as $hint) {
-                $translatedText = $this->translator->get($hint['text'], pageName: $pageName);
+                $translatedText = $this->translator->get(
+                    $hint['text'],
+                    $hint['replacements'] ?? [],
+                    pageName: $pageName
+                );
                 $html .= sprintf(
                     '<li class="constraint-item %s"><span class="constraint-icon me-1">%s' .
                                                                   '</span><span class="constraint-text">%s</span></li>',
@@ -665,11 +669,21 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         }
 
 
-
+        // Add default Bootstrap classes if not specified
+        // ✅ Use ThemeService to get the base class for the input type
+        $baseClass = match ($type) {
+            'select'         => $this->themeService->getElementClass('form.input.select'),
+            'file'           => $this->themeService->getElementClass('form.input.file'),
+            // Checkbox and radio inputs have their specific classes applied directly in their switch cases
+            // so we don't apply a generic form-control here for them.
+            'checkbox', 'radio', 'checkbox_group', 'radio_group' => '', // Handled inside their cases
+            // Default for most text-based inputs, textarea, color, etc.
+            default          => $this->themeService->getElementClass('form.input.control'),
+        };
 
 
         // Add default Bootstrap classes if not specified
-        $class = 'form-control';
+        $class = $baseClass;
         if (isset($attributes['class'])) {
             $class .= ' ' . $attributes['class'];
         }
@@ -764,7 +778,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
             $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
             foreach ($errors as $error) {
-                $informedError = $this->getInformedValidationError($field, $error);
+                $informedError = $this->getInformedValidationError($pageName, $field, $error);
                 $errorHTML .= htmlspecialchars($informedError) . '<br>';
             }
             $errorHTML .= '</div>';
@@ -984,10 +998,11 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                     $ariaAttrs . $attrString . '>';
 
                 // $options = $field->getOptions()['options'] ?? [];
-                $choices = $field->getOptions()['choices'] ?? [];
+                $choices = $field->getOptions()['options'] ?? [];
                 $defaultChoice = $field->getOptions()['default_choice'] ?? null;
                 if ($defaultChoice) {
-                    $output .= '<option value="">' . htmlspecialchars($defaultChoice) . '</option>';
+                    $translatedDefaultChoice = $this->translator->get($defaultChoice, pageName: $pageName);
+                    $output .= '<option value="">' . htmlspecialchars($translatedDefaultChoice) . '</option>';
                 }
 
                 // foreach ($options as $optionValue => $optionLabel) {
@@ -997,8 +1012,9 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 // }
                 foreach ($choices as $choiceValue => $optionLabel) {
                     $selected = ($field->getValue() == $choiceValue) ? ' selected' : '';
+                    $translatedOptionLabel = $this->translator->get($optionLabel, pageName: $pageName);
                     $output .= '<option value="' . htmlspecialchars((string)$choiceValue) . '"' . $selected . '>';
-                    $output .= htmlspecialchars($optionLabel) . '</option>';
+                    $output .= htmlspecialchars($translatedOptionLabel) . '</option>';
                 }
 
                 $output .= '</select>';
@@ -1220,12 +1236,13 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 if (!empty($fieldErrors)) {
                     $fieldLabel = $field->getLabel();
                     foreach ($fieldErrors as $error) {
+                        $informedError = $this->getInformedValidationError($form->getPageName(), $field, $error);
+
                         $allErrors[] = '<li><strong>' . htmlspecialchars($fieldLabel) . ':</strong> ' .
-                                    htmlspecialchars($error) . '</li>';
+                                    htmlspecialchars($informedError) . '</li>';
                     }
                 }
             }
-
             // Add form-level errors
             $formErrors = $form->getErrors('_form');
             foreach ($formErrors as $error) {

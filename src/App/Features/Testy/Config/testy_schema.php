@@ -58,7 +58,8 @@ return [
             // 'length'    => 1,
             // 'nullable'  => false,
             'default'   => 'A',
-            'comment'   => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
+            'comment'   => 'Status',
+            'comment2'  => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
             'check'     => "status IN ('J', 'P','A','S','B','D')", // Using CHECK constraint as per instructions
             // 'comment'   => 'P=Pending, A=Active, I=Inactive',
         ],
@@ -174,6 +175,15 @@ return [
             'comment'   => "Gender",
             'comment2'  => "Gender: m=Male, f=Female, o=Other, nb=Non-binary",
             'check'     => "gender_id IN ('m','f','o','nb')",
+            'lookup'    => 'gender',
+            'codes'     => [
+                'm'  => 'Male',
+                'f'  => 'Female',
+                'o'  => 'Other',
+                'nb' => 'Non-binary',
+            ],
+            'form_input_type' => 'select',
+            'form_layout'     => 'vertical',
         ],
         'gender_other'  => [
             'db_type'   => 'string',

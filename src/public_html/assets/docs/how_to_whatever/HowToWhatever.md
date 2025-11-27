@@ -216,7 +216,20 @@ Understanding Settings.json
         - if you use 'one' make sure to run the rest individually too
 
 
-8. Lets create migration files... ex: `20251`
+8. Generate Language Files
+    - `php bin/console.php make:lang-file Testy`
+        - This will generate `testy_lang.php` file in `src/Generated/Testy` directory. you still have to move it later.
+    - `php bin/console.php make:lang-file Testy common` // fixme this is a problem - wrong location, what happen when we run user coomon?
+        - This will generate `common_lang.php` file in `src/Generated/Testy` directory. you still have to move it later.
+
+8. Generate Config Fields Files
+    - `php bin/console.php make:config-fields Testy root`
+        - - this will generate a list of fields for the root.
+        - - D:\xampp\htdocs\my_projects\mvclixo/src/Generated/Testy/testy_fields_root.php
+
+
+
+9. Lets create migration files... ex: `20251`
     - Run all:
         - `php`
     - outputs to:

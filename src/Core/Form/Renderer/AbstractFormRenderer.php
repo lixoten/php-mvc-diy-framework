@@ -204,12 +204,25 @@ abstract class AbstractFormRenderer implements FormRendererInterface
     ): string;
 
     /**
-     * ✅ ABSTRACT METHOD: Child renderers implement framework-specific HTML structure.
+     * {@inheritdoc}
      *
-     * @param string $pageName The current page name for translation context
-     * @param FieldInterface $field The field being rendered
-     * @param array<int, array<string, string>> $hints Array of hint data (icon, text, class)
-     * @return string Framework-specific HTML for constraint hints
+     * @param string $pageName The current page/form context name for translation.
+     * @param FieldInterface $field The field for which to render the hints.
+     * @param array{
+     *     always: array<int, array{
+     *         icon: string,
+     *         text: string,
+     *         replacements: array<string, string|int|float|bool|null>,
+     *         class: string
+     *     }>,
+     *     on_focus: array<int, array{
+     *         icon: string,
+     *         text: string,
+     *         replacements: array<string, string|int|float|bool|null>,
+     *         class: string
+     *     }>
+     * } $hints Categorized hints ['always' => [...], 'on_focus' => [...]]
+     * @return string The HTML string for the constraint hints.
      */
     abstract protected function renderConstraintHintsHtml(
         string $pageName,
@@ -257,6 +270,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $alwaysVisible[] = [
                 'icon' => '●',
                 'text' => 'form.hints.required',
+                'replacements' => [],
                 'class' => 'constraint-required'
             ];
         }
@@ -265,10 +279,8 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (!empty($attrs['minlength'])) {
             $onFocus[] = [
                 'icon' => '↓',
-                'text' => sprintf(
-                    'form.hints.minlength',
-                    $attrs['minlength']
-                ),
+                'text' => 'form.hints.minlength',
+                'replacements' => ['minlength' => $attrs['minlength']],
                 'class' => 'constraint-minlength'
             ];
         }
@@ -276,10 +288,8 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (!empty($attrs['maxlength'])) {
             $onFocus[] = [
                 'icon' => '↑',
-                'text' => sprintf(
-                    'form.hints.maxlength',
-                    $attrs['maxlength']
-                ),
+                'text' => 'form.hints.maxlength',
+                'replacements' => ['maxlength' => $attrs['maxlength']],
                 'class' => 'constraint-maxlength'
             ];
         }
@@ -289,20 +299,16 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
                     'icon' => '≥',
-                    'text' => sprintf(
-                        'form.hints.min',
-                        $attrs['min']
-                    ),
+                    'text' => 'form.hints.min',
+                    'replacements' => ['min' => $attrs['min']],
                     'class' => 'constraint-min'
                 ];
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
                     'icon' => '≤',
-                    'text' => sprintf(
-                        'form.hints.max',
-                        $attrs['max']
-                    ),
+                    'text' => 'form.hints.max',
+                    'replacements' => ['max' => $attrs['max']],
                     'class' => 'constraint-max'
                 ];
             }
@@ -313,20 +319,16 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
                     'icon' => '📅',
-                    'text' => sprintf(
-                        'form.hints.date_min',
-                        $attrs['min']
-                    ),
+                    'text' => 'form.hints.date_min',
+                    'replacements' => ['date_min' => $attrs['min']],
                     'class' => 'constraint-date-min'
                 ];
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
                     'icon' => '📅',
-                    'text' => sprintf(
-                        'form.hints.date_max',
-                        $attrs['max']
-                    ),
+                    'text' => 'form.hints.date_max',
+                    'replacements' => ['date_max' => $attrs['max']],
                     'class' => 'constraint-date-max'
                 ];
             }
@@ -339,6 +341,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '⚙',
                 'text' => $patternMsg,
+                'replacements' => [],
                 'class' => 'constraint-pattern'
             ];
         }
@@ -348,6 +351,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '@',
                 'text' => 'form.hints.email',
+                'replacements' => [],
                 'class' => 'constraint-email'
             ];
         }
@@ -356,6 +360,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '☎',
                 'text' => 'form.hints.tel',
+                'replacements' => [],
                 'class' => 'constraint-tel'
             ];
         }
@@ -364,6 +369,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $onFocus[] = [
                 'icon' => '🔗',
                 'text' => 'form.hints.url',
+                'replacements' => [],
                 'class' => 'constraint-url'
             ];
         }
@@ -382,9 +388,8 @@ abstract class AbstractFormRenderer implements FormRendererInterface
     /*
      * Need phpdoc // todo
      */
-    protected function getInformedValidationError(FieldInterface $field, string $error): ?string
+    protected function getInformedValidationError(string $pageName, FieldInterface $field, string $error): ?string
     {
-        $pageKey = 'sssssssssssssssssssssssssss';
         $parts     = explode('.', $error);
         $validationFlag = array_slice($parts, -2, 1)[0];
 
@@ -397,7 +402,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         $errorAttr  = [$errorType => $attrs[$errorType] ?? []];
         //$errorAttr  = [$errorType => $attrs["foo"] ?? null];
         // $errorAttr  = [];
-        $translation = $this->translator->get($error, $errorAttr, $pageKey);
+        $translation = $this->translator->get($error, $errorAttr, $pageName);
 
         if (!array_key_exists($errorType, $attrs)) {
             // Log a warning for missing attribute, but do not mask the bug

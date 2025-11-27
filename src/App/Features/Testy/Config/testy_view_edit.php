@@ -28,9 +28,9 @@ return [
         // 'force_captcha'        => false,
         // 'security_level'       => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
         // 'layout_type'           => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
-        'layout_type'           => 'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
+        'layout_type'           =>  'sequential', //'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
         // 'error_display'        => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-        'error_display'         => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
+        'error_display'         => 'inline', //'inline', //'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
         'css_form_theme_class'  => '', // "form-theme-christmas",
@@ -56,8 +56,10 @@ return [
            'fields'    => [
                 // 'id',
                 // 'title',
-                'status',
                 'generic_text',
+                'gender_id',
+                // 'status',
+                // 'super_powers',
                 // 'telephone',
                 // 'primary_email',
             ],
@@ -71,7 +73,7 @@ return [
                 // 'status',
                 // 'generic_text',
                 // 'telephone',
-                'primary_email',
+                // 'primary_email',
                 // 'super_powers',
                 // ------
                 // 'store_id',

@@ -124,8 +124,49 @@ class LangFileGenerator
         $fieldDefinitions = [];
 
         $xArray = [
+            'form' => [
+                'hints' => [
+                    'required'      => 'Required field',
+                    'minlength'     => 'At least %d characters',
+                    'maxlength'     => 'Maximum %d characters',
+                    'min'           => 'Minimum value: %s',
+                    'max'           => 'Maximum value: %s',
+                    'date_min'      => 'Not before: %s',
+                    'date_max'      => 'Not after: %s',
+                    'pattern'       => 'Must match required format',
+                    'email'         => 'Must be a valid email address',
+                    'tel'           => 'Enter with country code (e.g., +1234567890)',
+                    'url'           => 'Must start with http:// or https://',
+                ],
+                'heading' => 'Edit Recordccccc',
+            ],
+            'menu'  => [
+                'home' => 'Home',
+                'test' => 'Test',
+                'about' => 'About',
+                'contact' => 'Contact',
+                'testy' => 'Testy',
+                'head' => [
+                    'core' => 'Core',
+                    'user' => 'User',
+                    'store' => 'Store',
+                    'admin' => 'Admin',
+                ],
+                'profile' => 'Profile',
+                // 'settings' => 'Settings',
+                'user_manage'     => 'Manage Users',
+                'admin_dashboard' => 'Admin Dashboard',
+                'store_dashboard' => 'Store Dashboard',
+                'store_profile'   => 'Store Profile',
+                'store_settings'  => 'Store Settings',
+                'user_dashboard' => 'User Dashboard',
+                'user_profile'   => 'User Profile',
+                'user_settings'  => 'User Settings',
+                'user_notes'  => 'User Notes',
+                'user_list'  => 'User List',
+            ],
             'actions' => 'Actions',
-            'button' => [
+            'button'  => [
                 'delete' => 'Delete',
                 'edit'   => 'Edit',
                 'add'    => 'Add',
@@ -133,40 +174,52 @@ class LangFileGenerator
                 'view'   => 'View',
                 'save'   => 'Save',
                 'cancel' => 'Cancel',
+                'view_table' => 'Table View',
+                'view_list'  => 'List View',
+                'view_grid'  => 'Grid View',
             ],
-
         ];
 
-        $fieldDefinitions2 = $this->formatLanguageArrayRecursive($xArray, 1); // Start at indent level 1
+        $fieldDefinitionsString2 = '';
+        if ($this->configType !== 'main') {
+            $fieldDefinitions2 = $this->formatLanguageArrayRecursive($xArray, 1); // Start at indent level 1
 
-        $fieldDefinitionsString2 = implode("\n", $fieldDefinitions2);
+            $fieldDefinitionsString2 = implode("\n", $fieldDefinitions2);
+        }
 
         foreach ($this->fields as $fieldName => $config) {
-            if (
-                !in_array(
-                    $fieldName,
-                    [
-                        // 'primary_email',
-                        // 'title',
-                        'id',
-                        'generic_text',
-                        'primary_email',
-                        // 'slug',
-                        // 'status',
-                        // 'super_powers',
-                        // 'primary_email', 'telephone', 'status', 'super_powers'
-                    ]
-                )
-            ) {
-                continue;
-            }
             if ($this->configType === 'main') {
                 if (
-                    in_array(
+                    !in_array(
                         $fieldName,
                         [
-                            'idXxx', 'store_id', 'user_id', 'name', 'content', 'description',
-                            'created_at', 'updated_at', 'xxx', 'xxx', 'xxx', 'xxx'
+                            'id',
+                            'gender_id',
+                            'generic_text',
+                            'primary_email',
+                        ]
+                    )
+                ) {
+                    continue;
+                }
+                //$rrr = 1;
+            } else {
+                if (
+                    !in_array(
+                        $fieldName,
+                        [
+                            // 'idXxx', 'store_id', 'user_id', 'name', 'content', 'description',
+                            // 'created_at', 'updated_at', 'xxx', 'xxx', 'xxx', 'xxx'
+                            // 'primary_email',
+                            // 'title',
+                            'id',
+                            'generic_text',
+                            'gender_id',
+                            'primary_email',
+                            // 'slug',
+                            'status',
+                            'super_powers',
+                            // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )
                 ) {
@@ -338,16 +391,41 @@ PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
                         $s12'required'  => '{$focusName}{$wordSentence} is required.',
-                        $s12'invalid'   => '{$focusName}{$wordSentence} must be at least %d characters.',
-                        $s12'minlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
-                        $s12'maxlength' => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
+                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
                         $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
                         $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
                         $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
                     PHP;
                 }
                 break;
-            // EMAIL /////////////////////////////////////////////////////////
+
+            // select /////////////////////////////////////////////////////////
+            case 'select':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                        $s12'required'  => '{$focusName}{$wordSentence} is required.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
+                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
+                        $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
+                        $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
+                        $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
+                    PHP;
+                }
+                break;
+
+                // EMAIL /////////////////////////////////////////////////////////
             case 'email':
                 if ($blockName === 'list') {
                     $block = <<<PHP
@@ -360,10 +438,10 @@ PHP;
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
-                        $s12'required'   => '{$focusName}{$wordSentence} is required.',
-                        $s12'invalid'   => '{$focusName}{$wordSentence} must be at least %d characters.',
-                        $s12'minlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
-                        $s12'maxlength' => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'required'  => '{$focusName}{$wordSentence} is required.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
+                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
                         $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
                         $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
                         $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
@@ -415,6 +493,15 @@ PHP;
     {
         $dbType = $config['db_type'] ?? 'string';
         $length = $config['length'] ?? 0;
+
+        if (isset($config['codes']) && is_array($config['codes'])) {
+            if (isset($config['form_input_type'])) {
+                return $config['form_input_type'];
+            } else {
+                return 'select';
+            }
+        }
+
 
         return match ($dbType) {
             'bigIncrements', 'bigInteger', 'integer', 'foreignId' => 'number',

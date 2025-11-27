@@ -11,6 +11,7 @@ use Core\Services\ThemeServiceInterface;
 use Core\I18n\I18nTranslator;
 use App\Enums\Url;
 use Core\Services\FormatterService;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -25,9 +26,15 @@ class BootstrapListRenderer extends AbstractListRenderer
         protected ThemeServiceInterface $themeService,
         private I18nTranslator $translator,
         protected FormatterService $formatterService,
-        protected LoggerInterface $logger
+        protected LoggerInterface $logger,
+        protected ContainerInterface $container
     ) {
-        parent::__construct($themeService, $formatterService, $logger);
+        parent::__construct(
+            $themeService,
+            $formatterService,
+            $logger,
+            $container
+        );
         $this->defaultOptions['view_type'] = self::VIEW_TABLE; // Fik - Override List View Default - GRID TABLE LIST
     }
 

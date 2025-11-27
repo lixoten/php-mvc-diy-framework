@@ -494,6 +494,31 @@ return [
     },
 
 
+    //-----------------------------------------------------------------
+    // SECTION: CodeLookupService - Centralized Code-to-Label Mappings
+    //-----------------------------------------------------------------
+
+    /**
+     * CodeLookupService - Single generic service for all code lookups
+     * (gender, payment_type, status, etc.)
+     *
+     * Dependencies:
+     * - ConfigInterface: Loads src/Config/app_lookups.php
+     * - TranslatorInterface: Translates label keys to localized strings
+     *
+     * @see src/Config/app_lookups.php for centralized code definitions
+     * @see src/Core/Services/CodeLookupService.php for implementation
+     */
+    \Core\Interfaces\CodeLookupServiceInterface::class => \DI\autowire(\Core\Services\CodeLookupService::class)
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class)),
+        // ->constructorParameter('translator', \DI\get(\Core\I18n\TranslatorInterface::class)),
+
+    // Convenience alias for easier access
+    'codeLookup' => \DI\get(\Core\Interfaces\CodeLookupServiceInterface::class),
+
+    //-----------------------------------------------------------------
+    // END SECTION: CodeLookupService
+    //-----------------------------------------------------------------
 
 
 
@@ -508,6 +533,10 @@ return [
             '_'
         );
     },
+
+    // ✅ NEW: Bind the interface to the concrete implementation
+    \Core\I18n\TranslatorInterface::class => \DI\get('Core\I18n\I18nTranslator'),
+
     // 'Core\I18n\I18nTranslator' => function (ContainerInterface $c) {
     //     // ✅ Load translations from files
     //     $labels = [];
@@ -1968,35 +1997,41 @@ return [
 
 
 
-    // List Renderers - Keep this as it's used by the ListRendererRegistry
-    'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\List\Renderer\BootstrapListRenderer(
-            $c->get('Core\Services\ThemeServiceInterface'),
-            $c->get('Core\I18n\I18nTranslator'),
-            $c->get('Core\Services\FormatterService'),
-            $c->get(LoggerInterface::class)
-        );
-    }),
+    // // List Renderers - Keep this as it's used by the ListRendererRegistry
+    // 'list.renderer.bootstrap' => \DI\factory(function (ContainerInterface $c) {
+    //     return new \Core\List\Renderer\BootstrapListRenderer(
+    //         $c->get('Core\Services\ThemeServiceInterface'),
+    //         $c->get('Core\I18n\I18nTranslator'),
+    //         $c->get('Core\Services\FormatterService'),
+    //         $c->get(LoggerInterface::class)
+    //     );
+    // }),
 
-    // Material Design renderer
-    'list.renderer.material' => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\List\Renderer\MaterialListRenderer(
-            $c->get(\Core\Services\ThemeServiceInterface::class),
-            // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
-            $c->get(\Core\Services\FormatterService::class),
-            $c->get(\Psr\Log\LoggerInterface::class)
-        );
-    }),
+    // ✅ CLEAN: Full autowiring (no manual parameter injection needed)
+    'list.renderer.bootstrap' => \DI\autowire(\Core\List\Renderer\BootstrapListRenderer::class),
+    'list.renderer.material'  => \DI\autowire(\Core\List\Renderer\MaterialListRenderer::class),
+    'list.renderer.vanilla'   => \DI\autowire(\Core\List\Renderer\VanillaListRenderer::class),
 
-    // Vanilla List Renderer
-    'list.renderer.vanilla' => \DI\factory(function (ContainerInterface $c) {
-        return new \Core\List\Renderer\VanillaListRenderer(
-            $c->get(\Core\Services\ThemeServiceInterface::class),
-            // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
-            $c->get(\Core\Services\FormatterService::class),
-            $c->get(\Psr\Log\LoggerInterface::class)
-        );
-    }),
+
+    // // Material Design renderer
+    // 'list.renderer.material' => \DI\factory(function (ContainerInterface $c) {
+    //     return new \Core\List\Renderer\MaterialListRenderer(
+    //         $c->get(\Core\Services\ThemeServiceInterface::class),
+    //         // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
+    //         $c->get(\Core\Services\FormatterService::class),
+    //         $c->get(\Psr\Log\LoggerInterface::class)
+    //     );
+    // }),
+
+    // // Vanilla List Renderer
+    // 'list.renderer.vanilla' => \DI\factory(function (ContainerInterface $c) {
+    //     return new \Core\List\Renderer\VanillaListRenderer(
+    //         $c->get(\Core\Services\ThemeServiceInterface::class),
+    //         // $c->get('Core\I18n\I18nTranslator'), // fixme we need to test with label-provider
+    //         $c->get(\Core\Services\FormatterService::class),
+    //         $c->get(\Psr\Log\LoggerInterface::class)
+    //     );
+    // }),
 
 
 

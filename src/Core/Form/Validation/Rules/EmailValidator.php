@@ -41,6 +41,7 @@ class EmailValidator extends AbstractValidator
         if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
             $options['message'] ??= $options['invalid_message'] ?? null;
 
+            //return $this->getErrorMessage($options, 'Please enter a valid email address.');
             return $this->getErrorMessage($options, 'Please enter a valid email address.');
         }
 
