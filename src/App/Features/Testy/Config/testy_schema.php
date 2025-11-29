@@ -174,15 +174,17 @@ return [
             'nullable'  => true,
             'comment'   => "Gender",
             'comment2'  => "Gender: m=Male, f=Female, o=Other, nb=Non-binary",
-            'check'     => "gender_id IN ('m','f','o','nb')",
+            'required'  => true,
+            'check'     => "gender_id IN ('m','f','o','nb','pns')",
             'lookup'    => 'gender',
             'codes'     => [
                 'm'  => 'Male',
                 'f'  => 'Female',
                 'o'  => 'Other',
                 'nb' => 'Non-binary',
+                'pns' => 'Prefer not to say',
             ],
-            'form_input_type' => 'select',
+            'form_input_type' => 'radio_group', // 'select', 'radio_group'
             'form_layout'     => 'vertical',
         ],
         'gender_other'  => [

@@ -46,6 +46,7 @@ class Logger implements LoggerInterface
 
     private string $debugBuffer = '';
     private bool $collectDebugOutput = false;
+    private bool $appInDevelopment = false;
 
     /**
      * Constructor
@@ -69,6 +70,7 @@ class Logger implements LoggerInterface
         $this->debugMode = $debugMode;
         $this->samplingRate = max(0, min(1, $samplingRate));
         $this->collectDebugOutput = $collectDebugOutput;
+        $this->appInDevelopment = ($_ENV['APP_ENV'] ?? 'production') === 'development';
 
         // Ensure log directory exists
         if (!is_dir($this->logDirectory)) {
@@ -429,4 +431,41 @@ class Logger implements LoggerInterface
 
         return $output;
     }
+
+
+
+    /** {@inheritdoc} */
+    public function isAppInDevelopment(): bool
+    {
+        return $this->appInDevelopment;
+    }
+
+    /** {@inheritdoc} */
+    public function triggerDevFatalError(string $plainMessage, string $devError, array $context = []): void
+    {
+        if (!$this->isAppInDevelopment()) {
+            // This method should ideally not be called in production.
+            // If it is, log a standard error to avoid unintended fatal errors.
+            $this->error("Attempted to trigger dev fatal error in non-development environment: " . $plainMessage, $context);
+            return;
+        }
+
+        // You can integrate context into the message here if desired
+        $contextString = '';
+        if (!empty($context)) {
+            $contextString = "\nContext: " . json_encode($context, JSON_PRETTY_PRINT);
+        }
+
+        $fullErrorMessage = str_repeat('#', 89) . "<br />";
+        $fullErrorMessage .= '#### ---------- DEV MODE BUG - CATCH MY EYE ----------' . "<br />";
+        $fullErrorMessage .= str_repeat('#', 100) . "<br /><br />";
+        $fullErrorMessage .= "Dev Error #: \"{$devError}\" look it up" . "<br />";
+        $fullErrorMessage .= $plainMessage . $contextString . "<br /><br />";
+        $fullErrorMessage .= str_repeat('#', 100) . "<br /><br />";
+
+        trigger_error($fullErrorMessage, E_USER_ERROR);
+        // Execution stops here due to E_USER_ERROR
+    }
+
+
 }

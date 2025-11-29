@@ -78,10 +78,11 @@ return [
         ],
         'form' => [
             'label'      => 'gender_id.form.label',
-            'type'       => 'select',
-            'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectOptions'],
+            'type'       => 'radio_group', //  'radio_group',  'select',
+            'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'gender'],
-            'default_choice' => 'gender_id.form.default_choice',
+            // 'default_choice' => 'gender_id.form.default_choice',
+            // 'inline' => true, // render buttons inline / side by side. Default = true.
             'attributes' => [
                 // 'required'    => false,
             ],
@@ -95,7 +96,10 @@ return [
             ],
         ],
         'validators' => [
-    
+            'radio_group' => [
+                'required_message'  => 'gender_id.validation.required',
+                'invalid_message'   => 'gender_id.validation.invalid',
+            ],
         ],
     ],
     'primary_email' => [

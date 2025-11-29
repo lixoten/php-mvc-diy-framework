@@ -128,7 +128,8 @@ abstract class AbstractValidator implements ValidatorInterface
     {
         if (gettype($value) !== $expectedType) {
             $options['message'] ??= $options['invalid_message'] ?? null;
-            return $this->getErrorMessage($options, "Invalid {$expectedType} format.");
+            return $this->getErrorMessage($options, "validation.invalid");
+            // return $this->getErrorMessage($options, "Invalid {$expectedType} format.");
         }
 
         return null;
@@ -151,7 +152,7 @@ abstract class AbstractValidator implements ValidatorInterface
                     $options['minlength_message']
                 );
             }
-            return $this->getErrorMessage($options, "Must be at least {$options['minlength']} characters.");
+            return $this->getErrorMessage($options, 'validation.minlength');
         }
         return null;
     }
@@ -172,7 +173,7 @@ abstract class AbstractValidator implements ValidatorInterface
                     $options['maxlength_message']
                 );
             }
-            return $this->getErrorMessage($options, "Must not exceed {$options['maxlength']} characters.");
+            return $this->getErrorMessage($options, 'validation.maxlength');
         }
         return null;
     }
@@ -189,7 +190,7 @@ abstract class AbstractValidator implements ValidatorInterface
     {
         if (!empty($options['pattern']) && !preg_match($options['pattern'], $value)) {
             $options['message'] ??= $options['pattern_message'] ?? null;
-            return $this->getErrorMessage($options, 'Does not match the required pattern.');
+            return $this->getErrorMessage($options, 'validation.pattern');
         }
         return null;
     }
@@ -236,7 +237,7 @@ abstract class AbstractValidator implements ValidatorInterface
         if (!empty($options['allowed']) && !in_array($value, $options['allowed'], true)) {
             $options['message'] ??= $options['allowed_message'] ?? null;
 
-            return $this->getErrorMessage($options, 'Please select a valid value.');
+            return $this->getErrorMessage($options, 'validation.allowed');
         }
         return null;
     }
@@ -283,7 +284,7 @@ abstract class AbstractValidator implements ValidatorInterface
         if (!empty($options['forbidden']) && in_array($value, $options['forbidden'], true)) {
             $options['message'] ??= $options['forbidden_message'] ?? null;
 
-            return $this->getErrorMessage($options, 'This value is not allowed.');
+            return $this->getErrorMessage($options, 'validation.forbidden');
         }
         return null;
     }
@@ -338,7 +339,8 @@ abstract class AbstractValidator implements ValidatorInterface
             if (isset($options['min_message'])) {
                 $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
             }
-            return $this->getErrorMessage($options, 'Date must not be before ' . $options['min'] . '.');
+            // return $this->getErrorMessage($options, 'Date must not be before ' . $options['min'] . '.');
+            return $this->getErrorMessage($options, 'validation.min');
         }
         return null;
     }
@@ -356,7 +358,8 @@ abstract class AbstractValidator implements ValidatorInterface
             if (isset($options['max_message'])) {
                 $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
             }
-            return $this->getErrorMessage($options, 'Date must not be after ' . $options['max'] . '.');
+            // return $this->getErrorMessage($options, 'Date must not be after ' . $options['max'] . '.');
+            return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
     }
@@ -371,7 +374,8 @@ abstract class AbstractValidator implements ValidatorInterface
                 $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
             }
 
-            return $this->getErrorMessage($options, "Value must be at least {$options['min']}.");
+            // return $this->getErrorMessage($options, "Value must be at least {$options['min']}.");
+            return $this->getErrorMessage($options, 'validation.min');
         }
 
         return null;
@@ -385,8 +389,57 @@ abstract class AbstractValidator implements ValidatorInterface
                 $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
             }
 
-            return $this->getErrorMessage($options, "Value must not exceed {$options['max']}.");
+            // return $this->getErrorMessage($options, "Value must not exceed {$options['max']}.");
+            return $this->getErrorMessage($options, 'validation.max');
         }
+        return null;
+    }
+
+
+    /**
+     * Validates if the submitted value exists as a key in the provided choices array.
+     * This is typically used for select, radio_group, and checkbox_group fields.
+     *
+     * @param mixed $value The value to validate.
+     * @param array<string, mixed> $options Validation options, expected to contain 'choices' array.
+     * @return string|null Error message if invalid, null if valid.
+     */
+    protected function validateAgainstChoices(mixed $value, array $options): ?string
+    {
+        $choices = $options['choices'] ?? [];
+
+        // If no choices are provided, and no value is submitted, it's valid (or required validator will catch it).
+        // If choices are expected but not provided, this might indicate a configuration error,
+        // but for validation, we'll only check if the submitted value is in the (potentially empty) choices.
+        if (empty($choices) && ($value === null || $value === '')) {
+            return null;
+        }
+
+        // Ensure value is scalar for array_key_exists.
+        if (!is_scalar($value)) {
+            $options['message'] ??= $options['invalid_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.invalid');
+        }
+
+        if (!array_key_exists((string) $value, $choices)) {
+            $options['message'] ??= $options['invalid_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.invalid');
+        }
+
+
+            // $options['message'] ??= $options['invalid_message'] ?? null;
+            // return $this->getErrorMessage($options, "Invalid {$expectedType} format.");
+
+        // if (!array_key_exists((string) $value, $choices)) {
+        //     if (isset($options['invalid_message'])) {
+        //         $options['message'] = $this->formatCustomMessage(
+        //             "FFF",
+        //             $options['invalid_message']
+        //         );
+        //     }
+        //     return $this->getErrorMessage($options, "Must be at least {$options['minlength']} characters.");
+        // }
+
         return null;
     }
 }

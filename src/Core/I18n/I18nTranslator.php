@@ -76,6 +76,10 @@ class I18nTranslator implements TranslatorInterface
             return $this->replacePlaceholders($current, $replacements);
         }
 
+        // For Validation that is not found.
+        if (isset($keySegments[1]) && $keySegments[1] === 'validation') {
+            unset($keySegments[0]);
+        }
         array_unshift($keySegments, 'common');
         $specificLookupKey = implode('.', $keySegments);
         $resolvedValue = $resolvePath($this->translations, $specificLookupKey);

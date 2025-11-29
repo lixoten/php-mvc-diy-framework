@@ -57,6 +57,10 @@ return [
             'label'   => 'gender.non_binary',
             'variant' => 'dark',
         ],
+        'pns' => [
+            'label'   => 'gender.prefer_not_to_say',
+            'variant' => 'dark',
+        ],
     ],
 
     /**

@@ -19,6 +19,7 @@ class TextValidator extends AbstractValidator
         }
 
         // Type validation
+        // $value = [];
         if ($error = $this->validateType($value, 'string', $options)) {
             return $error;
         }
@@ -39,7 +40,7 @@ class TextValidator extends AbstractValidator
         if ($error = $this->validatePattern($value, $options)) {
             return $error;
         }
-        
+
         // Allowed values
         if ($error = $this->validateAllowedValues($value, $options)) {
             return $error;

@@ -46,19 +46,15 @@ class SelectValidator extends AbstractValidator
         // Type validation - must be string or numeric
         if (!is_string($value) && !is_numeric($value)) {
             $options['message'] ??= $options['invalid_message'] ?? null;
-            return $this->getErrorMessage($options, 'Please select a valid option.');
+            return $this->getErrorMessage($options, 'validation.invalid');
         }
 
         // Convert to string for comparison
         $valueStr = (string)$value;
+        // $valueStr = "g";
 
-        // Allowed values check
-        if ($error = $this->validateAllowedValues($valueStr, $options, 'string')) {
-            return $error;
-        }
-
-        // Forbidden values check
-        if ($error = $this->validateForbiddenValues($valueStr, $options, 'string')) {
+        // validate against choices
+        if ($error = $this->validateAgainstChoices($valueStr, $options)) {
             return $error;
         }
 

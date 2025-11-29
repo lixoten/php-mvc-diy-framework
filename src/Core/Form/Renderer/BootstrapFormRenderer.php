@@ -776,10 +776,15 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             $errorClass = ' is-invalid';
             $errorId = $id . '-error';
             $ariaAttrs = ' aria-invalid="true" aria-describedby="' . $errorId . '"';
-            $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
+            $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback d-block" role="alert">';
+            // $errorHTML = '<div id="' . $errorId . '" class="invalid-feedback" role="alert">';
             foreach ($errors as $error) {
                 $informedError = $this->getInformedValidationError($pageName, $field, $error);
-                $errorHTML .= htmlspecialchars($informedError) . '<br>';
+                if (isset($informedError)) {
+                    $errorHTML .= htmlspecialchars($informedError) . '<br>';
+                } else {
+                    $errorHTML .= htmlspecialchars($error) . '<br>';
+                }
             }
             $errorHTML .= '</div>';
         }
@@ -944,7 +949,63 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 $output .= $errorHTML;
                 break;
 
+            case 'radio_group':
+                $output .= '<label class="form-label">' . $label . '</label>';
+                $choices = $field->getOptions()['choices'] ?? [];
+                $inline  = $field->getOptions()['inline'] ?? false;
+                $currentValue = $field->getValue(); // Current value should be a single scalar
 
+                // Use ThemeService to get container and inline classes
+                $containerBaseClass = $this->themeService->getElementClass('form.check.container');
+                $inlineClass = $inline ? ' ' . $this->themeService->getElementClass('form.check.inline') : '';
+                $containerClass = trim($containerBaseClass . $inlineClass);
+
+                // ❌ Removed loopIndex logic for error placement inside individual div.form-check
+                // $choiceCount = count($choices);
+                // $loopIndex = 0;
+
+                foreach ($choices as $choiceValue => $choiceLabelKey) { // choiceLabelKey is now a translation key
+                    // $loopIndex++;
+                    $checked = ($currentValue == $choiceValue) ? ' checked' : '';
+                    $choiceId = $id . '_' . htmlspecialchars((string)$choiceValue); // Unique ID for each radio
+
+                    $output .= '<div class="' . htmlspecialchars($containerClass) . '">';
+                    $output .= '<input type="radio" class="' . htmlspecialchars($this->themeService->getElementClass('form.check.input')) . $errorClass . '" '; // Keep $errorClass here
+                    $output .= 'id="' . $choiceId . '" ';
+                    $output .= 'name="' . htmlspecialchars($name) . '" '; // Name is singular for radio groups
+                    $output .= 'value="' . htmlspecialchars((string)$choiceValue) . '"' . $checked;
+                    // Inherit other attributes from the field, but handle name, id, value, type, class explicitly
+                    foreach ($attributes as $attrName => $attrValue) {
+                        if (!in_array($attrName, ['id', 'name', 'value', 'type', 'class', 'placeholder'], true)) {
+                            if (is_bool($attrValue)) {
+                                if ($attrValue) {
+                                    $output .= ' ' . $attrName;
+                                }
+                                continue;
+                            }
+                            if ($attrValue !== null) {
+                                $output .= ' ' . $attrName . '="' . htmlspecialchars((string)$attrValue) . '"';
+                            }
+                        }
+                    }
+                    $output .= '>'; // Close input tag
+
+                    $output .= '<label class="' . htmlspecialchars($this->themeService->getElementClass('form.check.label')) . '" for="' . $choiceId . '">';
+                    // Translate choiceLabelKey here
+                    $translatedChoiceLabel = $this->translator->get($choiceLabelKey, pageName: $pageName);
+                    $output .= htmlspecialchars($translatedChoiceLabel);
+                    $output .= '</label>';
+                    $output .= '</div>';
+
+                    // ❌ Removed errorHTML placement here - it should be after the loop
+                    // if ($loopIndex === $choiceCount) {
+                    //     $output .= $errorHTML;
+                    // }
+                }
+
+                // ✅ Uncomment and place errorHTML AFTER the entire loop of form-check divs, but still inside the parent mb-3 div.
+                $output .= $errorHTML;
+                break;
 
             case 'radio':
                 $output .= '<label>' . $label . '</label>';
@@ -998,13 +1059,20 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                     $ariaAttrs . $attrString . '>';
 
                 // $options = $field->getOptions()['options'] ?? [];
-                $choices = $field->getOptions()['options'] ?? [];
+                $choices = $field->getOptions()['choices'] ?? [];
                 $defaultChoice = $field->getOptions()['default_choice'] ?? null;
-                if ($defaultChoice) {
+                // if ($defaultChoice !== null) {
+                //     $translatedDefaultChoice = $this->translator->get($defaultChoice, pageName: $pageName);
+                //     $output .= '<option value="">' . htmlspecialchars($translatedDefaultChoice) . '</option>';
+                // }
+                if ($defaultChoice !== null) {
                     $translatedDefaultChoice = $this->translator->get($defaultChoice, pageName: $pageName);
-                    $output .= '<option value="">' . htmlspecialchars($translatedDefaultChoice) . '</option>';
+                    // ✅ Default choice is always disabled.
+                    // ✅ It's selected only if the field has no value.
+                    // ✅ Remove the 'value' attribute to ensure it's not submitted.
+                    $selectedDefault = empty($field->getValue()) ? ' selected' : '';
+                    $output .= '<option' . $selectedDefault . ' disabled>' . htmlspecialchars($translatedDefaultChoice) . '</option>';
                 }
-
                 // foreach ($options as $optionValue => $optionLabel) {
                 //     $selected = ($field->getValue() == $optionValue) ? ' selected' : '';
                 //     $output .= '<option value="' . htmlspecialchars((string)$optionValue) . '"' . $selected . '>';

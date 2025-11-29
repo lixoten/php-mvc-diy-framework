@@ -7,7 +7,7 @@ namespace Core\Form\Validation;
 use App\Helpers\DebugRt;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Schema\FieldSchema;
-use Core\Services\ConfigService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Main validator service
@@ -28,10 +28,14 @@ class Validator
      *
      * @param ValidatorRegistry $registry Validator registry service
      */
-    public function __construct(ValidatorRegistry $registry, FieldSchema $fieldSchema)
-    {
-        $this->registry = $registry;
+    public function __construct(
+        ValidatorRegistry $registry,
+        FieldSchema $fieldSchema,
+        protected LoggerInterface $logger
+    ) {
+        $this->registry    = $registry;
         $this->fieldSchema = $fieldSchema;
+        $this->logger      = $logger;
     }
 
 
@@ -109,6 +113,7 @@ class Validator
         $value         = $field->getValue();
         $type          = $field->getType();
         $attributes    = $field->getAttributes();
+        $options       = $field->getOptions();
 
         // Merge context into attributes
         $mergedAttributes     = array_merge($attributes, $context);
@@ -116,11 +121,15 @@ class Validator
         // 2. extract all validation-related attributes
         $validationAttributes = $this->extractValidationAttributes($mergedAttributes);
 
-
+        // Ensure the field's choices (if any) are included in validator options
+        $validatorOptionsForType = $validatorList[$type] ?? [];
+        if (isset($options['choices'])) {
+            $validatorOptionsForType['choices'] = $options['choices'];
+        }
         $finalValidationAttributes = $this->buildValidationAttributes(
             $type,
             $validationAttributes,
-            $validatorList[$type] ?? [],
+            $validatorOptionsForType,
             $context
         );
 
@@ -201,13 +210,43 @@ class Validator
                     if ($error) {
                         $errors[] = $error;
                     }
+                } else {
+                    // ✅ Handle explicitly configured but unregistered validators
+                    $message = sprintf(
+                        'Validator "%s" configured for field "%s" (%s) is not registered in the ValidatorRegistry.',
+                        $validator,
+                        $field->getName(),
+                        $field->getType()
+                    );
+                    //$this->logger?->warning('finfo failed: ' . $e->getMessage());
+
+
+                    if ($this->logger->isAppInDevelopment()) {
+                        $this->logger->triggerDevFatalError(
+                            $message,
+                            "ERR-DEV93",
+                            ['validator' => $validator, 'unknown_options' => $field->getName()]
+                        );
+                    } else {
+                        // In production, log a warning to avoid breaking the application but still record the issue.
+                        // Assuming you have a logger injected, otherwise use error_log().
+                        $this->logger->warning($message, ['field' => $field->getName(), 'type' => $field->getType()]);
+                    }
+                    // Optionally, you might add a generic error message to the field for the user
+                    // $errors[] = $this->translator->get('common.error.validation_internal_error');
                 }
             }
         }
 
         return $errors;
     }
-
+    /**
+     * Log a warning message in development mode
+     */
+    private function logWarning(string $message): void
+    {
+            trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
+    }
 
     /**
      * Build merged validation attributes from field schema, validator options, and context.
@@ -235,6 +274,7 @@ class Validator
         if ($schemaData !== null) {
             // 1. Get field schema defaults for validation
             $schemaValFields = $schemaData['val_fields'] ?? [];
+            
             $schema = array_merge($validationAttributes, $schemaValFields);
         } else {
             // Fallback if no schema exists
@@ -322,14 +362,20 @@ class Validator
             }
         }
         if (!empty($unknown)) {
-            if ($_ENV['APP_ENV'] === 'development') {
-                $msg = "[{$validatorName}] Unknown validator options: " . implode(', ', $unknown);
-                // trigger_error($msg, E_USER_WARNING);
-                trigger_error($msg, E_USER_ERROR);
+            if ($this->logger->isAppInDevelopment()) {
+                $message = "[{$validatorName}] Unknown validator options: " . implode(', ', $unknown);
+
+                $this->logger->triggerDevFatalError(
+                    $message,
+                    "ERR-DEV92223"
+                );
             }
 
             error_log("[{$validatorName}] Unknown validator options: " . implode(', ', $unknown));
         }
+
+
+
     }
 
     /**

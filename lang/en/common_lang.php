@@ -34,6 +34,7 @@ return [
         'female'      => 'Female',
         'other'       => 'Other',
         'non_binary'  => 'Non-binary',
+        'prefer_not_to_say'  => 'Prefer not to say',
     ],
 
     /**
@@ -109,7 +110,15 @@ return [
     // END SECTION: Code Lookup Translations
     //-----------------------------------------------------------------
 
-
+    'validation' => [
+        'required'  => 'xxThis is a required field..',
+        'invalid'   => 'xxInvalid value.',
+        'minlength' => 'xxThis value must be at least %d characters.',
+        'maxlength' => 'xxThis value must not exceed %d characters.',
+        'pattern'   => 'xxThis value does not match the required pattern.',
+        'allowed'   => 'xxPlease select a valid allowed value.',
+        'forbidden' => 'xxThis value is not allowed.',
+    ],
 
 
 

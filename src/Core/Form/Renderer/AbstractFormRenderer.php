@@ -399,22 +399,34 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         $errorType  = $parts[array_key_last($parts)];
         $attrs      = $field->getAttributes();
-        $errorAttr  = [$errorType => $attrs[$errorType] ?? []];
-        //$errorAttr  = [$errorType => $attrs["foo"] ?? null];
-        // $errorAttr  = [];
-        $translation = $this->translator->get($error, $errorAttr, $pageName);
+        $replacements = [];
 
-        if (!array_key_exists($errorType, $attrs)) {
-            // Log a warning for missing attribute, but do not mask the bug
+        // Define error types that require a value from field attributes for replacement.
+        // For these types, the attribute directly informs the message (e.g., "must be at least {minlength}").
+        $attributeBasedErrorTypes = ['minlength', 'maxlength', 'min', 'max', 'step', 'pattern'];
+
+        // Only add a replacement if the error type is attribute-based and the attribute exists.
+        if (in_array($errorType, $attributeBasedErrorTypes, true) && isset($attrs[$errorType])) {
+            $replacements[$errorType] = $attrs[$errorType];
+        }
+
+        // Log a warning if an attribute-based error type was expected but the corresponding attribute is missing.
+        // This indicates a potential misconfiguration where a message expects a parameter it won't receive.
+        if (in_array($errorType, $attributeBasedErrorTypes, true) && !isset($attrs[$errorType])) {
             $this->logger->warning(
                 sprintf(
-                    'Validation error key "%s" not found in field attributes for field "%s".',
+                    'Validation error key "%s" (attribute-based) found, but corresponding attribute "%s" not set in field "%s". ' .
+                    'The translation might be incomplete or inaccurate.',
+                    $errorType,
                     $errorType,
                     method_exists($field, 'getName') ? $field->getName() : 'unknown'
                 )
             );
-            //return $translation; // Return untranslated message as fallback
+            // We still proceed, but the translation might just use the default message or show an empty placeholder.
         }
+
+        // Pass the determined replacements (which will be empty for generic errors like 'invalid') to the translator.
+        $translation = $this->translator->get($error, $replacements, $pageName); // FindMe - Validation translation
 
         return $translation;
     }

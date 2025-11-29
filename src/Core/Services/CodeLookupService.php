@@ -142,19 +142,19 @@ class CodeLookupService implements CodeLookupServiceInterface
     /**
      * {@inheritdoc}
      */
-    public function getOptions(string $type, ?string $pageName = null): array
+    public function getChoices(string $type, ?string $pageName = null): array
     {
         $this->validateType($type);
 
-        $options = [];
+        $choices = [];
 
         foreach ($this->lookups[$type] as $code => $properties) {
             // Use getLabel to ensure consistent translation
-            // $options[$code] = $this->getLabel($type, $code, $pageName);
-            $options[$code] = $properties['label'] ?? (string) $code; // Fallback to code if label not set
+            // $choices[$code] = $this->getLabel($type, $code, $pageName);
+            $choices[$code] = $properties['label'] ?? (string) $code; // Fallback to code if label not set
         }
 
-        return $options;
+        return $choices;
     }
 
     /**
@@ -205,10 +205,10 @@ class CodeLookupService implements CodeLookupServiceInterface
     /**
      * {@inheritdoc}
      */
-    public function getSelectOptions(string $type, ?string $pageName = null): array
+    public function getSelectChoices(string $type, ?string $pageName = null): array
     {
-        // Semantic wrapper around getOptions() for use in field config 'options_provider'
-        return $this->getOptions($type, $pageName);
+        // Semantic wrapper around getChoices() for use in field config 'options_provider'
+        return $this->getChoices($type, $pageName);
     }
 
     /**

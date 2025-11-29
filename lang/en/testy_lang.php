@@ -34,7 +34,7 @@ return [
             'placeholder' => 'Enter xGeneric text',
         ],
         'formatters' => [
-    
+
         ],
         'validation' => [
                     'required'  => 'Testy xGeneric text is required.',
@@ -55,7 +55,7 @@ return [
             'default_choice' => 'Please select your Testy xGender.',
         ],
         'formatters' => [
-    
+
         ],
         'validation' => [
                     'required'  => 'Testy xGender is required.',
@@ -76,7 +76,7 @@ return [
             'placeholder' => 'lixoten@gmail.com',
         ],
         'formatters' => [
-    
+
         ],
         'validation' => [
                     'required'  => 'Testy xPrimary email is required.',

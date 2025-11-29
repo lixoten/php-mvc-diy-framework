@@ -323,6 +323,7 @@ PHP;
             }
 
             if (in_array($config['db_type'], ['string'])) {
+            // if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group'])) {
                 if (isset($config['required']) && $config['required']) {
                     $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
                 } else {
@@ -536,7 +537,7 @@ PHP;
                     $block = <<<PHP
                     $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'type'       => '{$type}',
-                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectOptions'],
+                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
                     $s12'options_provider_params' => ['type' => '{$lookup}'],
                     $s12'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
                     $s12'attributes' => [
@@ -554,8 +555,52 @@ PHP;
                     $s12],
                     PHP;
                 } elseif ($blockName === 'validator') {
-                    $block = '';
+                    $block = <<<PHP
+                    $s08'{$type}' => [
+                        $s12'required_message'  => '{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                    $s12],
+                    PHP;
                 }
+                break;
+
+            // xxxxxx /////////////////////////////////////////////////////////
+            // radio_group /////////////////////////////////////////////////////
+            case 'radio_group':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
+                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
+                    $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    $s12// 'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $s12'text' => [
+                        $s12'options_provider' => [
+                            $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
+                        $s12],
+                        $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [
+                        $s12'required_message'  => '{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                    $s12],
+                    PHP;                }
                 break;
 
             // xxxxxx /////////////////////////////////////////////////////////

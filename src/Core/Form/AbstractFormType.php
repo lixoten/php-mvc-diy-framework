@@ -176,13 +176,15 @@ abstract class AbstractFormType implements FormTypeInterface
                 $options = $columnDef['form'];
                 $options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
+                
 
-
-                if (isset($options['type']) && $options['type'] === 'select' && isset($options['options_provider'])) {
+                if (
+                    isset($options['type']) &&
+                    in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
+                    isset($options['options_provider'])
+                ) {
                     [$serviceClass, $methodName] = $options['options_provider'];
                     $params = $options['options_provider_params'] ?? [];
-                    // ❌ REMOVE: $currentValue is not part of getSelectOptions signature
-                    // $currentValue = $options['value'] ?? null; // Pass current value if available (for pre-selection)
 
                     try {
                         // Get service from container
@@ -190,11 +192,11 @@ abstract class AbstractFormType implements FormTypeInterface
 
                         // Call provider method with parameters from config and potentially the current pageName
                         // ✅ CHANGE: Pass only the parameters from $params.
-                        //    If getSelectOptions needs $pageName, it should be included in $options_provider_params.
+                        //    If getSelectChoices needs $pageName, it should be included in $options_provider_params.
                         $resolvedOptions = $service->$methodName(...array_values($params));
 
-                        // Store the resolved options in the 'options' key for the renderer
-                        $options['options'] = $resolvedOptions;
+                        // Store the resolved options in the 'choices' key for the renderer
+                        $options['choices'] = $resolvedOptions;
 
                         // Clean up provider keys (no longer needed by the renderer)
                         unset($options['options_provider'], $options['options_provider_params']);
@@ -208,7 +210,7 @@ abstract class AbstractFormType implements FormTypeInterface
                             $e->getMessage()
                         ));
                         // Fail gracefully: ensure 'options' key is an empty array if provider fails
-                        $options['options'] = [];
+                        $options['choices'] = [];
                     }
                 }
 

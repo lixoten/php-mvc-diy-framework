@@ -171,7 +171,7 @@ return [
             'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
 
             'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            // 'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
             'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
             'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
             'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
@@ -825,6 +825,16 @@ return [
         ],
     ],
 
+
+    'radio_group' => [ // ✅ New entry for radio_group
+        // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
+        'val_fields' => [
+            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            'choices'           => ['values' => 'array', 'default' => []], // Important for documentation
+        ],
+    ],
+
     'radio' => [
         'name'        => ['default' => null, 'values' => 'string'], // Grouping is essential
         'value'       => ['default' => null, 'values' => 'string'], // Must be unique within a group
@@ -861,15 +871,10 @@ return [
         'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
         'val_fields' => [
-            'ignore_allowed'           => ['values' => 'bool', 'default' => true],
-            'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
-            'allowed'                  => ['values' => 'array', 'default' => []],
-            'forbidden'                => ['values' => 'array', 'default' => []],
+            'choices'                  => ['values' => 'array', 'default' => []],
 
-            'required_message'         => ['values' => 'string', 'default' => 'zzThis field is required.'],
-            'invalid_message'          => ['values' => 'string', 'default' => 'zzPlease select a valid option.'],
-            'allowed_message'          => ['values' => 'string', 'default' => 'zzThe selected option is not allowed.'],
-            'forbidden_message'        => ['values' => 'string', 'default' => 'zzThe selected option is forbidden.'],
+            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
         ],
     ],
 

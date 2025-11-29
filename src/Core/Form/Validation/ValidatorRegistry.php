@@ -53,6 +53,7 @@ class ValidatorRegistry
         if (!isset($this->validators[$name])) {
             throw new \Core\Exceptions\ValidatorNotFoundException("Validator '{$name}' not found.");
         }
+        // findMe Validator call
         return $this->validators[$name];
     }
 

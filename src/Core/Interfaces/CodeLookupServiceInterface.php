@@ -75,7 +75,7 @@ interface CodeLookupServiceInterface
     public function getProperties(string $type, string $code): array;
 
     /**
-     * Get all options for a specific type as an associative array.
+     * Get all choices for a specific type as an associative array.
      *
      * Returns an array suitable for select dropdowns or radio buttons,
      * with the code as the key and the raw translation key as the value.
@@ -90,11 +90,11 @@ interface CodeLookupServiceInterface
      *
      * @example
      * ```php
-     * $options = $codeLookupService->getOptions('gender');
+     * $choices = $codeLookupService->getChoices('gender');
      * // Returns: ['m' => 'gender.male', 'f' => 'gender.female', 'o' => 'gender.other', 'nb' => 'gender.non_binary']
      * ```
      */
-    public function getOptions(string $type, ?string $pageName = null): array;
+    public function getChoices(string $type, ?string $pageName = null): array;
 
     /**
      * Get all valid codes for a specific type.
@@ -191,7 +191,7 @@ interface CodeLookupServiceInterface
 
 
     /**
-     * Get select options for a specific type (wrapper for getOptions).
+     * Get select choices for a specific type (wrapper for getChoices).
      *
      * This method is specifically designed for use in field config files as a
      * 'options_provider'. It returns an associative array [code => translation key].
@@ -208,11 +208,11 @@ interface CodeLookupServiceInterface
      * 'gender_id' => [
      *     'form' => [
      *         'type' => 'select',
-     *         'options_provider' => [CodeLookupServiceInterface::class, 'getSelectOptions'],
+     *         'options_provider' => [CodeLookupServiceInterface::class, 'getSelectChoices'],
      *         'options_provider_params' => ['type' => 'gender'],
      *     ],
      * ],
      * ```
      */
-    public function getSelectOptions(string $type, ?string $pageName = null): array;
+    public function getSelectChoices(string $type, ?string $pageName = null): array;
 }

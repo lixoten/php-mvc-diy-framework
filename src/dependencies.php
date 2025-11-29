@@ -1230,6 +1230,10 @@ return [
 
     'field.type.checkbox' => \DI\autowire(\Core\Form\Field\Type\CheckboxType::class)
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
+    'field.type.radio_group' => \DI\autowire(\Core\Form\Field\Type\RadioGroupType::class)
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+
     'field.type.radio' => \DI\autowire(\Core\Form\Field\Type\RadioType::class)
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
@@ -1270,6 +1274,7 @@ return [
             $c->get('field.type.display'),
             $c->get('field.type.checkbox_group'),
             $c->get('field.type.checkbox'),
+            $c->get('field.type.radio_group'),
             $c->get('field.type.radio'),
             $c->get('field.type.captcha')
         ]);
@@ -1309,6 +1314,8 @@ return [
 
     'validator.checkbox_group' => \DI\autowire(\Core\Form\Validation\Rules\CheckboxGroupValidator::class),
     'validator.checkbox'       => \DI\autowire(\Core\Form\Validation\Rules\CheckboxValidator::class),
+
+    'validator.radio_group' => \DI\autowire(\Core\Form\Validation\Rules\RadioGroupValidator::class),
     'validator.radio' => \DI\autowire(\Core\Form\Validation\Rules\RadioValidator::class),
     'validator.file' => \DI\autowire(\Core\Form\Validation\Rules\FileValidator::class),
 
@@ -1372,6 +1379,7 @@ return [
 
             $c->get('validator.checkbox_group'),
             $c->get('validator.checkbox'),
+            $c->get('validator.radio_group'),
             $c->get('validator.radio'),
             $c->get('validator.file'),
 
@@ -1393,7 +1401,8 @@ return [
         // Explicitly inject the configured ValidatorRegistry instance into the constructor.
         // Replace 'registry' with the actual parameter name used in the Validator's constructor if different.
         ->constructorParameter('registry', \DI\get(\Core\Form\Validation\ValidatorRegistry::class))
-        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema'))
+        ->constructorParameter('logger', \DI\get('logger')),
 
 
 
