@@ -196,7 +196,7 @@ class BootstrapViewRenderer extends AbstractViewRenderer
         $output .= '<div class="' . htmlspecialchars($valueClass) . '">';
 
         // Delegate value formatting to AbstractViewRenderer's renderValue method
-        $formattedValue = $this->renderValue($fieldName, $fieldValue, $recordData, $fieldOptions);
+        $formattedValue = $this->renderValue($view->getPageName(), $fieldName, $fieldValue, $recordData, $fieldOptions);
 
         $output .= (string)$formattedValue; // Cast to string as renderValue returns string
         $output .= '</div>'; // Close field-value

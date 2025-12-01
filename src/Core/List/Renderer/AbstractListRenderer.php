@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\List\Renderer;
 
 use App\Helpers\DebugRt;
+use Core\I18n\I18nTranslator;
 use Core\List\ListInterface;
 use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
@@ -61,6 +62,7 @@ abstract class AbstractListRenderer implements ListRendererInterface
      */
     public function __construct(
         protected ThemeServiceInterface $themeService,
+        protected I18nTranslator $translator,
         protected FormatterService $formatterService,
         protected LoggerInterface $logger,
         protected ContainerInterface $container
@@ -119,16 +121,8 @@ abstract class AbstractListRenderer implements ListRendererInterface
     }
 
 
-    /**
-     * Render column value with appropriate formatting
-     *
-     * @param string $column The column name
-     * @param mixed $value The value to render
-     * @param array<string, mixed> $record The complete record data
-     * @param array<string, mixed> $columns Column definitions
-     * @return string The formatted value as HTML
-     */
-    public function renderValue(string $column, $value, array $record, array $columns = []): string
+    /** {@inheritdoc} */
+    public function renderValue(string $pageName, string $column, $value, array $record, array $columns = []): string
     {
         if ($value === null) {
             return '';
@@ -147,46 +141,71 @@ abstract class AbstractListRenderer implements ListRendererInterface
         if (is_array($formattersConfig)) {
             foreach ($formattersConfig as $formatterName => $formatterOptions) {
                 try {
-                    // // ✅ NEW: Resolve dynamic options if an 'options_provider' is defined.
-                    // // This logic is generic for formatter configuration.
-                    // if (isset($formatterOptions['options_provider'])) { // Check existence first
-                    //     $provider = $formatterOptions['options_provider'];
-                    //     if (is_callable($provider)) {
-                    //         // Call the provider (e.g., [TestyStatus::class, 'getFormatterOptions'])
-                    //         // passing the current field value and the full record.
-                    //         $resolvedOptions = call_user_func($provider, $value, $record);
-                    //         $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
-                    //     } else {
-                    //         $this->logger->warning(sprintf(
-                    //             'Formatter options_provider for column "%s", formatter "%s" is not callable.',
-                    //             $column,
-                    //             $formatterName
-                    //         ));
-                    //     }
-                    // }
+                    $resolvedOptions = []; // Initialize for cases without options_provider
 
-
-                    // ✅ NEW: Resolve 'options_provider' if present
+                    // Resolve 'options_provider' if present to dynamically fetch options
                     if (isset($formatterOptions['options_provider'])) {
-                        [$serviceClass, $methodName] = $formatterOptions['options_provider'];
+                        $provider = $formatterOptions['options_provider'];
                         $params = $formatterOptions['options_provider_params'] ?? [];
 
-                        // ✅ Get service from container (need to inject ContainerInterface)
-                        $service = $this->container->get($serviceClass);
+                        if (is_array($provider) && count($provider) === 2) {
+                            [$className, $methodName] = $provider;
 
-                        // ✅ Call provider method with type and value
-                        $resolvedOptions = $service->$methodName(...array_merge(array_values($params), [$value]));
+                            if (interface_exists($className)) {
+                                // If it's an interface, it MUST be resolved as a service from the container.
+                                $service = $this->container->get($className);
+                                $allParams = array_merge(array_values($params), [$value]);
+                                $resolvedOptions = $service->$methodName(...$allParams);
+                            } elseif (class_exists($className)) {
+                                // If it's a concrete class (like an Enum or a static helper class)
+                                $reflection = new \ReflectionMethod($className, $methodName);
 
-                        // ✅ Merge resolved options with any static options
+                                if ($reflection->isStatic()) {
+                                    // Handle static method calls (e.g., for Enums)
+                                    $resolvedOptions = $className::$methodName($value);
+                                } else {
+                                    // Handle instance method calls on a service from the container
+                                    $service = $this->container->get($className);
+                                    $allParams = array_merge(array_values($params), [$value]);
+                                    $resolvedOptions = $service->$methodName(...$allParams);
+                                }
+                            } else {
+                                // Neither a class nor an interface exists with this name.
+                                $errorMessage = sprintf(
+                                    '❌ Invalid options_provider: Class or interface "%s" not found for column "%s". Expected [ClassName::class, "methodName"].',
+                                    $className,
+                                    $column
+                                );
+                                $this->logger->warning($errorMessage);
+                                if ($this->strictFormatterValidation) {
+                                    throw new \InvalidArgumentException('❌ CONFIGURATION ERROR: ' . $errorMessage);
+                                }
+                                continue; // Skip this formatter
+                            }
+                        } else {
+                            // Malformed $provider array (e.g., not [class, method])
+                            $errorMessage = sprintf(
+                                '❌ Invalid options_provider format for column "%s". Expected [ClassName::class, "methodName"].',
+                                $column
+                            );
+                            $this->logger->warning($errorMessage);
+                            if ($this->strictFormatterValidation) {
+                                throw new \InvalidArgumentException('❌ CONFIGURATION ERROR: ' . $errorMessage);
+                            }
+                            continue; // Skip this formatter
+                        }
+
+                        // Merge resolved dynamic options into the formatter's options.
                         $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
 
-                        // ✅ Clean up provider keys (no longer needed)
+                        // ⚠️ Clean up provider specific keys; they are consumed and not for the formatter itself.
                         unset($formatterOptions['options_provider'], $formatterOptions['options_provider_params']);
                     }
 
+                    // ✅ Always inject common context and services into formatter options
+                    $formatterOptions['page_name'] = $pageName;
 
-
-                    // Apply each formatter in sequence with the resolved options
+                    // Apply each formatter in sequence with the (now fully resolved) options
                     $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
                 } catch (\Core\Exceptions\FormatterNotFoundException $e) {
                     $this->logger->warning(sprintf(
@@ -210,7 +229,7 @@ abstract class AbstractListRenderer implements ListRendererInterface
             // We trust the formatters have handled HTML safety.
             return (string)$value;
         }
-
+///////////////////////////////////
 
 
         // ⚠️ LEGACY: Support old-style single 'formatter' closure (deprecated pattern)

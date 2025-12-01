@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\List\Renderer;
 
+use Core\I18n\I18nTranslator;
 use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\FormatterService;
@@ -25,12 +26,14 @@ class MaterialListRenderer extends AbstractListRenderer
      */
     public function __construct(
         ThemeServiceInterface $themeService,
+        protected I18nTranslator $translator,
         FormatterService $formatterService,
         LoggerInterface $logger,
         ContainerInterface $container
     ) {
         parent::__construct(
             $themeService,
+            $translator,
             $formatterService,
             $logger,
             $container
@@ -198,7 +201,7 @@ class MaterialListRenderer extends AbstractListRenderer
             foreach (array_keys($list->getColumns()) as $columnName) {
                 $columns = $list->getColumns();
                 $value = $record[$columnName] ?? null;
-                $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
+                $output .= '<td>' . $this->renderValue($list->getPageName(), $columnName, $value, $record, $columns) . '</td>';
             }
 
             // Render actions
@@ -278,7 +281,7 @@ class MaterialListRenderer extends AbstractListRenderer
                     $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
                     $output .= '<p class="card-text mb-2">';
                     $output .= '<small class="text-secondary">' . htmlspecialchars($fieldLabel) . ':</small> ';
-                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns);
                     $output .= '</p>';
                 }
             }
@@ -364,7 +367,7 @@ class MaterialListRenderer extends AbstractListRenderer
                 if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
                     $output .= '<div><small class="text-secondary">' .
                         htmlspecialchars($columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field))) .
-                        ':</small> ' . $this->renderValue($field, $record[$field], $record, $columns) . '</div>';
+                        ':</small> ' . $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns) . '</div>';
                 }
             }
             $output .= '</div>';

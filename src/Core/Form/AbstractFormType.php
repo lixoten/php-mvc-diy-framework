@@ -176,24 +176,95 @@ abstract class AbstractFormType implements FormTypeInterface
                 $options = $columnDef['form'];
                 $options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
-                
 
+
+                // if (
+                //     isset($options['type']) &&
+                //     in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
+                //     isset($options['options_provider'])
+                // ) {
+                //     [$serviceClass, $methodName] = $options['options_provider'];
+                //     $params = $options['options_provider_params'] ?? [];
+
+                //     try {
+                //         // Get service from container
+                //         $service = $this->container->get($serviceClass);
+
+                //         // Call provider method with parameters from config and potentially the current pageName
+                //         // ✅ CHANGE: Pass only the parameters from $params.
+                //         //    If getSelectChoices needs $pageName, it should be included in $options_provider_params.
+                //         $resolvedOptions = $service->$methodName(...array_values($params));
+
+                //         // Store the resolved options in the 'choices' key for the renderer
+                //         $options['choices'] = $resolvedOptions;
+
+                //         // Clean up provider keys (no longer needed by the renderer)
+                //         unset($options['options_provider'], $options['options_provider_params']);
+
+                //     } catch (\Throwable $e) {
+                //         $this->logger->error(sprintf(
+                //             'Error resolving options_provider for field "%s" (%s::%s): %s',
+                //             $fieldName,
+                //             $serviceClass,
+                //             $methodName,
+                //             $e->getMessage()
+                //         ));
+                //         // Fail gracefully: ensure 'options' key is an empty array if provider fails
+                //         $options['choices'] = [];
+                //     }
+                // }
                 if (
                     isset($options['type']) &&
                     in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
                     isset($options['options_provider'])
                 ) {
-                    [$serviceClass, $methodName] = $options['options_provider'];
-                    $params = $options['options_provider_params'] ?? [];
-
+                    // ✅ FIX: Start the try block here, encapsulating all the options_provider resolution logic
                     try {
-                        // Get service from container
-                        $service = $this->container->get($serviceClass);
+                        $provider = $options['options_provider'];
+                        $params = $options['options_provider_params'] ?? [];
+                        $resolvedOptions = [];
 
-                        // Call provider method with parameters from config and potentially the current pageName
-                        // ✅ CHANGE: Pass only the parameters from $params.
-                        //    If getSelectChoices needs $pageName, it should be included in $options_provider_params.
-                        $resolvedOptions = $service->$methodName(...array_values($params));
+                        // ✅ REFACTORED: Add robust logic to handle interfaces, classes with static methods, and instance methods
+                        if (is_array($provider) && count($provider) === 2) {
+                            [$className, $methodName] = $provider;
+
+                            if (interface_exists($className)) {
+                                // If it's an interface, it MUST be resolved as a service from the container.
+                                $service = $this->container->get($className);
+                                $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName for getSelectChoices
+                                $resolvedOptions = $service->$methodName(...$allParams);
+                            } elseif (class_exists($className)) {
+                                // If it's a concrete class (like an Enum or a static helper class)
+                                $reflection = new \ReflectionMethod($className, $methodName);
+
+                                if ($reflection->isStatic()) {
+                                    // Handle static method calls (e.g., for Enums like TestyStatus::toSelectArray)
+                                    $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName for static methods too
+                                    $resolvedOptions = $className::$methodName(...$allParams);
+                                } else {
+                                    // Handle instance method calls on a service from the container
+                                    $service = $this->container->get($className);
+                                    $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName
+                                    $resolvedOptions = $service->$methodName(...$allParams);
+                                }
+                            } else {
+                                // Neither a class nor an interface exists with this name.
+                                $this->logger->error(sprintf(
+                                    '❌ Invalid options_provider: Class or interface "%s" not found for field "%s". Expected [ClassName::class, "methodName"].',
+                                    $className,
+                                    $fieldName
+                                ));
+                                // Instead of 'continue', throw an exception that will be caught below
+                                throw new \InvalidArgumentException('Options provider class or interface not found.');
+                            }
+                        } else {
+                            $this->logger->error(sprintf(
+                                '❌ Invalid options_provider format for field "%s". Expected [ClassName::class, "methodName"].',
+                                $fieldName
+                            ));
+                            // Instead of 'continue', throw an exception that will be caught below
+                            throw new \InvalidArgumentException('Invalid options provider format.');
+                        }
 
                         // Store the resolved options in the 'choices' key for the renderer
                         $options['choices'] = $resolvedOptions;
@@ -201,18 +272,19 @@ abstract class AbstractFormType implements FormTypeInterface
                         // Clean up provider keys (no longer needed by the renderer)
                         unset($options['options_provider'], $options['options_provider_params']);
 
+                    // ✅ FIX: The catch block now correctly follows the try block
                     } catch (\Throwable $e) {
                         $this->logger->error(sprintf(
                             'Error resolving options_provider for field "%s" (%s::%s): %s',
                             $fieldName,
-                            $serviceClass,
-                            $methodName,
+                            $className ?? 'N/A', // Use $className if defined (from try block), else 'N/A'
+                            $methodName ?? 'N/A', // Use $methodName if defined, else 'N/A'
                             $e->getMessage()
                         ));
-                        // Fail gracefully: ensure 'options' key is an empty array if provider fails
+                        // Fail gracefully: ensure 'choices' key is an empty array if provider fails
                         $options['choices'] = [];
                     }
-                }
+                } // ✅ Closing brace for the outer 'if' block. All good.
 
 
                 if (isset($options['region'])) {

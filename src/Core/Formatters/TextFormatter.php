@@ -4,11 +4,18 @@ declare(strict_types=1);
 
 namespace Core\Formatters;
 
+use Core\I18n\I18nTranslator;
+
 /**
  * Basic text formatter with truncation and sanitization
  */
 class TextFormatter extends AbstractFormatter
 {
+    public function __construct(
+        private I18nTranslator $translator // ✅ NEW: Translator is a mandatory dependency for TextFormatter's translation logic
+    ) {
+    }
+
     public function getName(): string
     {
         return 'text';
@@ -23,16 +30,20 @@ class TextFormatter extends AbstractFormatter
     {
         $options = $this->mergeOptions($options);
 
-        // ✅ NEW: Check if a 'label' is provided (from options_provider like CodeLookupService)
+        // Check if a 'label' is provided (from options_provider like CodeLookupService)
         if (isset($options['label'])) {
             $text = (string) $options['label'];
+            // If a translator is available AND the label looks like a translation key, translate it.
+            if (str_contains($text, '.')) {
+                $text = $this->translator->get($text, pageName: $options['page_name'] ?? null);
+            }
         }
-        // ✅ NEW: Check if translation_prefix is provided (simple pattern: 'gender.f')
+        // Check if translation_prefix is provided (simple pattern: 'gender.f')
         elseif (isset($options['translation_prefix']) && isset($options['translator'])) {
             $translationKey = $options['translation_prefix'] . '.' . $value;
-            $text = $options['translator']->get($translationKey, pageName: $options['page_name'] ?? null);
+            $text = $this->translator->get($translationKey, pageName: $options['page_name'] ?? null);
         }
-        // ✅ Fallback: Use raw value
+        // Fallback: Use raw value
         elseif ($value === null) {
             return $options['null_value'] ?? '';
         } else {
@@ -88,7 +99,6 @@ class TextFormatter extends AbstractFormatter
             'suffix'     => null,
             'label'      => null, // For CodeLookupService pattern
             'translation_prefix' => null, // ✅ For simple translation pattern
-            'translator' => null, // ✅ Injected by renderer
             'page_name' => null,  // ✅ For context-aware translation
         ];
     }

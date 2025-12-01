@@ -124,7 +124,7 @@ class MaterialViewRenderer extends AbstractViewRenderer
         $output .= '<div class="mdc-data-table__cell">';
         $output .= '<label class="mdc-data-table__header-cell">' . htmlspecialchars($fieldLabel) . ':</label>';
         $output .= '<span class="mdc-data-table__cell-content">';
-        $formattedValue = $this->renderValue($fieldName, $fieldValue, $recordData, $fieldOptions);
+        $formattedValue = $this->renderValue($view->getPageName(), $fieldName, $fieldValue, $recordData, $fieldOptions);
         $output .= (string)$formattedValue;
         $output .= '</span>';
         $output .= '</div>';

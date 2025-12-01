@@ -8,7 +8,7 @@ use Core\Database\Migrations\Migration;
 use Core\Database\Schema\Blueprint;
 
 /**
- * Generated File - Date: 20251114_163242
+ * Generated File - Date: 20251129_115433
  * Migration for creating the 'testy' table.
  */
 class CreateTestyTable extends Migration
@@ -33,34 +33,34 @@ class CreateTestyTable extends Migration
             $table->foreignId('user_id')
                     ->nullable(false)
                     ->comment('User who created the record');
+            $table->json('super_powers')
+                    ->nullable(false)
+                    ->comment('JSON encoded array of user super_powers');
             $table->char('status', 1)
                     ->default('A')
-                    ->comment('P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted');
+                    ->comment('Status');
             $table->string('slug', 100)
                     ->nullable(false)
                     ->comment('Unique SEO-friendly slug for the testy');
             $table->string('title', 255)
                     ->nullable(false)
                     ->comment('Title');
-            $table->text('content')
-                    ->nullable()
-                    ->comment('Main content/body');
             $table->string('generic_text', 60)
                     ->nullable()
-                    ->comment('Generic short text');
+                    ->comment('Generic text');
+            $table->text('content')
+                    ->nullable()
+                    ->comment('Content');
             $table->integer('image_count')
                     ->nullable()
                     ->comment('Image Count');
             $table->bigInteger('cover_image_id')
                     ->nullable()
                     ->unsigned()
-                    ->comment('Optional cover image id');
+                    ->comment('Cover image id');
             $table->string('generic_code')
                     ->nullable(false)
                     ->comment('Generic Code');
-            $table->json('super_powers')
-                    ->nullable(false)
-                    ->comment('JSON encoded array of user super_powers');
             $table->date('date_of_birth')
                     ->nullable()
                     ->comment('Date of Birth');
@@ -82,12 +82,15 @@ class CreateTestyTable extends Migration
             $table->string('telephone', 20)
                     ->nullable()
                     ->comment('Telephone number');
+            $table->string('state_code', 4)
+                    ->nullable()
+                    ->comment('States');
             $table->string('gender_id', 4)
                     ->nullable()
-                    ->comment('Gender: m=Male, f=Female, o=Other, nb=Non-binary');
+                    ->comment('Gender');
             $table->string('gender_other', 50)
                     ->nullable()
-                    ->comment('If gender_id is \'o\' (Other), specify here');
+                    ->comment('Gender Other');
             $table->boolean('is_verified')
                     ->nullable(false)
                     ->default(false)
@@ -95,32 +98,32 @@ class CreateTestyTable extends Migration
             $table->boolean('interest_soccer_ind')
                     ->nullable(false)
                     ->default(false)
-                    ->comment('Interested in Soccer');
+                    ->comment('Soccer Interest');
             $table->boolean('interest_baseball_ind')
                     ->nullable(false)
                     ->default(false)
-                    ->comment('Interested in Baseball');
+                    ->comment('Baseball Interest');
             $table->boolean('interest_football_ind')
                     ->nullable(false)
                     ->default(false)
-                    ->comment('Interested in Football');
+                    ->comment('Football Interest');
             $table->boolean('interest_hockey_ind')
                     ->nullable(false)
                     ->default(false)
-                    ->comment('Interested in Hockey');
+                    ->comment('Hockey Interest');
             $table->string('primary_email', 255)
                     ->nullable()
-                    ->comment('Primary email address');
+                    ->comment('Primary email');
             $table->string('secret_code_hash', 100)
                     ->nullable()
                     ->comment('Secret code hash');
             $table->decimal('balance', 10, 2)
                     ->nullable(false)
                     ->default(0.0)
-                    ->comment('Account balance, max 100,000');
+                    ->comment('Balance');
             $table->decimal('generic_decimal', 10, 5)
                     ->nullable()
-                    ->comment('Generic Decimal value');
+                    ->comment('Generic Decimal');
             $table->integer('volume_level')
                     ->nullable()
                     ->unsigned()
@@ -139,29 +142,30 @@ class CreateTestyTable extends Migration
                     ->comment('Generic Number');
             $table->string('generic_color', 20)
                     ->nullable()
-                    ->comment('Favorite color');
+                    ->comment('Generic color');
             $table->time('wake_up_time')
                     ->nullable()
                     ->comment('Wake up time');
             $table->string('favorite_week_day', 10)
                     ->nullable()
-                    ->comment('Favorite day of the week');
+                    ->comment('Favorite weekday');
             $table->string('online_address', 255)
                     ->nullable()
-                    ->comment('Online address or profile URL');
+                    ->comment('Online address');
             $table->string('profile_picture', 255)
                     ->nullable()
-                    ->comment('Path to uploaded profile picture');
+                    ->comment('profile picture');
             $table->dateTime('created_at')
                     ->nullable(false)
-                    ->comment('Timestamp when the record was created');
+                    ->comment('Created Date');
             $table->dateTime('updated_at')
                     ->nullable(false)
-                    ->comment('Timestamp when the record was last updated');
+                    ->comment('Last update');
 
             // CHECK Constraints
-            $table->check('status IN (\'P\',\'A\',\'S\',\'B\',\'D\')', 'chk_testy_status');
-            $table->check('gender_id IN (\'m\',\'f\',\'o\',\'nb\')', 'chk_testy_gender_id');
+            $table->check('status IN (\'J\', \'P\',\'A\',\'S\',\'B\',\'D\')', 'chk_testy_status');
+            $table->check('state_code IN (\'ca,\'nj,\'al\',\'tx\',\'ny\')', 'chk_testy_state_code');
+            $table->check('gender_id IN (\'m\',\'f\',\'o\',\'nb\',\'pns\')', 'chk_testy_gender_id');
             $table->check('balance >= 0 AND balance <= 100000', 'chk_testy_balance');
 
             // Foreign Keys

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251127_122004
+ * Generated File - Date: 20251129_160212
  * Language File for testy_main.
  *
  * This file provides localized strings for the application, specifically for a given entity.
@@ -19,10 +19,58 @@
 declare(strict_types=1);
 
 return [
+    'code' => [
+        'testy_status' => [
+            'p' => 'Pending',
+            'a' => 'Active',
+            's' => 'Suspended',
+            'b' => 'Banned',
+            'd' => 'Deleted',
+        ],
+        'state_code' => [
+            'ca' => 'California',
+            'nj' => 'New Jersey',
+            'al' => 'Alabama',
+            'tx' => 'Texas',
+            'ny' => 'New York',
+        ],
+        'gender' => [
+            'm' => 'Male',
+            'f' => 'Female',
+            'o' => 'Other',
+            'nb' => 'Non-binary',
+            'pns' => 'Prefer not to say',
+        ],
+        'bool_yes_no_code' => [
+            '1' => 'Yes',
+            '0' => 'No',
+        ],
+    ],
+
+    // 'label' => [
+    //     'yes' => 'Yes',
+    //     'no'  => 'No',
+    // ],
 
     'id' => [
         'list' => [
             'label'       => 'xID',
+        ],
+    ],
+    'status' => [
+        'list' => [
+            'label'       => 'xStatus',
+        ],
+        'form' => [
+            'label'       => 'xStatus',
+            'default_choice' => 'Please select your Testy status.',
+        ],
+        'formatters' => [
+
+        ],
+        'validation' => [
+                    'required'  => 'Testy xStatus is required.',
+                'invalid'   => 'Invalid Testy xStatus.',
         ],
     ],
     'generic_text' => [
@@ -46,13 +94,29 @@ return [
                 'forbidden' => 'This Testy xGeneric text is not allowed.',
         ],
     ],
+    'state_code' => [
+        'list' => [
+            'label'       => 'xStates',
+        ],
+        'form' => [
+            'label'       => 'xStates',
+            'default_choice' => 'Please select your Testy xStates.',
+        ],
+        'formatters' => [
+
+        ],
+        'validation' => [
+                    'required'  => 'Testy xStates is required.',
+                'invalid'   => 'Invalid Testy xStates.',
+        ],
+    ],
     'gender_id' => [
         'list' => [
             'label'       => 'xGender',
         ],
         'form' => [
             'label'       => 'xGender',
-            'default_choice' => 'Please select your Testy xGender.',
+//             'default_choice' => 'Please select your Testy xGender.',
         ],
         'formatters' => [
 
@@ -60,11 +124,21 @@ return [
         'validation' => [
                     'required'  => 'Testy xGender is required.',
                 'invalid'   => 'Invalid Testy xGender.',
-                'minlength' => 'Testy xGender must be at least %d characters.',
-                'maxlength' => 'Testy xGender must not exceed %d characters.',
-                'pattern'   => 'Testy xGender does not match the required pattern.',
-                'allowed'   => 'Please select a valid Testy xGender.',
-                'forbidden' => 'This Testy xGender is not allowed.',
+        ],
+    ],
+    'is_verified' => [
+        'list' => [
+            'label'       => 'xIs Verified',
+        ],
+        'form' => [
+            'label'       => 'xIs Verified',
+        ],
+        'formatters' => [
+
+        ],
+        'validation' => [
+                    'required'  => 'Testy xIs Verified is required.',
+                'invalid'   => 'Invalid Testy xIs Verified.',
         ],
     ],
     'primary_email' => [

@@ -18,11 +18,11 @@ enum TestyStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING => 'Pending',
-            self::ACTIVE => 'Active',
-            self::SUSPENDED => 'Suspended',
-            self::BANNED => 'Banned',
-            self::DELETED => 'Deleted',
+            self::PENDING   => 'code.testy_status.p', // 'Pending',
+            self::ACTIVE    => 'code.testy_status.a', // 'Active',
+            self::SUSPENDED => 'code.testy_status.s', // 'Suspended',
+            self::BANNED    => 'code.testy_status.b', // 'Banned',
+            self::DELETED   => 'code.testy_status.d', // 'Deleted',
         };
     }
 

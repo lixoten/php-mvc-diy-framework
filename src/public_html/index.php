@@ -38,6 +38,30 @@ date_default_timezone_set('America/Los_Angeles');
 // Composer autoloader
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+
+// // ✅ NEW: TEMPORARY AUTOLOADING DEBUGGING BLOCK
+// // Check if the CodeLookupServiceInterface can be loaded directly.
+// $interfaceFqcn = 'Core\\Interfaces\\CodeLookupServiceInterface';
+// if (class_exists($interfaceFqcn)) {
+//     error_log("DEBUG: {$interfaceFqcn} - EXISTS via autoloader.");
+// } else {
+//     // Attempt to manually require it if autoloader fails, to see if file path is the issue.
+//     $manualPath = __DIR__ . '/../src/Core/Interfaces/CodeLookupServiceInterface.php';
+//     if (file_exists($manualPath)) {
+//         require_once $manualPath;
+//         if (class_exists($interfaceFqcn)) {
+//             error_log("DEBUG: {$interfaceFqcn} - EXISTS after manual require. Autoloader issue suspected.");
+//         } else {
+//             error_log("DEBUG: {$interfaceFqcn} - File found, but class_exists still FALSE after manual require. Namespace mismatch or fatal error in file?");
+//         }
+//     } else {
+//         error_log("DEBUG: {$interfaceFqcn} - File does NOT exist at expected path: {$manualPath}");
+//     }
+// }
+// // ❌ END TEMPORARY AUTOLOADING DEBUGGING BLOCK
+
+
+
 use App\Helpers\DebugRt;
 use Core\ErrorHandler;
 use Core\Router;

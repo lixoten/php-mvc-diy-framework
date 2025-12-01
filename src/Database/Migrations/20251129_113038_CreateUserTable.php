@@ -8,7 +8,7 @@ use Core\Database\Migrations\Migration;
 use Core\Database\Schema\Blueprint;
 
 /**
- * Generated File - Date: 20251109_201405
+ * Generated File - Date: 20251129_113038
  * Migration for creating the 'user' table.
  */
 class CreateUserTable extends Migration

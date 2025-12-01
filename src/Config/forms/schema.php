@@ -171,7 +171,7 @@ return [
             'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
 
             'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            // 'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
+            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
             'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
             'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
             'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],

@@ -1414,7 +1414,9 @@ return [
 
 
     // Core Components - Pure autowiring
-    'formatterz.text'      => \DI\autowire(\Core\Formatters\TextFormatter::class),
+    'formatterz.text'      => \DI\autowire(\Core\Formatters\TextFormatter::class)
+        ->constructorParameter('translator', \DI\get(I18nTranslator::class)),
+
     'formatterz.tel'       => \DI\autowire(\Core\Formatters\PhoneNumberFormatter::class),
     'formatterz.email'     => \DI\autowire(\Core\Formatters\EmailFormatter::class),
     // 'formatterz.image'     => \DI\autowire(\Core\Formatters\ImageFormatter::class),

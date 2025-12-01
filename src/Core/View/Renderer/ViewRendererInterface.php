@@ -47,11 +47,12 @@ interface ViewRendererInterface
     /**
      * Render a field's value with appropriate formatting.
      *
+     * @param string $pageName The name of the field.
      * @param string $fieldName The name of the field.
      * @param mixed $value The raw value to render.
      * @param array<string, mixed> $recordData The complete record data.
      * @param array<string, mixed> $fieldDef The field's definition.
      * @return string The formatted value as HTML.
      */
-    public function renderValue(string $fieldName, mixed $value, array $recordData, array $fieldDef): string;
+    public function renderValue(string $pageName, string $fieldName, mixed $value, array $recordData, array $fieldDef): string;
 }

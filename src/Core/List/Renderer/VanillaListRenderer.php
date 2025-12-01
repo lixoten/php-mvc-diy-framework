@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\List\Renderer;
 
+use Core\I18n\I18nTranslator;
 use Core\List\ListInterface;
 use Core\List\ListView;
 use Core\Services\FormatterService;
@@ -25,12 +26,14 @@ class VanillaListRenderer extends AbstractListRenderer
      */
     public function __construct(
         ThemeServiceInterface $themeService,
+        protected I18nTranslator $translator,
         FormatterService $formatterService,
         LoggerInterface $logger,
         ContainerInterface $container
     ) {
         parent::__construct(
             $themeService,
+            $translator,
             $formatterService,
             $logger,
             $container
@@ -185,7 +188,7 @@ class VanillaListRenderer extends AbstractListRenderer
             foreach (array_keys($list->getColumns()) as $columnName) {
                 $columns = $list->getColumns();
                 $value = $record[$columnName] ?? null;
-                $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
+                $output .= '<td>' . $this->renderValue($list->getPageName(), $columnName, $value, $record, $columns) . '</td>';
             }
 
             // Render actions
@@ -261,7 +264,7 @@ class VanillaListRenderer extends AbstractListRenderer
                     $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
                     $output .= '<p>';
                     $output .= '<span class="field-label">' . htmlspecialchars($fieldLabel) . ':</span> ';
-                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns);
                     $output .= '</p>';
                 }
             }
@@ -338,7 +341,7 @@ class VanillaListRenderer extends AbstractListRenderer
                     $output .= '<span class="field-label">' .
                         htmlspecialchars($columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field))) .
                         ':</span> ';
-                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns);
                     $output .= '</div>';
                 }
             }

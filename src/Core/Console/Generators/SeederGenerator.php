@@ -138,7 +138,7 @@ use Core\Database\Seeders\Seeder;
 use Core\Database\ConnectionInterface;
 
 /**
- * Generated File - Date: {$generatedTimestamp}
+ * ferated File - Date: {$generatedTimestamp}
  * Seeder for '{$tableName}' table.
  *
  * @package   MVC LIXO Framework
@@ -172,6 +172,9 @@ class {$className} extends Seeder
         \$inserted = 0;
         foreach (\$records as \$record) {
             // Assuming 'slug' is the unique field for createIfNotExists
+            \$record['user_id'] = random_int(1, 6);
+            \$record['store_id'] = random_int(1, 14);
+
             //if (\$this->createIfNotExists('{$tableName}', \$record, ['slug'])) {
             if (\$this->createIfNotExists('{$tableName}', \$record, {$uniqueCheckString})) {
                 \$inserted++;

@@ -4,8 +4,6 @@
 need to add all the fields resourced to generate lang.
 
 
-need to update generate fields... we remove 'testy.' and 'common.'
-
 
 
 

@@ -42,26 +42,71 @@ return [
      */
     'gender' => [
         'm'  => [
-            'label'   => 'gender.male',
+            'label'   => 'code.gender.m',
             'variant' => 'info',        // Semantic variant (Bootstrap: badge-info, Material: mdc-theme--info)
         ],
         'f'  => [
-            'label'   => 'gender.female',
+            'label'   => 'code.gender.f',
             'variant' => 'primary',
         ],
         'o'  => [
-            'label'   => 'gender.other',
+            'label'   => 'code.gender.o',
             'variant' => 'secondary',
         ],
         'nb' => [
-            'label'   => 'gender.non_binary',
+            'label'   => 'code.gender.nb',
             'variant' => 'dark',
         ],
         'pns' => [
-            'label'   => 'gender.prefer_not_to_say',
+            'label'   => 'code.gender.pns',
             'variant' => 'dark',
         ],
     ],
+
+    // Boolean Yes/No Lookup
+    // Used by: is_verified and other boolean fields
+    // Database: Stored as TINYINT(1) or BOOLEAN
+    'bool_yes_no_code' => [
+        '0' => [ // False
+            'label'   => 'code.bool_yes_no_code.0',
+            'variant' => 'danger', // Semantic variant for 'No'
+        ],
+        '1' => [ // True
+            'label'   => 'code.bool_yes_no_code.1',
+            'variant' => 'success', // Semantic variant for 'Yes'
+        ],
+    ],
+
+
+
+    /**
+     * State Codes
+     *
+     * Used by: state_code field in various entities
+     * Database: Stored as CHAR(4) with CHECK constraint
+     */
+    'state_code' => [
+            'ca'  => [
+                'label'   => 'code.state_code.ca',
+            ],
+            'nj'  => [
+                'label'   => 'code.state_code.nj',
+            ],
+            'tx'  => [
+                'label'   => 'code.state_code.tx',
+            ],
+            'al' => [
+                'label'   => 'code.state_code.al',
+            ],
+            'ny' => [
+                'label'   => 'code.state_code.ny',
+            ],
+        ],
+
+
+
+
+
 
     /**
      * Payment Type Codes

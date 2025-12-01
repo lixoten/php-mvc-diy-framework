@@ -187,6 +187,7 @@ class LangFileGenerator
             $fieldDefinitionsString2 = implode("\n", $fieldDefinitions2);
         }
 
+        $codeSection = [];
         foreach ($this->fields as $fieldName => $config) {
             if ($this->configType === 'main') {
                 if (
@@ -195,6 +196,9 @@ class LangFileGenerator
                         [
                             'id',
                             'gender_id',
+                            'state_code',
+                            'status',
+                            'is_verified',
                             'generic_text',
                             'primary_email',
                         ]
@@ -215,6 +219,9 @@ class LangFileGenerator
                             'id',
                             'generic_text',
                             'gender_id',
+                            'state_code',
+                            'status',
+                            'is_verified',
                             'primary_email',
                             // 'slug',
                             'status',
@@ -241,8 +248,38 @@ class LangFileGenerator
                 $skipValidator = true;
             }
 
+            $s04 = '    ';
             $s08 = '        ';
+            $s12 = '            ';
+            $s16 = '                ';
             $sections = [];
+            if (isset($config['lookup']) && isset($config['codes']) && is_array($config['codes'])) {
+                $lookup = $config['lookup'];
+
+                $codes = [];
+                foreach ($config['codes'] as $code => $value) {
+                    $codes[] = <<<PHP
+                    $s12'$code' => '{$value}',
+                    PHP;
+                }
+
+                $codeString = implode("\n", $codes);
+
+                $block = <<<PHP
+                $s04'{$lookup}' => [
+                $codeString
+                $s08],
+                PHP;
+
+                $codeSection[] = <<<PHP
+                $s04$block
+                PHP;
+            }
+
+
+
+
+
             if (!$skipList) {
                 $temp =  $this->getCodeBlock(
                     fieldName:
@@ -308,6 +345,17 @@ class LangFileGenerator
     PHP;
         }
 
+
+        $codeSectionString = implode("\n", $codeSection);
+
+        $codeSectionString = <<<PHP
+            $s04'code' => [
+            {$codeSectionString}
+                ],
+            PHP;
+        $codeSectionString = $this->cleanBlock($codeSectionString);
+        //$fieldDefinitions2 = $this->formatLanguageArrayRecursive($xArray, 1); // Start at indent level 1
+
         $fieldDefinitionsString = implode("\n", $fieldDefinitions);
 
         $php = <<<PHP
@@ -332,6 +380,7 @@ class LangFileGenerator
 declare(strict_types=1);
 
 return [
+{$codeSectionString}
 {$fieldDefinitionsString2}
 {$fieldDefinitionsString}
 ];
@@ -408,19 +457,50 @@ PHP;
                     $s08'label'       => '{$wordSentence}',
                     PHP;
                 } elseif ($blockName === 'form') {
+                    // $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
                     $block = <<<PHP
                     $s08'label'       => '{$wordSentence}',
-                    $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
                         $s12'required'  => '{$focusName}{$wordSentence} is required.',
                         $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
-                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
-                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
-                        $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
-                        $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
-                        $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
+                    PHP;
+                }
+                break;
+            // radio_group /////////////////////////////////////////////////////////
+            case 'radio_group':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    // $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                        $s12'required'  => '{$focusName}{$wordSentence} is required.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                    PHP;
+                }
+                break;
+            // checkbox /////////////////////////////////////////////////////////
+            case 'checkbox':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    // $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                        $s12'required'  => '{$focusName}{$wordSentence} is required.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
                     PHP;
                 }
                 break;
@@ -480,6 +560,23 @@ PHP;
 
         return $block;
     }
+
+
+    private function cleanBlock($block): string
+    {
+        // 1. Split the string into an array of lines
+        $lines = explode("\n", $block);
+        // 2. Filter out empty lines (after trimming whitespace from each line)
+        $filteredLines = array_filter($lines, function (string $line): bool {
+            return trim($line) !== '';
+        });
+
+        // 3. Join the remaining lines back into a single string
+        $cleanBlock = implode("\n", $filteredLines);
+
+        return $cleanBlock;
+    }
+
 
 
     /**

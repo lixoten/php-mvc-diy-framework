@@ -176,6 +176,7 @@ Understanding Settings.json
             - `99999999_999999_CreateRememberTokenTable.php`
         - Delete all others as in create testy, user, store
     - delete folder 'Generated', it will be recreated automatically
+        - in `src\Generated`
 3. Edit all the file u need as in create, seed and schema
 
 4. Lets create migration files... ex: `20251108_103708_CreateUserTable.php`
@@ -214,15 +215,25 @@ Understanding Settings.json
     - `php bin/console.php migrate:one 20251102_084221_CreateUserTable`
         - This will run a SINGLE migration files. You will need full file name.
         - if you use 'one' make sure to run the rest individually too
+    - Migrate the rest. `store`, `testy`
 
 
-8. Generate Language Files
+8. Next we run seed to populate data
+    - `php bin/console.php seed user`
+    - `php bin/console.php seed store`
+    - `php bin/console.php seed testy`
+
+
+
+
+
+9. Generate Language Files
     - `php bin/console.php make:lang-file Testy`
         - This will generate `testy_lang.php` file in `src/Generated/Testy` directory. you still have to move it later.
     - `php bin/console.php make:lang-file Testy common` // fixme this is a problem - wrong location, what happen when we run user coomon?
         - This will generate `common_lang.php` file in `src/Generated/Testy` directory. you still have to move it later.
 
-8. Generate Config Fields Files
+10. Generate Config Fields Files
     - `php bin/console.php make:config-fields Testy root`
         - - this will generate a list of fields for the root.
         - - D:\xampp\htdocs\my_projects\mvclixo/src/Generated/Testy/testy_fields_root.php

@@ -68,8 +68,8 @@ class I18nTranslator implements TranslatorInterface
 
         // Attempt to find the specific translation using the dynamically resolved key
         $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
-        if (is_string($resolvedValue)) { // findloc - c
-            $current = $resolvedValue . ' - ' . substr($specificLookupKey, 0, 1);
+        if (is_string($resolvedValue)) { // findme - c lang
+            $current = $resolvedValue . '*';  // findme - * lang
         }
 
         if (is_string($current)) {
@@ -84,7 +84,7 @@ class I18nTranslator implements TranslatorInterface
         $specificLookupKey = implode('.', $keySegments);
         $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
         if (is_string($resolvedValue)) {
-            $current = $resolvedValue . ' -' . substr($specificLookupKey, 0, 1);
+            $current = $resolvedValue . '~'; // findme - ~ lang
         }
         if (is_string($current)) {
             return $this->replacePlaceholders($current, $replacements);

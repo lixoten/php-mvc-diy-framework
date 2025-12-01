@@ -41,10 +41,11 @@ return [
     'list_fields' => [
         'id',
         // 'title',
-        // 'is_verified',
+        'is_verified',
         'generic_text',
         'gender_id',
-        // 'status',
+        'state_code',
+        'status',
         // 'super_powers',
         // 'telephone',
         'primary_email',

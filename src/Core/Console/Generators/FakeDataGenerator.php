@@ -113,6 +113,14 @@ class FakeDataGenerator
             }
             return $this->faker->randomElement(['m', 'f', 'o', 'nb']);
         }
+        if (str_contains($fieldName, 'state_code')) {
+            // If check constraint exists, use it, otherwise default to common genders
+            if (isset($fieldConfig['check'])) {
+                $enumOptions = $this->parseEnumCheckConstraint($fieldConfig['check']);
+                return $this->faker->randomElement($enumOptions);
+            }
+            return $this->faker->randomElement(['ca', 'nj', 'tx', 'ok']);
+        }
         if (str_contains($fieldName, 'count')) {
             return $this->faker->numberBetween(0, 10);
         }

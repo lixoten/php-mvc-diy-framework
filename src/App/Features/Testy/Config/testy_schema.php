@@ -62,6 +62,15 @@ return [
             'comment2'  => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
             'check'     => "status IN ('J', 'P','A','S','B','D')", // Using CHECK constraint as per instructions
             // 'comment'   => 'P=Pending, A=Active, I=Inactive',
+            'lookup'    => 'testy_status',
+            'enum_class' => 'TestyStatus',
+            'codes'     => [
+                'P'  => 'Pending',
+                'A'  => 'Active',
+                'S'  => 'Suspended',
+                'B' => 'Banned',
+                'D' => 'Deleted',
+            ],
         ],
         'slug' => [
             'db_type'   => 'string',
@@ -168,6 +177,25 @@ return [
                 // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
                 // 'xxstyle' => 'background: cyan;',
         ],
+        'state_code' => [
+            'db_type'   => 'string',
+            'length'    => 4,
+            'nullable'  => true,
+            'comment'   => "States",
+            'comment2'  => "States: ca=California, nj=New Jersey",
+            'required'  => true,
+            'check'     => "state_code IN ('ca','nj','al','tx','ny')",
+            'lookup'    => 'state_code',
+            'codes'     => [
+                'ca'  => 'California',
+                'nj'  => 'New Jersey',
+                'al'  => 'Alabama',
+                'tx'  => 'Texas',
+                'ny'  => 'New York',
+            ],
+            'form_input_type' => 'select',
+            'form_layout'     => 'vertical',
+        ],
         'gender_id' => [
             'db_type'   => 'string',
             'length'    => 4,
@@ -199,6 +227,12 @@ return [
             'nullable'  => false,
             'default'   => false,
             'comment'   => 'Is Verified',
+            'lookup'    => 'bool_yes_no_code',
+            'codes'     => [
+                '1' => 'Yes',
+                '0'  => 'No',
+            ],
+
         ],
         'interest_soccer_ind' => [
             'db_type'   => 'boolean',

@@ -125,9 +125,11 @@ class ConfigFieldsGenerator
                             'generic_text',
                             'primary_email',
                             // 'slug',
-                            // 'status',
+                            'status',
                             // 'super_powers',
                             'gender_id',
+                            'state_code',
+                            'is_verified',
                             // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )
@@ -193,8 +195,9 @@ class ConfigFieldsGenerator
 
 
 
-
             $formAttr = $this->getFormAttr($fieldName, $config, $fieldType);
+            $formOptionsProvider = $this->getFormOptionsProvider($fieldName, $config);
+            $formatterOptionsProvider = $this->getFormatterOptionsProvider($fieldName, $config);
 
             $skipList      = false;
             $skipForm      = false;
@@ -228,7 +231,8 @@ class ConfigFieldsGenerator
                     fieldName: $fieldName,
                     type: $fieldType,
                     blockName: 'form',
-                    formAttr: $formAttr
+                    formAttr: $formAttr,
+                    formOptionsProvider: $formOptionsProvider
                 );
                 $sections[] = <<<PHP
                     $s08'form' => [
@@ -241,7 +245,8 @@ class ConfigFieldsGenerator
                     config: $config,
                     fieldName: $fieldName,
                     type: $fieldType,
-                    blockName: 'formatter'
+                    blockName: 'formatter',
+                    formatterOptionsProvider: $formatterOptionsProvider
                 );
                 $sections[] = <<<PHP
                     $s08'formatters' => [
@@ -322,8 +327,8 @@ PHP;
                 // $formAttr[] = "$spaces'class'       => 'form-select',";
             }
 
-            if (in_array($config['db_type'], ['string'])) {
-            // if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group'])) {
+            //if (in_array($config['db_type'], ['string'])) {
+            if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group', 'checkbox', 'checkbox_group'])) {
                 if (isset($config['required']) && $config['required']) {
                     $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
                 } else {
@@ -363,7 +368,8 @@ PHP;
                 }
             }
 
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
+            if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group', 'checkbox', 'checkbox_group'])) {
+            // if (in_array($fieldType, ['text', 'textarea', 'email'])) {
                 if ((isset($config['style']))) {
                     $formAttr[] = "$spaces'style'       => {$config['style']},";
                 } else {
@@ -420,12 +426,86 @@ PHP;
         return $formAttr;
     }
 
+
+    protected function getFormOptionsProvider(
+        string $fieldName,
+        array $config,
+        // string $fieldType,
+    ): ?string {
+        // return null;
+        $s12 = '            ';
+        if (isset($config['lookup'])) {
+            $lookup = $config['lookup'];
+
+            if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+                $numClass = $config['enum_class'];
+                $temp[] = "$s12'options_provider' => [\App\Enums\\{$numClass}::class, 'toSelectArray'],";
+            } elseif (isset($config['db_type']) && $config['db_type'] === 'boolean') {
+                return null;
+            } else {
+                $temp[] = "$s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, " .
+                                                                                                 "'getSelectChoices'],";
+                $temp[] = "$s12'options_provider_params' => ['type' => '{$lookup}'],";
+            }
+
+            if (isset($config['form_input_type']) && $config['form_input_type'] === 'radio_group') {
+                $temp[] = "$s12// 'default_choice'   => '{$fieldName}.form.default_choice',";
+            } else {
+                $temp[] = "$s12'default_choice'   => '{$fieldName}.form.default_choice',";
+            }
+            // $temp[] = "xxx";
+            $temp = implode("\n", $temp);
+            return $temp;
+        }
+
+        return null;
+    }
+
+    protected function getFormatterOptionsProvider(
+        string $fieldName,
+        array $config,
+        // string $fieldType,
+    ): ?string {
+        // return null;
+        $s12 = '            ';
+        $s16 = '                ';
+        if (isset($config['lookup'])) {
+            $lookup = $config['lookup'];
+
+            // if ($config['db_type'] === 'enum') {
+            if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+                $numClass = $config['enum_class'];
+                $temp[] = "$s12'text' => [";
+                $temp[] = "    $s12'options_provider' => [\App\Enums\\{$numClass}::class, 'getFormatterOptions'],";
+                $temp[] = "$s12],";
+                $temp[] = "$s12// 'badge' => [";
+                $temp[] = "$s12//     'options_provider' => [TestyStatus::class, 'getFormatterOptions'],";
+                $temp[] = "$s12// ],";
+            } else {
+                $temp[] = "$s12'text' => [";
+                $temp[] = "    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, " .
+                                                                                              "'getFormatterOptions'],";
+                $temp[] = "    $s12'options_provider_params' => ['type' => '{$lookup}'],";
+                $temp[] = "$s12],";
+            }
+            // $temp[] = "xxx";
+
+            $temp = implode("\n", $temp);
+            return $temp;
+        }
+
+        return null;
+    }
+
+
     protected function getCodeBlock(
         array $config = null,
         string $fieldName,
         string $type,
         string $blockName,
-        string $formAttr = null
+        string $formAttr = null,
+        string $formOptionsProvider = null,
+        string $formatterOptionsProvider = null
     ): string {
         $block = '';
         $s04 = '    ';
@@ -434,6 +514,11 @@ PHP;
         $s14 = '                ';
         $s16 = '                    ';
         $snn = '    ';
+
+
+
+
+
         switch ($type) {
             case 'number':
                 # code...
@@ -533,26 +618,28 @@ PHP;
                     $s12'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
+                    // $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
+                    // $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    // $s12'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
                     $lookup = $config['lookup'];
                     $block = <<<PHP
                     $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'type'       => '{$type}',
-                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
-                    $s12'options_provider_params' => ['type' => '{$lookup}'],
-                    $s12'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
+                    $formOptionsProvider
                     $s12'attributes' => [
                     $formAttr
                     $s12],
                     PHP;
                 } elseif ($blockName === 'formatter') {
+                    // $s12'text' => [
+                    //     $s12'options_provider' => [
+                    //         $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
+                    //     $s12],
+                    //     $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    // $s12],
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $s12'text' => [
-                        $s12'options_provider' => [
-                            $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
-                        $s12],
-                        $s12'options_provider_params' => ['type' => '{$lookup}'],
-                    $s12],
+                    $formatterOptionsProvider
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
@@ -573,13 +660,48 @@ PHP;
                     $s12'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
+                    // $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
+                    // $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    // $s12// 'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
                     $lookup = $config['lookup'];
                     $block = <<<PHP
                     $s08'label'      => '{$fieldName}.{$blockName}.label',
                     $s12'type'       => '{$type}',
-                    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
-                    $s12'options_provider_params' => ['type' => '{$lookup}'],
-                    $s12// 'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
+                    $formOptionsProvider
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    // $s12'text' => [
+                    //     $s12'options_provider' => [
+                    //         $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
+                    //     $s12],
+                    //     $s12'options_provider_params' => ['type' => '{$lookup}'],
+                    // $s12],
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $formatterOptionsProvider
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                    $s08'{$type}' => [
+                        $s12'required_message'  => '{$fieldName}.validation.required',
+                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                    $s12],
+                    PHP;                }
+                break;
+            // checkbox /////////////////////////////////////////////////////
+            case 'checkbox':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    $s12'type'       => '{$type}',
                     $s12'attributes' => [
                     $formAttr
                     $s12],
@@ -587,12 +709,10 @@ PHP;
                 } elseif ($blockName === 'formatter') {
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $s12'text' => [
-                        $s12'options_provider' => [
-                            $s16\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
-                        $s12],
-                        $s12'options_provider_params' => ['type' => '{$lookup}'],
-                    $s12],
+                    $formatterOptionsProvider
+                    $s12// 'badge' => [
+                    $s12//     'options_provider' => [\App\Features\Testy\Testy::class, 'getIsVerifiedBadgeOptions'],
+                    $s12// ],
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
@@ -735,7 +855,17 @@ PHP;
                 break;
         }
 
-        return $block;
+        // 1. Split the string into an array of lines
+        $lines = explode("\n", $block);
+        // 2. Filter out empty lines (after trimming whitespace from each line)
+        $filteredLines = array_filter($lines, function (string $line): bool {
+            return trim($line) !== '';
+        });
+
+        // 3. Join the remaining lines back into a single string
+        $cleanBlock = implode("\n", $filteredLines);
+
+        return $cleanBlock;
     }
 
 
@@ -803,7 +933,9 @@ PHP;
         $length = $config['length'] ?? 0;
 
         if (isset($config['codes']) && is_array($config['codes'])) {
-            if (isset($config['form_input_type'])) {
+            if ($config['db_type'] === 'boolean') {
+                return 'checkbox';
+            } elseif (isset($config['form_input_type'])) {
                 return $config['form_input_type'];
             } else {
                 return 'select';

@@ -150,7 +150,7 @@ class VanillaViewRenderer extends AbstractViewRenderer
         $output .= '<div class="vanilla-field-wrapper">';
         $output .= '<strong class="vanilla-field-label">' . htmlspecialchars($fieldLabel) . ':</strong> ';
         $output .= '<span class="vanilla-field-value">';
-        $formattedValue = $this->renderValue($fieldName, $fieldValue, $recordData, $fieldOptions);
+        $formattedValue = $this->renderValue($view->getPageName(), $fieldName, $fieldValue, $recordData, $fieldOptions);
         $output .= (string)$formattedValue;
         $output .= '</span>';
         $output .= '</div>';

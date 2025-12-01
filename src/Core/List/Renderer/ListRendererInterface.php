@@ -34,13 +34,14 @@ interface ListRendererInterface
     /**
      * Render column value with appropriate formatting
      *
+     * @param string $pageName The page name as in 'Testy'
      * @param string $column The column name
      * @param mixed $value The value to render
      * @param array<string, mixed> $record The complete record data
      * @param array<string, mixed> $columns Column definitions
      * @return string The formatted value as HTML
      */
-    public function renderValue(string $column, $value, array $record, array $columns = []): string;
+    public function renderValue(string $pageName, string $column, $value, array $record, array $columns = []): string;
 
     /**
      * Render actions for a record

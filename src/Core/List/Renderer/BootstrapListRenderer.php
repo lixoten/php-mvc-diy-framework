@@ -24,13 +24,14 @@ class BootstrapListRenderer extends AbstractListRenderer
      */
     public function __construct(
         protected ThemeServiceInterface $themeService,
-        private I18nTranslator $translator,
+        protected I18nTranslator $translator,
         protected FormatterService $formatterService,
         protected LoggerInterface $logger,
         protected ContainerInterface $container
     ) {
         parent::__construct(
             $themeService,
+            $translator,
             $formatterService,
             $logger,
             $container
@@ -176,7 +177,7 @@ class BootstrapListRenderer extends AbstractListRenderer
             foreach (array_keys($list->getColumns()) as $columnName) {
                 $columns = $list->getColumns();
                 $value = $record[$columnName] ?? null;
-                $output .= '<td>' . $this->renderValue($columnName, $value, $record, $columns) . '</td>';
+                $output .= '<td>' . $this->renderValue($list->getPageName(), $columnName, $value, $record, $columns) . '</td>';
             }
 
             // Render actions
@@ -225,7 +226,7 @@ class BootstrapListRenderer extends AbstractListRenderer
             if ($imageField && !empty($record[$imageField])) {
                 //$imageValue = $record[$imageField];
                 // $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
-                $imageUrl = $this->renderValue($imageField, $record[$imageField], $record, $columns);
+                $imageUrl = $this->renderValue($list->getPageName(), $imageField, $record[$imageField], $record, $columns);
                 if ($imageUrl) {
                     $output .= '<img src="' . htmlspecialchars($imageUrl) . '" class="' .
                         $viewLayout['image'] . '" alt="' .
@@ -236,7 +237,7 @@ class BootstrapListRenderer extends AbstractListRenderer
             // Title
             if (isset($record[$titleField])) {
                 $output .= '<h5 class="' . $viewLayout['title'] . '">' .
-                    $this->renderValue($titleField, $record[$titleField], $record, $columns) . '</h5>';
+                    $this->renderValue($list->getPageName(), $titleField, $record[$titleField], $record, $columns) . '</h5>';
                     // htmlspecialchars((string)$record[$titleField]) . '</h5>';
                 unset($record['title']);
             }
@@ -248,7 +249,7 @@ class BootstrapListRenderer extends AbstractListRenderer
                     $fieldLabel = $columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field));
                     $output .= '<p class="' . $viewLayout['text'] . '">';
                     $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
-                    $output .= $this->renderValue($field, $record[$field], $record, $columns);
+                    $output .= $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns);
                     $output .= '</p>';
                 }
             }
@@ -304,7 +305,7 @@ class BootstrapListRenderer extends AbstractListRenderer
             if ($imageField && !empty($record[$imageField])) {
                 //$imageValue = $record[$imageField];
                 // $imageUrl = $this->getImageUrl($imageField, $imageValue, $record, $columns);
-                $imageUrl = $this->renderValue($imageField, $record[$imageField], $record, $columns);
+                $imageUrl = $this->renderValue($list->getPageName(), $imageField, $record[$imageField], $record, $columns);
                 if ($imageUrl) {
                     $output .= '<img src="' . htmlspecialchars($imageUrl) . '"
                         class="rounded me-3" style="max-width: 64px; max-height: 64px;"
@@ -327,7 +328,7 @@ class BootstrapListRenderer extends AbstractListRenderer
                 if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
                     $output .= '<div><strong>' .
                         htmlspecialchars($columns[$field]['label'] ?? ucfirst(str_replace('_', ' ', $field))) .
-                        ':</strong> ' . $this->renderValue($field, $record[$field], $record, $columns) . '</div>';
+                        ':</strong> ' . $this->renderValue($list->getPageName(),$field, $record[$field], $record, $columns) . '</div>';
                 }
             }
             $output .= '</div>';

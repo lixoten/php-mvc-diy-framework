@@ -151,7 +151,7 @@ abstract class AbstractViewRenderer implements ViewRendererInterface
      *
      * Renders a field's value with appropriate formatting using the FormatterService.
      */
-    public function renderValue(string $fieldName, mixed $value, array $recordData, array $fieldDef): string
+    public function renderValue(string $pageName, string $fieldName, mixed $value, array $recordData, array $fieldDef): string
     {
         if ($value === null) {
             return '';

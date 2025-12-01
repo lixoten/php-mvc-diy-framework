@@ -8,7 +8,7 @@ use Core\Database\Migrations\Migration;
 use Core\Database\Schema\Blueprint;
 
 /**
- * Generated File - Date: 20251109_203200
+ * Generated File - Date: 20251129_113329
  * Migration for creating the 'store' table.
  */
 class CreateStoreTable extends Migration

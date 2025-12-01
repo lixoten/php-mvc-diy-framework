@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251127_122226
+ * Generated File - Date: 20251129_154818 xxxxxxxxxxxxxxxxxxxx
  * Field definitions for the testy_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
@@ -11,14 +11,47 @@
 declare(strict_types=1);
 
 // id
+// status
 // generic_text
+// state_code
 // gender_id
+// is_verified
 // primary_email
 return [
     'id' => [
         'list' => [
             'label'      => 'id.list.label',
             'sortable'   => false,
+        ],
+    ],
+    'status' => [
+        'list' => [
+            'label'      => 'status.list.label',
+            'sortable'   => false,
+        ],
+        'form' => [
+            'label'      => 'status.form.label',
+            'type'       => 'select',
+            'options_provider' => [\App\Enums\TestyStatus::class, 'toSelectArray'],
+            'default_choice'   => 'status.form.default_choice',
+            'attributes' => [
+                'required' => true,
+                // 'style'       => 'background:yellow;',
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+                'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
+            ],
+            // 'badge' => [
+            //     'options_provider' => [TestyStatus::class, 'getFormatterOptions'],
+            // ],
+        ],
+        'validators' => [
+            'select' => [
+                'required_message'  => 'status.validation.required',
+                'invalid_message'   => 'status.validation.invalid',
+            ]
         ],
     ],
     'generic_text' => [
@@ -71,6 +104,35 @@ return [
             ],
         ],
     ],
+    'state_code' => [
+        'list' => [
+            'label'      => 'state_code.list.label',
+            'sortable'   => false,
+        ],
+        'form' => [
+            'label'      => 'state_code.form.label',
+            'type'       => 'select',
+            'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
+            'options_provider_params' => ['type' => 'state_code'],
+            'default_choice'   => 'state_code.form.default_choice',
+            'attributes' => [
+                'required'    => true,
+                // 'style'       => 'background:yellow;',
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                'options_provider_params' => ['type' => 'state_code'],
+            ],
+        ],
+        'validators' => [
+            'select' => [
+                'required_message'  => 'state_code.validation.required',
+                'invalid_message'   => 'state_code.validation.invalid',
+            ],
+        ],
+    ],
     'gender_id' => [
         'list' => [
             'label'      => 'gender_id.list.label',
@@ -78,20 +140,18 @@ return [
         ],
         'form' => [
             'label'      => 'gender_id.form.label',
-            'type'       => 'radio_group', //  'radio_group',  'select',
+            'type'       => 'radio_group',
             'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'gender'],
-            // 'default_choice' => 'gender_id.form.default_choice',
-            // 'inline' => true, // render buttons inline / side by side. Default = true.
+            // 'default_choice'   => 'gender_id.form.default_choice', gen
             'attributes' => [
-                // 'required'    => false,
+                'required'    => true,
+                // 'style'       => 'background:yellow;',
             ],
         ],
         'formatters' => [
             'text' => [
-                'options_provider' => [
-                            \Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'
-                ],
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
                 'options_provider_params' => ['type' => 'gender'],
             ],
         ],
@@ -99,6 +159,35 @@ return [
             'radio_group' => [
                 'required_message'  => 'gender_id.validation.required',
                 'invalid_message'   => 'gender_id.validation.invalid',
+            ],
+        ],
+    ],
+    'is_verified' => [ // good one
+        'list' => [
+            'label'      => 'is_verified.list.label',
+            'sortable'   => false,
+        ],
+        'form' => [
+            'label'      => 'is_verified.form.label',
+            'type'       => 'checkbox',
+            'attributes' => [
+                'required'    => false,
+                // 'style'       => 'background:yellow;',
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                'options_provider_params' => ['type' => 'bool_yes_no_code'],
+            ],
+            // 'badge' => [
+            //     'options_provider' => [\App\Features\Testy\Testy::class, 'getIsVerifiedBadgeOptions'],
+            // ],
+        ],
+        'validators' => [
+            'checkbox' => [
+                'required_message'  => 'is_verified.validation.required',
+                'invalid_message'   => 'is_verified.validation.invalid',
             ],
         ],
     ],
