@@ -222,7 +222,7 @@ class Validator
 
 
                     if ($this->logger->isAppInDevelopment()) {
-                        $this->logger->triggerDevFatalError(
+                        $this->logger->warningDev(
                             $message,
                             "ERR-DEV93",
                             ['validator' => $validator, 'unknown_options' => $field->getName()]
@@ -274,7 +274,7 @@ class Validator
         if ($schemaData !== null) {
             // 1. Get field schema defaults for validation
             $schemaValFields = $schemaData['val_fields'] ?? [];
-            
+
             $schema = array_merge($validationAttributes, $schemaValFields);
         } else {
             // Fallback if no schema exists
@@ -363,19 +363,18 @@ class Validator
         }
         if (!empty($unknown)) {
             if ($this->logger->isAppInDevelopment()) {
+                $forItems = implode(', ', $unknown);
                 $message = "[{$validatorName}] Unknown validator options: " . implode(', ', $unknown);
 
-                $this->logger->triggerDevFatalError(
+                $this->logger->warningDev(
                     $message,
-                    "ERR-DEV92223"
+                    " ---- ERR-DEV92223 - The item u are looking for SHOULD NOT BE in '_root' file. " .
+                    " Look under \"validation =>\" for \"{$forItems}\" and remove it/them."
                 );
             }
 
             error_log("[{$validatorName}] Unknown validator options: " . implode(', ', $unknown));
         }
-
-
-
     }
 
     /**

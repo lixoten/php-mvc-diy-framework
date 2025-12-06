@@ -28,14 +28,14 @@ abstract class AbstractValidator implements ValidatorInterface
         return $options['message'] ?? $defaultMessage;
     }
 
-    /**
-     * ???
-     */
-    // protected function formatCustomMessage(string $message, string $value = null): string
-    protected function formatCustomMessage(string $value, string $message): string
-    {
-        return str_replace('___', (string) $value, $message);
-    }
+    // /**
+    //  * ???
+    //  */
+    // // protected function formatCustomMessage(string $message, string $value = null): string
+    // protected function formatCustomMessage(string $value, string $message): string
+    // {
+    //     return str_replace('___', (string) $value, $message);
+    // }
 
 
 
@@ -146,12 +146,13 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinLength(int $length, array $options): ?string
     {
         if (isset($options['minlength']) && $length < $options['minlength']) {
-            if (isset($options['minlength_message'])) {
-                $options['message'] = $this->formatCustomMessage(
-                    (string)$options['minlength'],
-                    $options['minlength_message']
-                );
-            }
+            // if (isset($options['minlength_message'])) {
+            //     $options['message'] = $this->formatCustomMessage(
+            //         (string)$options['minlength'],
+            //         $options['minlength_message']
+            //     );
+            // }
+            $options['message'] ??= $options['minlength_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.minlength');
         }
         return null;
@@ -167,12 +168,13 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxLength(int $length, array $options): ?string
     {
         if (isset($options['maxlength']) && $length > $options['maxlength']) {
-            if (isset($options['maxlength_message'])) {
-                $options['message'] = $this->formatCustomMessage(
-                    (string)$options['maxlength'],
-                    $options['maxlength_message']
-                );
-            }
+            // if (isset($options['maxlength_message'])) {
+            //     $options['message'] = $this->formatCustomMessage(
+            //         (string)$options['maxlength'],
+            //         $options['maxlength_message']
+            //     );
+            // }
+            $options['message'] ??= $options['maxlength_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.maxlength');
         }
         return null;
@@ -300,10 +302,11 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinNumeric(int|float $value, array $options): ?string
     {
         if (isset($options['min']) && $value < $options['min']) {
-            if (isset($options['min_message'])) {
-                $options['message'] = $this->formatCustomMessage((string)$options['min'], $options['min_message']);
-            }
-            return $this->getErrorMessage($options, "Value must be at least {$options['min']}.");
+            // if (isset($options['min_message'])) {
+                // $options['message'] = $this->formatCustomMessage((string)$options['min'], $options['min_message']);
+            // }
+            $options['message'] ??= $options['min_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.min');
         }
         return null;
     }
@@ -318,10 +321,11 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxNumeric(int|float $value, array $options): ?string
     {
         if (isset($options['max']) && $value > $options['max']) {
-            if (isset($options['max_message'])) {
-                $options['message'] = $this->formatCustomMessage((string)$options['max'], $options['max_message']);
-            }
-            return $this->getErrorMessage($options, "Value must not exceed {$options['max']}.");
+            // if (isset($options['max_message'])) {
+                // $options['message'] = $this->formatCustomMessage((string)$options['max'], $options['max_message']);
+            // }
+            $options['message'] ??= $options['max_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
     }
@@ -336,10 +340,10 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinDate(\DateTime $value, array $options): ?string
     {
         if (isset($options['min']) && $value < new \DateTime($options['min'])) {
-            if (isset($options['min_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
-            }
-            // return $this->getErrorMessage($options, 'Date must not be before ' . $options['min'] . '.');
+            // if (isset($options['min_message'])) {
+                // $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
+            // }
+            $options['message'] ??= $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
         return null;
@@ -355,10 +359,10 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxDate(\DateTime $value, array $options): ?string
     {
         if (isset($options['max']) && $value > new \DateTime($options['max'])) {
-            if (isset($options['max_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
-            }
-            // return $this->getErrorMessage($options, 'Date must not be after ' . $options['max'] . '.');
+            // if (isset($options['max_message'])) {
+                // $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
+            // }
+            $options['message'] ??= $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
@@ -370,11 +374,11 @@ abstract class AbstractValidator implements ValidatorInterface
     {
 
         if (isset($options['min']) && $value < $options['min']) {
-            if (isset($options['min_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
-            }
+            // if (isset($options['min_message'])) {
+                // $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
+            // }
 
-            // return $this->getErrorMessage($options, "Value must be at least {$options['min']}.");
+            $options['message'] ??= $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
 
@@ -385,11 +389,11 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxString(string $value, array $options): ?string
     {
         if (isset($options['max']) && $value > $options['max']) {
-            if (isset($options['max_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
-            }
+            // if (isset($options['max_message'])) {
+            //     $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
+            // }
 
-            // return $this->getErrorMessage($options, "Value must not exceed {$options['max']}.");
+            $options['message'] ??= $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
         return null;

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Core\Console\Generators;
 
 use Core\Exceptions\SchemaDefinitionException;
+use Core\Form\Schema\FieldSchema;
+use Core\Interfaces\ConfigInterface;
+use Core\Logger;
 use RuntimeException;
 
 /**
@@ -25,6 +28,9 @@ class ConfigFieldsGenerator
     private string $entityName;
     private array $fields;
     private string $configType;
+    private FieldSchema $fieldSchema;
+    private Logger $logger;
+    private ConfigInterface $config;
 
     /**
      * param SchemaLoaderService $schemaLoaderService The service for loading schema definitions.
@@ -32,8 +38,14 @@ class ConfigFieldsGenerator
      */
     public function __construct(
         GeneratorOutputService $generatorOutputService,
+        FieldSchema $fieldSchema,
+        Logger $logger,
+        ConfigInterface $config
     ) {
         $this->generatorOutputService = $generatorOutputService;
+        $this->fieldSchema = $fieldSchema;
+        $this->logger = $logger;
+        $this->config = $config;
     }
 
      /**
@@ -130,6 +142,7 @@ class ConfigFieldsGenerator
                             'gender_id',
                             'state_code',
                             'is_verified',
+                            'generic_number',
                             // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )
@@ -169,6 +182,7 @@ class ConfigFieldsGenerator
             //     continue;
             // }
 
+
             $fieldType = $this->mapDbTypeToFormType($config, $fieldName);
             if ($fieldType === 'telephone') {
                 $defaultValidatorName = 'tel';
@@ -178,26 +192,6 @@ class ConfigFieldsGenerator
                 $defaultFormatterName = $fieldType;
             }
             // $labelKey = "{$this->entityName}.{$fieldName}";
-
-            // Build the 'list' section if defined in schema
-            $listSection = '';
-            if (isset($config['list']) && is_array($config['list'])) {
-                $listConfig = $config['list'];
-            } else {
-                    // 'formatter' => null,
-                $listConfig = [
-                    'sortable' => false,
-                ];
-            }
-
-            $sortable = isset($listConfig['sortable']) ? ($listConfig['sortable'] ? 'true' : 'false') : 'false';
-            $formatter = isset($listConfig['formatter']) ? 'null' : 'null'; // Can be enhanced to support closures
-
-
-
-            $formAttr = $this->getFormAttr($fieldName, $config, $fieldType);
-            $formOptionsProvider = $this->getFormOptionsProvider($fieldName, $config);
-            $formatterOptionsProvider = $this->getFormatterOptionsProvider($fieldName, $config);
 
             $skipList      = false;
             $skipForm      = false;
@@ -231,8 +225,6 @@ class ConfigFieldsGenerator
                     fieldName: $fieldName,
                     type: $fieldType,
                     blockName: 'form',
-                    formAttr: $formAttr,
-                    formOptionsProvider: $formOptionsProvider
                 );
                 $sections[] = <<<PHP
                     $s08'form' => [
@@ -241,12 +233,12 @@ class ConfigFieldsGenerator
                     PHP;
             }
             if (!$skipFormatter) {
+
                 $temp =  $this->getCodeBlock(
                     config: $config,
                     fieldName: $fieldName,
                     type: $fieldType,
                     blockName: 'formatter',
-                    formatterOptionsProvider: $formatterOptionsProvider
                 );
                 $sections[] = <<<PHP
                     $s08'formatters' => [
@@ -311,116 +303,137 @@ PHP;
         string $fieldName,
         array $config,
         string $fieldType,
+        array $fieldFormSchema
     ): ?string {
         if (stripos($fieldName, 'slug') !== false) {
             return null;
         }
+        //$fieldFormSchema = $this->fieldSchema->get($fieldType);
+
+        if ($fieldType === 'radio_group') { // it's s string, but this does not use placeholder
+            $fieldFormSchema['placeholder'] = null;
+            $fieldFormSchema['maxlength'] = null;
+            $fieldFormSchema['pattern'] = null;
+        }
+
 
         $formAttr = [];
         $spaces = '                ';
-        //if ($config['db_type'] === 'string') {
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                $placeholderKey = "{$fieldName}.form.placeholder";
-                $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
+        if (isset($fieldFormSchema['placeholder'])) {
+            $placeholderKey = "{$fieldName}.form.placeholder";
+            $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
+        }
+        if (in_array($fieldType, ['select'])) {
+            // $formAttr[] = "$spaces'class'       => 'form-select',";
+        }
+        if (isset($fieldFormSchema['required'])) {
+            if (isset($config['required']) && $config['required']) {
+                $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
+            } else {
+                $formAttr[] = "$spaces// 'required'    => false,";
             }
-            if (in_array($fieldType, ['select'])) {
-                // $formAttr[] = "$spaces'class'       => 'form-select',";
-            }
+        }
 
-            //if (in_array($config['db_type'], ['string'])) {
-            if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group', 'checkbox', 'checkbox_group'])) {
-                if (isset($config['required']) && $config['required']) {
-                    $formAttr[] = "$spaces'required'    => {$this->formatBool($config['required'])},";
+        if (isset($fieldFormSchema['minlength'])) {
+            if ((isset($config['minlength']))) {
+                $formAttr[] = "$spaces'minlength'   => {$config['minlength']},";
+            }
+        }
+
+        if (isset($fieldFormSchema['maxlength'])) {
+            if (isset($config['length'])) {
+                if ((isset($config['maxlength']) && $config['maxlength'] <= $config['length'])) {
+                    $formAttr[] = "$spaces'maxlength'   => {$config['maxlength']},";
                 } else {
-                    $formAttr[] = "$spaces// 'required'    => false,";
+                    $formAttr[] = "$spaces'maxlength'   => {$config['length']},";
                 }
+            } else {
+                $this->logger->warningDev("'length' is missing in 'Form Schema' File for $fieldName", "ERR-DEV93");
             }
+        }
 
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if ((isset($config['minlength']))) {
-                    $formAttr[] = "$spaces'minlength'   => {$config['minlength']},";
+
+        if (isset($fieldFormSchema['min'])) {
+            if ((isset($config['min']))) {
+                $formAttr[] = "$spaces'min'   => {$config['min']},";
+            }
+        }
+
+        if (isset($fieldFormSchema['max'])) {
+            if ((isset($config['max']))) {
+                $formAttr[] = "$spaces'max'   => {$config['max']},";
+            }
+        }
+
+        if (isset($fieldFormSchema['pattern'])) {
+            if ((isset($config['pattern']))) {
+                $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
+            } else {
+                if ($fieldType == 'email') {
+                    $formAttr[] = "$spaces// 'pattern'     => '/^user[a-z0-9._%+-]*@/',";
                 } else {
-                    $formAttr[] = "$spaces// 'minlength'   => 1,";
+                    $formAttr[] = "$spaces// 'pattern'     => '/^[a-z0-9./',";
                 }
             }
+        }
 
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if (isset($config['length'])) {
-                    if ((isset($config['maxlength']) && $config['maxlength'] <= $config['length'])) {
-                        $formAttr[] = "$spaces'maxlength'   => {$config['maxlength']},";
-                    } else {
-                        $formAttr[] = "$spaces'maxlength'   => {$config['length']},";
-                    }
+        if (isset($fieldFormSchema['style'])) {
+            if ((isset($config['style']))) {
+                $formAttr[] = "$spaces'style'       => {$config['style']},";
+            } else {
+                $formAttr[] = "$spaces// 'style'       => 'background:yellow;',";
+            }
+        }
+
+        if (isset($fieldFormSchema['class'])) {
+            if ((isset($config['class']))) {
+                $formAttr[] = "$spaces'class'       => {$config['class']},";
+            }
+        }
+
+        if (isset($fieldFormSchema['data-char-counter'])) {
+            if (in_array('text', ['text'])) {
+                if (isset($config['data-char-counter']) && $config['data-char-counter']) {
+                    $val = $this->formatBool($config['data-char-counter']);
+                    $formAttr[] = $spaces . "'data-char-counter'    => " . $val . ",";
                 } else {
-                    $formAttr[] = "$spaces// 'maxlength'    => 1,";
+                    $formAttr[] = "$spaces// 'data-char-counter'    => false,";
                 }
             }
+        }
 
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if ((isset($config['pattern']))) {
-                    $formAttr[] = "$spaces'pattern'     => '{$config['pattern']}',";
+        if (isset($fieldFormSchema['data-live-validation'])) {
+            if (isset($config['data-live-validation']) && $config['data-live-validation']) {
+                $formAttr[] =
+                "$spaces'data-live-validation' => {$this->formatBool($config['data-live-validation'])},";
+            } else {
+                $formAttr[] = "$spaces// 'data-live-validation' => false,";
+            }
+        }
+
+
+        if (isset($fieldFormSchema['data-mask'])) {
+            if (in_array($fieldType, ['telephone'])) {
+                if ((isset($config['data-mask']))) {
+                    $formAttr[] = "$spaces'data-mask' => {$config['data-mask']},";
                 } else {
-                    if ($fieldType == 'email') {
-                        $formAttr[] = "$spaces// 'pattern'     => '/^user[a-z0-9._%+-]*@/',";
-                    } else {
-                        $formAttr[] = "$spaces// 'pattern'     => '/^[a-z0-9]/',";
-                    }
+                    $formAttr[] = "$spaces// 'data-mask' => 'data-mask',";
                 }
             }
-
-            if (in_array($fieldType, ['text', 'textarea', 'email', 'select', 'radio_group', 'checkbox', 'checkbox_group'])) {
-            // if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if ((isset($config['style']))) {
-                    $formAttr[] = "$spaces'style'       => {$config['style']},";
-                } else {
-                    $formAttr[] = "$spaces// 'style'       => 'background:yellow;',";
-                }
-            }
-
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if (in_array('text', ['text'])) {
-                    if (isset($config['data-char-counter']) && $config['data-char-counter']) {
-                        $val = $this->formatBool($config['data-char-counter']);
-                        $formAttr[] = $spaces . "'data-char-counter'    => " . $val . ",";
-                    } else {
-                        $formAttr[] = "$spaces// 'data-char-counter'    => false,";
-                    }
-                }
-            }
-
-            if (in_array($fieldType, ['text', 'textarea', 'email'])) {
-                if (isset($config['data-live-validation']) && $config['data-live-validation']) {
-                    $formAttr[] =
-                    "$spaces'data-live-validation' => {$this->formatBool($config['data-live-validation'])},";
-                } else {
-                    $formAttr[] = "$spaces// 'data-live-validation' => false,";
-                }
-            }
+        }
 
 
-            if (in_array($fieldType, ['text', 'textarea'])) {
-                if (in_array($fieldType, ['telephone'])) {
-                    if ((isset($config['data-mask']))) {
-                        $formAttr[] = "$spaces'data-mask' => {$config['data-mask']},";
-                    } else {
-                        $formAttr[] = "$spaces// 'data-mask' => 'data-mask',";
-                    }
-                }
-            }
+        // if ((isset($config['sssss']))) {
+        //     $formAttr[] = "$spaces'sssss' => {$config['sssss']},";
+        // } else {
+        //     $formAttr[] = "$spaces// 'sssss'    => 'sssss',";
+        // }
 
-
-            // if ((isset($config['sssss']))) {
-            //     $formAttr[] = "$spaces'sssss' => {$config['sssss']},";
-            // } else {
-            //     $formAttr[] = "$spaces// 'sssss'    => 'sssss',";
-            // }
-
-            // if (isset($config['ttttt']) && $config['ttttt']) {
-            //     $formAttr[] = "$spaces'ttttt'  => {$this->formatBool($config['ttttt'])},";
-            // } else {
-            //     $formAttr[] = "$spaces// 'ttttt'    => false,";
-            // }
-        //}
+        // if (isset($config['ttttt']) && $config['ttttt']) {
+        //     $formAttr[] = "$spaces'ttttt'  => {$this->formatBool($config['ttttt'])},";
+        // } else {
+        //     $formAttr[] = "$spaces// 'ttttt'    => false,";
+        // }
         $formAttr = implode("\n", $formAttr);
 
         return $formAttr;
@@ -498,14 +511,116 @@ PHP;
     }
 
 
+
+    protected function getValidatorAttr(
+        string $fieldName,
+        array $config,
+        string $fieldType,
+        array $fieldFormSchema
+    ): ?string {
+        if (stripos($fieldName, 'slug') !== false) {
+            return null;
+        }
+        //$fieldFormSchema = $this->fieldSchema->get($fieldType);
+
+        $items = [];
+        $spaces = '                ';
+        $spaces = '';
+        $valItems = $fieldFormSchema['val_fields'];
+
+
+
+        foreach ($valItems as $item => $foo) {
+            $commentOut = '';
+            if (
+                str_contains($item, 'allowed') ||
+                str_contains($item, 'forbidden') ||
+                str_contains($item, 'positive') ||
+                str_contains($item, 'negative') ||
+                str_contains($item, 'enforce')
+            ) {
+                $commentOut = '// ';
+            }
+
+            if (!str_contains($item, 'message')) {
+                // $items[] = "$spaces'{$item}' => {$foo['default']},";
+                if ($item === 'allowed' || $item === 'forbidden') {
+                    $rrr = implode(', ', $foo['default']);
+                    $items[] = "$spaces$commentOut'{$item}' => [$rrr],";
+                } else {
+                    $items[] = "$spaces$commentOut'{$item}' => {$this->formatBool((bool)$foo['default'])},";
+                }
+            }
+        }
+
+        $items[] = "$spaces// --";
+
+        if (isset($fieldFormSchema['required'])) {
+            $items[] = "$spaces'required_message' => '{$fieldName}.validation.required',";
+        }
+        // if (isset($fieldFormSchema['invalid'])) {
+            $items[] = "$spaces'invalid_message' => '{$fieldName}.validation.invalid',";
+        // }
+        if (isset($fieldFormSchema['minlength'])) {
+            $items[] = "$spaces'minlength_message' => '{$fieldName}.validation.minlength',";
+        }
+        if (isset($fieldFormSchema['maxlength'])) {
+            $items[] = "$spaces'maxlength_message' => '{$fieldName}.validation.maxlength',";
+        }
+
+        if (isset($fieldFormSchema['min'])) {
+            $items[] = "$spaces'min_message' => '{$fieldName}.validation.min',";
+        }
+        if (isset($fieldFormSchema['max'])) {
+            $items[] = "$spaces'max_message' => '{$fieldName}.validation.max',";
+        }
+
+        if (isset($fieldFormSchema['pattern'])) {
+            $items[] = "$spaces'pattern_message' => '{$fieldName}.validation.pattern',";
+        }
+
+
+
+        foreach ($valItems as $item => $foo) {
+            $commentOut = '';
+            if (
+                str_contains($item, 'allowed') ||
+                str_contains($item, 'forbidden') ||
+                str_contains($item, 'positive') ||
+                str_contains($item, 'negative') ||
+                str_contains($item, 'enforce')
+            ) {
+                $commentOut = '// ';
+            }
+
+            if (!str_contains($item, 'message') && !str_contains($item, 'ignore')) {
+                $items[] = "$spaces{$commentOut}'{$item}_message' => '{$fieldName}.validation.{$item}',";
+
+            }
+        }
+
+        $items = $this->alignArrayDefinition($items, 4); // Start at indent level 1
+
+        $items = implode("\n", $items);
+        $s08 = '        ';
+        $s12 = '            ';
+
+        $items = <<<PHP
+        $s08'{$fieldType}' => [
+        $items
+        $s12],
+        PHP;
+
+        return $items;
+    }
+
+
+
     protected function getCodeBlock(
         array $config = null,
         string $fieldName,
         string $type,
         string $blockName,
-        string $formAttr = null,
-        string $formOptionsProvider = null,
-        string $formatterOptionsProvider = null
     ): string {
         $block = '';
         $s04 = '    ';
@@ -515,8 +630,19 @@ PHP;
         $s16 = '                    ';
         $snn = '    ';
 
-
-
+        if ($blockName === 'list') {
+            $sortable = isset($config['sortable']) ? ($config['sortable'] ? 'true' : 'false') : 'false';
+        } elseif ($blockName === 'form') {
+            $fieldFormSchema          = $this->fieldSchema->get($type);
+            $formAttr                 = $this->getFormAttr($fieldName, $config, $type, $fieldFormSchema);
+            $formOptionsProvider      = $this->getFormOptionsProvider($fieldName, $config);
+        } elseif ($blockName === 'formatter') {
+            // $formatter = isset($config['formatter']) ? 'null' : 'null'; // Can be enhanced to support closures
+            $formatterOptionsProvider = $this->getFormatterOptionsProvider($fieldName, $config);
+        } elseif ($blockName === 'validator') {
+            $fieldFormSchema          = $this->fieldSchema->get($type);
+            $formValidator = $this->getValidatorAttr($fieldName, $config, $type, $fieldFormSchema);
+        }
 
 
         switch ($type) {
@@ -525,7 +651,7 @@ PHP;
                 if ($blockName === 'list') {
                     $block = <<<PHP
                     $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s12'sortable'   => $sortable,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
@@ -539,21 +665,8 @@ PHP;
                     $textFormatterSample = $this->getTextFormatterSample();
                     $block .= $textFormatterSample;
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [ // Default validator, can be refined based on db_type
-                        $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                        $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                        $s12// 'ignore_forbidden'  => true,  // Default is false
-                        $s12// 'ignore_allowed'    => false, // Default is true
-                        $s12//---
-                        $s12'required_message'  => '{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                        $s12'minlength_message' => '{$fieldName}.validation.minlength',
-                        $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
-                        $s12'pattern_message'   => '{$fieldName}.validation.pattern',
-                        $s12'allowed_message'   => '{$fieldName}.validation.allowed',
-                        $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
-                    $s12]
+                    $block .= <<<PHP
+                    $formValidator
                     PHP;
                 }
                 break;
@@ -583,7 +696,9 @@ PHP;
                     PHP;
                     $block .= $this->getTextFormatterSample();
                 } elseif ($blockName === 'validator') {
-                    $block .= $this->getTextValidatorSample($fieldName, $type);
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
                 }
 
                 break;
@@ -605,7 +720,9 @@ PHP;
                 } elseif ($blockName === 'formatter') {
                     $block .= $this->getTextFormatterSample();
                 } elseif ($blockName === 'validator') {
-                    $block .= $this->getTextValidatorSample($fieldName, $type);
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
                 }
                 break;
 
@@ -642,11 +759,8 @@ PHP;
                     $formatterOptionsProvider
                     PHP;
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12'required_message'  => '{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                    $s12],
+                    $block .= <<<PHP
+                    $formValidator
                     PHP;
                 }
                 break;
@@ -684,12 +798,10 @@ PHP;
                     $formatterOptionsProvider
                     PHP;
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12'required_message'  => '{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                    $s12],
-                    PHP;                }
+                     $block .= <<<PHP
+                    $formValidator
+                    PHP;
+                }
                 break;
             // checkbox /////////////////////////////////////////////////////
             case 'checkbox':
@@ -715,12 +827,10 @@ PHP;
                     $s12// ],
                     PHP;
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-                    $s08'{$type}' => [
-                        $s12'required_message'  => '{$fieldName}.validation.required',
-                        $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                    $s12],
-                    PHP;                }
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
+                }
                 break;
 
             // xxxxxx /////////////////////////////////////////////////////////
@@ -893,27 +1003,40 @@ PHP;
 
 
 
-    private function getTextValidatorSample($fieldName, $type): string
+    private function getTextValidatorSample(string $fieldName, string $type): string
     {
         $s04 = '    ';
         $s08 = '        ';
         $s12 = '            ';
-        $block = <<<PHP
-        $s08'{$type}' => [ // Default validator, can be refined based on db_type
-            $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-            $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-            $s12// 'ignore_forbidden'  => true,  // Default is false
-            $s12// 'ignore_allowed'    => false, // Default is true
-            $s12//---
-            $s12'required_message'  => '{$fieldName}.validation.required',
-            $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-            $s12'minlength_message' => '{$fieldName}.validation.minlength',
-            $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
-            $s12'pattern_message'   => '{$fieldName}.validation.pattern',
-            $s12'allowed_message'   => '{$fieldName}.validation.allowed',
-            $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
-        $s12],
-        PHP;
+
+        if ($type === 'number') {
+            $block = <<<PHP
+            $s08'{$type}' => [ // Default validator, can be refined based on db_type
+                $s12'required_message'  => '{$fieldName}.validation.required',
+                $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                $s12'min_message'       => '{$fieldName}.validation.min',
+                $s12'max_message'       => '{$fieldName}.validation.max',
+                $s12'pattern_message'   => '{$fieldName}.validation.pattern',
+            $s12],
+            PHP;
+        } else {
+            $block = <<<PHP
+            $s08'{$type}' => [ // Default validator, can be refined based on db_type
+                $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
+                $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
+                $s12// 'ignore_forbidden'  => true,  // Default is false
+                $s12// 'ignore_allowed'    => false, // Default is true
+                $s12//---
+                $s12'required_message'  => '{$fieldName}.validation.required',
+                $s12'invalid_message'   => '{$fieldName}.validation.invalid',
+                $s12'minlength_message' => '{$fieldName}.validation.minlength',
+                $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
+                $s12'pattern_message'   => '{$fieldName}.validation.pattern',
+                $s12'allowed_message'   => '{$fieldName}.validation.allowed',
+                $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
+            $s12],
+            PHP;
+        }
         return $block;
     }
 
@@ -977,5 +1100,115 @@ PHP;
             $value = !$value;
         }
         return $value ? 'true' : 'false';
+    }
+
+
+    protected function alignArrayDefinition(array $lines, int $indentationLevel) {
+        // 1. Find the maximum key length for alignment
+        $max_key_length = 0;
+
+        $currentIndent = str_repeat('    ', $indentationLevel); // 4 spaces per level
+
+
+        // A regular expression to capture the key (the part before '=>')
+        // It looks for a sequence of non-whitespace characters that are NOT '=>',
+        // preceded by optional whitespace and a single quote/double quote,
+        // and followed by the '=>' operator.
+        $regex = "/^(\s*['\"]?)([^'\"]+?)(['\"]?\s*)=>/";
+        $regex = "/^(\s*(?:\/\/)?\s*['\"]?)([^'\"]+?)(['\"]?\s*)=>/";
+
+        foreach ($lines as $line) {
+            // Only process lines that contain an assignment operator '=>'
+            if (strpos($line, '=>') !== false) {
+                if (preg_match($regex, $line, $matches)) {
+                    // $matches[2] is the key itself (e.g., 'required_message' or the longer commented key)
+                    $key = $matches[2];
+                    $max_key_length = max($max_key_length, strlen($key));
+                }
+            }
+        }
+
+        // Adjust for quotes and delimiters if needed. Since the keys might be quoted or not,
+        // we'll pad the key part *before* the '=>' operator.
+
+        // 2. Format and pad each line
+        $formatted_lines = [];
+        foreach ($lines as $line) {
+            if (strpos($line, '=>') !== false) {
+                if (preg_match($regex, $line, $matches)) {
+                    $leading_indent = $matches[1]; // e.g., "               // '" or "                '"
+                    $key = $matches[2];             // e.g., 'required_message'
+                    $trailing_separator = $matches[3]; // e.g., "' " or ""
+
+                    // The part of the line that comes *after* '=>'
+                    $value_part = substr($line, strpos($line, '=>') + 2);
+
+                    // Calculate padding needed to reach the max key length
+                    $padding = str_repeat(' ', $max_key_length - strlen($key));
+
+                    // Reconstruct the line with padding
+                    $formatted_line = $leading_indent . $key . $trailing_separator . $padding . '=>' . $value_part;
+                    $formatted_lines[] = $currentIndent . $formatted_line;
+
+                } else {
+                    // If it contains '=>' but doesn't match the regex, add the original line
+                    $formatted_lines[] = $currentIndent . $line;
+                }
+            } else {
+                // Lines without '=>' are added as is
+                $formatted_lines[] = $currentIndent . $line;
+            }
+        }
+
+        return $formatted_lines;
+    }
+
+
+
+    /**
+     * Recursively formats an associative array into aligned PHP array lines for a language file.
+     *
+     * This method traverses a nested array, applying proper indentation and aligning
+     * '=>' operators at each level to generate a readable PHP array string.
+     * The entity name is prefixed to string values based on the generator's configType.
+     *
+     * @param array<string, mixed> $data The associative array containing language key/value pairs.
+     * @param int $indentationLevel The current level of indentation (1 for top-level keys, increases
+     *                              by 1 for each nested array).
+     * @return array<string> An array of formatted PHP code lines.
+     */
+    private function formatLanguageArrayRecursive(array $data, int $indentationLevel): array
+    {
+        if ($this->entityName !== 'Common') {
+            $focusName = $this->entityName . " ";
+        } else {
+            $focusName = '';
+        }
+
+        $lines = [];
+        $currentIndent = str_repeat('    ', $indentationLevel); // 4 spaces per level
+
+        // Calculate max key length for alignment at this specific level
+        $maxKeyLen = 0;
+        foreach (array_keys($data) as $key) {
+            $maxKeyLen = max($maxKeyLen, strlen("'$key'")); // Account for quotes around the key
+        }
+
+        foreach ($data as $key => $value) {
+            $paddedKey = str_pad("'$key'", $maxKeyLen, ' ', STR_PAD_RIGHT);
+
+            if (is_string($value)) {
+                // Assuming 'Testy' is a fixed prefix you want to add
+                $lines[] = "{$currentIndent}{$paddedKey} => '{$focusName}{$value}',";
+            } elseif (is_array($value)) {
+                $lines[] = "{$currentIndent}{$paddedKey} => [";
+                // Recursively call for nested array, increasing indentation
+                $lines = array_merge($lines, $this->formatLanguageArrayRecursive($value, $indentationLevel + 1));
+                $lines[] = "{$currentIndent}],";
+            }
+            // Add other types if needed (e.g., numbers, booleans)
+        }
+
+        return $lines;
     }
 }

@@ -128,11 +128,11 @@ return [
     // ],
     'code' => [
         'testy_status' => [
-            'P' => 'Pending',
-            'A' => 'Active',
-            'S' => 'Suspended',
-            'B' => 'Banned',
-            'D' => 'Deleted',
+            'p' => 'Pending',
+            'a' => 'Active',
+            's' => 'Suspended',
+            'b' => 'Banned',
+            'd' => 'Deleted',
         ],
         'state_code' => [
             'ca' => 'California',
@@ -164,9 +164,15 @@ return [
         'invalid'   => 'xxInvalid value.',
         'minlength' => 'xxThis value must be at least %d characters.',
         'maxlength' => 'xxThis value must not exceed %d characters.',
+        'min'       => 'xxThis value must be at least %d.',
+        'max'       => 'xxThis value must not exceed %d.',
         'pattern'   => 'xxThis value does not match the required pattern.',
         'allowed'   => 'xxPlease select a valid allowed value.',
         'forbidden' => 'xxThis value is not allowed.',
+        'positive_only'    => 'xxThis value must be a positive number.',
+        'negative_only'    => 'xxThis value must be a negative number.',
+        'zero_not_allowed' => 'xxZero value is not allowed.',
+        'enforce_step'     => 'xxNumber must be a multiple of %d.',
     ],
 
 

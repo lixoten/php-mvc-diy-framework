@@ -12,7 +12,7 @@ interface ConfigInterface
      * Usage:
      * - If $key is a single word (e.g. 'logger'), loads config/logger.php and returns the array.
      * - If $key is dot notation (e.g. 'logger.level'), loads config/logger.php and returns $config['level'].
-     * - If the key or file does not exist, returns $default.
+     * - If the key or f    ile does not exist, returns $default.
      * - If needing folders the $key is a single word (e.g. 'list_fields/posts'), loads config/list_fields/posts.php and returns the array.
      * - If $key uses a slash (e.g. 'list_fields/posts'), loads config/list_fields/posts.php and returns the array.
      * - If $key uses both slash and dot (e.g. 'list_fields/posts.title'), loads config/list_fields/posts.php and returns $config['title'].

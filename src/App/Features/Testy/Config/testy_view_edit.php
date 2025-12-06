@@ -56,11 +56,14 @@ return [
            'fields'    => [
                 // 'id',
                 // 'title',
-                'is_verified',
-                'generic_text',
+
+                // 'is_verified',
+                // 'generic_text',
                 'gender_id',
-                'state_code',
-                'status',
+                // 'state_code',
+                // 'status',
+                // 'generic_number',
+
                 // 'super_powers',
                 // 'telephone',
                 // 'primary_email',

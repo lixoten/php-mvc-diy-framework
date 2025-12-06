@@ -41,6 +41,7 @@ return [
     'list_fields' => [
         'id',
         // 'title',
+        'generic_number',
         'is_verified',
         'generic_text',
         'gender_id',

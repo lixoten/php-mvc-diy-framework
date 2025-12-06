@@ -406,6 +406,9 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         $attributeBasedErrorTypes = ['minlength', 'maxlength', 'min', 'max', 'step', 'pattern'];
 
         // Only add a replacement if the error type is attribute-based and the attribute exists.
+        if ($errorType === 'enforce_step') {
+            $errorType = 'step';
+        }
         if (in_array($errorType, $attributeBasedErrorTypes, true) && isset($attrs[$errorType])) {
             $replacements[$errorType] = $attrs[$errorType];
         }

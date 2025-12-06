@@ -74,13 +74,14 @@ class RangeValidator extends AbstractValidator
                 $fraction = rtrim(substr($div, strpos($div, '.') + 1), '0');
                 if ($fraction !== '' && (int)$fraction !== 0) {
                     if (isset($options['enforce_step_message'])) {
-                        $options['message'] = $this->formatCustomMessage(
-                            (string)$options['step'],
-                            $options['enforce_step_message']
-                        );
+                        // $options['message'] = $this->formatCustomMessage(
+                        //     (string)$options['step'],
+                        //     $options['enforce_step_message']
+                        // );
+                        $options['message'] ??= $options['enforce_step_message'] ?? null;
                     }
 
-                    return $this->getErrorMessage($options, "Number must be a multiple of {$step}.");
+                    return $this->getErrorMessage($options, 'validation.enforce_step_message');
                 }
             }
         }

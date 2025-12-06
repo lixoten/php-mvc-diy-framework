@@ -6,11 +6,11 @@ namespace App\Enums;
 
 enum TestyStatus: string
 {
-    case PENDING = 'P';
-    case ACTIVE = 'A';
-    case SUSPENDED = 'S';
-    case BANNED = 'B';
-    case DELETED = 'D';
+    case PENDING   = 'p';
+    case ACTIVE    = 'a';
+    case SUSPENDED = 's';
+    case BANNED    = 'b';
+    case DELETED   = 'd';
 
     /**
      * Get human-readable label for this status
@@ -47,7 +47,7 @@ enum TestyStatus: string
      *  Provides a resolved options array for a formatter.
      * This keeps all logic out of config files and makes it reusable and testable.
      *
-     * @param mixed $value The raw value from the database (e.g., 'A', 'P')
+     * @param mixed $value The raw value from the database (e.g., 'a', 'p')
      * @return array<string, string>
      */
     public static function getFormatterOptions(mixed $value): array

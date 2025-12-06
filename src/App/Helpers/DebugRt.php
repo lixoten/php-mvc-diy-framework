@@ -1479,7 +1479,8 @@ class DebugRt
         string|int $exit = "1",
         string $label = "",
         mixed $arr = "--",
-        bool $trace = true
+        bool $trace = true,
+        string $code = null
     ): void {
         $rr = '';
         if ($trace) {

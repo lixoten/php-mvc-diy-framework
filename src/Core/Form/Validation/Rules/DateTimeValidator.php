@@ -39,20 +39,22 @@ class DateTimeValidator extends AbstractValidator
 
         // Min
         if (isset($options['min']) && $value < $options['min']) {
-            if (isset($options['min_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
-            }
+            // if (isset($options['min_message'])) {
+            //     $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
+            // }
 
-            return $this->getErrorMessage($options, 'Date and time must not be before ' . $options['min'] . '.');
+            $options['message'] ??= $options['min_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.min');
         }
 
         // Max
         if (isset($options['max']) && $value > $options['max']) {
-            if (isset($options['max_message'])) {
-                $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
-            }
+            // if (isset($options['max_message'])) {
+            //     $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
+            // }
 
-            return $this->getErrorMessage($options, 'Date and time must not be after ' . $options['max'] . '.');
+            $options['message'] ??= $options['max_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.max');
         }
 
         return null;

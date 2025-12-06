@@ -32,7 +32,46 @@ declare(strict_types=1);
 */
 
 
+// 29
+
 return [
+    // 'global_null' => [
+    //     'id'            => null,
+    //     'class'         => null,
+    //     'style'         => null,
+    //     'title'         => null,
+    //     'lang'          => null,
+    //     'accesskey'     => null,
+    //     'tabindex'      => null,
+    //     'dir'           => null,
+    //     'hidden'        => null, // HTML 'hidden' attribute
+
+    //     'name'          => null,
+    //     'value'         => null,
+    //     'form'          => null,
+    //     'list'          => null,
+
+    //     'disabled'      => null,
+    //     'readonly'      => null,
+    //     'autofocus'     => null,
+
+    //     'placeholder'   => null,
+    //     'spellcheck'    => null,
+    //     'pattern'       => null,
+
+    //     'dirname'       => null,
+    //     'size'          => null,
+
+    //     'autocomplete'  => null,
+    //     'inputmode'     => null,
+
+    //     'required'      => null,
+    //     'min'           => null,
+    //     'max'           => null,
+    //     'step'          => null,
+    //     'maxlength'     => null,
+    //     'minlength'     => null,
+    // ],
     'global' => [
         'id'        => ['default' => null,  'values' => 'string'],
         'class'     => ['default' => null,  'values' => 'string'],
@@ -55,69 +94,14 @@ return [
 
         'placeholder'   => ['default' => null, 'values' => 'string'],
         'spellcheck'    => ['default' => null, 'values' => ['true', 'false']],
-        'pattern'       => ['default' => null, 'values' => 'string'],
 
         'dirname'       => ['values' => 'string',  'default' => null],
         'size'          => ['values' => 'int',     'default' => null],
 
-        // Used in Validation
-        'required'      => ['values' => 'bool',    'default' => false],
-        'min'           => ['values' => 'numeric', 'default' => null],
-        'max'           => ['values' => 'numeric', 'default' => null],
-        'step'          => ['values' => 'int',     'default' => null],
-        'maxlength'     => ['values' => 'int',     'default' => null],
-        'minlength'     => ['values' => 'int',     'default' => null],
-    ],
-    'display' => [
-          // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'autocomplete'  => null, // not applicable
-        'inputmode'     => null, // not applicable
-        'readonly'      => null, // not applicable
-
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // not applicable - use CSS is recommended
-        'pattern'       => null, // not applicable
-        'autocomplete'          => null, // not applicable
-        'inputmode'          => null, // not applicable
-
-        'list'          => null, // not applicable
-        'form'          => null, // not applicable
-        'value'         => null, // not applicable
-
-
-        'placeholder'          => null, // not applicable
-        'multiple'          => null, // not applicable
-        'accept'          => null, // not applicable
-        'disabled'          => null, // not applicable
-        'type'          => null, // not applicable
-        'step'          => null, // not applicable
-        //End Global set to null
-    ],
-    'hidden' => [
-        // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        //End Global set to null
-    ],
-    'text' => [
-        // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        //End Global set to null
-
         'autocomplete'  => [
-            'default' => null, // if setting 'on' it will be included every time, and we do not want that, thus null
-            'values'  => [
+            'default' => null, // Default to null globally
+            'values'  => [ // Comprehensive list of standard autocomplete tokens
                 'on', 'off',
-
                 'name', 'honorific-prefix', 'given-name', 'additional-name', 'family-name',
                 'honorific-suffix', 'nickname', 'organization-title', 'username',
                 'new-password', 'current-password', 'one-time-code',
@@ -145,26 +129,108 @@ return [
             ],
         ],
         'inputmode'     => ['default' => null, 'values' =>
-                                                ['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search']],
+                                                ['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search', 'none']],
 
-        // 'required_message'  => ['default' => null, 'values' => 'string'],
-        // 'maxlength_message' => ['default' => null, 'values' => 'string'],
-        // 'minlength_message' => ['default' => null, 'values' => 'string'],
-        // 'pattern_message'   => ['default' => null, 'values' => 'string'],
-        // 'invalid_message'   => ['default' => null, 'values' => 'string'],
+
+        // 'accept'          => null, // not applicable
+        // 'multiple'        => null, // not applicable
+
+        // Used in Validation
+        'required'      => ['values'  => 'bool',    'default' => false],
+        'min'           => ['values'  => 'numeric', 'default' => null],
+        'max'           => ['values'  => 'numeric', 'default' => null],
+        'step'          => ['values'  => 'int',     'default' => null],
+        'maxlength'     => ['values'  => 'int',     'default' => null],
+        'minlength'     => ['values'  => 'int',     'default' => null],
+        'pattern'       => ['default' => null, 'values' => 'string'],
+    ],
+    'display' => [
+          // Global Like if not applicable set to null
+        'min'           => null, // not applicable
+        'max'           => null, // not applicable
+        'step'          => null, // not applicable
+        'autocomplete'  => null, // not applicable
+        'inputmode'     => null, // not applicable
+        'readonly'      => null, // not applicable
+
+        'maxlength'     => null, // not applicable
+        'minlength'     => null, // not applicable
+        'spellcheck'    => null, // not applicable
+        'dirname'       => null, // not applicable
+        'size'          => null, // not applicable - use CSS is recommended
+        'pattern'       => null, // not applicable
+
+        'list'          => null, // not applicable
+        'form'          => null, // not applicable
+        'value'         => null, // not applicable
+
+
+        'placeholder'          => null, // not applicable
+        'multiple'          => null, // not applicable
+        'accept'          => null, // not applicable
+        'disabled'          => null, // not applicable
+        'type'          => null, // not applicable
+        'step'          => null, // not applicable
+        //End Global set to null
+    ],
+    'hidden' => [
+        // Global Like if not applicable set to null
+        'min'           => null, // not applicable
+        'max'           => null, // not applicable
+        'step'          => null, // not applicable
+        // fixme? do i need to add all to here?
+        //End Global set to null
+    ],
+    'text' => [
+        // Global Like if not applicable set to null
+        'dir'           => null, // Not Applicable: Not content-based
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Recommended: Use 'autocomplete' or other types for suggested values
+        'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength' for text
+        'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength' for text
+        'step'          => null, // Not Applicable: Only for numeric values
+        'size'          => null, // valid, but not recommended. CSS is recommended
+        //End Global set to null
+
+        // 'autocomplete'  => [
+        //     'default' => null, // if setting 'on' it will be included every time, and we do not want that, thus null
+        //     'values'  => [
+        //         'on', 'off',
+
+        //         'name', 'honorific-prefix', 'given-name', 'additional-name', 'family-name',
+        //         'honorific-suffix', 'nickname', 'organization-title', 'username',
+        //         'new-password', 'current-password', 'one-time-code',
+
+        //         'organization', 'street-address', 'address-line1', 'address-line2', 'address-line3',
+        //         'address-level4', 'address-level3', 'address-level2', 'address-level1',
+        //         'country', 'country-name', 'postal-code',
+
+        //         'cc-name', 'cc-given-name', 'cc-additional-name', 'cc-family-name',
+        //         'cc-number',
+        //         'cc-exp', 'cc-exp-month', 'cc-exp-year',
+        //         'cc-csc', 'cc-type',
+
+        //         'transaction-currency', 'transaction-amount',
+
+        //         'language', 'bday', 'bday-day', 'bday-month', 'bday-year',
+        //         'sex', 'url', 'photo',
+
+        //         'tel', 'tel-country-code', 'tel-national', 'tel-area-code',
+        //         'tel-local', 'tel-local-prefix', 'tel-local-suffix', 'tel-extension',
+
+        //         'email', 'impp',
+
+        //         'gender', 'home', 'work', 'mobile', 'fax', 'pager', 'shipping', 'billing',
+        //     ],
+        // ],
+        // 'inputmode'     => ['default' => null, 'values' =>
+        //                              ['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search', 'none']],
 
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            // 'value_kind'               => ['values' => 'string', 'default' => 'integer'],
-            // 'min' => 444,
-            //  'max'           => ['default' => 999, 'values' => 'numeric'],
-            // 'positive_only'            => ['values' => 'bool', 'default' => false],
-            // 'negative_only'            => ['values' => 'bool', 'default' => false],
-            // 'zero_not_allowed'         => ['values' => 'bool', 'default' => false],
-            // 'enforce_step'             => ['values' => 'bool', 'default' => false],
-
             'ignore_allowed'           => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
             'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
@@ -227,12 +293,17 @@ return [
     ],
     'password' => [
         // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'list'          => null, // not applicable
-        'spellcheck'    => null, // global but we take out
-        'placeholder'   => null, // just do not use
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Violates security purpose of password field
+        'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength'
+        'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength'
+        'readonly'      => null, // Not Recommended: Usually defeats purpose of a password input
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Recommended: Should be false for security
+        'step'          => null, // Not Applicable: Only for numeric values
         //End Global set to null
 
         'autocomplete'  => [
@@ -302,10 +373,17 @@ return [
     ],
     'email' => [
         // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'spellcheck'    => null, // global but we take out
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Recommended: Better suited for 'text' inputs
+        'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength'
+        'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength'
+        'pattern'       => null, // Not Recommended: Browser enforces basic format
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Recommended: Should be false due to low utility
+        'step'          => null, // Not Applicable: Only for numeric values
         //End Global set to null
 
         'multiple'      => ['default' => false, 'values' => 'bool'], //one-off
@@ -341,11 +419,17 @@ return [
     ],
     'url' => [
         // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'spellcheck'    => null, // global but we take out
-        'dirname'       => null, // omit
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Recommended: Better suited for 'text' inputs
+        'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength'
+        'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength'
+        'pattern'       => null, // Not Recommended: Browser enforces basic format
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Recommended: Should be false due to low utility
+        'step'          => null, // Not Applicable: Only for numeric values
         //End Global set to null
 
         'autocomplete'  => [
@@ -382,14 +466,20 @@ return [
     ],
     'tel' => [
         // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'spellcheck'    => null, // global but we take out
-        'dirname'       => null, // omit
         'pattern'       => null, // is valid but do not use since with use tel library
-        'minlength'     => null, // makes no sense
-        'maxlength'     => null, // makes no sense
+        'minlength'     => null, // is valid but do not use since with use tel library
+        'maxlength'     => null, // is valid but do not use since with use tel library
+
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Recommended: Better suited for 'text' inputs
+        'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength'
+        'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength'
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Recommended: Should be false due to low utility
+        'step'          => null, // Not Applicable: Only for numeric values
         //End Global set to null
 
         'title'         => ['default' => 'Please enter a valid international phone number (e.g., +15551234567)',
@@ -617,12 +707,16 @@ return [
     ],
     'number' => [
         // Global Like if not applicable set to null
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // valid, but CSS is recommended
-        'pattern'       => null, // not applicable
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'maxlength'     => null, // Not Applicable: Limits magnitude ('max'), not character count
+        'minlength'     => null, // Not Applicable: Limits character count
+        'pattern'       => null, // Not Applicable: Number type already enforces pattern
+        'readonly'      => null, // Not Applicable: Cannot be set if intended for user input
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Applicable: Numbers are not checked
         //End Global set to null
 
         'autocomplete'  => [
@@ -653,31 +747,37 @@ return [
             'enforce_step'             => ['values' => 'bool', 'default' => false],
 
             'ignore_allowed'           => ['values' => 'bool', 'default' => true],
-            'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
-            'allowed'                  => ['values' => 'array', 'default' => []],
-            'forbidden'                => ['values' => 'array', 'default' => [11, 33]],
+            'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
+            'allowed'                  => ['values' => 'array', 'default' => ['111']],
+            'forbidden'                => ['values' => 'array', 'default' => ['444', '888']],
 
-            'required_message'         => ['values' => 'string', 'default' => 'zzNumber is required.'],
-            'invalid_message'     => ['values' => 'string', 'default' =>'zzPlease enter a whole number (no decimals).'],
-            'min_message'              => ['values' => 'string', 'default' => 'zzValue must be at least ___.'],
-            'max_message'              => ['values' => 'string', 'default' => 'zzValue must not exceed ___.'],
-            'positive_only_message'    => ['values' => 'string', 'default' => 'zzOnly positive numbers are allowed.'],
-            'negative_only_message'    => ['values' => 'string', 'default' => 'zzOnly negative numbers are allowed.'],
-            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'zzZero is not allowed.'],
-            'allowed_message'         => ['values' => 'string', 'default' => 'zzPlease select a valid allowed number.'],
-            'forbidden_message'        => ['values' => 'string', 'default' => 'zzThis number is not allowed.'],
-            'enforce_step_message' => ['values' => 'string', 'default' => 'zzNumber must be a multiple of ___.'],
+            'required_message'         => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'          => ['values' => 'string', 'default' => 'validation.invalid'],
+            'min_message'              => ['values' => 'string', 'default' => 'validation.min'],
+            'max_message'              => ['values' => 'string', 'default' => 'validation.max'],
+
+            'positive_only_message'    => ['values' => 'string', 'default' => 'validation.positive_only'],
+            'negative_only_message'    => ['values' => 'string', 'default' => 'validation.negative_only'],
+            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'validation.zero_not_allowed'],
+            'enforce_step_message'     => ['values' => 'string', 'default' => 'validation.enforce_step'],
+
+            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
+            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
             //'leading_zeros_message'    => ['values' => 'string', 'default' => null],
         ],
     ],
     'decimal' => [
         // Global Like if not applicable set to null
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // valid, but CSS is recommended
-        'pattern'       => null, // not applicable
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'lang'          => null, // Not Applicable: Not content-based
+        'maxlength'     => null, // Not Applicable: Limits magnitude ('max'), not character count
+        'minlength'     => null, // Not Applicable: Limits character count
+        'pattern'       => null, // Not Applicable: Number type already enforces pattern
+        'readonly'      => null, // Not Applicable: Cannot be set if intended for user input
+        'size'          => null, // Not Recommended: Use CSS for width
+        'spellcheck'    => null, // Not Applicable: Numbers are not checked
         //End Global set to null
 
         'autocomplete'  => [
@@ -707,36 +807,32 @@ return [
             'zero_not_allowed'         => ['values' => 'bool', 'default' => false],
             'enforce_step'             => ['values' => 'bool', 'default' => false],
 
-            'ignore_allowed'           => ['values' => 'bool', 'default' => true],
-            'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
-            'allowed'                  => ['values' => 'array', 'default' => []],
-            'forbidden'                => ['values' => 'array', 'default' => [2.22, 2]],
-
-            'required_message'         => ['values' => 'string', 'default' => 'zzNumber is required.'],
-            'invalid_message'          => ['values' => 'string', 'default' => 'zzPlease enter a decimal number.'],
-            'min_message'              => ['values' => 'string', 'default' => 'zzValue must be at least ___.'],
-            'max_message'              => ['values' => 'string', 'default' => 'zzValue must not exceed ___.'],
-            'positive_only_message'    => ['values' => 'string', 'default' => 'zzOnly positive numbers are allowed.'],
-            'negative_only_message'    => ['values' => 'string', 'default' => 'zzOnly negative numbers are allowed.'],
-            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'zzZero is not allowed.'],
-            'allowed_message'         => ['values' => 'string', 'default' => 'zzPlease select a valid allowed number.'],
-            'forbidden_message'        => ['values' => 'string', 'default' => 'zzThis number is not allowed.'],
-            'enforce_step_message'     => ['values' => 'string', 'default' => 'zzNumber must be a multiple of ___.'],
+            'required_message'         => ['values' => 'string', 'default' => 'validation.required'],
+            'invalid_message'          => ['values' => 'string', 'default' => 'validation.invalid'],
+            'min_message'              => ['values' => 'string', 'default' => 'validation.min'],
+            'max_message'              => ['values' => 'string', 'default' => 'validation.max'],
+            'positive_only_message'    => ['values' => 'string', 'default' => 'validation.positive_only'],
+            'negative_only_message'    => ['values' => 'string', 'default' => 'validation.negative_only'],
+            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'validation.zero_not_allowed'],
+            'enforce_step_message'     => ['values' => 'string', 'default' => 'validation.enforce_step'],
         ],
     ],
     'range'   => [
         // Global Like if not applicable set to null
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // valid, but CSS is recommended
-        'pattern'       => null, // not applicable
-        'readonly'      => null, // not applicable
-        'autocomplete'  => null, // Ignore it
-        'inputmode'     => null, // not applicable
-        'placeholder'   => null, // not applicable
-        'required_message'   => null, // not applicable
+        'autocomplete'  => null, // Not Recommended: Not useful for visual selection
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for 'text'/'search'
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text-based inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'maxlength'     => null, // Not Applicable: Limits character count
+        'minlength'     => null, // Not Applicable: Limits character count
+        'pattern'       => null, // Not Applicable: Only for text-based inputs
+        'placeholder'   => null, // Not Applicable: Not relevant for a slider
+        'readonly'      => null, // Not Applicable: Must be writable to function
+        'size'          => null, // Not Applicable: Width set by CSS
+        'spellcheck'    => null, // Not Applicable: Not text content
+        'value'         => null, // Not Recommended: Initial value only; rely on scripting for data
         //End Global set to null
 
         // Used in Validation
@@ -757,21 +853,26 @@ return [
             'enforce_step_message'     => ['values' => 'string', 'default' => 'zzNumber must be a multiple of ___.'],
         ],
     ],
-
     'color' => [
         // Global Like if not applicable set to null
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // valid, but CSS is recommended
-        'pattern'       => null, // not applicable
-        'readonly'      => null, // not applicable
-        'autocomplete'  => null, // Ignore it
-        'inputmode'     => null, // not applicable
-        'placeholder'   => null, // not applicable
-        'required'      => null, // just do not use, dfts to black
-        'required_message' => null, // not applicable
+        'autocomplete'  => null, // Not Applicable: Only for data input
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific text inputs
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Rarely supported by browsers for this type
+        'max'           => null, // Not Applicable: Only for numeric inputs
+        'maxlength'     => null, // Not Applicable: Fixed length value
+        'min'           => null, // Not Applicable: Only for numeric inputs
+        'minlength'     => null, // Not Applicable: Fixed length value
+        'pattern'       => null, // Not Applicable: Format is strictly enforced
+        'placeholder'   => null, // Not Applicable: Only for text inputs
+        'readonly'      => null, // Not Applicable: Use 'disabled' instead
+        'required'      => null, // Not Recommended: Often redundant (always submits #000000)
+        'size'          => null, // Not Applicable: Only for text inputs
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric inputs
         //End Global set to null
 
 
@@ -788,25 +889,31 @@ return [
             'forbidden_message' => ['values' => 'string', 'default' => 'zzThis color is not allowed.'],
         ],
     ],
-
     'checkbox' => [
         // Global Like if not applicable set to null
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'size'          => null, // valid, but CSS is recommended
-        'pattern'       => null, // not applicable
-        'readonly'      => null, // not applicable
-        'autocomplete'  => null, // Ignore it
-        'inputmode'     => null, // not applicable
-        'placeholder'   => null, // not applicable
+        'autocomplete'  => null, // Not Applicable: Only for data input
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific text inputs
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Used for text input suggestions
+        'max'           => null, // Not Applicable: Only for numeric inputs
+        'maxlength'     => null, // Not Applicable: Only for text inputs
+        'min'           => null, // Not Applicable: Only for numeric inputs
+        'minlength'     => null, // Not Applicable: Only for text inputs
+        'pattern'       => null, // Not Applicable: Only for text inputs
+        'placeholder'   => null, // Not Applicable: Only for text inputs
+        'readonly'      => null, // Not Applicable: Use 'disabled' instead
+        'size'          => null, // Not Applicable: Only for text inputs
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric inputs
         //End Global set to null
 
         // 'value'       => ['default' => '1', 'values' => 'string'],
 
         'checked'     => ['default' => false, 'values' => 'bool'],
-        'data-live-validation'  => ['default' => false, 'values' => 'bool'],
+        //'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
             // 'ignore_allowed'           => ['values' => 'bool', 'default' => true],
@@ -824,18 +931,55 @@ return [
 
         ],
     ],
-
-
     'radio_group' => [ // ✅ New entry for radio_group
+        // Global Like if not applicable set to null
+        'autocomplete'  => null, // Not Applicable: Only for data input
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific text inputs
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Used for text input suggestions
+        'max'           => null, // Not Applicable: Only for numeric inputs
+        'maxlength'     => null, // Not Applicable: Only for text inputs
+        'min'           => null, // Not Applicable: Only for numeric inputs
+        'minlength'     => null, // Not Applicable: Only for text inputs
+        'pattern'       => null, // Not Applicable: Only for text inputs
+        'placeholder'   => null, // Not Applicable: Only for text inputs
+        'readonly'      => null, // Not Applicable: Use 'disabled' instead
+        'size'          => null, // Not Applicable: Only for text inputs
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric inputs
+        //End Global set to null
+
         // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
         'val_fields' => [
             'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
             'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            'choices'           => ['values' => 'array', 'default' => []], // Important for documentation
+            // 'choices'           => ['values' => 'array', 'default' => []], // Important for documentation
         ],
     ],
-
     'radio' => [
+        // Global Like if not applicable set to null
+        'autocomplete'  => null, // Not Applicable: Only for data input
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific text inputs
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Used for text input suggestions
+        'max'           => null, // Not Applicable: Only for numeric inputs
+        'maxlength'     => null, // Not Applicable: Only for text inputs
+        'min'           => null, // Not Applicable: Only for numeric inputs
+        'minlength'     => null, // Not Applicable: Only for text inputs
+        'pattern'       => null, // Not Applicable: Only for text inputs
+        'placeholder'   => null, // Not Applicable: Only for text inputs
+        'readonly'      => null, // Not Applicable: Use 'disabled' instead
+        'size'          => null, // Not Applicable: Only for text inputs
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric inputs
+        //End Global set to null
+
         'name'        => ['default' => null, 'values' => 'string'], // Grouping is essential
         'value'       => ['default' => null, 'values' => 'string'], // Must be unique within a group
         'form'        => ['default' => null, 'values' => 'string'],
@@ -846,39 +990,38 @@ return [
         'autofocus'   => ['default' => false, 'values' => 'bool'],
         'required'    => ['default' => false, 'values' => 'bool'],
         'checked'     => ['default' => false, 'values' => 'bool'],
+
         // 'required_message' => ['default' => null, 'values' => 'string'],
     ],
-
-
     'select' => [
         // Global Like if not applicable set to null
-        'min'           => null, // not applicable
-        'max'           => null, // not applicable
-        'step'          => null, // not applicable
-        'autocomplete'  => null, // not applicable
-        'inputmode'     => null, // not applicable
-        'readonly'      => null, // not applicable
-        'maxlength'     => null, // not applicable
-        'minlength'     => null, // not applicable
-        'spellcheck'    => null, // not applicable
-        'dirname'       => null, // not applicable
-        'pattern'       => null, // not applicable
-        'placeholder'   => null, // not applicable
-        'value'         => null, // not applicable
+        'autocomplete'  => null, // Not Applicable: Only for <input>
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific <input> types
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for <input>
+        'lang'          => null, // Not Applicable: Not content-based
+        'max'           => null, // Not Applicable: Only for numeric <input>
+        'maxlength'     => null, // Not Applicable: Only for text <input>
+        'min'           => null, // Not Applicable: Only for numeric <input>
+        'minlength'     => null, // Not Applicable: Only for text <input>
+        'pattern'       => null, // Not Applicable: Only for <input>
+        'placeholder'   => null, // Not Applicable: Only for text <input>
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric <input>
+        'value'         => null, // Not Applicable: Value is set on <option>
         //End Global set to null
 
         'multiple'      => ['default' => false, 'values' => 'bool'],
         'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
         'val_fields' => [
-            'choices'                  => ['values' => 'array', 'default' => []],
+            // 'choicesx'                  => ['values' => 'array', 'default' => []],
 
             'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
             'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
         ],
     ],
-
-
     'file' => [
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
@@ -908,7 +1051,6 @@ return [
         'accept'    => ['default' => null, 'values' => 'string'], // e.g., 'image/*', '.pdf'
         // 'required_message' => ['default' => null, 'values' => 'string'],
     ],
-
     'extratest' => [
         'val_fields' => [
             'type' => ['default' => null, 'values' => 'string'],
@@ -923,8 +1065,6 @@ return [
             'forbidden_message'  => ['default' => null, 'values' => 'string'],
         ],
     ],
-
-
 ];
 
         // hidden
@@ -946,4 +1086,4 @@ return [
         // <datalist>
         // <progress>
         // <meter>
-// 668 // 491 606 616 651 724 937
+// 668 // 491 606 616 651 724 937 965

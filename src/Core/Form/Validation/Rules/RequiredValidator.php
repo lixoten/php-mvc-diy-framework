@@ -27,11 +27,12 @@ class RequiredValidator extends AbstractValidator
         if ($value === null || $value === '' || (is_array($value) && count($value) === 0)) {
             // $options['message'] ??= $options['required_message'] ?? null;
 
-            if (isset($options['required_message'])) {
-                $options['message'] = $this->formatCustomMessage('', $options['required_message']);
-            }
+            // if (isset($options['required_message'])) {
+            //     $options['message'] = $this->formatCustomMessage('', $options['required_message']);
+            // }
 
-            return $this->getErrorMessage($options, 'This field is required.');
+            $options['message'] ??= $options['required'] ?? null;
+            return $this->getErrorMessage($options, 'validation.required');
         }
 
         return null;

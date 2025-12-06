@@ -530,3 +530,29 @@ return $this->redirect($this->url('Posts', 'edit', ['id' => 42]));
 **Your menu integration is solid - let's build the view helpers next!** 🚀
 
 **Which helper should we start with?**
+
+
+
+
+
+
+go here to get .NET, `logExport` requires it.-
+- https://dotnet.microsoft.com/en-us/download/dotnet/10.0
+-- in section: .NET Desktop Runtime 10.0.0
+-- the downloaded file will be:
+    - `windowsdesktop-runtime-10.0.0-win-x64`
+
+go here to get logExpert
+- https://github.com/LogExperts/LogExpert/releases
+- under `v.1.21.0 - assets`..near the bottom
+    - LogExpert-Setup-1.21.0.exe - for setup
+    - LogExpert.1.21.0.zip - Portable
+
+
+    -
+
+
+
+
+
+

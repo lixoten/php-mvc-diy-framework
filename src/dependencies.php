@@ -1223,7 +1223,8 @@ return [
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
 
     'field.type.hidden' => \DI\autowire(\Core\Form\Field\Type\HiddenType::class)
-        ->constructorParameter('fieldSchema', \DI\get('forms.schema')),
+        ->constructorParameter('fieldSchema', \DI\get('forms.schema'))
+        ->constructorParameter('logger', \DI\get('logger')),
 
     'field.type.checkbox_group' => \DI\autowire(\Core\Form\Field\Type\CheckboxGroupType::class)
         ->constructorParameter('fieldSchema', \DI\get('forms.schema')),

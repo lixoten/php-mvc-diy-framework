@@ -8,6 +8,7 @@ use App\Helpers\DebugRt;
 use Core\Form\Field\Field;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Schema\FieldSchema;
+use Psr\Log\LoggerInterface;
 
 /**
  * Abstract base field type
@@ -16,9 +17,12 @@ abstract class AbstractFieldType implements FieldTypeInterface
 {
     protected FieldSchema $fieldSchema;
 
-    public function __construct(FieldSchema $fieldSchema)
-    {
+    public function __construct(
+        FieldSchema $fieldSchema,
+        protected LoggerInterface $logger
+    ) {
         $this->fieldSchema = $fieldSchema;
+        // $this->logger = $logger;
     }
 
 
@@ -68,7 +72,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             ];
             if (!in_array($type, $validArray)) {
                 $message = "Invalid 'show_character_counter' for field type '{$type}'.";
-                $this->logDevWarning($message . " - ERR-DEV102");
+                $this->logger->warningDev($message, "ERR-DEV102");
             }
         }
         if (isset($resolvedOptions['live_validation'])) {
@@ -78,7 +82,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             'date'];
             if (!in_array($type, $validArray)) {
                 $message = "Invalid 'live_validation' for field type '{$type}'.";
-                $this->logDevWarning($message . " - ERR-DEV102");
+                $this->logger->warningDev($message, "ERR-DEV102");
             }
         }
 
@@ -146,25 +150,14 @@ abstract class AbstractFieldType implements FieldTypeInterface
                      $filteredAttributes[$attrName] = $validAttribute;
                 }
             } else {
-                $message = "Invalid attribute '{$attrName}' for field type '{$fieldType}'.";
-                $this->logDevWarning($message . " - ERR-DEV101");
+                $message = "Invalid attribute '{$attrName}' for field type '{$fieldType}'. ";
+                $message .= "- To Fix it go to '_root' file and remove attribute \"{$attrName}\" for \"{$fieldType}\".";
+
+                $this->logger->warningDev($message, "ERR-DEV101-wtf1");
             }
         }
 
         return $filteredAttributes;
-    }
-
-    /**
-     * Log a warning message in development mode
-     */
-    private function logDevWarning(string $message): void
-    {
-        if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("Attribute: {$message}", E_USER_WARNING);
-        }
-
-        // Always log to system log
-        error_log("Field Attribute Warning: {$message}");
     }
 
     /**
@@ -188,7 +181,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             if (is_array($validationRule)) {
                 if (!in_array($attrValue, $validationRule)) {
                     $message = "Invalid value '{$attrValue}' for attribute '{$attrName}'.";
-                    $this->logDevWarning($message . " - ERR-DEV101");
+                    $this->logger->warningDev($message, "ERR-DEV101");
                     return null;
                 }
             // 2. Check for multiple allowed types (e.g., ['int', 'float'])
@@ -203,28 +196,28 @@ abstract class AbstractFieldType implements FieldTypeInterface
                 }
                 if (!$isValid) {
                     $message = "Invalid value '{$attrValue}' for attribute '{$attrName}'. Must be int or float.";
-                    $this->logDevWarning($message . " - ERR-DEV101");
+                    $this->logger->warningDev($message, "ERR-DEV101");
                     return null;
                 }
             // 3. Check for boolean values
             } elseif ($validationRule === 'bool') {
                 if (!is_bool($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a boolean (true or false).";
-                    $this->logDevWarning($message . " - ERR-DEV101");
+                    $this->logger->warningDev($message, "ERR-DEV101");
                     return null;
                 }
             // 4. Check for numeric values
             } elseif ($validationRule === 'numeric') {
                 if (!is_numeric($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a numeric value.";
-                    $this->logDevWarning($message . " - ERR-DEV101");
+                    $this->logger->warningDev($message, "ERR-DEV101");
                     return null;
                 }
             // 5. Check for string values
             } elseif ($validationRule === 'string') {
                 if (!is_string($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a string.";
-                    $this->logDevWarning($message . " - ERR-DEV101");
+                    $this->logger->warningDev($message, "ERR-DEV101");
                     return null;
                 }
             }

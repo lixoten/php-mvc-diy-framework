@@ -57,19 +57,19 @@ return [
             'db_type'   => 'enum',
             // 'length'    => 1,
             // 'nullable'  => false,
-            'default'   => 'A',
+            'default'   => 'a',
             'comment'   => 'Status',
             'comment2'  => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
-            'check'     => "status IN ('J', 'P','A','S','B','D')", // Using CHECK constraint as per instructions
+            'check'     => "status IN ('j', 'p','a','s','b','d')", // Using CHECK constraint as per instructions
             // 'comment'   => 'P=Pending, A=Active, I=Inactive',
             'lookup'    => 'testy_status',
             'enum_class' => 'TestyStatus',
             'codes'     => [
                 'P'  => 'Pending',
-                'A'  => 'Active',
-                'S'  => 'Suspended',
-                'B' => 'Banned',
-                'D' => 'Deleted',
+                'a'  => 'Active',
+                's'  => 'Suspended',
+                'b' => 'Banned',
+                'd' => 'Deleted',
             ],
         ],
         'slug' => [
@@ -307,8 +307,23 @@ return [
             'db_type'   => 'integer',
             'nullable'  => false,
             'default'   => 0,
+            'sortable'  => true,
             'comment'   => 'Generic Number',
+            'min'       => 11,
+            'pattern'   => '/^[0-8]*$/',
         ],
+
+        // 'generic_text' => [
+        //     'db_type'   => 'string',
+        //     'length'    => 60,
+        //     'nullable'  => true,
+        //     'comment'   => 'Generic text',
+        //     'comment2'  => 'Generic short text',
+        //     'required'  => true,
+        //     'minlength' => 5,
+        //     'maxlength' => 50,
+        // ],
+
         'generic_num' => [
             'db_type'   => 'integer',
             'nullable'  => false,

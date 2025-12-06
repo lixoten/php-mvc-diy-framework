@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251129_154818 xxxxxxxxxxxxxxxxxxxx
+ * Generated File - Date: 20251204_150154
  * Field definitions for the testy_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
@@ -17,6 +17,7 @@ declare(strict_types=1);
 // gender_id
 // is_verified
 // primary_email
+// generic_number
 return [
     'id' => [
         'list' => [
@@ -35,7 +36,7 @@ return [
             'options_provider' => [\App\Enums\TestyStatus::class, 'toSelectArray'],
             'default_choice'   => 'status.form.default_choice',
             'attributes' => [
-                'required' => true,
+                // 'required'    => false,
                 // 'style'       => 'background:yellow;',
             ],
         ],
@@ -49,9 +50,10 @@ return [
         ],
         'validators' => [
             'select' => [
-                'required_message'  => 'status.validation.required',
-                'invalid_message'   => 'status.validation.invalid',
-            ]
+                // --
+                'required_message' => 'status.validation.required',
+                'invalid_message'  => 'status.validation.invalid',
+            ],
         ],
     ],
     'generic_text' => [
@@ -67,7 +69,7 @@ return [
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 50,
-                // 'pattern'     => '/^[a-z0-9]/',
+                // 'pattern'     => '/^[a-z0-9./',
                 // 'style'       => 'background:yellow;',
                 // 'data-char-counter'    => false,
                 // 'data-live-validation' => false,
@@ -89,18 +91,18 @@ return [
         ],
         'validators' => [
             'text' => [ // Default validator, can be refined based on db_type
-                'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                // 'ignore_forbidden'  => true,  // Default is false
-                // 'ignore_allowed'    => false, // Default is true
-                //---
+                // 'ignore_allowed'    => true,
+                // 'ignore_forbidden'  => false,
+                // 'allowed'           => [aaaa, bbbb],
+                // 'forbidden'         => [fuck, dick],
+                // --
                 'required_message'  => 'generic_text.validation.required',
                 'invalid_message'   => 'generic_text.validation.invalid',
                 'minlength_message' => 'generic_text.validation.minlength',
                 'maxlength_message' => 'generic_text.validation.maxlength',
                 'pattern_message'   => 'generic_text.validation.pattern',
-                'allowed_message'   => 'generic_text.validation.allowed',
-                'forbidden_message' => 'generic_text.validation.forbidden',
+                // 'allowed_message'   => 'generic_text.validation.allowed',
+                // 'forbidden_message' => 'generic_text.validation.forbidden',
             ],
         ],
     ],
@@ -128,8 +130,9 @@ return [
         ],
         'validators' => [
             'select' => [
-                'required_message'  => 'state_code.validation.required',
-                'invalid_message'   => 'state_code.validation.invalid',
+                // --
+                'required_message' => 'state_code.validation.required',
+                'invalid_message'  => 'state_code.validation.invalid',
             ],
         ],
     ],
@@ -143,7 +146,7 @@ return [
             'type'       => 'radio_group',
             'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'gender'],
-            // 'default_choice'   => 'gender_id.form.default_choice', gen
+            // 'default_choice'   => 'gender_id.form.default_choice',
             'attributes' => [
                 'required'    => true,
                 // 'style'       => 'background:yellow;',
@@ -157,12 +160,13 @@ return [
         ],
         'validators' => [
             'radio_group' => [
-                'required_message'  => 'gender_id.validation.required',
-                'invalid_message'   => 'gender_id.validation.invalid',
+                // --
+                'required_message' => 'gender_id.validation.required',
+                'invalid_message'  => 'gender_id.validation.invalid',
             ],
         ],
     ],
-    'is_verified' => [ // good one
+    'is_verified' => [
         'list' => [
             'label'      => 'is_verified.list.label',
             'sortable'   => false,
@@ -171,7 +175,7 @@ return [
             'label'      => 'is_verified.form.label',
             'type'       => 'checkbox',
             'attributes' => [
-                'required'    => false,
+                // 'required'    => false,
                 // 'style'       => 'background:yellow;',
             ],
         ],
@@ -242,6 +246,60 @@ return [
                 'allowed_message'   => 'primary_email.validation.allowed',
                 'forbidden_message' => 'primary_email.validation.forbidden',
             ],
+        ],
+    ],
+    'generic_number' => [
+        'list' => [
+            'label'      => 'generic_number.list.label',
+            'sortable'   => true,
+        ],
+        'form' => [
+            'label'      => 'generic_number.form.label',
+            'type'       => 'number',
+            'attributes' => [
+                'placeholder' => 'generic_number.form.placeholder',
+                'required'    => true,
+                'step' => 5,
+                'min'   => 20,
+                'style'       => 'background:yellow;',
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+                // 'xxxxxxmax_length' => 5,
+                // 'truncate_suffix' => '...',          // Defaults to ...
+                // 'null_value' => 'Nothing here',      // Replaces null value with string
+                // 'suffix'     => "Boo",               // Appends to end of text
+                // 'transform'  => 'lowercase',
+                // 'transform'  => 'uppercase',
+                // 'transform'  => 'capitalize',
+                // 'transform'  => 'title',
+                // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                // 'transform'  => 'last2char_upper',
+            ],
+        ],
+        'validators' => [
+            'number' => [
+                // 'positive_only'            => false,
+                // 'negative_only'            => false,
+                // 'zero_not_allowed'         => false,
+                // 'enforce_step'             => false,
+                // 'ignore_allowed'           => true,
+                // 'ignore_forbidden'         => false,
+                // 'allowed'                  => [111],
+                // 'forbidden'                => [444, 888],
+                // --
+                'required_message'         => 'generic_number.validation.required',
+                'invalid_message'          => 'generic_number.validation.invalid',
+                'min_message'              => 'generic_number.validation.min',
+                'max_message'              => 'generic_number.validation.max',
+                // 'positive_only_message'    => 'generic_number.validation.positive_only',
+                // 'negative_only_message'    => 'generic_number.validation.negative_only',
+                // 'zero_not_allowed_message' => 'generic_number.validation.zero_not_allowed',
+                // 'enforce_step_message'     => 'generic_number.validation.enforce_step',
+                // 'allowed_message'          => 'generic_number.validation.allowed',
+                // 'forbidden_message'        => 'generic_number.validation.forbidden',
+            ]
         ],
     ],
 ];

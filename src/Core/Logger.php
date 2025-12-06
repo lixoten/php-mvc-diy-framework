@@ -5,6 +5,7 @@ namespace Core;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use App\Helpers\DebugRt as Debug;
+use App\Helpers\DebugRt;
 
 // myNotes:
 // - composer require psr/log
@@ -165,7 +166,52 @@ class Logger implements LoggerInterface
             );
         }
 
-        $result = @file_put_contents($filename, $logMessage, FILE_APPEND);
+        // $result = @file_put_contents($filename, $logMessage, FILE_APPEND);
+
+// Use fopen/fwrite/fflush for real-time visibility in tools like LogExpert
+        // 'a' mode opens the file for writing only; places the file pointer at the end.
+        $fp = @fopen($filename, 'a');
+
+        if ($fp !== false) {
+            $result = @fwrite($fp, $logMessage);
+
+            // CRITICAL STEP: Manually flush the buffer to disk
+            @fflush($fp);
+
+            @fclose($fp);
+
+            if ($result === false) {
+                // If fwrite failed
+                if ($this->debugMode) {
+                    $this->addDebug(
+                        "Failed to write log using fwrite! Error: " . error_get_last()['message'],
+                        'error'
+                    );
+                }
+            }
+        } else {
+            // If fopen failed (e.g., permissions)
+            if ($this->debugMode) {
+                $this->addDebug(
+                    "Failed to open log file for writing! File: " . $filename,
+                    'error'
+                );
+            }
+        }
+
+// cmd /c "msg %USERNAME% /TIME:10 hello work & exit"
+
+// cmd /c "msg %USERNAME% /TIME:10 WARNING Detected! Line: %L% & exit"
+
+
+
+
+
+
+
+
+
+
 
         if ($result === false) {
             if ($this->debugMode) {
@@ -441,7 +487,78 @@ class Logger implements LoggerInterface
     }
 
     /** {@inheritdoc} */
-    public function triggerDevFatalError(string $plainMessage, string $devError, array $context = []): void
+    public function warningDev(string $plainMessage, string $devWarning, array $context = []): void
+    {
+        if (!$this->isAppInDevelopment()) {
+            // This method should ideally not be called in production.
+            // If it is, log a standard error to avoid unintended fatal errors.
+            $this->error("Attempted to trigger dev fatal error in non-development environment: " . $plainMessage, $context);
+            return;
+        }
+
+        // You can integrate context into the message here if desired
+        $contextString = '';
+        if (!empty($context)) {
+            $contextString = "\nContext: " . json_encode($context, JSON_PRETTY_PRINT);
+        }
+
+        // ✅ Find the actual caller's file and line number for the message display
+        $callerFile = 'unknown_file';
+        $callerLine = 'unknown_line';
+        // Limit the trace to avoid performance overhead and unnecessary depth
+        // $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
+
+
+        ## Danger Danger not sure if index 1 will work well, might depend o how deep?
+        $i = 0;
+        $callerFile       = debug_backtrace()[$i]['file'];
+        $callerLine  = debug_backtrace()[$i]['line'];
+        if (isset(debug_backtrace()[$i]['class'])) {
+            $class      = debug_backtrace()[$i]['class'];
+        }
+        if (isset(debug_backtrace()[$i]['function'])) {
+            $function   = debug_backtrace()[$i]['function'];
+        }
+
+        // // Iterate through the trace to find the first relevant caller outside the logger itself
+        // foreach ($trace as $frame) {
+        //     if (isset($frame['file']) && isset($frame['line'])) {
+        //         // Skip frames that are internal to the logger and its direct wrappers
+        //         // Adjust this condition if you have other internal wrapper methods that should be skipped
+        //         if (str_contains($frame['file'], 'src' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Logger.php')) {
+        //             continue;
+        //         }
+        //         // If you have a specific wrapper in AbstractFieldType, ensure to skip it too.
+        //         // Example: if (isset($frame['class']) && $frame['class'] === 'Core\\Form\\Field\\Type\\AbstractFieldType' && $frame['function'] === 'logDevWarning') {
+        //         //     continue;
+        //         // }
+
+        //         // This frame should be the actual initiator of the warning in your application logic
+        //         $callerFile = $frame['file'];
+        //         $callerLine = $frame['line'];
+        //         break;
+        //     }
+        // }
+
+
+
+        $fullErrorMessage = str_repeat('#', 100) . "<br />\n";
+        $fullErrorMessage .= '#### ---------- waaaaaaDEV MODE BUG - CATCH MY EYE ----------' . "<br />\n";
+        $fullErrorMessage .= str_repeat('#', 100) . "<br />\n";
+        $fullErrorMessage .= "Dev Error #: \"{$devWarning}\" look it up" . "<br />\n";
+        $fullErrorMessage .= $plainMessage . $contextString . "<br /><br />\n\n";
+        $fullErrorMessage .= "Initiated by: {$callerFile} on line {$callerLine}<br />\n";
+        $fullErrorMessage .= str_repeat('#', 100) . "<br /><br />\n\n";
+
+        // error_log(strip_tags($fullErrorMessage)); // Log plain text to actual error log
+
+        // trigger_error($fullErrorMessage, E_USER_WARNING);
+        DebugRt::j('0', '', $fullErrorMessage, trace: false, code: $devWarning);
+        // Execution stops here due to E_USER_ERROR
+    }
+
+    /** {@inheritdoc} */
+    public function errorDev(string $plainMessage, string $devError, array $context = []): void
     {
         if (!$this->isAppInDevelopment()) {
             // This method should ideally not be called in production.
@@ -466,6 +583,4 @@ class Logger implements LoggerInterface
         trigger_error($fullErrorMessage, E_USER_ERROR);
         // Execution stops here due to E_USER_ERROR
     }
-
-
 }

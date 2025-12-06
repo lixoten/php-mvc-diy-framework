@@ -201,6 +201,7 @@ class LangFileGenerator
                             'is_verified',
                             'generic_text',
                             'primary_email',
+                            'generic_number',
                         ]
                     )
                 ) {
@@ -460,6 +461,7 @@ PHP;
                     // $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
                     $block = <<<PHP
                     $s08'label'       => '{$wordSentence}',
+                    $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
@@ -495,7 +497,6 @@ PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
                     $s08'label'       => '{$wordSentence}',
-                    // $s12'default_choice' => 'Please select your {$focusName}{$wordSentence}.',
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
@@ -592,7 +593,9 @@ PHP;
         $length = $config['length'] ?? 0;
 
         if (isset($config['codes']) && is_array($config['codes'])) {
-            if (isset($config['form_input_type'])) {
+            if ($config['db_type'] === 'boolean') {
+                return 'checkbox';
+            } elseif (isset($config['form_input_type'])) {
                 return $config['form_input_type'];
             } else {
                 return 'select';

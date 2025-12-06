@@ -27,26 +27,29 @@ class PasswordValidator extends AbstractValidator
 
         // Min length
         if (isset($options['minlength']) && $length < $options['minlength']) {
-            isset($options['minlength_message'])
-                ? $options['message'] = $this->formatCustomMessage(
-                    (string)$options['minlength'],
-                    $options['minlength_message']
-                )
-                : null;
+            // isset($options['minlength_message'])
+            //     ? $options['message'] = $this->formatCustomMessage(
+            //         (string)$options['minlength'],
+            //         $options['minlength_message']
+            //     )
+            //     : null;
 
-            return $this->getErrorMessage($options, "Password must be at least {$options['minlength']} characters.");
+            $options['message'] ??= $options['minlength_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.minlength');
+            // return $this->getErrorMessage($options, "Password must be at least {$options['minlength']} characters.");
         }
 
         // Max length
         if (isset($options['maxlength']) && $length > $options['maxlength']) {
-            isset($options['maxlength_message'])
-                ? $options['message'] = $this->formatCustomMessage(
-                    (string)$options['maxlength'],
-                    $options['maxlength_message']
-                )
-                : null;
-
-            return $this->getErrorMessage($options, "Password must not exceed {$options['maxlength']} characters.");
+            // isset($options['maxlength_message'])
+            //     ? $options['message'] = $this->formatCustomMessage(
+            //         (string)$options['maxlength'],
+            //         $options['maxlength_message']
+            //     )
+            //     : null;
+            $options['message'] ??= $options['maxlength_message'] ?? null;
+            return $this->getErrorMessage($options, 'validation.maxlength');
+            // return $this->getErrorMessage($options, "Password must not exceed {$options['maxlength']} characters.");
         }
 
         // pattern length
