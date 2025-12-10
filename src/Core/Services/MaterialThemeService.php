@@ -30,7 +30,7 @@ class MaterialThemeService implements ThemeServiceInterface
         'pagination.link' => 'mdc-pagination__link',
 
         'form.heading.wrapper' => 'mdc-form-heading-wrapper mdc-elevation--z1 mdc-typography--headline6',
-        'form.heading' => 'mdc-typography--headline6',
+        'title.heading' => 'mdc-typography--headline6',
     ];
 
     /**
@@ -243,5 +243,22 @@ class MaterialThemeService implements ThemeServiceInterface
         // 'mdc-button--green', 'mdc-button--red' etc. would be custom classes in your Material CSS.
 
         return $baseClass . ' ' . $variantClass;
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function getAjaxSpinnerHtml(string $message): string
+    {
+        // Get Bootstrap specific spinner classes from ThemeService
+        $spinnerClass = $this->getElementClass('spinner.base') ?? 'spinner-border spinner-border-sm'; // Intentional fallback for core spinner class
+        $spinnerWrapperClass = $this->getElementClass('spinner.wrapper') ?? 'text-info mb-2 mt-3'; // Intentional fallback for spinner wrapper
+
+        return <<<HTML
+            <div id="ajax-save-spinner" style="display:none;" class="{$spinnerWrapperClass}">
+                <span class="{$spinnerClass}"></span> {$message}
+            </div>
+        HTML;
     }
 }

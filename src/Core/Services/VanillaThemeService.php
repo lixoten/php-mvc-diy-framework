@@ -24,7 +24,7 @@ class VanillaThemeService implements ThemeServiceInterface
         'pagination' => 'vanilla-pagination',
 
         'form.heading.wrapper' => 'vanilla-form-heading-wrapper vanilla-bg-light vanilla-px-3 vanilla-py-2 vanilla-border-bottom',
-        'form.heading' => 'vanilla-form-heading', // Example Vanilla heading class
+        'title.heading' => 'vanilla-title-heading', // Example Vanilla heading class
     ];
 
     /**
@@ -198,5 +198,21 @@ class VanillaThemeService implements ThemeServiceInterface
         };
 
         return $baseClass . ' ' . $variantClass;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getAjaxSpinnerHtml(string $message): string
+    {
+        // Get Bootstrap specific spinner classes from ThemeService
+        $spinnerClass = $this->getElementClass('spinner.base') ?? 'spinner-border spinner-border-sm'; // Intentional fallback for core spinner class
+        $spinnerWrapperClass = $this->getElementClass('spinner.wrapper') ?? 'text-info mb-2 mt-3'; // Intentional fallback for spinner wrapper
+
+        return <<<HTML
+            <div id="ajax-save-spinner" style="display:none;" class="{$spinnerWrapperClass}">
+                <span class="{$spinnerClass}"></span> {$message}
+            </div>
+        HTML;
     }
 }

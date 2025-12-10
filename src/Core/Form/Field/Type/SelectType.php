@@ -23,7 +23,7 @@ class SelectType extends AbstractFieldType
     public function getDefaultOptions(): array
     {
         return array_merge(parent::getDefaultOptions(), [
-            'default_choice' => 'form.select.default_choice',
+            // 'default_choice' => 'form.select.default_choice',
             'choices' => [],
         ]);
     }

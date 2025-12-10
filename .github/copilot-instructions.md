@@ -23,6 +23,9 @@ This document serves as a guide for GitHub Copilot to ensure all code contributi
 If a code suggestion violates SRP, OCP, or DIP, you MUST refuse the suggestion and explain which principle was violated.
 same applies to mixing concerns. If you spot code mixing concerns please alert me.
 
+Try to exposing a missing configuration!
+
+
 ## Code Style and Best Practices
 
 ## keep me happy

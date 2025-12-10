@@ -37,14 +37,12 @@ return [
         'css_form_theme_file'   => '', // "christmas",
         'default_form_theme'    => '', // 'christmas' ?? 'default',
 
-        // 'form_heading_level'         => 'h3', // Default is 'h2'
-        'form_heading'               => "form.heading",
-        'form_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        'show_title_heading'    => true,
+        'title_heading_level'         => 'h3', // Default is 'h2'
+        'title_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
         'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
 
-        'submit_text'           => "button.save",
         'submit_button_variant' => 'primary',
-        'cancel_text'           => 'button.cancel', // Added for translation
         'cancel_button_variant' => 'secondary',
 
 
@@ -58,11 +56,11 @@ return [
                 // 'title',
 
                 // 'is_verified',
-                // 'generic_text',
-                'gender_id',
-                // 'state_code',
-                // 'status',
-                // 'generic_number',
+                'generic_text',
+                // 'gender_id',
+                'state_code',
+                'status',
+                'generic_number',
 
                 // 'super_powers',
                 // 'telephone',

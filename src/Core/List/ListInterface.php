@@ -22,12 +22,12 @@ interface ListInterface
     public function getPageName(): string;
 
     /**
-     * Set the list title
+     * Set the list render_options title
      */
     public function setTitle(string $title): self;
 
     /**
-     * Get the list title
+     * Get the list render_options title
      */
     public function getTitle(): string;
 
@@ -61,6 +61,12 @@ interface ListInterface
      * Get all actions
      */
     public function getActions(): array;
+
+    /**
+     * Set actions definitions
+     */
+    public function setActions(array $actions): self;
+
 
     /**
      * Check if the list has any actions defined

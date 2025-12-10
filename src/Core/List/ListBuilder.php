@@ -6,6 +6,7 @@ namespace Core\List;
 
 use App\Enums\Url;
 use Core\Form\Field\Type\FieldTypeRegistry;
+use Core\I18n\I18nTranslator;
 
 /**
  * List builder
@@ -23,18 +24,39 @@ class ListBuilder implements ListBuilderInterface
      */
     public function __construct(
         ListInterface $list,
-        FieldTypeRegistry $fieldTypeRegistry
+        FieldTypeRegistry $fieldTypeRegistry,
+        private I18nTranslator $translator // php 8.2 promotion
     ) {
         $this->list = $list;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
+        $this->translator = $translator;
     }
 
     public function setOptions(array $options): void
     {
         $this->list->setOptions($options);
     }
+
     public function setRenderOptions(array $renderOptions): void
     {
+        if ($this->translator) {
+            $translatableKeys = [
+                'title',
+                'heading',
+                'add_button_label',
+                'actions_label'
+            ];
+
+            foreach ($translatableKeys as $key) {
+                if (isset($renderOptions[$key])) {
+                    $renderOptions[$key] = $this->translator->get(
+                        $renderOptions[$key],
+                        pageName: $this->list->getPageName()
+                    );
+                }
+            }
+        }
+
         $this->list->setRenderOptions($renderOptions);
     }
 
@@ -52,7 +74,6 @@ class ListBuilder implements ListBuilderInterface
      */
     public function addAction(string $name, array $options = []): self
     {
-        // $this->actions[$name] = $options;
         $this->list->addAction($name, $options);
         return $this;
     }

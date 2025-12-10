@@ -110,6 +110,7 @@ class Validator
         $validatorList = $field->getValidators();
         $validatorList = $this->normalizeValidatorList($validatorList);
 
+        $fieldName     = $field->getName();
         $value         = $field->getValue();
         $type          = $field->getType();
         $attributes    = $field->getAttributes();
@@ -140,7 +141,8 @@ class Validator
         if ($required) {
             $error = $this->registry->validate($value, 'required', $finalValidationAttributes);
             if ($error) {
-                $errors[] = $error;
+                // $errors[] = $error;
+                $errors[] = $fieldName . '.' . $error;
                 return $errors;
             }
         }
@@ -164,7 +166,7 @@ class Validator
         // $rrr = 123;
         $error = $this->registry->validate($value, $type, $finalValidationAttributes);
         if ($error) {
-            $errors[] = $error;
+            $errors[] = $fieldName . '.' . $error;
             return $errors;
         }
 
@@ -208,7 +210,8 @@ class Validator
                     $error = $this->registry->validate($value, $validator, $finalValidationAttributes);
 
                     if ($error) {
-                        $errors[] = $error;
+                        // $errors[] = $error;
+                        $errors[] = $fieldName . '.' . $error;
                     }
                 } else {
                     // ✅ Handle explicitly configured but unregistered validators
@@ -245,7 +248,7 @@ class Validator
      */
     private function logWarning(string $message): void
     {
-            trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
+        trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
     }
 
     /**

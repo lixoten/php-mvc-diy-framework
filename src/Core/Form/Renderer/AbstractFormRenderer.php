@@ -110,7 +110,6 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         return $output;
     }
 
-    // ✅ NEW: Abstract method - child renderers implement framework-specific header HTML
     /**
      * Renders the form's header section (typically outside the <form> tag).
      * May include the form title, AJAX spinner, or other global status indicators.
@@ -119,7 +118,46 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * @param array<string, mixed> $options Rendering options
      * @return string Framework-specific HTML for the form header
      */
-    abstract protected function renderHeader(FormInterface $form, array $options): string;
+    // abstract protected function renderHeader(FormInterface $form, array $options): string;
+    protected function renderHeader(FormInterface $form, array $options): string
+    {
+        $output = '';
+
+        // Render the form heading if configured
+        $showTitleHeading = !empty($options['show_title_heading']);
+        if ($showTitleHeading) {
+            $headerClass = $this->themeService->getElementClass('card.header');
+            $output .= '<div class="' . $headerClass . '">';
+
+            // Resolve heading level, defaulting to 'h2'
+            $headingLevelCandidate = $options['title_heading_level'] ?? 'h2';
+            $headingLevel = (is_string($headingLevelCandidate) && preg_match('/^h[1-6]$/i', $headingLevelCandidate))
+                            ? $headingLevelCandidate
+                            : 'h2';
+
+            $headingClass = $options['title_heading_class'] ?? $this->themeService->getElementClass('form.heading');
+            $headingText  = $this->translator->get('form.title', pageName: $form->getPageName());
+
+            $output .= "<{$headingLevel} class=\"{$headingClass}\">" .
+                       $headingText .
+                       "</{$headingLevel}>";
+            $output .= '</div>';
+        }
+
+        // Render ajax_save_spinner here (global form status indicator)
+        if (!empty($options['ajax_save'])) {
+            // Translate the "Saving..." message
+            $savingText = $this->translator->get('form.saving', pageName: $form->getPageName());
+
+            // ✅ Use the ThemeService to get the fully rendered AJAX spinner HTML
+            $output .= $this->themeService->getAjaxSpinnerHtml($savingText);
+        }
+
+        return $output;
+    }
+
+
+
 
     // ✅ NEW: Abstract method - child renderers implement framework-specific start tag HTML
     /**
@@ -129,7 +167,151 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * @param array<string, mixed> $options Rendering options
      * @return string Framework-specific HTML for the form start
      */
-    abstract protected function renderStartTag(FormInterface $form, array $options): string;
+    // abstract protected function renderStartTag(FormInterface $form, array $options): string;
+    protected function renderStartTag(FormInterface $form, array $options): string
+    {
+        $attrString = $this->buildFormAttributes($form, $options);
+        $output = '<form' . $attrString . '>';
+
+        // CSRF token
+        $token = $form->getCSRFToken();
+        $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($token) . '">';
+
+        return $output;
+    }
+
+
+
+    /**
+     * Renders the form's submit and optional cancel buttons.
+     *
+     * @param FormInterface<form> $options The rendering options.
+     * @param array<string, mixed> $options The rendering options.
+     * @return string Stringed attributes.
+     */
+    protected function buildFormAttributes(FormInterface $form, array $options): string
+    {
+        $attributes = $form->getAttributes();
+
+        // Set default method if not provided
+        if (!isset($attributes['method'])) {
+            $attributes['method'] = 'post';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Use action_url from render options if available (injected by controller)
+        // Falls back to form's action attribute if not set via render options
+        if (!empty($options['action_url'])) {
+            $attributes['action'] = $options['action_url'];
+        } elseif (!isset($attributes['action'])) {
+            // Fallback to current URL if no action is specified anywhere
+            $attributes['action'] = '';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Add enctype if any field is of type 'file'
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'file') {
+                $attributes['enctype'] = 'multipart/form-data';
+                break;
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // SearchFor 'ajax_update_url'
+        // //  AJAX attributes if provided via render options
+        // if (!empty($options['ajax_update_url'])) {
+        //     $attributes['data-ajax-action'] = $options['ajax_update_url'];
+        // } elseif (!empty($options['ajax_store_url'])) {
+        //     $attributes['data-ajax-action'] = $options['ajax_store_url'];
+        // }
+
+        //---------------------------------------------------------------------
+
+        // Include HTML attributes from options
+        $htmlAttributes = $options['attributes'] ?? [];
+        if (!empty($htmlAttributes)) {
+            $attributes = array_merge($attributes, $htmlAttributes);
+        }
+
+        if (!empty($options['ajax_save'])) { // js-feature
+            $attributes['data-ajax-save'] = 'true';
+        }
+        if (!empty($options['auto_save'])) { // js-feature
+            $attributes['data-auto-save'] = 'true';
+        }
+        if (!empty($options['use_local_storage'])) { // js-feature
+            $attributes['data-use-local-storage'] = 'true';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Handle direct HTML attributes like onsubmit (ADD THIS CODE)
+        $directAttributes = ['onsubmit', 'onclick', 'onchange', 'onblur', 'onfocus'];
+        foreach ($directAttributes as $attr) {
+            if (isset($options[$attr])) {
+                $attributes[$attr] = $options[$attr];
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // Theme
+        $themeClass = $options['css_form_theme_class'] ?? '';
+        if ($themeClass) {
+            if (!isset($attributes['class'])) {
+                $attributes['class'] = $themeClass;
+            } else {
+                $attributes['class'] .= ' ' . $themeClass;
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // Bootstrap validation class
+        $existingClass = trim($attributes['class'] ?? '');
+        $validationClass = $this->themeService->getElementClass('form.validation') ?? null;
+
+        if (!empty($validationClass)) { // Only apply if theme provides a validation class
+            if ($existingClass === '') {
+                $attributes['class'] = $validationClass;
+            } else {
+                // Ensure exact token match, avoid partial matches
+                if (!preg_match('/\b' . preg_quote($validationClass, '/') . '\b/', $existingClass)) {
+                    $attributes['class'] = $existingClass . $validationClass;
+                } else {
+                    $attributes['class'] = $existingClass; // keep normalized value
+                }
+            }
+        }
+
+        //---------------------------------------------------------------------
+
+        // novalidate attribute for custom validation
+        if (!($options['html5_validation'] ?? false)) {
+            $attributes['novalidate'] = '';
+        }
+
+        //---------------------------------------------------------------------
+
+        // Build attribute string
+        $attrString = '';
+        foreach ($attributes as $name => $value) {
+            if ($value === '') {
+                $attrString .= ' ' . $name;
+            } else {
+                $attrString .= ' ' . $name . '="' . htmlspecialchars((string)$value) . '"';
+            }
+        }
+
+        return $attrString;
+    }
+
+
+
 
     // ✅ NEW: Abstract method - child renderers implement framework-specific body HTML
     /**
@@ -140,9 +322,153 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * @param array<string, mixed> $options Rendering options
      * @return string Framework-specific HTML for the form body content
      */
-    abstract protected function renderBodyContent(FormInterface $form, array $options): string;
+    // abstract protected function renderBodyContent(FormInterface $form, array $options): string;
+    protected function renderBodyContent(FormInterface $form, array $options): string
+    {
+        $output = '';
+        $pageName = $form->getPageName();
 
-    // ✅ NEW: Abstract method - child renderers implement framework-specific button HTML
+        // Render hidden fields first
+        foreach ($form->getFields() as $field) {
+            if ($field->getType() === 'hidden') {
+                $output .= $this->renderField(
+                    // $form->getPageKey(),
+                    $form->getPageName(),
+                    $field,
+                    $options
+                );
+                // Note: RRR means reset type to 'display' so it's not removed after rendering as hidden.
+                // Commented out for now as this behavior needs clarification:
+                // $field->setType('display');
+            }
+        }
+
+        $errorDisplay = $options['error_display'] ?? 'inline';
+
+
+        if ($errorDisplay === 'summary') {
+            // Render all errors (including field errors) in summary at the top
+            $output .= $this->renderErrors($form, $options);
+            // Set flag to prevent duplicate inline errors on individual fields
+            $options['hide_inline_errors'] = true;
+        } else {
+            // Render only form-level errors before fields (field errors are inline)
+            $output .= $this->renderErrors($form, $options);
+        }
+
+
+        // ✅ Delegate layout rendering to helper method
+        $output .= $this->renderLayoutFields($form, $options);
+
+        // Render CAPTCHA in a consistent place before submit button
+        if ($form->isCaptchaRequired()) {
+            $captchaFieldName = 'captcha';
+            $output .= '<div class="security-wrapper mb-4">';
+            $output .= '<h5 class="security-heading mb-3">' .
+                       $this->translator->get('common.security.verification', pageName: $pageName).
+                       '</h5>';
+            $output .= $this->renderField(
+                // $form->getName(),
+                $pageName,
+                $form->getField($captchaFieldName),
+                $options
+            );
+            $output .= '</div>';
+        }
+
+        return $output;
+    }
+
+
+    /**
+     * ✅ NEW HELPER METHOD: Renders fields based on layout configuration.
+     * Supports 'fieldsets', 'sections', and 'sequential' layout types.
+     *
+     * @param FormInterface $form The form instance
+     * @param array<string, mixed> $options Rendering options
+     * @return string Bootstrap HTML for the layout
+     */
+    protected function renderLayoutFields(FormInterface $form, array $options): string
+    {
+        $output = '';
+        $pageName = $form->getPageName();
+        $layout = $form->getLayout();
+        $layout_type = $options['layout_type'] ?? 'sequential';
+
+        if ($layout_type === 'fieldsets' && !empty($layout)) {
+            $columns = count($layout);
+            $columnClass = $columns > 1 ? 'row' : '';
+            $output .= '<div class="' . $columnClass . '">';
+
+            foreach ($layout as $fieldsetId => $fieldset) {
+                $colWidth = $columns > 1 ? 'col-md-' . (12 / $columns) : '';
+                $output .= '<div class="fieldset-container ' . $colWidth . '">';
+                $fldId = $fieldset['id'] ?? "fieldset-" . htmlspecialchars("$fieldsetId");
+                $output .= '<fieldset id="' . $fldId . '" class="mb-4">';
+
+                if (!empty($fieldset['title'])) {
+                    $output .= '<legend>' . htmlspecialchars($fieldset['title']) . '</legend>';
+                }
+
+                foreach ($fieldset['fields'] as $fieldName) {
+                    if ($form->hasField($fieldName)) {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+
+                $output .= '</fieldset></div>';
+            }
+            $output .= '</div>';
+        } elseif ($layout_type === 'sections' && !empty($layout)) {
+            foreach ($layout as $sectionId => $section) {
+                $title = $section['title'] ?? '';
+                $secId = $section['id'] ?? "section-" . htmlspecialchars("$sectionId");
+                $output .= '<h3 class="form-section-header my-3" id="section-' . $secId . '">' .
+                    htmlspecialchars($title) . '</h3>';
+
+                if (!empty($section['divider'])) {
+                    $output .= '<hr class="form-divider my-4" style="border:2px solid red;">';
+                }
+
+                $fields = $section['fields'] ?? [];
+                foreach ($fields as $fieldName) {
+                    if ($form->hasField($fieldName)) {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+            }
+        } else {
+            // Default: Sequential rendering
+            foreach ($layout as $setId => $set) {
+                foreach ($set['fields'] as $fieldName) {
+                    if ($form->hasField($fieldName) && $fieldName !== 'captcha') {
+                        $output .= $this->renderField(
+                            // $form->getName(),
+                            $pageName,
+                            $form->getField($fieldName),
+                            $options
+                        );
+                    }
+                }
+            }
+        }
+
+        return $output;
+    }
+
+
+
+
     /**
      * Renders the form's action buttons (e.g., submit, cancel).
      *
@@ -150,7 +476,39 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * @param array<string, mixed> $options Rendering options
      * @return string Framework-specific HTML for the form buttons
      */
-    abstract protected function renderButtons(FormInterface $form, array $options): string;
+    // abstract protected function renderButtons(FormInterface $form, array $options): string;
+    protected function renderButtons(FormInterface $form, array $options): string
+    {
+        $output = '';
+
+        // Render submit button if requested
+        if (!isset($options['no_submit_button']) || !$options['no_submit_button']) {
+            $buttonText = $this->translator->get('button.save', pageName: $form->getPageName());
+
+            $buttonButtonVariant = $options['submit_button_variant'] ?? 'primary';
+            $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant);
+
+            $output .= <<<HTML
+                <div class="mb-3"><button type="submit" class="{$buttonClass}">{$buttonText}</button></div>
+            HTML;
+
+            //  Add Cancel/Back button if cancel_url is provided via render options
+            if (!empty($options['cancel_url'])) {
+                $buttonText = $this->translator->get('button.cancel', pageName: $form->getPageName());
+
+                $buttonButtonVariant = $options['cancel_button_variant'] ?? 'secondary';
+                $buttonClass = $this->themeService->getButtonClass($buttonButtonVariant) . ' ms-2';
+
+                $url = htmlspecialchars($options['cancel_url']);
+                $output .= <<<HTML
+                    <a href="{$url}" class="{$buttonClass}">$buttonText</a>
+                HTML;
+            }
+        }
+
+        return $output;
+    }
+
 
     // ✅ NEW: Abstract method - child renderers implement framework-specific end tag HTML
     /**
@@ -189,8 +547,6 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         array $options = []
     ): string;
 
-    //  * @param string|null $fieldName Optional field name to render errors for
-        // ?string $fieldName = null
     /**
      * Renders error messages for the form or a specific field.
      *
@@ -198,37 +554,144 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      * @param array<string, mixed> $options Rendering options
      * @return string Framework-specific HTML for the errors
      */
-    abstract public function renderErrors(
-        FormInterface $form,
-        array $options = [],
-    ): string;
+    public function renderErrors(FormInterface $form, array $options = []): string
+    {
+        // Check if we're in summary mode
+        $errorDisplay = $options['error_display'] ?? 'inline';
+        $alertClass = match ($errorDisplay) {
+            'summary' => $this->themeService->getElementClass('alert.danger.summary'),
+            default => $this->themeService->getElementClass('alert.danger.inline'),
+        };
+
+
+        // DebugRt::j('1', '', $errorDisplay);
+        if ($errorDisplay === 'summary') {
+            // Collect ALL errors (both field and form level)
+            $allErrors = [];
+
+            // Collect field errors
+            foreach ($form->getFields() as $field) {
+                $fieldErrors = $field->getErrors();
+                if (!empty($fieldErrors)) {
+                    $fieldLabel = $field->getLabel();
+                    foreach ($fieldErrors as $error) {
+                        $informedError = $this->getInformedValidationError($form->getPageName(), $field, $error);
+
+                        $allErrors[] = '<li><strong>' . htmlspecialchars($fieldLabel) . ':</strong> ' .
+                                    htmlspecialchars($informedError) . '</li>';
+                    }
+                }
+            }
+            // Add form-level errors
+            $formErrors = $form->getErrors('_form');
+            foreach ($formErrors as $error) {
+                $allErrors[] = '<li>' . htmlspecialchars($error) . '</li>';
+            }
+
+            // Only render if we have errors OR show_error_container is true
+            if (!empty($allErrors) || ($options['show_error_container'] ?? false)) {
+                $output = '<div class="' . $alertClass . '" role="alert">';
+                if (!empty($allErrors)) {
+                    $errorInstructions = $this->translator->get('form.error.instructions', pageName: $pageName);
+                    $output .= "<h5>$errorInstructions</h5>";
+
+                    $output .= '<ul>' . implode('', $allErrors) . '</ul>';
+                } else {
+                    $output .= '<p class="mb-0">No errors.</p>';
+                }
+                $output .= '</div>';
+                return $output;
+            }
+
+            return '';
+        } else {
+            // Original code for inline errors - only form level
+            $errors = $form->getErrors('_form');
+            if (empty($errors)) {
+                return '';
+            }
+
+            $output = '<div class="' . $alertClass . '" role="alert">';
+            foreach ($errors as $error) {
+                $output .= htmlspecialchars($error) . '<br>';
+            }
+            $output .= '</div>';
+
+            return $output;
+        }
+    }
 
     /**
-     * {@inheritdoc}
+     * ✅ MOVED FROM BOOTSTRAP: Render constraint hints HTML (now framework-agnostic).
      *
      * @param string $pageName The current page/form context name for translation.
      * @param FieldInterface $field The field for which to render the hints.
      * @param array{
-     *     always: array<int, array{
-     *         icon: string,
-     *         text: string,
-     *         replacements: array<string, string|int|float|bool|null>,
-     *         class: string
-     *     }>,
-     *     on_focus: array<int, array{
-     *         icon: string,
-     *         text: string,
-     *         replacements: array<string, string|int|float|bool|null>,
-     *         class: string
-     *     }>
-     * } $hints Categorized hints ['always' => [...], 'on_focus' => [...]]
+     *     always: array<int, array{icon: string, text: string, replacements: array<string, mixed>, class: string}>,
+     *     on_focus: array<int, array{icon: string, text: string, replacements: array<string, mixed>, class: string}>
+     * } $hints Categorized hints
      * @return string The HTML string for the constraint hints.
      */
-    abstract protected function renderConstraintHintsHtml(
-        string $pageName,
-        FieldInterface $field,
-        array $hints
-    ): string;
+    protected function renderConstraintHintsHtml(string $pageName, FieldInterface $field, array $hints): string
+    {
+        $fieldName = $field->getName();
+        $html = '';
+
+        // Get theme-specific classes with Bootstrap defaults as fallback
+        $wrapperAlwaysClass = $this->themeService->getElementClass('constraints.wrapper_always');
+        $wrapperFocusClass = $this->themeService->getElementClass('constraints.wrapper_focus');
+        $listClass = $this->themeService->getElementClass('constraints.list');
+        $itemClass = $this->themeService->getElementClass('constraints.item');
+        $iconWrapperClass = $this->themeService->getElementClass('constraints.icon_wrapper'); // ✅ NEW: For icon spacing
+
+        // ✅ Always-visible hints
+        if (!empty($hints['always'])) {
+            $html .= '<div class="' . $wrapperAlwaysClass . '" id="constraints-always-' .
+                    htmlspecialchars($fieldName) . '" aria-live="polite">';
+            $html .= '<ul class="' . $listClass . '">';
+
+            foreach ($hints['always'] as $hint) {
+                $translatedText = $this->translator->get($hint['text'], $hint['replacements'], pageName: $pageName);
+                $html .= sprintf(
+                    '<li class="%s %s"><span class="%s">%s</span><span class="constraint-text">%s</span></li>',
+                    htmlspecialchars($itemClass),
+                    htmlspecialchars($hint['class']),
+                    htmlspecialchars($iconWrapperClass),
+                    $hint['icon'], // DO NOT ESCAPE THIS!
+                    $translatedText
+                );
+            }
+
+            $html .= '</ul></div>';
+        }
+
+        // ⚠️ Focus-based hints
+        if (!empty($hints['on_focus'])) {
+            $html .= '<div class="' . $wrapperFocusClass . '" id="constraints-focus-' .
+                    htmlspecialchars($fieldName) . '" aria-live="polite">';
+            $html .= '<ul class="' . $listClass . '">';
+
+            foreach ($hints['on_focus'] as $hint) {
+                $translatedText = $this->translator->get(
+                    $hint['text'],
+                    $hint['replacements'] ?? [],
+                    pageName: $pageName
+                );
+                $html .= sprintf(
+                    '<li class="%s %s"><span class="%s">%s</span><span class="constraint-text">%s</span></li>',
+                    htmlspecialchars($itemClass),
+                    htmlspecialchars($hint['class']),
+                    htmlspecialchars($iconWrapperClass),
+                    $hint['icon'], // DO NOT ESCAPE THIS!
+                    $translatedText
+                );
+            }
+
+            $html .= '</ul></div>';
+        }
+
+        return $html;
+    }
 
 
     /**
@@ -236,7 +699,19 @@ abstract class AbstractFormRenderer implements FormRendererInterface
      *
      * @return string Framework-specific HTML for draft notification
      */
-    abstract protected function renderDraftNotificationHtml(): string;
+    // abstract protected function renderDraftNotificationHtml(): string;
+    protected function renderDraftNotificationHtml(): string
+    {
+        $notificationClass = $this->themeService->getElementClass('notification.draft') ?? 'alert alert-warning mt-3';
+        $buttonClass = $this->themeService->getElementClass('notification.button') ?? 'btn btn-secondary btn-sm mt-2';
+
+        $html  = '<div id="draft-notification" style="display:none;" class="' . $notificationClass . '"></div>';
+        $html .= '<button type="button" id="discard-draft-btn" style="display:none;" ';
+        $html .= 'class="' . $buttonClass . '">' .
+                              $this->translator->get('form.restore_data_from_server', pageName: 'common') . '</button>';
+
+        return $html;
+    }
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -268,7 +743,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ✅ ALWAYS VISIBLE: Required indicator
         if (!empty($attrs['required'])) {
             $alwaysVisible[] = [
-                'icon' => '●',
+                'icon' => $this->themeService->getIconHtml('constraint_required'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.required',
                 'replacements' => [],
                 'class' => 'constraint-required'
@@ -278,7 +753,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ✅ ALWAYS VISIBLE: Text length constraints
         if (!empty($attrs['minlength'])) {
             $onFocus[] = [
-                'icon' => '↓',
+                'icon' => $this->themeService->getIconHtml('constraint_minlength'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.minlength',
                 'replacements' => ['minlength' => $attrs['minlength']],
                 'class' => 'constraint-minlength'
@@ -287,7 +762,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if (!empty($attrs['maxlength'])) {
             $onFocus[] = [
-                'icon' => '↑',
+                'icon' => $this->themeService->getIconHtml('constraint_maxlength'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.maxlength',
                 'replacements' => ['maxlength' => $attrs['maxlength']],
                 'class' => 'constraint-maxlength'
@@ -298,7 +773,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (in_array($type, ['number', 'decimal', 'range'], true)) {
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
-                    'icon' => '≥',
+                    'icon' => $this->themeService->getIconHtml('constraint_min'), // ✅ Use ThemeService icon
                     'text' => 'form.hints.min',
                     'replacements' => ['min' => $attrs['min']],
                     'class' => 'constraint-min'
@@ -306,7 +781,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
-                    'icon' => '≤',
+                    'icon' => $this->themeService->getIconHtml('constraint_max'), // ✅ Use ThemeService icon
                     'text' => 'form.hints.max',
                     'replacements' => ['max' => $attrs['max']],
                     'class' => 'constraint-max'
@@ -318,7 +793,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (in_array($type, ['date', 'datetime', 'month', 'week', 'time'], true)) {
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
-                    'icon' => '📅',
+                    'icon' => $this->themeService->getIconHtml('constraint_date_min'), // ✅ Use ThemeService icon
                     'text' => 'form.hints.date_min',
                     'replacements' => ['date_min' => $attrs['min']],
                     'class' => 'constraint-date-min'
@@ -326,7 +801,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
-                    'icon' => '📅',
+                    'icon' => $this->themeService->getIconHtml('constraint_date_max'), // ✅ Use ThemeService icon
                     'text' => 'form.hints.date_max',
                     'replacements' => ['date_max' => $attrs['max']],
                     'class' => 'constraint-date-max'
@@ -339,7 +814,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $patternMsg = $attrs['pattern_message'] ??
                         'form.hints.pattern';
             $onFocus[] = [
-                'icon' => '⚙',
+                'icon' => $this->themeService->getIconHtml('constraint_pattern'), // ✅ Use ThemeService icon
                 'text' => $patternMsg,
                 'replacements' => [],
                 'class' => 'constraint-pattern'
@@ -349,7 +824,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ⚠️ ON FOCUS: Type-specific format hints
         if ($type === 'email') {
             $onFocus[] = [
-                'icon' => '@',
+                'icon' => $this->themeService->getIconHtml('constraint_email'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.email',
                 'replacements' => [],
                 'class' => 'constraint-email'
@@ -358,7 +833,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if ($type === 'tel') {
             $onFocus[] = [
-                'icon' => '☎',
+                'icon' => $this->themeService->getIconHtml('constraint_tel'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.tel',
                 'replacements' => [],
                 'class' => 'constraint-tel'
@@ -367,7 +842,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if ($type === 'url') {
             $onFocus[] = [
-                'icon' => '🔗',
+                'icon' => $this->themeService->getIconHtml('constraint_url'), // ✅ Use ThemeService icon
                 'text' => 'form.hints.url',
                 'replacements' => [],
                 'class' => 'constraint-url'

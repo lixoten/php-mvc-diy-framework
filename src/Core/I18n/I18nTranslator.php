@@ -35,7 +35,7 @@ class I18nTranslator implements TranslatorInterface
 
 
     /** {@inheritdoc} */
-    public function get(string $key, array $replacements = [], string $pageName = null): string
+    public function get(string $key, array $replacements = [], string $pageName = null, bool $htmlSafe = true): string
     {
         $keySegments =  explode('.', $key);
 
@@ -73,7 +73,11 @@ class I18nTranslator implements TranslatorInterface
         }
 
         if (is_string($current)) {
-            return $this->replacePlaceholders($current, $replacements);
+            // return $this->replacePlaceholders($current, $replacements);
+            return $this->applyHtmlSafety(
+                $this->replacePlaceholders($current, $replacements),
+                $htmlSafe
+            );
         }
 
         // For Validation that is not found.
@@ -87,12 +91,35 @@ class I18nTranslator implements TranslatorInterface
             $current = $resolvedValue . '~'; // findme - ~ lang
         }
         if (is_string($current)) {
-            return $this->replacePlaceholders($current, $replacements);
+            // return $this->replacePlaceholders($current, $replacements);
+            return $this->applyHtmlSafety(
+                $this->replacePlaceholders($current, $replacements),
+                $htmlSafe
+            );
         }
 
         return 'NF_' . $key;
     }
 
+
+    /**
+     * Apply HTML safety escaping to the translation string if enabled.
+     *
+     * When `$htmlSafe` is true, the string is escaped using `htmlspecialchars()` to prevent
+     * XSS attacks. When false, the string is returned as-is, allowing raw HTML content.
+     *
+     * @param string $translation The translation string to apply HTML safety to
+     * @param bool $htmlSafe Whether to escape HTML entities (default: true)
+     * @return string The translation string, optionally HTML-escaped
+     */
+    private function applyHtmlSafety(string $translation, bool $htmlSafe): string
+    {
+        if ($htmlSafe === true) {
+            return htmlspecialchars($translation, ENT_QUOTES, 'UTF-8');
+        }
+
+        return $translation;
+    }
 
     /**
      * Replace placeholders in a translation string.

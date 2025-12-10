@@ -19,7 +19,6 @@ ListOptions::DEFAULT_SORT_KEY => PostFields2::ID->value,
 *     - title: string
 *     - list_columns: array of strings
 *     - show_actions: bool
-*     - add_button_label: string
 *     - add_button_icon: string
 *     - add_url: string
 *     - pagination_url: string
@@ -46,7 +45,7 @@ return [
         'html5_validation'  => false,
     //     'css_form_theme_class' => "form-theme-christmas",
     //     'css_form_theme_file' => "christmas",
-    //     'form_heading' => "Create Post Parent",
+    //     'title_heading' => "Create Post Parent",
         'submit_text'       => "Save",
     ],
     'form_layout'            => [

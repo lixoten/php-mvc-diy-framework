@@ -1154,9 +1154,20 @@ return [
     ////////////////////////////
     ////////////////////////////
 
+    // Core\Form\Schema\FieldSchema::class => DI\create()
+    //     ->constructor(function (Core\Interfaces\ConfigInterface $config) {
+    //         return $config->get('forms/schema'); // Loads all 26 field types
+    //     }),
+
+
     'forms.schema' => \DI\factory(function (ContainerInterface $c) {
         // This is the ideal way to load your schema configuration
         $config = $c->get('config')->get('forms/schema');
+
+        // ✅ DEBUG: Check how many field types are in FieldSchema
+        // $rr = count($config);
+        // DebugRt::j('1', 'Count: ',  $rr);
+
         return new FieldSchema($config);
         //"Class "Core\Form\Schema\FieldSchema" not found"
     }),

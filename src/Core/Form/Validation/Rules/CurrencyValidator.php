@@ -37,7 +37,6 @@ class CurrencyValidator extends AbstractValidator
 
         // // Must be positive
         // if ($amount < 0) {
-        //     $options['message'] ??= $options['negative_message'] ?? null;
         //     return $this->getErrorMessage($options, 'Currency amount must be positive.');
         // }
 
@@ -90,18 +89,6 @@ class CurrencyValidator extends AbstractValidator
             'require_uppercase' => false,
             'require_lowercase' => false,
             'require_special'   => false,
-
-
-            'required_message' => null,
-            'minlength_message'         => null,
-            'maxlength_message'         => null,
-            'pattern_message'           => null,
-
-            'forbidden_words_message'   => null,
-            'require_digit_message'     => null,
-            'require_uppercase_message' => null,
-            'require_lowercase_message' => null,
-            'invalid_message'           => null,
         ];
     }
 }

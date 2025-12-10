@@ -441,7 +441,7 @@ class FormViewHelper
                 switch ($type) {
                     case 'header':
                         $title = $section['title'] ?? '';
-                        $output .= "<h3 class=\"form-heading mb-3\">" . htmlspecialchars($title) . "</h3>";
+                        $output .= "<h3 class=\"title-heading mb-3\">" . htmlspecialchars($title) . "</h3>";
                         break;
 
                     case 'divider':

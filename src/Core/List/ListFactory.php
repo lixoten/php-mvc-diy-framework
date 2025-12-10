@@ -7,6 +7,7 @@ namespace Core\List;
 use Core\Form\CSRF\CSRFToken;
 use Core\Form\Field\Type\FieldTypeRegistry;
 use App\Services\PaginationService;
+use Core\I18n\I18nTranslator;
 
 /**
  * Factory for creating lists
@@ -28,10 +29,12 @@ class ListFactory implements ListFactoryInterface
         CSRFToken $csrfToken,
         FieldTypeRegistry $fieldTypeRegistry,
         PaginationService $paginationService,
+        private I18nTranslator $translator,
     ) {
         $this->csrfToken = $csrfToken;
         $this->fieldTypeRegistry = $fieldTypeRegistry;
         $this->paginationService = $paginationService;
+        $this->translator = $translator;
     }
 
 
@@ -47,7 +50,11 @@ class ListFactory implements ListFactoryInterface
         $list = new ListView($listType->pageKey, $listType->pageName);
 
         // Create list builder
-        $builder = new ListBuilder($list, $this->fieldTypeRegistry);
+        $builder = new ListBuilder(
+            $list,
+            $this->fieldTypeRegistry,
+            $this->translator
+        );
 
         // Built it
         $listType->buildList($builder);

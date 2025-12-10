@@ -202,6 +202,8 @@ class LangFileGenerator
                             'generic_text',
                             'primary_email',
                             'generic_number',
+                            'telephone',
+                            'super_powers',
                         ]
                     )
                 ) {
@@ -226,6 +228,8 @@ class LangFileGenerator
                             'primary_email',
                             // 'slug',
                             'status',
+                            'super_powers',
+                            'telephone',
                             'super_powers',
                             // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
@@ -452,6 +456,31 @@ PHP;
                 break;
 
             // select /////////////////////////////////////////////////////////
+            // TELEPHONE /////////////////////////////////////////////////////////
+            case 'telephone':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'label'       => '{$wordSentence}',
+                    $s12'placeholder' => 'Enter {$wordSentence}',
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block = <<<PHP
+                        $s12'required'  => '{$focusName}{$wordSentence} is required.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
+                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
+                        $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
+                        $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
+                        $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
+                    PHP;
+                }
+                break;
+
+            // select /////////////////////////////////////////////////////////
             case 'select':
                 if ($blockName === 'list') {
                     $block = <<<PHP
@@ -544,12 +573,19 @@ PHP;
                 } elseif ($blockName === 'validator') {
                     $block = <<<PHP
                         $s12'required'   => '{$focusName}{$wordSentence} is required.',
-                        $s12'invalid'   => '{$focusName}{$wordSentence} must be at least %d characters.',
-                        $s12'minlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
-                        $s12'maxlength' => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'invalid'   => 'Invalid {$focusName}{$wordSentence}.',
+                        $s12'minlength' => '{$focusName}{$wordSentence} must be at least %d characters.',
+                        $s12'maxlength' => '{$focusName}{$wordSentence} must not exceed %d characters.',
+                        $s12'min'       => '{$focusName}{$wordSentence} must be at least %d.',
+                        $s12'max'       => '{$focusName}{$wordSentence} must not exceed %d.',
                         $s12'pattern'   => '{$focusName}{$wordSentence} does not match the required pattern.',
                         $s12'allowed'   => 'Please select a valid {$focusName}{$wordSentence}.',
                         $s12'forbidden' => 'This {$focusName}{$wordSentence} is not allowed.',
+
+                        $s12'positive_only' => 'This {$focusName}{$wordSentence} must be a positive number.',
+                        $s12'negative_only' => 'This {$focusName}{$wordSentence} must be a negative number.',
+                        $s12'zero_not_allowed' => 'This {$focusName}{$wordSentence} Zero value is not allowed.',
+                        $s12'enforce_step'  => 'This {$focusName}{$wordSentence} must be a multiple of %d.',
                     PHP;
                 }
 

@@ -15,16 +15,6 @@ namespace Core\Form\Validation\Rules;
  * - positive_only, negative_only, zero_not_allowed
  * - allowed, forbidden
  * - enforce_step
- * - Custom error messages for each rule
- *  - min_message
- *  - max_message
- *  - invalid_message
- *  - positive_only_message
- *  - negative_only_message
- *  - zero_not_allowed_message
- *  - allowed_message
- *  - forbidden_message
- *  - enforce_step_message
  *
  * @param mixed $value
  * @param array<string, mixed> $options

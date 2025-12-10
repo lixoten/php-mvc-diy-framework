@@ -138,11 +138,12 @@ class ConfigFieldsGenerator
                             'primary_email',
                             // 'slug',
                             'status',
-                            // 'super_powers',
+                            'super_powers',
                             'gender_id',
                             'state_code',
                             'is_verified',
                             'generic_number',
+                            'telephone',
                             // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )
@@ -184,13 +185,13 @@ class ConfigFieldsGenerator
 
 
             $fieldType = $this->mapDbTypeToFormType($config, $fieldName);
-            if ($fieldType === 'telephone') {
-                $defaultValidatorName = 'tel';
-                $defaultFormatterName = 'tel';
-            } else {
-                $defaultValidatorName = $fieldType;
-                $defaultFormatterName = $fieldType;
-            }
+            // if ($fieldType === 'telephone') {
+            //     $defaultValidatorName = 'tel';
+            //     $defaultFormatterName = 'tel';
+            // } else {
+            //     $defaultValidatorName = $fieldType;
+            //     $defaultFormatterName = $fieldType;
+            // }
             // $labelKey = "{$this->entityName}.{$fieldName}";
 
             $skipList      = false;
@@ -311,7 +312,7 @@ PHP;
         //$fieldFormSchema = $this->fieldSchema->get($fieldType);
 
         if ($fieldType === 'radio_group') { // it's s string, but this does not use placeholder
-            $fieldFormSchema['placeholder'] = null;
+            // $fieldFormSchema['placeholder'] = null;
             $fieldFormSchema['maxlength'] = null;
             $fieldFormSchema['pattern'] = null;
         }
@@ -319,10 +320,10 @@ PHP;
 
         $formAttr = [];
         $spaces = '                ';
-        if (isset($fieldFormSchema['placeholder'])) {
-            $placeholderKey = "{$fieldName}.form.placeholder";
-            $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
-        }
+        // if (isset($fieldFormSchema['placeholder'])) {
+        //     $placeholderKey = "{$fieldName}.form.placeholder";
+        //     $formAttr[] = "$spaces'placeholder' => '$placeholderKey',";
+        // }
         if (in_array($fieldType, ['select'])) {
             // $formAttr[] = "$spaces'class'       => 'form-select',";
         }
@@ -462,9 +463,9 @@ PHP;
             }
 
             if (isset($config['form_input_type']) && $config['form_input_type'] === 'radio_group') {
-                $temp[] = "$s12// 'default_choice'   => '{$fieldName}.form.default_choice',";
+                $temp[] = "$s12// 'display_default_choice' => true,";
             } else {
-                $temp[] = "$s12'default_choice'   => '{$fieldName}.form.default_choice',";
+                $temp[] = "$s12'display_default_choice' => true,";
             }
             // $temp[] = "xxx";
             $temp = implode("\n", $temp);
@@ -553,33 +554,6 @@ PHP;
             }
         }
 
-        $items[] = "$spaces// --";
-
-        if (isset($fieldFormSchema['required'])) {
-            $items[] = "$spaces'required_message' => '{$fieldName}.validation.required',";
-        }
-        // if (isset($fieldFormSchema['invalid'])) {
-            $items[] = "$spaces'invalid_message' => '{$fieldName}.validation.invalid',";
-        // }
-        if (isset($fieldFormSchema['minlength'])) {
-            $items[] = "$spaces'minlength_message' => '{$fieldName}.validation.minlength',";
-        }
-        if (isset($fieldFormSchema['maxlength'])) {
-            $items[] = "$spaces'maxlength_message' => '{$fieldName}.validation.maxlength',";
-        }
-
-        if (isset($fieldFormSchema['min'])) {
-            $items[] = "$spaces'min_message' => '{$fieldName}.validation.min',";
-        }
-        if (isset($fieldFormSchema['max'])) {
-            $items[] = "$spaces'max_message' => '{$fieldName}.validation.max',";
-        }
-
-        if (isset($fieldFormSchema['pattern'])) {
-            $items[] = "$spaces'pattern_message' => '{$fieldName}.validation.pattern',";
-        }
-
-
 
         foreach ($valItems as $item => $foo) {
             $commentOut = '';
@@ -593,10 +567,9 @@ PHP;
                 $commentOut = '// ';
             }
 
-            if (!str_contains($item, 'message') && !str_contains($item, 'ignore')) {
-                $items[] = "$spaces{$commentOut}'{$item}_message' => '{$fieldName}.validation.{$item}',";
-
-            }
+            // if (!str_contains($item, 'message') && !str_contains($item, 'ignore')) {
+            //     $items[] = "$spaces{$commentOut}'{$item}_message' => '{$fieldName}.validation.{$item}',";
+            // }
         }
 
         $items = $this->alignArrayDefinition($items, 4); // Start at indent level 1
@@ -644,20 +617,21 @@ PHP;
             $formValidator = $this->getValidatorAttr($fieldName, $config, $type, $fieldFormSchema);
         }
 
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
 
         switch ($type) {
             case 'number':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => $sortable,
+                    $s08'sortable'    => $sortable,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
-                    $s12'attributes' => [
+                    $s08'type'        => '{$type}',
+                    $s12'placeholder' => true,
+                    $s12'attributes'  => [
                     $formAttr
                     $s12],
                     PHP;
@@ -672,19 +646,20 @@ PHP;
                 break;
 
 
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             // EMAIL /////////////////////////////////////////////////////////
             case 'email':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'    => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
-                    $s12'attributes' => [
+                    $s08'type'        => '{$type}',
+                    $s12'placeholder' => true,
+                    $s12'attributes'  => [
                     $formAttr
                     $s12],
                     PHP;
@@ -702,18 +677,19 @@ PHP;
                 }
 
                 break;
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             // TEXT /////////////////////////////////////////////////////////
             case 'text':
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'    => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
-                    $s12'attributes' => [
+                    $s08'type'        => '{$type}',
+                    $s12'placeholder' => true,
+                    $s12'attributes'  => [
                     $formAttr
                     $s12],
                     PHP;
@@ -727,12 +703,13 @@ PHP;
                 break;
 
             // xxxxxx /////////////////////////////////////////////////////////
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             // select /////////////////////////////////////////////////////////
             case 'select':
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     // $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
@@ -740,8 +717,7 @@ PHP;
                     // $s12'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
+                    $s08'type'       => '{$type}',
                     $formOptionsProvider
                     $s12'attributes' => [
                     $formAttr
@@ -767,11 +743,12 @@ PHP;
 
             // xxxxxx /////////////////////////////////////////////////////////
             // radio_group /////////////////////////////////////////////////////
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             case 'radio_group':
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     // $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
@@ -779,8 +756,7 @@ PHP;
                     // $s12// 'default_choice'   => '{$fieldName}.{$blockName}.default_choice',
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
+                    $s08'type'       => '{$type}',
                     $formOptionsProvider
                     $s12'attributes' => [
                     $formAttr
@@ -804,16 +780,16 @@ PHP;
                 }
                 break;
             // checkbox /////////////////////////////////////////////////////
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             case 'checkbox':
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
+                    $s08'type'       => '{$type}',
                     $s12'attributes' => [
                     $formAttr
                     $s12],
@@ -834,17 +810,17 @@ PHP;
                 break;
 
             // xxxxxx /////////////////////////////////////////////////////////
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
             // DATETIME-LOCAL /////////////////////////////////////////////////
             case 'datetime-local':
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'sortable'   => false,
+                    $s08'sortable'   => false,
                     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    $s08'label'      => '{$fieldName}.{$blockName}.label',
-                    $s12'type'       => '{$type}',
+                    $s08'type'       => '{$type}',
                     $s12'attributes' => [
                     $formAttr
                     $s12],
@@ -855,21 +831,20 @@ PHP;
                     $block = '';
                 }
                 break;
-
-            // xxxxxx /////////////////////////////////////////////////////////
-
+            // ssssss /////////////////////////////////////////////////////////
+                // 'label'      => '{$blockName}.{$fieldName}',
+                    // 'label'      => '{$blockName}.{$fieldName}',
             case 'email2':
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-                'label'      => '{$blockName}.{$fieldName}',
-                'sortable'   => false,
+                'sortable'    => false,
                 PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-                    'label'      => '{$blockName}.{$fieldName}',
-                'type'       => 'email',
-                'attributes'    => [
+                'type'        => 'email',
+                'placeholder' => true,
+                'attributes'  => [
                     $formAttr
                     // 'pattern'     => '/^user[a-z0-9._%+-]*@/',
                     ],
@@ -881,13 +856,6 @@ PHP;
                     // 'ignore_forbidden'  => true,  // Default is false
                     // 'ignore_allowed'    => false, // Default is true
                     //---
-                    // 'required_message'  => "Custom: Email is required.",
-                    // 'invalid_message'   => "Custom: Please enter a valid email address.",
-                    // 'minlength_message' => "Custom: Email must be at least ___ characters.",
-                    // 'maxlength_message' => "Custom: Email should not exceed ___ characters.",
-                    // 'pattern_message'   => "Custom: Email does not match the required pattern.",
-                    // 'forbidden_message' => 'Custom: This domain is not allowed.',
-                    // 'allowed_message'   => 'Custom: Please select a valid domain.',
                     PHP;
                 } elseif ($blockName === 'formatter') {
                     $block = <<<PHP
@@ -899,60 +867,75 @@ PHP;
                 }
                 break;
             // TEL /////////////////////////////////////////////////////////
-            case 'telephone':
+            case 'tel':
+                    // $s08'label'      => '{$fieldName}.{$blockName}.label',
+                    // $s12'label'      => '{$fieldName}.{$blockName}.label',
                 # code...
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
-                'sortable'   => false,
-    PHP;
+                    $s12'sortable'    => false,
+                    PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    //  'region' => 'US',
-                'label'      => '{$blockName}.{$fieldName}',
-                'type'       => 'tel',
-                'attributes' => [
-    $formAttr
-                    // 'xxrequired'              => true,
-                    // 'xxlist'                  => 'foo',
-                    // 'xxdata-char-counter'     => true,     // js-feature
-                    // 'data-live-validation'  => true      // js-feature
-                    // 'xxdata-mask'             => 'phone', // todo - mast does not validate.
-                    // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
-                    // 'xxstyle' => 'background: cyan;',
-                ],
-    PHP;
+                    $s08 //  'region' => 'US',
+                    $s12'type'        => 'tel',
+                    $s12'placeholder' => true,
+                    $s12'attributes'  => [
+                    $formAttr
+                    $s12    // 'xxxxlist'                  => 'foo',
+                    $s12    // 'xxdata-char-counter'     => true,     // js-feature
+                    $s12    // 'data-live-validation'  => true      // js-feature
+                    $s12    // 'xxdata-mask'             => 'phone', // todo - mast does not validate.
+                    $s12    // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
+                    $s12],
+                    PHP;
+
+
+
+                    //                 $block = <<<PHP
+                    //             'label'      => '{$blockName}.{$fieldName}',
+                    //             'type'       => 'tel',
+                    //             'attributes' => [
+
+                    //             ],
+                    // PHP;
                 } elseif ($blockName === 'formatter') {
-                    $block = <<<PHP
-        // 'format' => 'default', // no need. FYI National format if its detected
-                    // 'format' => 'dashes',  // Force dashes
-                    // 'format' => 'dots',    // Force dots
-                    // 'format' => 'spaces',  // Force spaces
-                    // 'region' => 'PT',      // Optional: provide a specific region context
-    PHP;
+                    $block .= <<<PHP
+                    $s12'tel' => [
+                    $s12    // 'format' => 'default', // not needed, is default. FYI National format if its detected
+                    $s12    // 'format' => 'dashes',  // Force dashes
+                    $s12    // 'format' => 'dots',    // Force dots
+                    $s12    // 'format' => 'spaces',  // Force spaces
+                    $s12    // 'region' => 'PT',      // Optional: provide a specific region context
+                    $s12],
+                    PHP;
                 } elseif ($blockName === 'validator') {
-                    $block = <<<PHP
-        // 'required_mess age'  => "Custom: Phone  is required.",
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
+                    $block .= <<<PHP
+                    // 'required_mess age'  => "Custom: Phone  is required.",
                     // 'invalid_message'   => "Custom: Please enter a valid international phone number
                     //                         (e.g., +15551234567). Invalid Error.",
                     // 'invalid_region_message' => 'Custom: Invalid_region',
                     // 'invalid_parse_message'  => 'Custom: Please enter a valid international phone number
                     //                             (e.g., +15551234567). Parse Error',
-    PHP;
+                    PHP;
                 }
                 break;
 
             default:
+                // 'label'      => '{$blockName}.{$fieldName}',
+                // 'label'      => '{$blockName}.{$fieldName}',
                 if ($blockName === 'list') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
-                'sortable'   => false,
+                'sortable'    => false,
     PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
-    'label'      => '{$blockName}.{$fieldName}',
-                'type'       => 'email',
-                'attributes'    => [
+                'type'        => 'email',
+                'placeholder' => true,
+                'attributes'  => [
                 ],
     PHP;
                 } elseif ($blockName === 'validator') {
@@ -1003,46 +986,6 @@ PHP;
 
 
 
-    private function getTextValidatorSample(string $fieldName, string $type): string
-    {
-        $s04 = '    ';
-        $s08 = '        ';
-        $s12 = '            ';
-
-        if ($type === 'number') {
-            $block = <<<PHP
-            $s08'{$type}' => [ // Default validator, can be refined based on db_type
-                $s12'required_message'  => '{$fieldName}.validation.required',
-                $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                $s12'min_message'       => '{$fieldName}.validation.min',
-                $s12'max_message'       => '{$fieldName}.validation.max',
-                $s12'pattern_message'   => '{$fieldName}.validation.pattern',
-            $s12],
-            PHP;
-        } else {
-            $block = <<<PHP
-            $s08'{$type}' => [ // Default validator, can be refined based on db_type
-                $s12'forbidden'         => ['fook', 'shit'], // allows to add on to existing
-                $s12'allowed'           => ['fee', 'foo'],   // allows to add on to existing
-                $s12// 'ignore_forbidden'  => true,  // Default is false
-                $s12// 'ignore_allowed'    => false, // Default is true
-                $s12//---
-                $s12'required_message'  => '{$fieldName}.validation.required',
-                $s12'invalid_message'   => '{$fieldName}.validation.invalid',
-                $s12'minlength_message' => '{$fieldName}.validation.minlength',
-                $s12'maxlength_message' => '{$fieldName}.validation.maxlength',
-                $s12'pattern_message'   => '{$fieldName}.validation.pattern',
-                $s12'allowed_message'   => '{$fieldName}.validation.allowed',
-                $s12'forbidden_message' => '{$fieldName}.validation.forbidden',
-            $s12],
-            PHP;
-        }
-        return $block;
-    }
-
-
-
-
     /**
      * Maps a database type from schema to an appropriate HTML form input type.
      *
@@ -1075,7 +1018,7 @@ PHP;
             'time' => 'time',
             'text' => 'textarea',
             'string', 'char' => match (true) {
-                str_contains($fieldName, 'telephone') => 'telephone',
+                str_contains($fieldName, 'telephone') => 'tel',
                 str_contains($fieldName, 'email') => 'email',
                 str_contains($fieldName, 'password') => 'password',
                 str_contains($fieldName, 'url') || str_contains($fieldName, 'address') => 'url',

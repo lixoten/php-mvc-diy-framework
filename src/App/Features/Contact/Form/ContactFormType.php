@@ -66,7 +66,7 @@ class ContactFormType extends AbstractFormType
             'html5_validation' => false,
             'css_form_theme_class' => "form-theme-christmas",
             'css_form_theme_file' => "christmas",
-            'form_heading' => "Send us a message",
+            'title_heading' => "Send us a message",
             'submit_text' => "Submit",
         ]);
         // Define default fields

@@ -16,7 +16,7 @@ interface ValidatorInterface
      * @param array $options Validation options
      * @return string|null Error message if validation fails, null if valid
      */
-    public function validate($value, array $options = []): ?string;
+    public function validate(string $value, array $options = []): ?string;
 
     /**
      * Get validator name.

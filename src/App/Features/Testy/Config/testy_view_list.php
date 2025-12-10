@@ -21,10 +21,18 @@ return [
     ],
     'render_options' => [
         'from'                  => 'testy_view_list-config',
-        'title'                 =>  'list.posts.title 222', //shithead2
-        // 'form_heading_level'         => 'h3', // Default is 'h2'
-        'heading'               => "form.heading",
-        'heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        // 'css_framework'         => 'bootstrap',
+        'show_title_heading'    => true,
+        'title_heading_level'   => 'h2',
+        'title_heading_class'   => null, // Use ThemeService default, or provide custom class if needed
+        // 'title_heading_level'         => 'h3', // Default is 'h2'
+        // 'heading'               => "form.heading",
+        // 'heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+
+        'show_actions_label'    => true, // Table-view: Show "Actions" column header for this entity
+        // 'actions_label'         => 'list.actions', // ✅ Custom translation key for this entity
+
+
         'show_actions'          => true,
         'show_action_add'       => true,
         'show_action_edit'      => true,
@@ -32,24 +40,30 @@ return [
         'show_action_view'      => true,
         'show_action_status'    => false,
 
-            'show_pagination'       => true,
-            'show_view_toggle'      => true,
-            'view_type'             => 'table',
-            'add_button_label'      => 'button.add',
+        'show_pagination'       => true,
+        'show_view_toggle'      => true,
+        'view_type'             => 'table',
+        // 'add_button_label'      => 'button.add',
 
     ],
     'list_fields' => [
         'id',
         // 'title',
-        'generic_number',
-        'is_verified',
-        'generic_text',
-        'gender_id',
-        'state_code',
-        'status',
+
         // 'super_powers',
         // 'telephone',
-        'primary_email',
+
+
+        // 'generic_number',
+        // 'is_verified',
+        'generic_text',
+        // 'gender_id',
+        // 'state_code',
+        // 'status',
+        // 'primary_email',
+
+
+
         // 'primary_emailccc',
         // ------
         // 'store_id',

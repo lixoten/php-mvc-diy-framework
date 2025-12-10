@@ -10,13 +10,13 @@ namespace Core\Services;
 interface ThemeServiceInterface
 {
     /**
-     * Get CSS class for element type
+     * Get CSS class for a UI element
      *
      * @param string $elementType The type of element
-     * @param array<string, mixed> $context Additional context for determining the class
-     * @return string The CSS class(es)
+     * @param array<string, mixed> $context Additional context (unused in Bootstrap implementation)
+     * @return string|null The CSS class(es), or null if not defined
      */
-    public function getElementClass(string $elementType, array $context = []): string;
+    public function getElementClass(string $elementType, array $context = []): ?string;
 
     /**
      * Get HTML for an icon
@@ -85,4 +85,6 @@ interface ThemeServiceInterface
      * @return string The CSS classes for the specified button variant.
      */
     public function getButtonClass(string $variant): string;
+
+    public function getAjaxSpinnerHtml(string $message): string;
 }

@@ -30,7 +30,7 @@ class GenericFormType extends AbstractFormType
         'html5_validation' => true,
         'css_form_theme_class' => '', // Or get from global config
         'css_form_theme_file' => '',  // Or get from global config
-        'form_heading' => 'Edit genContentfook',
+        'title_heading' => 'Edit genContentfook',
         'submit_text' => 'Savefook',
     ];
 
@@ -86,7 +86,7 @@ class GenericFormType extends AbstractFormType
             'html5_validation' => false,
             'css_form_theme_class' => "form-theme-christmas",
             'css_form_theme_file' => "christmas",
-            'form_heading' => "ddEdit Record",
+            'title_heading' => "ddEdit Record",
             'submit_text' => "ddSave",
         ]);
         // Define default fields
@@ -227,7 +227,7 @@ class GenericFormType extends AbstractFormType
         return [
             [
                 // 'id' => 'dynamic_section', // Optional generic ID
-                // 'title' => $this->formRenderOptions['form_heading'] ?? 'Details', // Use form heading?
+                // 'title' => $this->formRenderOptions['title_heading'] ?? 'Details', // Use form heading?
                 'fields' => array_values(array_diff($fieldNames, ['captcha'])), // Exclude captcha from main layout?
                 // 'divider' => false
             ],

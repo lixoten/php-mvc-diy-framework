@@ -9,70 +9,10 @@
 
 declare(strict_types=1);
 
-/*
-    9 Global  +1 msg
-    text based    - text, password, email, url, tel, search
-    date based    - date, month, week, time, datetime-local
-    number based  - number, range
-    specialized   - color, hidden
-    specialized   - color, hidden
-    Buttons    submit, reset, button, image
-
-    // text based    -- 4, 3, 6, 4, 5 msg, 2
-    // number based  -- 4, 3, 6, 5, 6+ msg, 2???
-    // date based    -- 4, 3, 2, 3, 4 msg, 1
-    4
-    // toggle       -- checkbox, radio
-    3
-    6
-    4
-    5
-        // 'form'          => null, // Assoc. input with a specific form, allowing it to be outside the <form> tags
-        // 'list'          => null, // Links the input to a <datalist> element for pre-defined suggestions.
-*/
-
-
-// 29
+// 29 26
 
 return [
-    // 'global_null' => [
-    //     'id'            => null,
-    //     'class'         => null,
-    //     'style'         => null,
-    //     'title'         => null,
-    //     'lang'          => null,
-    //     'accesskey'     => null,
-    //     'tabindex'      => null,
-    //     'dir'           => null,
-    //     'hidden'        => null, // HTML 'hidden' attribute
-
-    //     'name'          => null,
-    //     'value'         => null,
-    //     'form'          => null,
-    //     'list'          => null,
-
-    //     'disabled'      => null,
-    //     'readonly'      => null,
-    //     'autofocus'     => null,
-
-    //     'placeholder'   => null,
-    //     'spellcheck'    => null,
-    //     'pattern'       => null,
-
-    //     'dirname'       => null,
-    //     'size'          => null,
-
-    //     'autocomplete'  => null,
-    //     'inputmode'     => null,
-
-    //     'required'      => null,
-    //     'min'           => null,
-    //     'max'           => null,
-    //     'step'          => null,
-    //     'maxlength'     => null,
-    //     'minlength'     => null,
-    // ],
-    'global' => [
+    'global' => [ // 1
         'id'        => ['default' => null,  'values' => 'string'],
         'class'     => ['default' => null,  'values' => 'string'],
         'style'     => ['default' => null,  'values' => 'string'],
@@ -144,8 +84,8 @@ return [
         'minlength'     => ['values'  => 'int',     'default' => null],
         'pattern'       => ['default' => null, 'values' => 'string'],
     ],
-    'display' => [
-          // Global Like if not applicable set to null
+    'display' => [ // 2
+        // Global Like if not applicable set to null
         'min'           => null, // not applicable
         'max'           => null, // not applicable
         'step'          => null, // not applicable
@@ -164,7 +104,6 @@ return [
         'form'          => null, // not applicable
         'value'         => null, // not applicable
 
-
         'placeholder'          => null, // not applicable
         'multiple'          => null, // not applicable
         'accept'          => null, // not applicable
@@ -173,7 +112,7 @@ return [
         'step'          => null, // not applicable
         //End Global set to null
     ],
-    'hidden' => [
+    'hidden' => [ // 3
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
         'max'           => null, // not applicable
@@ -181,7 +120,7 @@ return [
         // fixme? do i need to add all to here?
         //End Global set to null
     ],
-    'text' => [
+    'text' => [ // 4
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'hidden'        => null, // Not Applicable: General HTML attribute
@@ -229,23 +168,16 @@ return [
 
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
+        'placeholder'   =>  ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
             'ignore_allowed'           => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
             'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
             'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
-
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
         ],
     ],
-    'textarea' => [
+    'textarea' => [ // 5
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
         'max'           => null, // not applicable
@@ -259,12 +191,6 @@ return [
 
         'inputmode'     => ['default' => null, 'values' =>
                                                 ['text', 'numeric', 'decimal', 'email', 'tel', 'url', 'search']],
-
-        // 'required_message'  => ['default' => null, 'values' => 'string'],
-        // 'maxlength_message' => ['default' => null, 'values' => 'string'],
-        // 'minlength_message' => ['default' => null, 'values' => 'string'],
-        // 'pattern_message'   => ['default' => null, 'values' => 'string'],
-        // 'invalid_message'   => ['default' => null, 'values' => 'string'],
 
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
@@ -282,16 +208,9 @@ return [
             'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
             'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
             'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
-
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],        ],
+        ],
     ],
-    'password' => [
+    'password' => [ // 6
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'dirname'       => null, // Not Applicable: Only for 'text'/'search'
@@ -312,12 +231,6 @@ return [
         ],
         'inputmode'     => ['default' => 'text', 'values' => ['text', 'numeric']],
 
-        // 'required_message'  => ['default' => null, 'values' => 'string'],
-        // 'maxlength_message' => ['default' => null, 'values' => 'string'],
-        // 'minlength_message' => ['default' => null, 'values' => 'string'],
-        // 'pattern_message'   => ['default' => null, 'values' => 'string'],
-        // 'invalid_message'   => ['default' => null, 'values' => 'string'],
-
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
@@ -334,44 +247,9 @@ return [
             'ignore_allowed'    => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'  => ['values' => 'bool', 'default' => false],
             'forbidden'         => ['values' => 'array', 'default' => ['1234', 'password', 'qwerty']],
-
-            'required_message'  => ['values' => 'string', 'default' => 'zzPassword is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid password address.'],
-            'minlength_message' => ['values' => 'string', 'default' => 'zzPassword must be at least ___ characters.'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'zzPassword must not exceed ___ characters.'],
-            'pattern_message'   => [
-                'values'  => 'string',
-                'default' => 'zzPassword does not match the required pattern.',
-            ],
-            'forbidden_message' => ['values' => 'string', 'default' => 'zzThis password is not allowed.'],
-            'require_digit_message'     => [
-                'values' => 'string',
-                'default' => 'zzPassword must contain at least one digit.'
-            ],
-            'require_uppercase_message' => [
-                'values' => 'string',
-                'default' => 'zzPassword must contain at least one uppercase letter.'
-            ],
-            'require_lowercase_message' => [
-                'values' => 'string',
-                'default' => 'zzPassword must contain at least one lowercase letter.'
-            ],
-            'require_special_message'   => [
-                'values' => 'string',
-                'default' => 'zzPassword must contain at least one special character.'
-            ],
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
-
-
         ],
     ],
-    'email' => [
+    'email' => [ // 7
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'dirname'       => null, // Not Applicable: Only for 'text'/'search'
@@ -380,6 +258,7 @@ return [
         'list'          => null, // Not Recommended: Better suited for 'text' inputs
         'max'           => null, // Not Applicable: Only for numeric/date/time; use 'maxlength'
         'min'           => null, // Not Applicable: Only for numeric/date/time; use 'minlength'
+        'minlength'     => null, // made no sense
         'pattern'       => null, // Not Recommended: Browser enforces basic format
         'size'          => null, // Not Recommended: Use CSS for width
         'spellcheck'    => null, // Not Recommended: Should be false due to low utility
@@ -407,17 +286,9 @@ return [
             'ignore_forbidden'  => ['values' => 'bool', 'default' => false],
             'allowed'           => ['values' => 'array', 'default' => ['good.com', 'heaven.org']],
             'forbidden'         => ['values' => 'array', 'default' => ['xxx.com', 'bad.com']],
-
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            'minlength_message' => ['values' => 'string', 'default' => 'validation.minlength'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'validation.maxlength'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'validation.pattern'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
         ],
     ],
-    'url' => [
+    'url' => [ // 8
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'dirname'       => null, // Not Applicable: Only for 'text'/'search'
@@ -453,18 +324,9 @@ return [
             'ignore_forbidden'  => ['values' => 'bool', 'default' => false],
             'allowed'           => ['values' => 'array', 'default' => ['rudy.aaa.com', 'rudy.bbb.org', 'uk.co']],
             'forbidden'         => ['values' => 'array', 'default' => ['ass.xxx.com', 'ass.zzz.net', 'iraq.co']],
-
-            'required_message'  => ['values' => 'string', 'default' => 'zzUrl is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid url address.'],
-            'minlength_message' => ['values' => 'string', 'default' => 'zzzzzUrl must be at least ___ characters.'],
-            // 'minlength_message' => ['values' => 'string', 'default' => null],
-            'maxlength_message' => ['values' => 'string', 'default' => 'zzUrl must not exceed ___ characters.'],
-            'pattern_message'   => ['values' => 'string', 'default' => 'zzUrl does not match the required pattern.'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'zzPlease select a valid domain.'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'zzThis domain is not allowed.'],
         ],
     ],
-    'tel' => [
+    'tel' => [ // 9
         // Global Like if not applicable set to null
         'pattern'       => null, // is valid but do not use since with use tel library
         'minlength'     => null, // is valid but do not use since with use tel library
@@ -482,7 +344,7 @@ return [
         'step'          => null, // Not Applicable: Only for numeric values
         //End Global set to null
 
-        'title'         => ['default' => 'Please enter a valid international phone number (e.g., +15551234567)',
+        'title'         => ['default' => 'xxxxPlease enter a valid international phone number (e.g., +15551234567)',
                                         'values' => 'string'], // one-override
 
         // 'data-mask'       => ['default' => 'phone',  'values' => ['phone']],
@@ -507,15 +369,15 @@ return [
         'data-intl-tel-input'   => ['default' => true, 'values' => 'bool'], // one-off
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzPhone is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid international phone ' .
-                                                                       'number (e.g., +15551234567). Invalid Error.'],
-            'invalid_region_message' => ['values' => 'string', 'default' => 'zzPlease select a valid domain.'],
-            'invalid_parse_message'  => ['values' => 'string', 'default' => 'zzPlease enter a valid international ' .
-                                                                    'phone number (e.g., +15551234567). Parse Error.'],
+            // 'required_message'  => ['values' => 'string', 'default' => 'zzPhone is required.'],
+            // 'invalid_message'  => ['values' => 'string', 'default' => 'zzPlease enter a valid international phone ' .
+            //                                                           'number (e.g., +15551234567). Invalid Error.'],
+            // 'invalid_region_message' => ['values' => 'string', 'default' => 'zzPlease select a valid domain.'],
+            //'invalid_parse_message'  => ['values' => 'string', 'default' => 'zzPlease enter a valid international ' .
+            //                                                       'phone number (e.g., +15551234567). Parse Error.'],
         ],
     ],
-    'search' => [
+    'search' => [ // 10
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
         'max'           => null, // not applicable
@@ -538,13 +400,9 @@ return [
         // 'results'     -- number of results, non-standard - do not use i guess
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzUrl is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzSearch term contains invalid characters.'],
-            'maxlength_message' => ['values' => 'string', 'default' => 'zzSearch must not exceed ___ characters.'],
-            'allowed_message'   => ['values' => 'string', 'default' => 'zzSearch term contains invalid characters.'],
         ],
     ],
-    'date'   => [
+    'date'   => [ // 11
         // Global Like if not applicable set to null
         'maxlength'     => null, // not applicable
         'minlength'     => null, // not applicable
@@ -570,13 +428,9 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzDate is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid date.'],
-            'min_message'       => ['values' => 'string', 'default' => 'zzDate must not be before ___.'],
-            'max_message'       => ['values' => 'string', 'default' => 'zzDate must not be after ___.'],
         ],
     ],
-    'datetime' => [
+    'datetime' => [ // 12
         // Global Like if not applicable set to null
         'maxlength'     => null, // not applicable
         'minlength'     => null, // not applicable
@@ -602,14 +456,13 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzDate-Time is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid date and time " .
-                                                                       "(YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS).'],
-            'min_message'       => ['values' => 'string', 'default' => 'zzDate-Time  must not be before ___.'],
-            'max_message'       => ['values' => 'string', 'default' => 'zzDate-Time  must not be after ___.'],
+            // 'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid date and time " .
+            //                                                            "(YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS).'],
+            // 'min_message'       => ['values' => 'string', 'default' => 'zzDate-Time  must not be before ___.'],
+            // 'max_message'       => ['values' => 'string', 'default' => 'zzDate-Time  must not be after ___.'],
         ],
     ],
-    'month' => [
+    'month' => [ // 13
         // Global Like if not applicable set to null
         'maxlength'     => null, // not applicable
         'minlength'     => null, // not applicable
@@ -635,13 +488,9 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzYear-Month is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid year-month.'],
-            'min_message'       => ['values' => 'string', 'default' => 'zzYear-Month must not be before ___.'],
-            'max_message'       => ['values' => 'string', 'default' => 'zzYear-Month must not be after ___.'],
         ],
     ],
-    'week'   => [
+    'week'   => [ // 14
         // Global Like if not applicable set to null
         'maxlength'     => null, // not applicable
         'minlength'     => null, // not applicable
@@ -667,13 +516,9 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzYear-Week is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid year-week.'],
-            'min_message'       => ['values' => 'string', 'default' => 'zzYear-Week must not be before ___.'],
-            'max_message'       => ['values' => 'string', 'default' => 'zzYear-Week must not be after ___.'],
         ],
     ],
-    'time'  => [
+    'time'  => [ // 15
         // Global Like if not applicable set to null
         'maxlength'     => null, // not applicable
         'minlength'     => null, // not applicable
@@ -699,13 +544,9 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'zzTime is required.'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid time.'],
-            'min_message'       => ['values' => 'string', 'default' => 'zzTime must not be before ___.'],
-            'max_message'       => ['values' => 'string', 'default' => 'zzTime must not be after ___.'],
         ],
     ],
-    'number' => [
+    'number' => [ // 16
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'dirname'       => null, // Not Applicable: Only for 'text'/'search'
@@ -750,23 +591,9 @@ return [
             'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
             'allowed'                  => ['values' => 'array', 'default' => ['111']],
             'forbidden'                => ['values' => 'array', 'default' => ['444', '888']],
-
-            'required_message'         => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'          => ['values' => 'string', 'default' => 'validation.invalid'],
-            'min_message'              => ['values' => 'string', 'default' => 'validation.min'],
-            'max_message'              => ['values' => 'string', 'default' => 'validation.max'],
-
-            'positive_only_message'    => ['values' => 'string', 'default' => 'validation.positive_only'],
-            'negative_only_message'    => ['values' => 'string', 'default' => 'validation.negative_only'],
-            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'validation.zero_not_allowed'],
-            'enforce_step_message'     => ['values' => 'string', 'default' => 'validation.enforce_step'],
-
-            'allowed_message'   => ['values' => 'string', 'default' => 'validation.allowed'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'validation.forbidden'],
-            //'leading_zeros_message'    => ['values' => 'string', 'default' => null],
         ],
     ],
-    'decimal' => [
+    'decimal' => [ // 17
         // Global Like if not applicable set to null
         'dir'           => null, // Not Applicable: Not content-based
         'dirname'       => null, // Not Applicable: Only for 'text'/'search'
@@ -806,18 +633,9 @@ return [
             'negative_only'            => ['values' => 'bool', 'default' => false],
             'zero_not_allowed'         => ['values' => 'bool', 'default' => false],
             'enforce_step'             => ['values' => 'bool', 'default' => false],
-
-            'required_message'         => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'          => ['values' => 'string', 'default' => 'validation.invalid'],
-            'min_message'              => ['values' => 'string', 'default' => 'validation.min'],
-            'max_message'              => ['values' => 'string', 'default' => 'validation.max'],
-            'positive_only_message'    => ['values' => 'string', 'default' => 'validation.positive_only'],
-            'negative_only_message'    => ['values' => 'string', 'default' => 'validation.negative_only'],
-            'zero_not_allowed_message' => ['values' => 'string', 'default' => 'validation.zero_not_allowed'],
-            'enforce_step_message'     => ['values' => 'string', 'default' => 'validation.enforce_step'],
         ],
     ],
-    'range'   => [
+    'range'   => [ // 18
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Recommended: Not useful for visual selection
         'dir'           => null, // Not Applicable: Not content-based
@@ -846,14 +664,9 @@ return [
 
         'val_fields' => [
             'enforce_step'             => ['values' => 'bool', 'default' => true],
-
-            'invalid_message'          => ['values' => 'string', 'default' => 'zzThis value must be a number.'],
-            'min_message'              => ['values' => 'string', 'default' => 'zzValue must be at least ___.'],
-            'max_message'              => ['values' => 'string', 'default' => 'zzValue must not exceed ___.'],
-            'enforce_step_message'     => ['values' => 'string', 'default' => 'zzNumber must be a multiple of ___.'],
         ],
     ],
-    'color' => [
+    'color' => [ // 19
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input
         'dir'           => null, // Not Applicable: Not content-based
@@ -883,13 +696,9 @@ return [
             'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
             'allowed'                  => ['values' => 'array', 'default' => []],
             'forbidden'                => ['values' => 'array', 'default' => ['#000000']],
-
-            'invalid_message' => ['values' => 'string', 'default' => 'zzPlease select a valid color (e.g.,#FF5733).'],
-            'allowed_message'  => ['values' => 'string', 'default' => 'zzPlease select a color from the allowed list.'],
-            'forbidden_message' => ['values' => 'string', 'default' => 'zzThis color is not allowed.'],
         ],
     ],
-    'checkbox' => [
+    'checkbox' => [ // 20
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input
         'dir'           => null, // Not Applicable: Not content-based
@@ -920,18 +729,9 @@ return [
             // 'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
             // 'allowed'                  => ['values' => 'array', 'default' => []],
             // 'forbidden'                => ['values' => 'array', 'default' => ['#000000']],
-
-            // 'invalid_message' => ['values' => 'string', 'default' => 'zzPlease select a valid color (e.g.,#FF5733).'],
-            // 'allowed_message'  => ['values' => 'string', 'default' => 'zzPlease select a color from the allowed list.'],
-            // 'forbidden_message' => ['values' => 'string', 'default' => 'zzThis color is not allowed.'],
-
-            'required_message'         => ['values' => 'string', 'default' => 'zzThis field is required.'],
-            'invalid_message'     => ['values' => 'string', 'default' =>'zzPlease enter a whole number (no decimals).'],
-
-
         ],
     ],
-    'radio_group' => [ // ✅ New entry for radio_group
+    'radio_group' => [ // 21 ✅ New entry for radio_group
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input
         'dir'           => null, // Not Applicable: Not content-based
@@ -954,12 +754,9 @@ return [
 
         // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
         'val_fields' => [
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
-            // 'choices'           => ['values' => 'array', 'default' => []], // Important for documentation
         ],
     ],
-    'radio' => [
+    'radio' => [ // 22
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input
         'dir'           => null, // Not Applicable: Not content-based
@@ -990,10 +787,8 @@ return [
         'autofocus'   => ['default' => false, 'values' => 'bool'],
         'required'    => ['default' => false, 'values' => 'bool'],
         'checked'     => ['default' => false, 'values' => 'bool'],
-
-        // 'required_message' => ['default' => null, 'values' => 'string'],
     ],
-    'select' => [
+    'select' => [ // 23
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for <input>
         'dir'           => null, // Not Applicable: Not content-based
@@ -1010,19 +805,15 @@ return [
         'spellcheck'    => null, // Not Applicable: Not user-editable text
         'step'          => null, // Not Applicable: Only for numeric <input>
         'value'         => null, // Not Applicable: Value is set on <option>
-        //End Global set to null
+        //End Global set to null - 15 + 3 = 18
 
         'multiple'      => ['default' => false, 'values' => 'bool'],
         'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
         'val_fields' => [
-            // 'choicesx'                  => ['values' => 'array', 'default' => []],
-
-            'required_message'  => ['values' => 'string', 'default' => 'validation.required'],
-            'invalid_message'   => ['values' => 'string', 'default' => 'validation.invalid'],
         ],
     ],
-    'file' => [
+    'file' => [ // 24
         // Global Like if not applicable set to null
         'min'           => null, // not applicable
         'max'           => null, // not applicable
@@ -1049,41 +840,18 @@ return [
         'required'  => ['default' => false, 'values' => 'bool'],
         'multiple'  => ['default' => false, 'values' => 'bool'],
         'accept'    => ['default' => null, 'values' => 'string'], // e.g., 'image/*', '.pdf'
-        // 'required_message' => ['default' => null, 'values' => 'string'],
     ],
-    'extratest' => [
+    'extratest' => [ // 25
         'val_fields' => [
             'type' => ['default' => null, 'values' => 'string'],
             'forbidden'          => ['default' => [333], 'values' => []],
-            'forbidden_message'  => ['default' => null, 'values' => 'string'],
         ],
     ],
-    'extratest2' => [
+    'extratest2' => [ // 26
         'val_fields' => [
             'type' => ['default' => null, 'values' => 'string'],
             'forbidden'          => ['default' => [333, 44], 'values' => []],
-            'forbidden_message'  => ['default' => null, 'values' => 'string'],
         ],
     ],
 ];
-
-        // hidden
-        // button
-        // reset
-        // submit
-        // file
-        // image
-
-        // <form>
-        // <button>
-        // <select>
-        // <option>
-        // <optgroup>
-        // <label>
-        // <fieldset>
-        // <legend>
-        // <output>
-        // <datalist>
-        // <progress>
-        // <meter>
-// 668 // 491 606 616 651 724 937 965
+// 668 // 491 606 616 651 724 937 965 857

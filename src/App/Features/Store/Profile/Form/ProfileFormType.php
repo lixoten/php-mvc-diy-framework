@@ -67,7 +67,7 @@ class ProfileFormType extends AbstractFormType
             'html5_validation' => false,
             'css_form_theme_class' => "form-theme-christmas",
             'css_form_theme_file' => "christmas",
-            'form_heading' => "Create Store",
+            'title_heading' => "Create Store",
             'submit_text' => "Create",
         ]);
         // Define default fields

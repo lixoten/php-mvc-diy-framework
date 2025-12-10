@@ -17,6 +17,7 @@ class FieldSchema
     {
         $global = $this->schemas['global'] ?? [];
         $typeSpecific = $this->schemas[$fieldType] ?? [];
+        //$typeSpecific2 = $this->schemas['tel'];
 
         return array_merge($global, $typeSpecific);
     }

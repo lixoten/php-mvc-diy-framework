@@ -61,7 +61,7 @@ class TimeValidator extends AbstractValidator
         if ($error = $this->validateMaxString($value, $options)) {
             return $error;
         }
-        
+
         return null;
     }
 

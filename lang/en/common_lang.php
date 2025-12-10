@@ -176,7 +176,10 @@ return [
     ],
 
 
-
+    'list'    => [
+        'title' => 'List Main Title',
+        'actions' => 'Actions',
+    ],
 
 
     'form'    => [
@@ -193,7 +196,14 @@ return [
             'tel'       => 'Enter with country code (e.g., +1234567890)',
             'url'       => 'Must start with http:// or https://',
         ],
-        'heading' => 'Edit Recordccccc',
+        'error' => [
+            'instructions' => 'Please correct the following errors',
+        ],
+
+
+        'restore_data_from_server' => 'Restore Data from server',
+
+        'title' => 'Edit Recordccccc',
         'select' => [
             'default_choice' => 'Please select one',
         ],

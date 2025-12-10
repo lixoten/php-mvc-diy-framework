@@ -4,6 +4,7 @@ Colour
 emailtest
 feefee
 FIELDSETS
+findme
 fook
 imask
 isset

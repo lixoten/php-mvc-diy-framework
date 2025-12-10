@@ -83,7 +83,7 @@ class ContactController extends Controller
                 // 'error_display' => 'inline',
                 // 'submit_text' => 'sssssaaaaaaaaaaaaaSubmit',
                 // 'css_form_theme_class' => "form-theme-christmas",
-                // 'form_heading' => 'Send us a message',
+                // 'title_heading' => 'Send us a message',
                 // 'html5_validation' => false,
                 // 'css_form_theme_file' => 'christmas',
             ]
@@ -144,7 +144,7 @@ class ContactController extends Controller
                 // 'error_display' => 'inline',
                 // 'submit_text' => 'sssssaaaaaaaaaaaaaSubmit',
                 // 'css_form_theme_class' => "form-theme-christmas",
-                // 'form_heading' => 'Send us a message',
+                // 'title_heading' => 'Send us a message',
                 // 'html5_validation' => false,
                 // 'css_form_theme_file' => 'christmas',
             ]

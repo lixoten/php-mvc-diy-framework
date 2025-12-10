@@ -39,7 +39,38 @@ class BootstrapThemeService implements ThemeServiceInterface
         'form.check.label'     => 'form-check-label',   // For checkbox/radio labels
         'form.check.container' => 'form-check',         // For wrapping individual checks
         'form.check.inline'    => 'form-check-inline',  // For inline checks
+        'form.heading'         => 'form-heading', // for the H tag in renderHeader
 
+
+        'form.heading.wrapper' => 'form-heading-wrapper bg-light px-3 py-2 border-bottom',
+        'title.heading' => 'title-heading', // Assuming 'title-heading' is a general base class
+
+        'form.validation' => 'needs-validation', // Bootstrap's client-side validation class
+
+        // Alert classes (for renderErrors)
+        'alert.danger.summary' => 'alert alert-danger mb-4', // ✅ For summary error display
+        'alert.danger.inline'  => 'alert alert-danger mb-3', // ✅ For inline error display
+        'alert.warning'        => 'alert alert-warning',
+        'alert.success'        => 'alert alert-success',
+        'alert.info'           => 'alert alert-info',
+
+        // ✅ NEW: No errors message class
+        'error.no_errors' => 'mb-0', // For the 'No errors.' paragraph
+
+        // ✅ NEW: Draft notification classes
+        'spinner.base'    => 'spinner-border spinner-border-sm',
+        'spinner.wrapper' => 'text-info mb-2 mt-3',
+
+        // ✅ NEW: Draft notification classes
+        'notification.draft'  => 'alert alert-warning mt-3',
+        'notification.button' => 'btn btn-secondary btn-sm mt-2',
+
+        // ✅ NEW: Constraint hints classes
+        'constraints.wrapper_always' => 'field-constraints field-constraints-always',
+        'constraints.wrapper_focus'  => 'field-constraints field-constraints-focus',
+        'constraints.list'           => 'constraints-list list-unstyled',
+        'constraints.item'           => 'constraint-item',
+        'constraints.icon_wrapper'   => 'constraint-icon me-1', // For spacing the icon
 
 
         'table' => 'table table-striped',
@@ -47,15 +78,37 @@ class BootstrapThemeService implements ThemeServiceInterface
         'card.header' => 'card-header d-flex justify-content-between align-items-center',
         'card.body' => 'card-body',
         'pagination' => 'pagination',
+        'pagination.item'                 => 'page-item',
+        'pagination.link'                 => 'page-link',
+        'pagination.disabled'             => 'disabled',
+
+
         'button.add' => 'btn btn-light btn-sm text-primary border border-primary',
         'button.view' => 'btn btn-info',
         'button.edit' => 'btn btn-primary',
         'button.delete' => 'btn btn-danger',
         'button.group' => 'btn-group btn-group-sm',
-        'view.toggle' => 'btn-group btn-group-sm mb-3',
+        'button.delete_trigger'           => 'delete-item-btn',
 
-        'form.heading.wrapper' => 'form-heading-wrapper bg-light px-3 py-2 border-bottom',
-        'form.heading' => 'form-heading', // Assuming 'form-heading' is a general base class
+        'view.toggle' => 'btn-group btn-group-sm mb-3',
+        'view.toggle_button'              => 'btn btn-outline-secondary',
+        'view.toggle_button.active'       => 'active',
+
+
+        'table.header.actions_alignment'  => 'text-end',
+        'visually_hidden'                 => 'visually-hidden',
+        'image.thumbnail'                 => 'rounded me-3',
+        'image.thumbnail_style'           => 'max-width: 64px; max-height: 64px;',
+        'layout.flex_gap'                 => 'd-flex flex-wrap gap-3 mt-2',
+        'layout.flex_row_gap'             => 'd-flex flex-wrap gap-3 mt-2',
+        'layout.margin_start_auto'        => 'ms-auto',
+        'layout.padding_top_zero'         => 'pt-0',
+
+
+        // MODAL ATTRIBUTES:
+        'modal.toggle_attribute'          => 'data-bs-toggle',
+        'modal.toggle_value'              => 'modal',
+        'modal.target_attribute'          => 'data-bs-target',
     ];
 
     /**
@@ -64,6 +117,19 @@ class BootstrapThemeService implements ThemeServiceInterface
      * @var array<string, string>
      */
     protected array $icons = [
+        // ✅ NEW: Constraint hint icons (matching generateConstraintHints)
+        'constraint_required'  => '<i class="fas fa-asterisk text-danger"></i>',
+        'constraint_minlength' => '<i class="fas fa-arrow-right text-info"></i>',
+        'constraint_maxlength' => '<i class="fas fa-arrow-left text-info"></i>',
+        'constraint_min'       => '<i class="fas fa-greater-than text-info"></i>',
+        'constraint_max'       => '<i class="fas fa-less-than text-info"></i>',
+        'constraint_date_min'  => '<i class="fas fa-calendar-alt text-info"></i>',
+        'constraint_date_max'  => '<i class="fas fa-calendar-alt text-info"></i>',
+        'constraint_pattern'   => '<i class="fas fa-code text-success"></i>', // Changed for variety
+        'constraint_email'     => '<i class="fas fa-at text-info"></i>',
+        'constraint_tel'       => '<i class="fas fa-phone text-info"></i>',
+        'constraint_url'       => '<i class="fas fa-link text-info"></i>',
+
         'view' => '<i class="fas fa-eye"></i>',
         'edit' => '<i class="fas fa-edit"></i>',
         'delete' => '<i class="fas fa-trash"></i>',
@@ -118,10 +184,14 @@ class BootstrapThemeService implements ThemeServiceInterface
 
     /**
      * Get CSS class for a UI element
+     *
+     * @param string $elementType The type of element
+     * @param array<string, mixed> $context Additional context (unused in Bootstrap implementation)
+     * @return string|null The CSS class(es), or null if not defined
      */
-    public function getElementClass(string $elementType, array $context = []): string
+    public function getElementClass(string $elementType, array $context = []): ?string
     {
-        return $this->elementClasses[$elementType] ?? '';
+        return $this->elementClasses[$elementType] ?? null;
     }
 
 
@@ -146,7 +216,12 @@ class BootstrapThemeService implements ThemeServiceInterface
      */
     public function getIconHtml(string $iconName): string
     {
-        // Map common action names to Font Awesome icon classes
+        // ✅ First, check if the icon is defined in the $icons array
+        if (isset($this->icons[$iconName])) {
+            return $this->icons[$iconName];
+        }
+
+        // Fallback: Use a generic Font Awesome icon if not found
         $iconMap = [
             'view' => 'eye',
             'edit' => 'pencil-alt',
@@ -157,10 +232,8 @@ class BootstrapThemeService implements ThemeServiceInterface
             'list' => 'list',
         ];
 
-        // Use the mapping or fallback to the icon name itself
         $iconClass = $iconMap[$iconName] ?? $iconName;
 
-        // Return complete HTML tag
         return '<i class="fas fa-' . htmlspecialchars($iconClass) . '"></i>';
     }
 
@@ -249,5 +322,22 @@ class BootstrapThemeService implements ThemeServiceInterface
             'link'      => 'btn btn-link',
             default     => 'btn btn-secondary', // Fallback to a neutral button
         };
+    }
+
+
+    /**
+     * @inheritdoc
+     */
+    public function getAjaxSpinnerHtml(string $message): string
+    {
+        // Get Bootstrap specific spinner classes from ThemeService
+        $spinnerClass = $this->getElementClass('spinner.base') ?? 'spinner-border spinner-border-sm'; // Intentional fallback for core spinner class
+        $spinnerWrapperClass = $this->getElementClass('spinner.wrapper') ?? 'text-info mb-2 mt-3'; // Intentional fallback for spinner wrapper
+
+        return <<<HTML
+            <div id="ajax-save-spinner" style="display:none;" class="{$spinnerWrapperClass}">
+                <span class="{$spinnerClass}"></span> {$message}
+            </div>
+        HTML;
     }
 }

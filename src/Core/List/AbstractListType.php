@@ -136,7 +136,7 @@ abstract class AbstractListType implements ListTypeInterface
     /** {@inheritdoc} */
     public function buildList(ListBuilderInterface $builder): void
     {
-        $builder->setListTitle($this->renderOptions['title'] ?? 'List');
+        $builder->setListTitle($this->renderOptions['title'] ?? 'list.title');
         $builder->setOptions($this->options);
         $builder->setRenderOptions($this->renderOptions);
 

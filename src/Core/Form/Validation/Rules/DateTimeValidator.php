@@ -39,21 +39,11 @@ class DateTimeValidator extends AbstractValidator
 
         // Min
         if (isset($options['min']) && $value < $options['min']) {
-            // if (isset($options['min_message'])) {
-            //     $options['message'] = $this->formatCustomMessage($options['min'], $options['min_message']);
-            // }
-
-            $options['message'] ??= $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
 
         // Max
         if (isset($options['max']) && $value > $options['max']) {
-            // if (isset($options['max_message'])) {
-            //     $options['message'] = $this->formatCustomMessage($options['max'], $options['max_message']);
-            // }
-
-            $options['message'] ??= $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
 
@@ -73,11 +63,6 @@ class DateTimeValidator extends AbstractValidator
             'required' => null,
             'min'      => null,
             'max'      => null,
-
-            'required_message'  => null,
-            'minlength_message' => null,
-            'maxlength_message' => null,
-            'invalid_message'   => null,
         ];
     }
 }

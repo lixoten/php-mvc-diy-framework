@@ -305,7 +305,7 @@
   }
 
   /* Form heading styling */
-.form-theme-christmas .form-heading {
+.form-theme-christmas .title-heading {
     color: var(--winter-primary);
     text-align: center;
     margin-bottom: 1.5rem;
@@ -317,8 +317,8 @@
   }
 
   /* Add decorative snowflakes to form heading */
-  .form-theme-christmas .form-heading::before,
-  .form-theme-christmas .form-heading::after {
+  .form-theme-christmas .title-heading::before,
+  .form-theme-christmas .title-heading::after {
     content: "❅";
     position: absolute;
     bottom: -8px;
@@ -326,22 +326,22 @@
     color: var(--winter-accent);
   }
 
-  .form-theme-christmas .form-heading::before {
+  .form-theme-christmas .title-heading::before {
     left: 20%;
   }
 
-  .form-theme-christmas .form-heading::after {
+  .form-theme-christmas .title-heading::after {
     right: 20%;
   }
 
   /* Special styling for h1 headings */
-  .form-theme-christmas h1.form-heading {
+  .form-theme-christmas h1.title-heading {
     font-size: 1.8rem;
     margin-bottom: 2rem;
   }
 
   /* Special styling for h2 headings */
-  .form-theme-christmas h2.form-heading {
+  .form-theme-christmas h2.title-heading {
     font-size: 2rem;
     margin-bottom: 1.8rem;
     font-weight: 800;  /* Make it a bit bolder */
@@ -349,7 +349,7 @@
   }
 
   /* Add a subtle shimmer animation to the heading */
-.form-theme-christmas .form-heading {
+.form-theme-christmas .title-heading {
     background: linear-gradient(
       to right,
       var(--winter-primary) 20%,

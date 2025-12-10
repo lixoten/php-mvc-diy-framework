@@ -98,7 +98,7 @@ class WeekValidator extends AbstractValidator
         if ($error = $this->validateMaxString($value, $options)) {
             return $error;
         }
-        
+
         // If it passes the regex and min/max, we consider it valid.
         return null;
     }

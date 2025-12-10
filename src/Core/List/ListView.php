@@ -12,7 +12,7 @@ class ListView implements ListInterface
     // private string $name;
     private string $pageKey;
     private string $pageName;
-    private string $title;
+    // private string $title;
     private array $data = [];
     private array $columns = [];
     private array $actions = [];
@@ -49,9 +49,6 @@ class ListView implements ListInterface
      */
     public function addColumn(string $name, array $options = []): self
     {
-        // if (!isset($options['label'])) { // A label was not set in testy_fields____.php
-        //     $this->columns[$name] = ['label' => ucfirst(str_replace('_', ' ', $name))] + $options; // shitload3
-        // }
         $this->columns[$name] = $options;
         return $this;
     }
@@ -83,47 +80,38 @@ class ListView implements ListInterface
         return $this->csrfToken !== null;
     }
 
-    /**
-     * Check if the list has any actions defined
-     */
+    /** {@inheritdoc} */
     public function hasActions(): bool
     {
         return !empty($this->actions);
     }
 
 
-    /**
-     * Get the list pageName
-     */
+    /** {@inheritdoc} */
     public function getPageName(): string
     {
         return $this->pageName;
     }
 
 
-    /**
-     * Get the list pageKey
-     */
+    /** {@inheritdoc} */
     public function getPageKey(): string
     {
         return $this->pageKey;
     }
 
-    /**
-     * Set the list title
-     */
+    /** {@inheritdoc} */
     public function setTitle(string $title): self
     {
-        $this->title = $title;
+        $this->renderOptions['title'] = $title;
         return $this;
     }
 
-    /**
-     * Get the list title
-     */
+
+    /** {@inheritdoc} */
     public function getTitle(): string
     {
-        return $this->title ?? $this->pageKey;
+        return $this->renderOptions['title'] ?? $this->pageKey;
     }
 
     /**
@@ -175,6 +163,15 @@ class ListView implements ListInterface
     public function getActions(): array
     {
         return $this->actions;
+    }
+
+    /**
+     * Set actions definitions
+     */
+    public function setActions(array $actions): self
+    {
+        $this->actions = $actions;
+        return $this;
     }
 
     // /**

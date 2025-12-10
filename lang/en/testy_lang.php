@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251204_150649
+ * Generated File - Date: 20251206_075526
  * Language File for testy_main.
  *
  * This file provides localized strings for the application, specifically for a given entity.
@@ -89,6 +89,27 @@ return [
                 'forbidden' => 'This Testy xGeneric text is not allowed.',
         ],
     ],
+    'telephone' => [
+        'list' => [
+            'label'       => 'xTelephone number',
+        ],
+        'form' => [
+            'label'       => 'xTelephone number',
+            'placeholder' => 'Enter xTelephone number',
+        ],
+        'formatters' => [
+
+        ],
+        'validation' => [
+                    'required'  => 'Testy xTelephone number is required.',
+                'invalid'   => 'Invalid Testy xTelephone number.',
+                'minlength' => 'Testy xTelephone number must be at least %d characters.',
+                'maxlength' => 'Testy xTelephone number must not exceed %d characters.',
+                'pattern'   => 'Testy xTelephone number does not match the required pattern.',
+                'allowed'   => 'Please select a valid Testy xTelephone number.',
+                'forbidden' => 'This Testy xTelephone number is not allowed.',
+        ],
+    ],
     'state_code' => [
         'list' => [
             'label'       => 'xStates',
@@ -170,22 +191,19 @@ return [
         ],
         'validation' => [
                     'required'   => 'Testy xGeneric Number is required.',
-                'invalid'   => 'Testy xGeneric Number must be at least %d characters.',
-                'minlength' => 'Testy xGeneric Number must not exceed %d characters.',
-                'maxlength' => 'Invalid Testy xGeneric Number.',
-
-                'min'       => 'Testy xGeneric Number value must be at least %d.',
-                'max'       => 'Testy xGeneric Number value must not exceed %d.',
-
+                'invalid'   => 'Invalid Testy xGeneric Number.',
+                'minlength' => 'Testy xGeneric Number must be at least %d characters.',
+                'maxlength' => 'Testy xGeneric Number must not exceed %d characters.',
+                'min'       => 'Testy xGeneric Number must be at least %d.',
+                'max'       => 'Testy xGeneric Number must not exceed %d.',
                 'pattern'   => 'Testy xGeneric Number does not match the required pattern.',
                 'allowed'   => 'Please select a valid Testy xGeneric Number.',
                 'forbidden' => 'This Testy xGeneric Number is not allowed.',
 
-                'positive_only' => 'Testy xGeneric Number must be a positive number',
-                'positive_only'    => 'Testy xGeneric Number value must be a positive number.',
-                'negative_only'    => 'Testy xGeneric Number value must be a negative number.',
-                'zero_not_allowed' => 'Testy xGeneric Number Zero value is not allowed.',
-                'enforce_step'     => 'Testy xGeneric Number must be a multiple of %d.',
+                'positive_only' => 'This Testy xGeneric Number must be a positive number.',
+                'negative_only' => 'This Testy xGeneric Number must be a negative number.',
+                'zero_not_allowed' => 'This Testy xGeneric Number Zero value is not allowed.',
+                'enforce_step'  => 'This Testy xGeneric Number must be a multiple of %d.',
         ],
     ],
 ];

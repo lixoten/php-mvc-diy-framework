@@ -60,8 +60,14 @@ return [
             'window_size' => 3,
         ],
         'render_options' => [
+            'from'                  => 'view.php-config',
             'css_framework'         => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
-            'title'                 =>  'list.posts.title default',//shithead2
+            'show_title_heading'    => false,
+            'title_heading_level'   => 'h2',
+            'title_heading_class'   => null, // Use ThemeService default, or provide custom class if needed
+
+            'show_actions_label'    => true, // Table-view: Show "Actions" column header for this entity
+
             'show_actions'          => true,
             'show_action_add'       => false,
             'show_action_edit'      => false,
@@ -72,7 +78,6 @@ return [
             'show_pagination'       => true,
             'show_view_toggle'      => true,
             'view_type'             => 'table',
-            'add_button_label'      => 'Add xxNew',
 
         ],
         'list_fields' => [
@@ -99,14 +104,14 @@ return [
             'css_form_theme_file'   => "christmas",
             'default_form_theme'    => 'christmas' ?? 'default',
 
-            'form_heading_level'    => "h2",
-            'form_heading'          => "form.heading",
-            'form_heading_class'         => null, // Do-not change. It uses ThemeService default, See note-#53
+            'show_title_heading'    => true,
+            'title_heading_level'   => "h2",
+            'title_heading_class'         => null, // Do-not change. It uses ThemeService default, See note-#53
             'form_heading_wrapper_class' => null, // Do-not change. It uses ThemeService default, See note-#53
 
-            'submit_text'           => "button.save",
+            // 'submit_text'           => "button.save",
             'submit_button_variant' => 'primary',
-            'cancel_text'           => 'button.cancel', // Added for translation
+            // 'cancel_text'           => 'button.cancel', // Added for translation
             'cancel_button_variant' => 'secondary',
 
 

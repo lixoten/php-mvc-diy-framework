@@ -46,7 +46,7 @@ return [
         'html5_validation'  => false,
     //     'css_form_theme_class' => "form-theme-christmas",
     //     'css_form_theme_file' => "christmas",
-    //     'form_heading' => "Create Post Parent",
+    //     'title_heading' => "Create Post Parent",
         'submit_text'       => "Save",
     ],
     'form_layout'            => [

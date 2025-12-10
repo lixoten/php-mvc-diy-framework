@@ -47,9 +47,7 @@ class GenericListType extends AbstractListType
 
         // Default render options
         $this->listRenderOptions = [
-            // 'add_button_label' => 'New Generic',
             // 'add_url' => $urlType . 'generic/add',
-            'add_button_label' => Url::GENERIC_CREATE->label(),
             'add_url' => Url::GENERIC_CREATE->url(),
             'show_actions' => true,
         ];
@@ -87,7 +85,6 @@ class GenericListType extends AbstractListType
         // --- Dynamically set Add URL and Label ---
         // This assumes a pattern, adjust if needed or load from config
         $this->listRenderOptions['add_url'] = '/admin/' . $entityType . '/add';
-        $this->listRenderOptions['add_button_label'] = 'New ' . ucfirst($entityType);
 
 
         // --- Add columns based on config ---

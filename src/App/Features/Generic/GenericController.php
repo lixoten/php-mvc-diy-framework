@@ -262,7 +262,7 @@ class GenericController extends Controller
                 'content_type' => $entityType,
                 'action_type' => $entityType . '_edit',
                 'ip_address' => $this->getIpAddress(),
-                'form_heading' => 'zzEdit ' . ucfirst($entityType),
+                'title_heading' => 'zzEdit ' . ucfirst($entityType),
                 // 'submit_text' => 'zzUpdate ' . ucfirst($entityType),
             ]
         );
@@ -403,7 +403,7 @@ class GenericController extends Controller
                 'content_type' => $entityType,
                 'action_type' => $entityType . '_add',
                 'ip_address' => $this->getIpAddress(),
-                'form_heading' => 'zzAdd ' . ucfirst($entityType),
+                'title_heading' => 'zzAdd ' . ucfirst($entityType),
                 // 'submit_text' => 'zzUpdate ' . ucfirst($entityType),
             ]
         );
