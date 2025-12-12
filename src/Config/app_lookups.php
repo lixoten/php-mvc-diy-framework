@@ -42,23 +42,23 @@ return [
      */
     'gender' => [
         'm'  => [
-            'label'   => 'code.gender.m',
+            'translation_key'   => 'code.gender.m',
             'variant' => 'info',        // Semantic variant (Bootstrap: badge-info, Material: mdc-theme--info)
         ],
         'f'  => [
-            'label'   => 'code.gender.f',
-            'variant' => 'primary',
+            'translation_key'   => 'code.gender.f',
+            'variant' => 'primary', // null,
         ],
         'o'  => [
-            'label'   => 'code.gender.o',
+            'translation_key'   => 'code.gender.o',
             'variant' => 'secondary',
         ],
         'nb' => [
-            'label'   => 'code.gender.nb',
+            'translation_key'   => 'code.gender.nb',
             'variant' => 'dark',
         ],
         'pns' => [
-            'label'   => 'code.gender.pns',
+            'translation_key'   => 'code.gender.pns',
             'variant' => 'dark',
         ],
     ],
@@ -68,14 +68,25 @@ return [
     // Database: Stored as TINYINT(1) or BOOLEAN
     'bool_yes_no_code' => [
         '0' => [ // False
-            'label'   => 'code.bool_yes_no_code.0',
+            'translation_key'   => 'code.bool_yes_no_code.0',
             'variant' => 'danger', // Semantic variant for 'No'
         ],
         '1' => [ // True
-            'label'   => 'code.bool_yes_no_code.1',
+            'translation_key'   => 'code.bool_yes_no_code.1',
             'variant' => 'success', // Semantic variant for 'Yes'
         ],
     ],
+
+    // 'is_verified' => [
+    //     '0' => [ // False
+    //         'translation_key'   => 'code.is_verified.0',
+    //         'variant' => 'danger', // Semantic variant for 'No'
+    //     ],
+    //     '1' => [ // True
+    //         'translation_key'   => 'code.is_verified.1',
+    //         'variant' => 'success', // Semantic variant for 'Yes'
+    //     ],
+    // ],
 
 
 
@@ -87,19 +98,20 @@ return [
      */
     'state_code' => [
             'ca'  => [
-                'label'   => 'code.state_code.ca',
+                'translation_key'   => 'code.state_code.ca',
             ],
             'nj'  => [
-                'label'   => 'code.state_code.nj',
+                'translation_key'   => 'code.state_code.nj',
+                'variant' => 'primary',
             ],
             'tx'  => [
-                'label'   => 'code.state_code.tx',
+                'translation_key'   => 'code.state_code.tx',
             ],
             'al' => [
-                'label'   => 'code.state_code.al',
+                'translation_key'   => 'code.state_code.al',
             ],
             'ny' => [
-                'label'   => 'code.state_code.ny',
+                'translation_key'   => 'code.state_code.ny',
             ],
         ],
 

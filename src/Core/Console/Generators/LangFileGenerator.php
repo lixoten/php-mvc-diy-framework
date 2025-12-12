@@ -195,15 +195,15 @@ class LangFileGenerator
                         $fieldName,
                         [
                             'id',
-                            'gender_id',
-                            'state_code',
-                            'status',
                             'is_verified',
                             'generic_text',
-                            'primary_email',
                             'generic_number',
-                            'telephone',
+                            'status',
+                            'gender_id',
+                            'state_code',
                             'super_powers',
+                            'telephone',
+                            'primary_email',
                         ]
                     )
                 ) {
@@ -230,7 +230,6 @@ class LangFileGenerator
                             'status',
                             'super_powers',
                             'telephone',
-                            'super_powers',
                             // 'primary_email', 'telephone', 'status', 'super_powers'
                         ]
                     )

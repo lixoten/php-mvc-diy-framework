@@ -46,11 +46,11 @@ interface CodeLookupServiceInterface
      *
      * @example
      * ```php
-     * $labelKey = $codeLookupService->getLabel('gender', 'f');
+     * $labelKey = $codeLookupService->getTranslationKey('gender', 'f');
      * // Returns: "gender.female"
      * ```
      */
-    public function getLabel(string $type, string $code, ?string $pageName = null): string;
+    public function getTranslationKey(string $type, string $code, ?string $pageName = null): string;
 
     /**
      * Get all properties for a specific code within a type.
@@ -69,7 +69,7 @@ interface CodeLookupServiceInterface
      * @example
      * ```php
      * $props = $codeLookupService->getProperties('gender', 'f');
-     * // Returns: ['label' => 'gender.female', 'variant' => 'primary']
+     * // Returns: ['translation_key' => 'gender.female', 'variant' => 'primary']
      * ```
      */
     public function getProperties(string $type, string $code): array;

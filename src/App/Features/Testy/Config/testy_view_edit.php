@@ -56,13 +56,12 @@ return [
                 // 'title',
 
                 // 'is_verified',
-                'generic_text',
+                // 'generic_text',
+                // 'generic_number',
+                // 'status',
                 // 'gender_id',
-                'state_code',
-                'status',
-                'generic_number',
-
-                // 'super_powers',
+                // 'state_code',
+                'super_powers',
                 // 'telephone',
                 // 'primary_email',
             ],

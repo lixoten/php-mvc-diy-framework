@@ -28,7 +28,7 @@ class DecimalFormatter extends AbstractFormatter
      *      - 'trim_zeros': bool, whether to trim trailing zeros (default: true)
      * @return string
      */
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $options = $this->mergeOptions($options);
 

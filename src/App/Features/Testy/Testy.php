@@ -958,7 +958,7 @@ class Testy
 
 
     /**
-     * ✅ NEW: Provides formatter options for the is_verified badge.
+     * ✅ Provides formatter options for the is_verified badge.
      *
      * @param mixed $value The raw boolean value
      * @return array<string, string|bool>

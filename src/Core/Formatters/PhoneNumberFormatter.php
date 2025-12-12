@@ -71,7 +71,7 @@ class PhoneNumberFormatter extends AbstractFormatter
      *        - 'region': Optional region code (e.g., 'US') for parsing numbers without a country code.
      * @return string The formatted phone number.
      */
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $options = $this->mergeOptions($options);
 

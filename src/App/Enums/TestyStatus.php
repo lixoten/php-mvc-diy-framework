@@ -18,16 +18,44 @@ enum TestyStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::PENDING   => 'code.testy_status.p', // 'Pending',
-            self::ACTIVE    => 'code.testy_status.a', // 'Active',
-            self::SUSPENDED => 'code.testy_status.s', // 'Suspended',
-            self::BANNED    => 'code.testy_status.b', // 'Banned',
-            self::DELETED   => 'code.testy_status.d', // 'Deleted',
+            self::PENDING   => 'Pending',
+            self::ACTIVE    => 'Active',
+            self::SUSPENDED => 'Suspended',
+            self::BANNED    => 'Banned',
+            self::DELETED   => 'Deleted',
         };
     }
 
     /**
-     * ✅ NEW: Get the semantic badge variant for this status.
+     * Get human-readable label for this status
+     */
+    public function code(): string
+    {
+        return match ($this) {
+            self::PENDING   => 'p',
+            self::ACTIVE    => 'a',
+            self::SUSPENDED => 's',
+            self::BANNED    => 'b',
+            self::DELETED   => 'd',
+        };
+    }
+
+    /**
+     * Get translation key for i18n
+     */
+    public function translationKey(): string
+    {
+        return match ($this) {
+            self::PENDING   => 'code.testy_status.p',
+            self::ACTIVE    => 'code.testy_status.a',
+            self::SUSPENDED => 'code.testy_status.s',
+            self::BANNED    => 'code.testy_status.b',
+            self::DELETED   => 'code.testy_status.d',
+        };
+    }
+
+    /**
+     * ✅ Get the semantic badge variant for this status.
      * This is theme-agnostic and represents the meaning of the status.
      *
      * @return string Semantic variant (success, danger, warning, info, etc.)
@@ -64,7 +92,7 @@ enum TestyStatus: string
 
         // Return the correct label and variant for the BadgeFormatter
         return [
-            'label'   => $statusEnum->label(),
+            'label'   => $statusEnum->translationKey(),
             'variant' => $statusEnum->badgeVariant(),
         ];
     }
@@ -105,7 +133,7 @@ enum TestyStatus: string
     {
         $options = [];
         foreach (self::cases() as $case) {
-            $options[$case->value] = $case->label();
+            $options[$case->value] = $case->translationKey();
         }
         return $options;
     }

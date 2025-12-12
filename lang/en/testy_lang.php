@@ -41,10 +41,10 @@ return [
             'nb' => 'Non-binary',
             'pns' => 'Prefer not to say',
         ],
-        'bool_yes_no_code' => [
-            '1' => 'Yes',
-            '0' => 'No',
-        ],
+        // 'bool_yes_no_code.....................' => [
+        //     '1' => 'Yes',
+        //     '0' => 'No',
+        // ],
     ],
 
     'id' => [
@@ -204,6 +204,19 @@ return [
                 'negative_only' => 'This Testy xGeneric Number must be a negative number.',
                 'zero_not_allowed' => 'This Testy xGeneric Number Zero value is not allowed.',
                 'enforce_step'  => 'This Testy xGeneric Number must be a multiple of %d.',
+        ],
+    ],
+    'super_powers' => [
+        'list' => [
+            'label'       => 'xSuper Powers',
+        ],
+        'form' => [
+            'label'       => 'xSuper Powers',
+        ],
+        'formatters' => [
+
+        ],
+        'validation' => [
         ],
     ],
 ];

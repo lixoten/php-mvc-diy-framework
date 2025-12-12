@@ -51,6 +51,8 @@ return [
             'nullable'  => false,
             // 'default'   => [],
             'comment'   => 'JSON encoded array of user super_powers',
+            'lookup'    => 'super_power',
+            'enum_class' => 'SuperPower',
         ],
         'status' => [
             // 'db_type'   => 'char',

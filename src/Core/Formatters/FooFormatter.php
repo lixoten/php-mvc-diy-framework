@@ -21,7 +21,7 @@ class FooFormatter extends AbstractFormatter
         return true;
     }
 
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $options = $this->mergeOptions($options);
 

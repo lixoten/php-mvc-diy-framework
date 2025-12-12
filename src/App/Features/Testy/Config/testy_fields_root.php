@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251206_075530
+ * Generated File - Date: 20251206_075530 origgggggggggggggggggggg
  * Field definitions for the testy_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
@@ -11,6 +11,7 @@
 declare(strict_types=1);
 
 // id
+// super_powers
 // status
 // generic_text
 // telephone
@@ -22,7 +23,42 @@ declare(strict_types=1);
 return [
     'id' => [
         'list' => [
+            'sortable'    => false,
+        ],
+    ],
+    'super_powers' => [
+        'data_transformer' => 'json_array',
+        'list' => [
             'sortable'   => false,
+        ],
+        'form' => [
+            'type'       => 'checkbox_group',
+            'options_provider' => [\App\Enums\SuperPower::class, 'toSelectArray'],
+            'inline' => false, // or true for horizontal layout
+            'attributes' => [
+                // 'required' => false,
+                // 'style'       => 'background:yellow;',
+            ],
+        ],
+        'formatters' => [
+            'array' => [
+                'enum_class' => \App\Enums\SuperPower::class,
+                'separator' => ', ',
+                'empty_text' => 'None',
+            ],
+            'badge' => [
+                'variant' => 'primary',
+            ],
+            'badge_collection' => [
+                'options_provider' => [\App\Enums\SuperPower::class, 'getFormatterOptions'],
+                'separator' => ' ',
+            ],
+        ],
+        'validators' => [
+            'checkbox_group' => [
+                // 'min_choices' => 1,
+                // 'max_choices' => 3,
+            ],
         ],
     ],
     'status' => [
@@ -32,7 +68,7 @@ return [
         'form' => [
             'type'       => 'select',
             'options_provider' => [\App\Enums\TestyStatus::class, 'toSelectArray'],
-            'display_default_choice'   => true,
+            'display_default_choice' => true,
             'attributes' => [
                 // 'required'    => false,
                 // 'style'       => 'background:yellow;',
@@ -40,11 +76,13 @@ return [
         ],
         'formatters' => [
             'text' => [
+                // 'enum_class' => \App\Enums\TestyStatus::class,
                 'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
             ],
-            // 'badge' => [
-            //     'options_provider' => [TestyStatus::class, 'getFormatterOptions'],
-            // ],
+            'badge' => [
+                // 'enum_class' => \App\Enums\TestyStatus::class,
+                'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
+            ],
         ],
         'validators' => [
             'select' => [
@@ -53,12 +91,12 @@ return [
     ],
     'generic_text' => [
         'list' => [
-            'sortable'   => false,
+            'sortable'    => false,
         ],
         'form' => [
-            'type'       => 'text',
-            'placeholder'   => false,
-            'attributes' => [
+            'type'        => 'text',
+            'placeholder' => true,
+            'attributes'  => [
                 'required'    => true,
                 'minlength'   => 5,
                 'maxlength'   => 50,
@@ -84,51 +122,51 @@ return [
         ],
         'validators' => [
             'text' => [
-                // 'ignore_allowed'    => true,
-                // 'ignore_forbidden'  => false,
-                // 'allowed'           => [aaaa, bbbb],
-                // 'forbidden'         => [fuck, dick],
+                // 'ignore_allowed'   => true,
+                // 'ignore_forbidden' => false,
+                // 'allowed'          => [aaaa, bbbb],
+                // 'forbidden'        => [fuck, dick],
             ],
         ],
     ],
     'telephone' => [
         'list' => [
-                'sortable'   => false,
+                'sortable'    => false,
         ],
         'form' => [
-            //  'region' => 'US',
-            'type'       => 'tel',
+             //  'region' => 'US',
+            'type'        => 'tel',
             'placeholder' => true,
-            'attributes' => [
-                'required'    => true,
-                // 'maxlength'   => 20,
-                // 'pattern'     => '[a-z0-9]/',
+            'attributes'  => [
+                // 'required'    => false,
                 // 'style'       => 'background:yellow;',
-                // 'xxrequired'              => true,
-                // 'xxlist'                  => 'foo',
+                'data-char-counter'    => true,
+                'data-live-validation' => true,
+                // 'xxxxlist'                  => 'foo',
                 // 'xxdata-char-counter'     => true,     // js-feature
                 // 'data-live-validation'  => true      // js-feature
                 // 'xxdata-mask'             => 'phone', // todo - mast does not validate.
                 // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
-                // 'xxstyle' => 'background: cyan;',
             ],
         ],
         'formatters' => [
             'tel' => [
-                 // 'format' => 'default', // no need. FYI National format if its detected
+                // 'format' => 'default', // not needed, is default. FYI National format if its detected
                 // 'format' => 'dashes',  // Force dashes
-                'format' => 'dots',    // Force dots
+                // 'format' => 'dots',    // Force dots
                 // 'format' => 'spaces',  // Force spaces
                 // 'region' => 'PT',      // Optional: provide a specific region context
             ],
         ],
         'validators' => [
-        // 'required_mess age'  => "Custom: Phone  is required.",
-                // 'invalid_message'   => "Custom: Please enter a valid international phone number
-                //                         (e.g., +15551234567). Invalid Error.",
-                // 'invalid_region_message' => 'Custom: Invalid_region',
-                // 'invalid_parse_message'  => 'Custom: Please enter a valid international phone number
-                //                             (e.g., +15551234567). Parse Error',
+            'tel' => [
+            ],
+            // 'required_mess age'  => "Custom: Phone  is required.",
+            // 'invalid_message'   => "Custom: Please enter a valid international phone number
+            //                         (e.g., +15551234567). Invalid Error.",
+            // 'invalid_region_message' => 'Custom: Invalid_region',
+            // 'invalid_parse_message'  => 'Custom: Please enter a valid international phone number
+            //                             (e.g., +15551234567). Parse Error',
         ],
     ],
     'state_code' => [
@@ -139,7 +177,7 @@ return [
             'type'       => 'select',
             'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'state_code'],
-            'display_default_choice'   => true,
+            'display_default_choice' => true,
             'attributes' => [
                 'required'    => true,
                 // 'style'       => 'background:yellow;',
@@ -148,7 +186,11 @@ return [
         'formatters' => [
             'text' => [
                 'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'options_provider_params' => ['type' => 'state_code'],
+                'lookup_type' => 'state_code',
+            ],
+            'badge' => [
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                'lookup_type' => 'state_code',
             ],
         ],
         'validators' => [
@@ -164,7 +206,7 @@ return [
             'type'       => 'radio_group',
             'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'gender'],
-            // 'default_choice'   => 'gender_id.form.default_choice',
+            // 'display_default_choice' => true,
             'attributes' => [
                 'required'    => true,
                 // 'style'       => 'background:yellow;',
@@ -173,7 +215,11 @@ return [
         'formatters' => [
             'text' => [
                 'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'options_provider_params' => ['type' => 'gender'],
+                'lookup_type' => 'gender',
+            ],
+            'badge' => [
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                'lookup_type' => 'gender',
             ],
         ],
         'validators' => [
@@ -182,6 +228,7 @@ return [
         ],
     ],
     'is_verified' => [
+        'data_transformer' => 'boolean',
         'list' => [
             'sortable'   => false,
         ],
@@ -193,14 +240,33 @@ return [
             ],
         ],
         'formatters' => [
-            'text' => [
+            'boolean' => [
                 'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'options_provider_params' => ['type' => 'bool_yes_no_code'],
+                'lookup_type' => 'bool_yes_no_code',
             ],
-            // 'badge' => [
-            //     'options_provider' => [\App\Features\Testy\Testy::class, 'getIsVerifiedBadgeOptions'],
-            // ],
+            'badge' => [
+                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                'lookup_type' => 'bool_yes_no_code',
+            ],
         ],
+        // 'formatters' => [
+        //     'boolean' => [
+        //         'true_code' => 'y',
+        //         'false_code' => 'n',
+        //     ],
+        //     'badge' => [
+        //         'boolean_badges' => [
+        //             'true' => [
+        //                 'code' => 'code.is_verified.v',
+        //                 'variant' => 'success',
+        //             ],
+        //             'false' => [
+        //                 'code' => 'code.is_verified.u',
+        //                 'variant' => 'secondary',
+        //             ],
+        //         ],
+        //     ],
+        // ],
         'validators' => [
             'checkbox' => [
             ],
@@ -208,12 +274,12 @@ return [
     ],
     'primary_email' => [
         'list' => [
-            'sortable'   => false,
+            'sortable'    => false,
         ],
         'form' => [
-            'type'       => 'email',
+            'type'        => 'email',
             'placeholder' => true,
-            'attributes' => [
+            'attributes'  => [
                 'required'    => true,
                 'maxlength'   => 255,
                 // 'style'       => 'background:yellow;',
@@ -240,21 +306,21 @@ return [
         ],
         'validators' => [
             'email' => [
-                // 'ignore_allowed'    => true,
-                // 'ignore_forbidden'  => false,
-                // 'allowed'           => [good.com, heaven.org],
-                // 'forbidden'         => [xxx.com, bad.com],
+                // 'ignore_allowed'   => true,
+                // 'ignore_forbidden' => false,
+                // 'allowed'          => [good.com, heaven.org],
+                // 'forbidden'        => [xxx.com, bad.com],
             ],
         ],
     ],
     'generic_number' => [
         'list' => [
-            'sortable'   => true,
+            'sortable'    => true,
         ],
         'form' => [
-            'type'       => 'number',
+            'type'        => 'number',
             'placeholder' => true,
-            'attributes' => [
+            'attributes'  => [
                 // 'required'    => false,
                 'min'   => 11,
                 // 'style'       => 'background:yellow;',
@@ -276,14 +342,14 @@ return [
         ],
         'validators' => [
             'number' => [
-                // 'positive_only'            => false,
-                // 'negative_only'            => false,
-                // 'zero_not_allowed'         => false,
-                // 'enforce_step'             => false,
-                // 'ignore_allowed'           => true,
-                // 'ignore_forbidden'         => false,
-                // 'allowed'                  => [111],
-                // 'forbidden'                => [444, 888],
+                // 'positive_only'    => false,
+                // 'negative_only'    => false,
+                // 'zero_not_allowed' => false,
+                // 'enforce_step'     => false,
+                // 'ignore_allowed'   => true,
+                // 'ignore_forbidden' => false,
+                // 'allowed'          => [111],
+                // 'forbidden'        => [444, 888],
             ],
         ],
     ],

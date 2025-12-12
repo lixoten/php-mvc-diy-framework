@@ -133,18 +133,17 @@ class ConfigFieldsGenerator
                             // 'primary_email',
                             // 'title',
                             // 'created_at', 'updated_at',
-                            'id',
-                            'generic_text',
-                            'primary_email',
                             // 'slug',
+                            'id',
+                            'is_verified',
+                            'generic_text',
+                            'generic_number',
                             'status',
-                            'super_powers',
                             'gender_id',
                             'state_code',
-                            'is_verified',
-                            'generic_number',
+                            'super_powers',
                             'telephone',
-                            // 'primary_email', 'telephone', 'status', 'super_powers'
+                            'primary_email',
                         ]
                     )
                 ) {
@@ -205,8 +204,15 @@ class ConfigFieldsGenerator
                 $skipValidator = true;
             }
 
-            $s08 = '        ';
+            $s08    = '        ';
+            $spaces = '';
             $sections = [];
+                if ($fieldType === 'checkbox_group') {
+                $spaces = $s08;
+                $sections[] = <<<PHP
+                    'data_transformer' => 'json_array',
+                    PHP;
+            }
             if (!$skipList) {
                 $temp =  $this->getCodeBlock(
                     config: $config,
@@ -215,7 +221,7 @@ class ConfigFieldsGenerator
                     blockName: 'list'
                 );
                 $sections[] = <<<PHP
-                    'list' => [
+                    $spaces'list' => [
                         {$temp}
                             ],
                     PHP;
@@ -312,6 +318,12 @@ PHP;
         //$fieldFormSchema = $this->fieldSchema->get($fieldType);
 
         if ($fieldType === 'radio_group') { // it's s string, but this does not use placeholder
+            // $fieldFormSchema['placeholder'] = null;
+            $fieldFormSchema['maxlength'] = null;
+            $fieldFormSchema['pattern'] = null;
+        }
+
+        if ($fieldType === 'checkbox_group') { // it's s string, but this does not use placeholder
             // $fieldFormSchema['placeholder'] = null;
             $fieldFormSchema['maxlength'] = null;
             $fieldFormSchema['pattern'] = null;
@@ -441,7 +453,7 @@ PHP;
     }
 
 
-    protected function getFormOptionsProvider(
+    protected function getFormOptions(
         string $fieldName,
         array $config,
         // string $fieldType,
@@ -451,11 +463,14 @@ PHP;
         if (isset($config['lookup'])) {
             $lookup = $config['lookup'];
 
-            if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+            // if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+            if (isset($config['enum_class'])) {
                 $numClass = $config['enum_class'];
                 $temp[] = "$s12'options_provider' => [\App\Enums\\{$numClass}::class, 'toSelectArray'],";
+                $temp[] = "$s12// 'inline' => false, // or true for horizontal layout";
             } elseif (isset($config['db_type']) && $config['db_type'] === 'boolean') {
-                return null;
+                $temp[] = "$s12'true_code' => 'y',";
+                $temp[] = "$s12'false_code' => 'n',";
             } else {
                 $temp[] = "$s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, " .
                                                                                                  "'getSelectChoices'],";
@@ -464,9 +479,10 @@ PHP;
 
             if (isset($config['form_input_type']) && $config['form_input_type'] === 'radio_group') {
                 $temp[] = "$s12// 'display_default_choice' => true,";
-            } else {
-                $temp[] = "$s12'display_default_choice' => true,";
             }
+            // else {
+            //     $temp[] = "$s12'display_default_choice' => true,";
+            // }
             // $temp[] = "xxx";
             $temp = implode("\n", $temp);
             return $temp;
@@ -475,7 +491,7 @@ PHP;
         return null;
     }
 
-    protected function getFormatterOptionsProvider(
+    protected function getFormFormatterOptions(
         string $fieldName,
         array $config,
         // string $fieldType,
@@ -487,19 +503,28 @@ PHP;
             $lookup = $config['lookup'];
 
             // if ($config['db_type'] === 'enum') {
-            if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+            // if (isset($config['enum_class']) && str_contains($config['enum_class'], 'Status')) {
+            if (isset($config['enum_class'])) {
                 $numClass = $config['enum_class'];
-                $temp[] = "$s12'text' => [";
-                $temp[] = "    $s12'options_provider' => [\App\Enums\\{$numClass}::class, 'getFormatterOptions'],";
+                $type = $config['db_type'];
+                // $temp[] = "$s12'text' => [";
+                $temp[] = "$s12'{$$type}' => [";
+                $temp[] = "    $s12'enum_class' => \App\Enums\\{$numClass}::class,";
+                $temp[] = "    $s12'separator' => ', ',";
+                $temp[] = "    $s12'empty_text' => 'None',";
                 $temp[] = "$s12],";
                 $temp[] = "$s12// 'badge' => [";
-                $temp[] = "$s12//     'options_provider' => [TestyStatus::class, 'getFormatterOptions'],";
+                $temp[] = "$s12//     'enum_class' => \App\Enums\\{$numClass}::class,";
                 $temp[] = "$s12// ],";
+            } elseif ($lookup === 'bool_yes_no_code') {
+                // $numClass = $config['enum_class'];
+                $temp[] = "$s12'boolean' => [";
+                $temp[] = "    $s12'true_code' => 'y',";
+                $temp[] = "    $s12'false_code' => 'n',";
+                $temp[] = "$s12],";
             } else {
                 $temp[] = "$s12'text' => [";
-                $temp[] = "    $s12'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, " .
-                                                                                              "'getFormatterOptions'],";
-                $temp[] = "    $s12'options_provider_params' => ['type' => '{$lookup}'],";
+                $temp[] = "    $s12'lookup_type' => '{$lookup}',";
                 $temp[] = "$s12],";
             }
             // $temp[] = "xxx";
@@ -603,15 +628,21 @@ PHP;
         $s16 = '                    ';
         $snn = '    ';
 
+        if ($fieldName === 'super_powers') {
+            $rrr = 1;
+        }
+
+
+
         if ($blockName === 'list') {
             $sortable = isset($config['sortable']) ? ($config['sortable'] ? 'true' : 'false') : 'false';
         } elseif ($blockName === 'form') {
             $fieldFormSchema          = $this->fieldSchema->get($type);
             $formAttr                 = $this->getFormAttr($fieldName, $config, $type, $fieldFormSchema);
-            $formOptionsProvider      = $this->getFormOptionsProvider($fieldName, $config);
+            $formOptions              = $this->getFormOptions($fieldName, $config);
         } elseif ($blockName === 'formatter') {
             // $formatter = isset($config['formatter']) ? 'null' : 'null'; // Can be enhanced to support closures
-            $formatterOptionsProvider = $this->getFormatterOptionsProvider($fieldName, $config);
+            $formFormatterOptions = $this->getFormFormatterOptions($fieldName, $config);
         } elseif ($blockName === 'validator') {
             $fieldFormSchema          = $this->fieldSchema->get($type);
             $formValidator = $this->getValidatorAttr($fieldName, $config, $type, $fieldFormSchema);
@@ -718,7 +749,7 @@ PHP;
                     $lookup = $config['lookup'];
                     $block = <<<PHP
                     $s08'type'       => '{$type}',
-                    $formOptionsProvider
+                    $formOptions
                     $s12'attributes' => [
                     $formAttr
                     $s12],
@@ -732,7 +763,7 @@ PHP;
                     // $s12],
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $formatterOptionsProvider
+                    $formFormatterOptions
                     PHP;
                 } elseif ($blockName === 'validator') {
                     $block .= <<<PHP
@@ -757,7 +788,7 @@ PHP;
                     $lookup = $config['lookup'];
                     $block = <<<PHP
                     $s08'type'       => '{$type}',
-                    $formOptionsProvider
+                    $formOptions
                     $s12'attributes' => [
                     $formAttr
                     $s12],
@@ -771,7 +802,7 @@ PHP;
                     // $s12],
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $formatterOptionsProvider
+                    $formFormatterOptions
                     PHP;
                 } elseif ($blockName === 'validator') {
                      $block .= <<<PHP
@@ -779,6 +810,35 @@ PHP;
                     PHP;
                 }
                 break;
+            // checkbox_group /////////////////////////////////////////////////////
+            case 'checkbox_group':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'sortable'   => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'type'       => '{$type}',
+                    $formOptions
+                    $s12'attributes' => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $lookup = $config['lookup'];
+                    $block = <<<PHP
+                    $formFormatterOptions
+                    $s12// 'badge' => [
+                    $s12//     'enum_class' => [\App\Features\Testy\Testy::class, 'getIsVerifiedBadgeOptions'],
+                    $s12// ],
+                    PHP;
+                } elseif ($blockName === 'validator') {
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
+                }
+                break;
+
             // checkbox /////////////////////////////////////////////////////
                     // $s08'label'      => '{$fieldName}.{$blockName}.label',
                     // $s08'label'      => '{$fieldName}.{$blockName}.label',
@@ -797,9 +857,12 @@ PHP;
                 } elseif ($blockName === 'formatter') {
                     $lookup = $config['lookup'];
                     $block = <<<PHP
-                    $formatterOptionsProvider
+                    $formFormatterOptions
                     $s12// 'badge' => [
-                    $s12//     'options_provider' => [\App\Features\Testy\Testy::class, 'getIsVerifiedBadgeOptions'],
+                    $s12//     'boolean_badges' => [
+                    $s12//         'true' => ['code' => 'v', 'variant' => 'success'],
+                    $s12//         'false' => ['code' => 'u', 'variant' => 'secondary'],
+                    $s12//     ],
                     $s12// ],
                     PHP;
                 } elseif ($blockName === 'validator') {
@@ -914,12 +977,13 @@ PHP;
                     $formValidator
                     PHP;
                     $block .= <<<PHP
-                    // 'required_mess age'  => "Custom: Phone  is required.",
-                    // 'invalid_message'   => "Custom: Please enter a valid international phone number
-                    //                         (e.g., +15551234567). Invalid Error.",
-                    // 'invalid_region_message' => 'Custom: Invalid_region',
-                    // 'invalid_parse_message'  => 'Custom: Please enter a valid international phone number
-                    //                             (e.g., +15551234567). Parse Error',
+
+                    $s12// 'required_mess age'  => "Custom: Phone  is required.",
+                    $s12// 'invalid_message'   => "Custom: Please enter a valid international phone number
+                    $s12//                         (e.g., +15551234567). Invalid Error.",
+                    $s12// 'invalid_region_message' => 'Custom: Invalid_region',
+                    $s12// 'invalid_parse_message'  => 'Custom: Please enter a valid international phone number
+                    $s12//                             (e.g., +15551234567). Parse Error',
                     PHP;
                 }
                 break;
@@ -1016,6 +1080,7 @@ PHP;
             'date' => 'date',
             'dateTime' => 'datetime-local',
             'time' => 'time',
+            'array' => 'checkbox_group',
             'text' => 'textarea',
             'string', 'char' => match (true) {
                 str_contains($fieldName, 'telephone') => 'tel',

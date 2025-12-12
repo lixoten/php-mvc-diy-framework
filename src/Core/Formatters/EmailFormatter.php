@@ -25,7 +25,7 @@ class EmailFormatter extends AbstractFormatter
      * @param array{ mask?: bool } $options
      *   - 'mask': If true, masks part of the email (e.g., u***@d***.com)
      */
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $options = $this->mergeOptions($options);
 

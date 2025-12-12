@@ -743,7 +743,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ✅ ALWAYS VISIBLE: Required indicator
         if (!empty($attrs['required'])) {
             $alwaysVisible[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_required'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_required'),
                 'text' => 'form.hints.required',
                 'replacements' => [],
                 'class' => 'constraint-required'
@@ -753,7 +753,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ✅ ALWAYS VISIBLE: Text length constraints
         if (!empty($attrs['minlength'])) {
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_minlength'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_minlength'),
                 'text' => 'form.hints.minlength',
                 'replacements' => ['minlength' => $attrs['minlength']],
                 'class' => 'constraint-minlength'
@@ -762,7 +762,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if (!empty($attrs['maxlength'])) {
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_maxlength'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_maxlength'),
                 'text' => 'form.hints.maxlength',
                 'replacements' => ['maxlength' => $attrs['maxlength']],
                 'class' => 'constraint-maxlength'
@@ -773,7 +773,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (in_array($type, ['number', 'decimal', 'range'], true)) {
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
-                    'icon' => $this->themeService->getIconHtml('constraint_min'), // ✅ Use ThemeService icon
+                    'icon' => $this->themeService->getIconHtml('constraint_min'),
                     'text' => 'form.hints.min',
                     'replacements' => ['min' => $attrs['min']],
                     'class' => 'constraint-min'
@@ -781,7 +781,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
-                    'icon' => $this->themeService->getIconHtml('constraint_max'), // ✅ Use ThemeService icon
+                    'icon' => $this->themeService->getIconHtml('constraint_max'),
                     'text' => 'form.hints.max',
                     'replacements' => ['max' => $attrs['max']],
                     'class' => 'constraint-max'
@@ -793,7 +793,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if (in_array($type, ['date', 'datetime', 'month', 'week', 'time'], true)) {
             if (!empty($attrs['min'])) {
                 $alwaysVisible[] = [
-                    'icon' => $this->themeService->getIconHtml('constraint_date_min'), // ✅ Use ThemeService icon
+                    'icon' => $this->themeService->getIconHtml('constraint_date_min'),
                     'text' => 'form.hints.date_min',
                     'replacements' => ['date_min' => $attrs['min']],
                     'class' => 'constraint-date-min'
@@ -801,7 +801,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             }
             if (!empty($attrs['max'])) {
                 $alwaysVisible[] = [
-                    'icon' => $this->themeService->getIconHtml('constraint_date_max'), // ✅ Use ThemeService icon
+                    'icon' => $this->themeService->getIconHtml('constraint_date_max'),
                     'text' => 'form.hints.date_max',
                     'replacements' => ['date_max' => $attrs['max']],
                     'class' => 'constraint-date-max'
@@ -814,7 +814,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             $patternMsg = $attrs['pattern_message'] ??
                         'form.hints.pattern';
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_pattern'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_pattern'),
                 'text' => $patternMsg,
                 'replacements' => [],
                 'class' => 'constraint-pattern'
@@ -824,7 +824,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         // ⚠️ ON FOCUS: Type-specific format hints
         if ($type === 'email') {
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_email'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_email'),
                 'text' => 'form.hints.email',
                 'replacements' => [],
                 'class' => 'constraint-email'
@@ -833,7 +833,8 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if ($type === 'tel') {
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_tel'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_tel'),
+                
                 'text' => 'form.hints.tel',
                 'replacements' => [],
                 'class' => 'constraint-tel'
@@ -842,7 +843,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
 
         if ($type === 'url') {
             $onFocus[] = [
-                'icon' => $this->themeService->getIconHtml('constraint_url'), // ✅ Use ThemeService icon
+                'icon' => $this->themeService->getIconHtml('constraint_url'),
                 'text' => 'form.hints.url',
                 'replacements' => [],
                 'class' => 'constraint-url'

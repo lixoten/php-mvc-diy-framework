@@ -698,6 +698,33 @@ return [
             'forbidden'                => ['values' => 'array', 'default' => ['#000000']],
         ],
     ],
+    'check_group' => [ // 21 ✅ New entry for radio_group
+        // Global Like if not applicable set to null
+        'autocomplete'  => null, // Not Applicable: Only for data input
+        'dir'           => null, // Not Applicable: Not content-based
+        'dirname'       => null, // Not Applicable: Only for specific text inputs
+        'hidden'        => null, // Not Applicable: General HTML attribute
+        'inputmode'     => null, // Not Applicable: Only for text inputs
+        'lang'          => null, // Not Applicable: Not content-based
+        'list'          => null, // Not Applicable: Used for text input suggestions
+        'max'           => null, // Not Applicable: Only for numeric inputs
+        'maxlength'     => null, // Not Applicable: Only for text inputs
+        'min'           => null, // Not Applicable: Only for numeric inputs
+        'minlength'     => null, // Not Applicable: Only for text inputs
+        'pattern'       => null, // Not Applicable: Only for text inputs
+        'placeholder'   => null, // Not Applicable: Only for text inputs
+        'readonly'      => null, // Not Applicable: Use 'disabled' instead
+        'size'          => null, // Not Applicable: Only for text inputs
+        'spellcheck'    => null, // Not Applicable: Not user-editable text
+        'step'          => null, // Not Applicable: Only for numeric inputs
+        //End Global set to null
+
+        'checked'     => ['default' => false, 'values' => 'bool'],
+
+        // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
+        'val_fields' => [
+        ],
+    ],
     'checkbox' => [ // 20
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input

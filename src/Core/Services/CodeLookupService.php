@@ -104,20 +104,18 @@ class CodeLookupService implements CodeLookupServiceInterface
     /**
      * {@inheritdoc}
      */
-    public function getLabel(string $type, string $code, ?string $pageName = null): string
+    public function getTranslationKey(string $type, string $code, ?string $pageName = null): string
     {
         $properties = $this->getProperties($type, $code);
 
-        if (!isset($properties['label'])) {
+        if (!isset($properties['translation_key'])) {
             throw new InvalidArgumentException(
                 "Code '{$code}' in type '{$type}' does not have a 'label' property defined."
             );
         }
 
-        $translationKey = $properties['label'];
+        $translationKey = $properties['translation_key'];
 
-        // Translate the label key using I18nTranslator
-        // return $this->translator->get($translationKey, pageName: $pageName);
         return $translationKey;
     }
 
@@ -150,7 +148,7 @@ class CodeLookupService implements CodeLookupServiceInterface
         foreach ($this->lookups[$type] as $code => $properties) {
             // Use getLabel to ensure consistent translation
             // $choices[$code] = $this->getLabel($type, $code, $pageName);
-            $choices[$code] = $properties['label'] ?? (string) $code; // Fallback to code if label not set
+            $choices[$code] = $properties['translation_key'] ?? (string) $code; // Fallback to code if key not set
         }
 
         return $choices;
@@ -187,8 +185,12 @@ class CodeLookupService implements CodeLookupServiceInterface
      */
     public function getFormatterOptions(string $type, mixed $value, ?string $pageName = null): array
     {
-        // Cast value to string for lookup (DB codes are strings)
-        $code = (string) $value;
+        if (is_bool($value)) {
+            $code = $value ? '1' : '0';
+        } else {
+            // Cast value to string for lookup (DB codes are strings)
+            $code = (string) $value;
+        }
 
         // Get all properties for this code
         $properties = $this->getProperties($type, $code);

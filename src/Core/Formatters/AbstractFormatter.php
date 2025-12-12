@@ -17,9 +17,9 @@ abstract class AbstractFormatter implements FormatterInterface
      * @param array<string, mixed> $options Formatting options
      * @return string The sanitized, formatted value
      */
-    public function format(mixed $value, array $options = []): string
+    public function format(mixed $value, array $options = [], mixed $originalValue = null): string
     {
-        $transformed = $this->transform($value, $options);
+        $transformed = $this->transform($value, $options, $originalValue);
 
         // If formatter declares it produces safe HTML (and handles attribute escaping),
         // return raw HTML. Otherwise perform default sanitization.
@@ -49,7 +49,7 @@ abstract class AbstractFormatter implements FormatterInterface
      * @param array<string, mixed> $options
      * @return string
      */
-    abstract protected function transform(mixed $value, array $options = []): string;
+    abstract protected function transform(mixed $value, array $options = [], mixed $originalValue = null): string;
 
 
     /**

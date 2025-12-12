@@ -14,7 +14,7 @@ class Truncate5Formatter extends AbstractFormatter
         return is_string($value) || is_numeric($value) || $value === null;
     }
 
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $text = (string)($value ?? '');
         return mb_strimwidth($text, 0, 5, '...');

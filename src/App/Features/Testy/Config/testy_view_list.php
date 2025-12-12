@@ -54,12 +54,14 @@ return [
         // 'telephone',
 
 
-        // 'generic_number',
         // 'is_verified',
-        'generic_text',
+        // 'generic_text',
+        // 'generic_number',
+        // 'status',
         // 'gender_id',
         // 'state_code',
-        // 'status',
+        'super_powers',
+        // 'telephone',
         // 'primary_email',
 
 
@@ -73,7 +75,6 @@ return [
         // 'image_count',
         // 'cover_image_id',
         // 'generic_code',
-        // 'super_powers',
         // 'date_of_birth',
         // 'generic_date',
         // 'generic_month',

@@ -115,22 +115,53 @@ class DataTransformerService
                 $entityName
             );
 
+            // if ($fieldName === 'super_powersxxxxxx') {
+            //     if ($data['id'] === 3) {
+            //         $rrr = $value;
+            //     }
+            // }
+
             if ($fieldDef === null) {
                 continue;
             }
 
             $transformer = $fieldDef['data_transformer'] ?? null;
 
-             // Apply transformation based on direction
-            $transformed[$fieldName] = match ($transformer) {
-                'json_array' => $direction === 'display'
-                    ? $this->normalizeToArray($value)
-                    : $this->normalizeToJsonString($value), // Convert array to JSON string for storage
-                'boolean' => $direction === 'display'
-                    ? $this->normalizeToBoolean($value)
-                    : ($this->normalizeToBoolean($value) ? '1' : '0'), // Convert boolean to '1' or '0' string for storage
-                default => $value
-            };
+            //  // Apply transformation based on direction
+            // $transformed[$fieldName] = match ($transformer) {
+            //     'json_array' => $direction === 'display'
+            //         ? $this->normalizeToArray($value)
+            //         : $this->normalizeToJsonString($value), // Convert array to JSON string for storage
+            //     'boolean' => $direction === 'display'
+            //         ? $this->normalizeToBoolean($value)
+            //         : ($this->normalizeToBoolean($value) ? '1' : '0'), // Convert boolean to '1' or '0' string for storage
+            //     default => $value
+            // };
+
+            // Apply transformation based on field configuration
+            if ($transformer === 'json_array') {
+                // JSON Array Transformation
+                if ($direction === 'display') {
+                    // Storage → Display: JSON string → PHP array
+                    $transformed[$fieldName] = $this->normalizeToArray($value);
+                } else {
+                    // Display → Storage: PHP array → JSON string
+                    $transformed[$fieldName] = $this->normalizeToJsonString($value);
+                }
+            } elseif ($transformer === 'boolean') {
+                // Boolean Transformation
+                if ($direction === 'display') {
+                    // Storage → Display: '1'/'0' → true/false
+                    $transformed[$fieldName] = $this->normalizeToBoolean($value);
+                } else {
+                    // Display → Storage: true/false → '1'/'0'
+                    $boolValue = $this->normalizeToBoolean($value);
+                    $transformed[$fieldName] = $boolValue ? '1' : '0';
+                }
+            } else {
+                // No transformation configured - pass through unchanged
+                $transformed[$fieldName] = $value;
+            }
         }
 
         return $transformed;

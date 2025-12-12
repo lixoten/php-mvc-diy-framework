@@ -178,41 +178,6 @@ abstract class AbstractFormType implements FormTypeInterface
                 $options['validators'] = $columnDef['validators'] ?? null;
 
 
-                // if (
-                //     isset($options['type']) &&
-                //     in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
-                //     isset($options['options_provider'])
-                // ) {
-                //     [$serviceClass, $methodName] = $options['options_provider'];
-                //     $params = $options['options_provider_params'] ?? [];
-
-                //     try {
-                //         // Get service from container
-                //         $service = $this->container->get($serviceClass);
-
-                //         // Call provider method with parameters from config and potentially the current pageName
-                //         // ✅ CHANGE: Pass only the parameters from $params.
-                //         //    If getSelectChoices needs $pageName, it should be included in $options_provider_params.
-                //         $resolvedOptions = $service->$methodName(...array_values($params));
-
-                //         // Store the resolved options in the 'choices' key for the renderer
-                //         $options['choices'] = $resolvedOptions;
-
-                //         // Clean up provider keys (no longer needed by the renderer)
-                //         unset($options['options_provider'], $options['options_provider_params']);
-
-                //     } catch (\Throwable $e) {
-                //         $this->logger->error(sprintf(
-                //             'Error resolving options_provider for field "%s" (%s::%s): %s',
-                //             $fieldName,
-                //             $serviceClass,
-                //             $methodName,
-                //             $e->getMessage()
-                //         ));
-                //         // Fail gracefully: ensure 'options' key is an empty array if provider fails
-                //         $options['choices'] = [];
-                //     }
-                // }
                 if (
                     isset($options['type']) &&
                     in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
@@ -231,7 +196,7 @@ abstract class AbstractFormType implements FormTypeInterface
                             if (interface_exists($className)) {
                                 // If it's an interface, it MUST be resolved as a service from the container.
                                 $service = $this->container->get($className);
-                                $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName for getSelectChoices
+                                $allParams = array_merge(array_values($params), [$this->pageName]); 
                                 $resolvedOptions = $service->$methodName(...$allParams);
                             } elseif (class_exists($className)) {
                                 // If it's a concrete class (like an Enum or a static helper class)
@@ -239,12 +204,12 @@ abstract class AbstractFormType implements FormTypeInterface
 
                                 if ($reflection->isStatic()) {
                                     // Handle static method calls (e.g., for Enums like TestyStatus::toSelectArray)
-                                    $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName for static methods too
+                                    $allParams = array_merge(array_values($params), [$this->pageName]);
                                     $resolvedOptions = $className::$methodName(...$allParams);
                                 } else {
                                     // Handle instance method calls on a service from the container
                                     $service = $this->container->get($className);
-                                    $allParams = array_merge(array_values($params), [$this->pageName]); // ✅ Consider pageName
+                                    $allParams = array_merge(array_values($params), [$this->pageName]);
                                     $resolvedOptions = $service->$methodName(...$allParams);
                                 }
                             } else {

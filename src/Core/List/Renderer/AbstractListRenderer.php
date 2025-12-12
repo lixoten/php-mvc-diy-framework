@@ -347,8 +347,8 @@ abstract class AbstractListRenderer implements ListRendererInterface
 
         // Render each record as a card
         foreach ($list->getData() as $record) {
-            $output .= '<div class="' . $viewLayout['item'] . '">';
-            $output .= '<div class="' . $viewLayout['card'] . '">';
+            $output .= '<div class="' . $viewLayout['item'] . '">'; // beg col
+            $output .= '<div class="' . $viewLayout['card'] . '">'; // beg card
 
             // Render image if we have an image field defined
             if ($imageField && !empty($record[$imageField])) {
@@ -365,15 +365,28 @@ abstract class AbstractListRenderer implements ListRendererInterface
 
             // Title
             if (isset($record[$titleField])) {
-                $output .= '<h5 class="' . $viewLayout['title'] . '">' .
-                    $this->renderValue($list->getPageName(), $titleField, $record[$titleField], $record, $columns) . '</h5>';
+                $fieldLabel = $this->translator->get($titleField.'.list.label', pageName: $list->getPageName());
+                $fieldValue = $this->renderValue(
+                    $list->getPageName(),
+                    $titleField,
+                    $record[$titleField],
+                    $record,
+                    $columns
+                );
+
+                $output .= '<h5 class="' . $viewLayout['title'] . '">';
+                      $output .= $fieldLabel . ': ' . $fieldValue ;
+                $output .= '</h5>';
                 unset($record['title']); // Consider if this unset is intentional and desired for grid/list views
             }
 
             // Description fields
             foreach ($descFields as $field) {
-                if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
-                    $fieldLabel = $columns[$field]['label'];
+                // if (isset($record[$field]) && $field !== $titleField && $field !== $imageField) {
+                if ($field !== $titleField && $field !== $imageField) {
+                    // $fieldLabel = $columns[$field]['label'];
+                    // $name = $columns[$field];
+                    $fieldLabel = $this->translator->get($field.'.list.label', pageName: $list->getPageName());
                     $output .= '<p class="' . $viewLayout['text'] . '">';
                     $output .= '<strong>' . htmlspecialchars($fieldLabel) . ':</strong> ';
                     $output .= $this->renderValue($list->getPageName(), $field, $record[$field], $record, $columns);
@@ -382,7 +395,6 @@ abstract class AbstractListRenderer implements ListRendererInterface
             }
 
 
-            $output .= '</div>'; // End card body
 
             // Card footer with actions
             if ($options['show_actions'] && !empty($list->getActions())) {
@@ -695,6 +707,10 @@ abstract class AbstractListRenderer implements ListRendererInterface
             return '';
         }
 
+        // We need to preserve original value for Enum Classes, Since they use translationKey. We need the
+        // original value(code) to find variant, but we apply valiant to value(translated value)
+        $originalValue = $value;
+
         $columnConfig = $columns[$column] ?? [];
         $formattersConfig = $columnConfig['formatters'] ?? [];
 
@@ -708,72 +724,17 @@ abstract class AbstractListRenderer implements ListRendererInterface
         if (is_array($formattersConfig)) {
             foreach ($formattersConfig as $formatterName => $formatterOptions) {
                 try {
-                    $resolvedOptions = []; // Initialize for cases without options_provider
-
-                    // Resolve 'options_provider' if present to dynamically fetch options
-                    if (isset($formatterOptions['options_provider'])) {
-                        $provider = $formatterOptions['options_provider'];
-                        $params = $formatterOptions['options_provider_params'] ?? [];
-
-                        if (is_array($provider) && count($provider) === 2) {
-                            [$className, $methodName] = $provider;
-
-                            if (interface_exists($className)) {
-                                // If it's an interface, it MUST be resolved as a service from the container.
-                                $service = $this->container->get($className);
-                                $allParams = array_merge(array_values($params), [$value]);
-                                $resolvedOptions = $service->$methodName(...$allParams);
-                            } elseif (class_exists($className)) {
-                                // If it's a concrete class (like an Enum or a static helper class)
-                                $reflection = new \ReflectionMethod($className, $methodName);
-
-                                if ($reflection->isStatic()) {
-                                    // Handle static method calls (e.g., for Enums)
-                                    $resolvedOptions = $className::$methodName($value);
-                                } else {
-                                    // Handle instance method calls on a service from the container
-                                    $service = $this->container->get($className);
-                                    $allParams = array_merge(array_values($params), [$value]);
-                                    $resolvedOptions = $service->$methodName(...$allParams);
-                                }
-                            } else {
-                                // Neither a class nor an interface exists with this name.
-                                $errorMessage = sprintf(
-                                    '❌ Invalid options_provider: Class or interface "%s" not found for column "%s". Expected [ClassName::class, "methodName"].',
-                                    $className,
-                                    $column
-                                );
-                                $this->logger->warning($errorMessage);
-                                if ($this->strictFormatterValidation) {
-                                    throw new \InvalidArgumentException('❌ CONFIGURATION ERROR: ' . $errorMessage);
-                                }
-                                continue; // Skip this formatter
-                            }
-                        } else {
-                            // Malformed $provider array (e.g., not [class, method])
-                            $errorMessage = sprintf(
-                                '❌ Invalid options_provider format for column "%s". Expected [ClassName::class, "methodName"].',
-                                $column
-                            );
-                            $this->logger->warning($errorMessage);
-                            if ($this->strictFormatterValidation) {
-                                throw new \InvalidArgumentException('❌ CONFIGURATION ERROR: ' . $errorMessage);
-                            }
-                            continue; // Skip this formatter
-                        }
-
-                        // Merge resolved dynamic options into the formatter's options.
-                        $formatterOptions = array_merge($formatterOptions, $resolvedOptions);
-
-                        // ⚠️ Clean up provider specific keys; they are consumed and not for the formatter itself.
-                        unset($formatterOptions['options_provider'], $formatterOptions['options_provider_params']);
-                    }
-
                     // ✅ Always inject common context and services into formatter options
                     $formatterOptions['page_name'] = $pageName;
 
+                    // This is a hack
+                    // This was the only way to be about to apply BadgeCollectionFormatter on top of ArrayFormatter
+                    if ($formatterName === 'badge_collection') {
+                        $value = $originalValue;
+                    }
                     // Apply each formatter in sequence with the (now fully resolved) options
-                    $value = $this->formatterService->format($formatterName, $value, $formatterOptions);
+                    $value = $this->formatterService->format($formatterName, $value, $formatterOptions, $originalValue);
+
                 } catch (\Core\Exceptions\FormatterNotFoundException $e) {
                     $this->logger->warning(sprintf(
                         'Formatter "%s" not found for column "%s". Error: %s',

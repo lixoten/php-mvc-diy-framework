@@ -26,7 +26,7 @@ class CurrencyFormatter extends AbstractFormatter
      * @param array<string, mixed> $options
      * @return string
      */
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $currency = $options['currency'] ?? 'USD';
         $decimals = $options['decimals'] ?? 2;

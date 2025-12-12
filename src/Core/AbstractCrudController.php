@@ -131,13 +131,18 @@ abstract class AbstractCrudController extends Controller
 
         // 5. Fetch actual records
         $records = $this->fetchListRecords($request, $limit, $offset, [$sortField => $sortDirection]);
+        // $record2 = $this->baseFeatureService->transformToDisplay($records, $pageKey, $pageEntity);
+        $dataRecords = array_map(function ($record) use ($pageKey, $pageEntity) {
+            $rrr = $this->baseFeatureService->transformToDisplay($record, $pageKey, $pageEntity);
+            return $rrr;
+        }, $records);
 
         $paginationOptions['current_page'] = $page;
         $paginationOptions['total_pages'] = $totalPages;
         $paginationOptions['total_items'] = $totalRecords;
         $paginationOptions['listUrlEnum'] = $this->feature->listUrlEnum;
 
-        $dataRecords = $records;
+        // $dataRecords = $records;
 
         // ✅ Update the ListType with the calculated runtime pagination options
         $this->listType->setPaginationOptions($paginationOptions);

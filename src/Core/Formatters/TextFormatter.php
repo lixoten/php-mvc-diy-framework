@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Core\Formatters;
 
+use App\Helpers\DebugRt;
 use Core\I18n\I18nTranslator;
+use Core\Interfaces\CodeLookupServiceInterface;
 
 /**
  * Basic text formatter with truncation and sanitization
@@ -12,7 +14,8 @@ use Core\I18n\I18nTranslator;
 class TextFormatter extends AbstractFormatter
 {
     public function __construct(
-        private I18nTranslator $translator // ✅ NEW: Translator is a mandatory dependency for TextFormatter's translation logic
+        private I18nTranslator $translator,
+        // private CodeLookupServiceInterface $codeLookupService
     ) {
     }
 
@@ -26,31 +29,62 @@ class TextFormatter extends AbstractFormatter
         return is_string($value) || is_numeric($value) || $value === null;
     }
 
-    public function transform(mixed $value, array $options = []): string
+    public function transform(mixed $value, array $options = [], mixed $originalValue = null): string
     {
         $options = $this->mergeOptions($options);
 
-        // Check if a 'label' is provided (from options_provider like CodeLookupService)
+        // // ✅ STEP 1: Handle enum_class (HIGHEST PRIORITY)
+        // $enumClass = $options['enum_class'] ?? null;
+        // if ($enumClass !== null && enum_exists($enumClass)) {
+        //     // $value = 'p';
+        //     $enum = $enumClass::tryFrom((string)$value);
+
+        //     if (!isset($enum)) {
+        //         $value = $this->translator->get('code.unknown', pageName: $options['page_name'] ?? null);
+        //     } elseif (method_exists($enum, 'translationKey')) {
+        //         $translationKey = $enum?->translationKey() ?? ($options['unknown_label'] ?? 'Unknown');
+
+        //         // If a translator is available AND the label looks like a translation key, translate it.
+        //         if (str_contains($translationKey, '.')) {
+        //             $value = $this->translator->get($translationKey, pageName: $options['page_name'] ?? null);
+        //         } else {
+        //             $value = $translationKey;
+        //         }
+        //     }
+
+        //     return $value;
+        // }
+        //DebugRt::j('0', 'options: ', $options);
+
+
+        // ✅ STEP 2: Handle explicit 'label' option (from options_provider)
         if (isset($options['label'])) {
             $text = (string) $options['label'];
             // If a translator is available AND the label looks like a translation key, translate it.
             if (str_contains($text, '.')) {
                 $text = $this->translator->get($text, pageName: $options['page_name'] ?? null);
             }
-        }
-        // Check if translation_prefix is provided (simple pattern: 'gender.f')
-        elseif (isset($options['translation_prefix']) && isset($options['translator'])) {
-            $translationKey = $options['translation_prefix'] . '.' . $value;
-            $text = $this->translator->get($translationKey, pageName: $options['page_name'] ?? null);
-        }
-        // Fallback: Use raw value
-        elseif ($value === null) {
-            return $options['null_value'] ?? '';
-        } else {
-            $text = (string) $value;
+            return $text;
         }
 
-        // Apply text transformation
+        // ✅ STEP 3: Handle translation_prefix pattern
+        if (isset($options['translation_prefix'])) {
+            // Check if translation_prefix is provided (simple pattern: 'gender.f')
+            $translationKey = $options['translation_prefix'] . '.' . $value;
+            $text = $this->translator->get($translationKey, pageName: $options['page_name'] ?? null);
+            return $text;
+        }
+
+        // ✅ STEP 4: Handle null values
+        if ($value === null) {
+            // Fallback: Use raw value
+            return $options['null_value'] ?? '';
+        }
+
+        // ✅ STEP 5: Use raw value as fallback
+        $text = (string) $value;
+
+        // ✅ STEP 6: Apply text transformations (optional)
         if (isset($options['transform'])) {
             $text = match ($options['transform']) {
                 'uppercase' => strtoupper($text),
@@ -63,7 +97,7 @@ class TextFormatter extends AbstractFormatter
             };
         }
 
-        // Apply suffix if specified (alternative approach)
+        // ✅ STEP 7: Apply suffix (optional)
         if (isset($options['suffix'])) {
             $text .= $options['suffix'];
         }

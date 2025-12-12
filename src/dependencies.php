@@ -1439,6 +1439,16 @@ return [
     'formatterz.badge'     => \DI\autowire(\Core\Formatters\BadgeFormatter::class)
         ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
 
+    // ✅ NEW: BadgeCollectionFormatter for handling arrays of values
+    'formatterz.badge_collection' => \DI\autowire(\Core\Formatters\BadgeCollectionFormatter::class)
+        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface'))
+        ->constructorParameter('translator', \DI\get('Core\I18n\I18nTranslator'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class)) // For service-based options_providers
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+        
+    'formatterz.array'     => \DI\autowire(\Core\Formatters\ArrayFormatter::class),
+    'formatterz.boolean' => \DI\autowire(\Core\Formatters\BooleanFormatter::class),
+
     'Core\Formatters\FormatterInterface'    => \DI\get('Core\Formatters\TextFormatter'),
 
     \Core\Formatters\FormatterRegistry::class => \DI\factory(function (ContainerInterface $c) {
@@ -1452,6 +1462,9 @@ return [
             $c->get('formatterz.foo'),
             $c->get('formatterz.truncate5'),
             $c->get('formatterz.badge'),
+            $c->get('formatterz.badge_collection'),
+            $c->get('formatterz.array'),
+            $c->get('formatterz.boolean'),
             // ...other formatters
         ]);
         return $registry;
@@ -1465,9 +1478,11 @@ return [
     'Core\Services\FormatterService' => \DI\autowire()
         // Explicitly inject the configured Registry instance into the constructor.
         // (This also ensures the logger is handled by autowiring the rest)
-        ->constructorParameter('registry', \DI\get('Core\Formatters\FormatterRegistry')),
+        ->constructorParameter('registry', \DI\get('Core\Formatters\FormatterRegistry'))
+        ->constructorParameter('logger', \DI\get('Psr\Log\LoggerInterface'))
+        ->constructorParameter('container', \DI\get(ContainerInterface::class)),
 
-    // Convenience alias
+        // Convenience alias
     'formatterxx' => \DI\get('Core\Services\FormatterService'),
 
 

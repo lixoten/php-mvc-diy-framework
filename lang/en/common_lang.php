@@ -127,6 +127,19 @@ return [
     //     'no'        => 'Noo',
     // ],
     'code' => [
+        'unknown' => 'Unknown',
+        'super_powers' => [
+            'flight'       => 'Flight',
+            'strength'     => 'Super Strength',
+            'invisibility' => 'Invisibility',
+            'telepathy'    => 'Telepathy',
+            'speed'        => 'Super Speed',
+            'telekinesis'  => 'Telekinesis',
+            'optiona'      => 'OPTION A',
+            'optionb'      => 'OPTION B',
+            'optionc'      => 'OPTION CCC',
+        ],
+
         'testy_status' => [
             'p' => 'Pending',
             'a' => 'Active',
@@ -149,9 +162,15 @@ return [
             'pns' => 'Prefer not to say',
         ],
         'bool_yes_no_code' => [
-            '1' => 'Yes',
             '0' => 'No',
+            '1' => 'Yes',
+        //     // 'n' => 'No',
+        //     // 'y' => 'Yes',
         ],
+        // 'is_verified' => [
+        //     '0' => 'Unverified',
+        //     '1' => 'Verified',
+        // ],
     ],
 
 

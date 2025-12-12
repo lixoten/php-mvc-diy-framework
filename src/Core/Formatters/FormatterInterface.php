@@ -20,7 +20,7 @@ interface FormatterInterface
      * @return mixed The formatted value - some formatters might return arrays
      *                                     (e.g., for multi-value fields) before final rendering.
      */
-    public function format(mixed $value, array $options = []): mixed;
+    public function format(mixed $value, array $options = [], mixed $originalValue = null): mixed;
 
     // /** // removeme
     //  * Sanitizes a value according to the formatter's rules, preparing it for storage or validation.

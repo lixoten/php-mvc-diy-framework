@@ -50,7 +50,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         $type = $field->getType();
         $name = $field->getName();
         $id = $field->getAttribute('id') ?? $name;
-        $label = $this->translator->get($id.'.form.label', pageName: $pageName);
+        $label = $this->translator->get($id . '.form.label', pageName: $pageName);
         // $label = $this->translator->get($field->getLabel(), pageName: $pageName);
 
         //---------------------------------------------------------------------
@@ -411,24 +411,6 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                         continue;
                     }
                     // Skip id as we handle it separately
-                    if ($attrName === 'minlength_message') {
-                        continue;
-                    }
-                    if ($attrName === 'maxlength_message') {
-                        continue;
-                    }
-                    if ($attrName === 'min_message') {
-                        continue;
-                    }
-                    if ($attrName === 'max_message') {
-                        continue;
-                    }
-                    if ($attrName === 'invalid_message') {
-                        continue;
-                    }
-                    if ($attrName === 'required_message') {
-                        continue;
-                    }
                     if ($attrName === 'type') {
                         continue;
                     }
@@ -467,6 +449,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 foreach ($choices as $choiceValue => $choiceLabel) {
                     $checked = in_array($choiceValue, $currentValue) ? ' checked' : '';
                     $choiceId = $id . '_' . $choiceValue;
+                    $translatedOptionLabel = $this->translator->get($choiceLabel, pageName: $pageName);
 
                     $output .= '<div class="' . $containerClass . '">';
                     $output .= '<input type="checkbox" class="form-check-input' . $errorClass . '" ';
@@ -474,7 +457,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                     $output .= 'name="' . $name . '[]" ';
                     $output .= 'value="' . htmlspecialchars((string)$choiceValue) . '"' . $checked . '>';
                     $output .= '<label class="form-check-label" for="' . $choiceId . '">';
-                    $output .= htmlspecialchars($choiceLabel);
+                    $output .= $translatedOptionLabel;
                     $output .= '</label>';
                     $output .= '</div>';
                 }
