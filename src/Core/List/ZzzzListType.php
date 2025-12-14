@@ -8,6 +8,7 @@ use Core\Interfaces\ConfigInterface;
 use Core\List\AbstractListType;
 use Core\Services\ListConfigurationService;
 use Core\Services\FieldRegistryService;
+use Core\Services\UrlGeneratorService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -23,12 +24,14 @@ class ZzzzListType extends AbstractListType
         protected ConfigInterface $configService,
         protected ListConfigurationService $listConfigService,
         protected LoggerInterface $logger,
+        protected UrlGeneratorService $urlGeneratorService,
     ) {
         parent::__construct(
             fieldRegistryService: $fieldRegistryService,
             configService: $configService,
             listConfigService: $listConfigService,
             logger: $logger,
+            urlGeneratorService: $urlGeneratorService,
         );
     }
 

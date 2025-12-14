@@ -43,6 +43,7 @@ use Core\Services\TypeResolverService;
 use Psr\Log\LoggerInterface;
 use Core\List\Renderer\ListRendererInterface;
 use Core\Services\BaseFeatureService;
+use Core\Services\ReturnUrlManagerServiceInterface;
 use Core\View\ViewFactoryInterface;
 use Core\View\ViewTypeInterface;
 use Core\View\Renderer\ViewRendererInterface;
@@ -83,6 +84,8 @@ class TestyController extends AbstractCrudController
         protected EmailNotificationService $emailNotificationService,
         private PaginationService $paginationService,
         private FormatterService $formatter,
+        //-----------------------------------------
+        ReturnUrlManagerServiceInterface $returnUrlManager,
     ) {
         parent::__construct(
             $route_params,
@@ -105,7 +108,9 @@ class TestyController extends AbstractCrudController
             $listRenderer,
             $formRenderer,
             $viewRenderer,
-            $baseFeatureService
+            $baseFeatureService,
+            //-----------------------------------------
+            $returnUrlManager,
         );
         // constructor uses promotion php8+
     }

@@ -47,6 +47,7 @@ class CurrentContext
     private ?string $routeType = null; // 'admin', 'account', or 'store'
     private ?string $routeTypePath = null; // 'admin', 'account', or 'store'
     private ?string $boo = null;
+    private ?string $currentRequestPath = null;
 
 
     // Add other relevant context properties as needed
@@ -403,6 +404,18 @@ class CurrentContext
     /**
      * Set the current route type.
      *
+     * ?????????????????
+     */
+    public function setCurrentRequestPath(?string $path): void
+    {
+        $this->currentRequestPath = $path;
+    }
+
+
+
+    /**
+     * Set the current route type.
+     *
      * @param string|null $type The route type ('admin', 'account', 'store')
      */
     public function setRouteType(?string $type): void
@@ -469,4 +482,79 @@ class CurrentContext
     {
         return $this->routeType === 'store';
     }
+
+
+    /**
+     * Returns the base path by removing the trailing action segment
+     * (list, edit, add, delete, view, create), ignoring any trailing ID.
+     *
+     * Examples:
+     * /testy/3/image/list      => /testy/3/image
+     * /testy/3/image/edit/2    => /testy/3/image
+     * /image/list              => /image
+     */
+    public function getContextualBaseUrl(): string
+    {
+        $path = $this->currentRequestPath;
+        $path = strtok($path, '?');
+        $path = rtrim($path, '/');
+
+        // Strip “/action” or “/action/{id}” at the end
+        $path = preg_replace('~/(list|edit|add|delete|view|create)(/\d+)?$~i', '', $path);
+
+        return $path === '' ? '/' : $path;
+    }
+
+
+    /**
+     * Get the contextual base URL for nested resources.
+     *
+     * This extracts everything in the current URL path up to (but not including)
+     * the current feature name, allowing for proper contextual navigation in nested
+     * resource hierarchies.
+     *
+     * Examples:
+     * - URL: /testy/3/image/list → Returns: /testy/3
+     * - URL: /image/list → Returns: '' (empty string, top-level resource)
+     * - URL: /store/5/product/10/review/list → Returns: /store/5/product/10
+     * - URL: /account/testy/3/image/edit/2 → Returns: /account/testy/3
+     *
+     * The method works by:
+     * 1. Getting the current request path from $_SERVER['REQUEST_URI']
+     * 2. Removing any query string parameters (e.g., ?view=grid)
+     * 3. Finding the position of the current feature name in the path
+     * 4. Extracting everything before that position
+     *
+     * @return string The contextual base URL or empty string if at top level
+     */
+    public function xgetContextualBaseUrl(): string
+    {
+        // Get the current request path (e.g., '/testy/3/image/list')
+        $currentPath = $_SERVER['REQUEST_URI'] ?? '';
+
+        // Remove query string if present (e.g., '?view=grid')
+        $currentPath = strtok($currentPath, '?');
+
+        // Get the current feature name (e.g., 'image')
+        $featureName = $this->getPageFeature();
+
+        if ($featureName === null || $featureName === '') {
+            return ''; // No feature set, can't determine context
+        }
+
+        // Find the position of the feature name in the path
+        // We search for '/{feature}' to ensure we match the correct segment
+        $featurePosition = strpos($currentPath, '/' . $featureName);
+
+        if ($featurePosition === false) {
+            return ''; // Feature not found in path, assume top-level
+        }
+
+        // Extract everything before the feature name
+        $contextualBase = substr($currentPath, 0, $featurePosition);
+
+        // Remove trailing slash if present to ensure consistent format
+        return rtrim($contextualBase, '/');
+    }
+
 }

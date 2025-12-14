@@ -69,7 +69,7 @@ class FrontController implements RequestHandlerInterface
         //"App\Features\Post\PostController"
         //"App\Features\Testy\TestyController"
 
-        // FindIt - If Exists ControllerClass
+        // Findme - If Exists ControllerClass
         // Check if controller class exists
         if (!class_exists($controllerClass)) {
             throw new PageNotFoundException("Controller class '$controllerClass' not found.");
@@ -594,6 +594,46 @@ class FrontController implements RequestHandlerInterface
             'action' => 'update',
             // 'methods' => ['POST'], // Use POST for compatibility
         ]);
+
+
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+
+
+        // Handles URLs like: /testy/22/image
+        // Maps to `App\Features\Image\ImageController::indexAction()`
+        $this->router->add('testy/{testy_id:\d+}/image', [
+            'namespace'  => 'Image', // Points to `App\Features\Image\`
+            'controller' => 'Image', // This will resolve to `App\Features\Image\ImageController`
+            'action'     => 'index', // Default action for listing
+            'route_id'   => 'testy-image-feature-index',
+        ]);
+
+        // Handles URLs like: /testy/22/image/list
+        // Maps to `App\Features\Image\ImageController::indexAction()`
+        $this->router->add('testy/{testy_id:\d+}/image/list', [
+            'namespace'  => 'Image',
+            'controller' => 'Image',
+            'action'     => 'index', // Consistent action method for listing
+            'route_id'   => 'testy-image-feature-list-explicit',
+        ]);
+
+
+        // Handles URLs like: /testy/3/image/edit/2
+        // Maps to `App\Features\Image\ImageController::editAction()`
+        $this->router->add('testy/{testy_id:\d+}/image/edit/{id:\d+}', [ // Using 'id' for the image record itself
+            'namespace'  => 'Image',
+            'controller' => 'Image',
+            'action'     => 'edit',
+            'route_id'   => 'testy-image-feature-edit',
+        ]);
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+
+
 
 
         ## Edit page

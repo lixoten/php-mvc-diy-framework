@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Features\Testy\TestyRepository;
 use App\Features\Testy\TestyRepositoryInterface;
+use App\Features\Image\ImageRepository;
+use App\Features\Image\ImageRepositoryInterface;
 use App\Features\Gallery\GalleryRepository;
 use App\Features\Gallery\GalleryRepositoryInterface;
 use App\Features\User\UserRepository;
@@ -11,8 +13,6 @@ use App\Features\User\UserRepositoryInterface;
 use App\Helpers\DebugRt;
 use App\Repository\AlbumRepository;
 use App\Repository\AlbumRepositoryInterface;
-use App\Repository\ImageRepository;
-use App\Repository\ImageRepositoryInterface;
 use Core\Database\ConnectionInterface;
 use App\Repository\PostRepositoryInterface;
 use App\Repository\RepositoryRegistry;
@@ -173,6 +173,25 @@ return [
 
     // Bind the interface to the short name. This is the best practice.
     'App\Services\Interfaces\FlashMessageServiceInterface' => \DI\get('flash'),
+
+
+
+
+    // ✅ Return URL Manager Service
+    \Core\Services\ReturnUrlManagerServiceInterface::class => \DI\autowire(\Core\Services\ReturnUrlManagerService::class)
+        ->constructorParameter('sessionManager', \DI\get(\Core\Session\SessionManagerInterface::class)),
+
+    // Convenience alias
+    'returnUrlManager' => \DI\get(\Core\Services\ReturnUrlManagerServiceInterface::class),
+
+    // ✅ URL Generator Service
+    \Core\Services\UrlGeneratorServiceInterface::class => \DI\autowire(\Core\Services\UrlGeneratorService::class)
+        ->constructorParameter('currentContext', \DI\get(\Core\Context\CurrentContext::class)),
+
+    // Convenience alias
+    'urlGenerator' => \DI\get(\Core\Services\UrlGeneratorServiceInterface::class),
+
+
 
 
     // //------------------------------------------------------------------------
@@ -1033,8 +1052,8 @@ return [
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // Pass the container itself
         ->constructorParameter('repositoryMap', [
             'testy' => TestyRepositoryInterface::class, // Map 'testy' string to the repo service ID/interface
-            'gallery' => GalleryRepositoryInterface::class, // Map 'gallery' string to the repo service ID/interface
             'image' => ImageRepositoryInterface::class, // Map 'image' string to the repo service ID/interface
+            'gallery' => GalleryRepositoryInterface::class, // Map 'gallery' string to the repo service ID/interface
             'post' => PostRepositoryInterface::class, // Map 'post' string to the repo service ID/interface
             'store' => StoreRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
             'user' => UserRepositoryInterface::class, // Ex: Map 'user' string to the User repo service ID/interface
@@ -1445,7 +1464,7 @@ return [
         ->constructorParameter('translator', \DI\get('Core\I18n\I18nTranslator'))
         ->constructorParameter('container', \DI\get(ContainerInterface::class)) // For service-based options_providers
         ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
-        
+
     'formatterz.array'     => \DI\autowire(\Core\Formatters\ArrayFormatter::class),
     'formatterz.boolean' => \DI\autowire(\Core\Formatters\BooleanFormatter::class),
 
@@ -1725,25 +1744,20 @@ return [
     UserRepositoryInterface::class => \DI\autowire(UserRepository::class),
 
     // Testy the repository interface
-    // \App\Features\Testy\TestyRepositoryInterface => \DI\get('App\Repository\TestyRepository'),
     TestyRepositoryInterface::class =>  DI\autowire(TestyRepository::class),
+    ImageRepositoryInterface::class =>  DI\autowire(ImageRepository::class),
 
     // Testy the concrete repository implementation
     TestyRepository::class => \DI\autowire()
         ->constructorParameter('connection', \DI\get('db')),
-
-    GalleryRepositoryInterface::class =>  DI\autowire(GalleryRepository::class),
-
-    GalleryRepository::class => \DI\autowire()
+    ImageRepository::class => \DI\autowire()
         ->constructorParameter('connection', \DI\get('db')),
 
-    // // Testy the repository interface
-    // 'App\Repository\TestyRepositoryInterface' => \DI\get('App\Repository\TestyRepository'),
-    // ImageRepositoryInterface::class => DI\autowire(ImageRepository::class),
+    // GalleryRepositoryInterface::class =>  DI\autowire(GalleryRepository::class),
 
-    // // Testy the concrete repository implementation
-    // 'App\Repository\TestyRepository' => \DI\autowire()
+    // GalleryRepository::class => \DI\autowire()
     //     ->constructorParameter('connection', \DI\get('db')),
+
 
     // Post the repository interface
     'App\Repository\PostRepositoryInterface' => \DI\get('App\Repository\PostRepository'),
@@ -2184,19 +2198,6 @@ return [
 
 
 
-    'App\Features\Image\ImageController' => \DI\autowire()
-        ->constructorParameter(
-            'featureMetadataService',
-            \DI\factory(function (ContainerInterface $c) {
-                // Use the factory to create the correct metadata for this feature/view
-                return $c->get('App\Services\FeatureMetadataFactoryService')
-                    ->createFor('image');
-            })
-        )
-        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
-        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
-        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType'))
-        ->constructorParameter('repository', \DI\get('App\Repository\ImageRepositoryInterface')),
 
     'App\Features\User\UserController' => \DI\autowire()
         ->constructorParameter(
@@ -2227,6 +2228,23 @@ return [
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
         ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType')),
         // ->constructorParameter('viewType', \DI\get('Core\List\ZzzzViewType')),
+
+    'App\Features\Image\ImageController' => \DI\autowire()
+        ->constructorParameter(
+            'featureMetadataService',
+            \DI\factory(function (ContainerInterface $c) {
+                // Use the factory to create the correct metadata for this feature/view
+                return $c->get('App\Services\FeatureMetadataFactoryService')
+                    ->createFor('image');
+            })
+        )
+        ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
+        ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
+        ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType')),
+        // ->constructorParameter('viewType', \DI\get('Core\List\ZzzzViewType')),
+
+
+
 
     'App\Features\Gallery\GalleryController' => \DI\autowire()
         ->constructorParameter(

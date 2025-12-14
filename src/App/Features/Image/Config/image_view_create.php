@@ -55,9 +55,9 @@ return [
             'title' => 'Your Favorite',
            'fields'    => [
                 // 'id',
-                // 'title',
+                'title',
                 // 'status',
-                'generic_text',
+                // 'generic_text',
                 // 'telephone',
                 // 'primary_email',
             ],

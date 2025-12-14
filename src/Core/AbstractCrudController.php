@@ -29,6 +29,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Core\List\Renderer\ListRendererInterface;
 use Core\Services\BaseFeatureService;
+use Core\Services\ReturnUrlManagerServiceInterface;
 use Core\View\Renderer\ViewRendererInterface;
 
 /**
@@ -60,7 +61,8 @@ abstract class AbstractCrudController extends Controller
         protected ListRendererInterface $listRenderer,
         protected FormRendererInterface $formRenderer,
         protected ViewRendererInterface $viewRenderer,
-        protected BaseFeatureService $baseFeatureService
+        protected BaseFeatureService $baseFeatureService,
+        protected ReturnUrlManagerServiceInterface $returnUrlManager,
         //-----------------------------------------
     ) {
         parent::__construct($route_params, $flash, $view, $httpFactory, $container, $scrap);
@@ -210,6 +212,12 @@ abstract class AbstractCrudController extends Controller
         if ($recordId === null) {
             $this->flash22->add("Invalid record ID.", FlashMessageType::Error);
             return $this->redirect($this->feature->baseUrlEnum->view());
+        }
+
+        // ✅ Store caller URL in session when entering edit page (GET only)
+        if ($request->getMethod() === 'GET') {
+            $callerUrl = $_SERVER['HTTP_REFERER'] ?? $this->feature->listUrlEnum->url([], $this->scrap->getRouteType());
+            $this->returnUrlManager->setReturnUrl($recordId, $callerUrl);
         }
 
         // ✅ Inject form URLs and route context via render options
@@ -792,15 +800,26 @@ abstract class AbstractCrudController extends Controller
     abstract protected function overrideListTypeRenderOptions(): void;
 
 
-    // Notes-: this is an example of a Helper Method
+
     /**
      * Determines where to redirect after a successful save.
      *
-     * @param int $recordId
-     * @return string
+     * Precedence:
+     * 1. Session-stored return URL (caller URL captured on GET)
+     * 2. Feature config redirectAfterSave (list or edit)
+     *
+     * @param int $recordId The record being saved.
+     * @return string The URL to redirect to after save.
      */
     protected function getRedirectUrlAfterSave(int $recordId): string
     {
+        // ✅ Check session first: if user came from a specific caller page, return there
+        $returnUrl = $this->returnUrlManager->getAndClearReturnUrl($recordId);
+        if ($returnUrl) {
+            return $returnUrl;
+        }
+
+        // Fall back to config-driven redirect
         if ($this->feature->redirectAfterSave === 'list') {
             return $this->feature->listUrlEnum->url(routeType: $this->scrap->getRouteType());
         }

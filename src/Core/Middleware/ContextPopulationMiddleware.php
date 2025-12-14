@@ -65,8 +65,6 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         $controller =  $request->getAttribute('controller');
         $route_id   =  $request->getAttribute('route_id');
 
-
-
         $pageQueryParms   = $request->getQueryParams();
         $pageListViewType = $pageQueryParms['view'] ?? 'table';
 
@@ -124,6 +122,10 @@ class ContextPopulationMiddleware implements MiddlewareInterface
         // 3. Populate other context if needed (e.g., store IDs)
         // Get the current path
         $path = $request->getUri()->getPath();
+
+
+        $this->currentContext->setCurrentRequestPath($path);
+
 
         // Determine route type based on URL pattern
         if (strpos($path, '/admin/') === 0) {

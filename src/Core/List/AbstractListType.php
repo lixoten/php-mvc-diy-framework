@@ -8,6 +8,7 @@ use App\Enums\Url;
 use Core\Interfaces\ConfigInterface;
 use Core\Services\ListConfigurationService;
 use Core\Services\FieldRegistryService;
+use Core\Services\UrlGeneratorService;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -46,6 +47,7 @@ abstract class AbstractListType implements ListTypeInterface
         protected ConfigInterface $configService,
         protected ListConfigurationService $listConfigService,
         protected LoggerInterface $logger,
+        protected UrlGeneratorService $urlGeneratorService,
     ) {
         // No manual property assignments - handled by 'protected' promotion
     }
@@ -221,7 +223,6 @@ abstract class AbstractListType implements ListTypeInterface
         //     'url_enums_keys' => array_keys($urlEnums),
         //     'route_type' => $routeType,
         // ]);
-
         if (empty($urlEnums)) {
             $this->logger->warning('AbstractListType: No URL enums configured, skipping action columns', [
                 'all_render_options' => $renderOptions,
@@ -245,7 +246,9 @@ abstract class AbstractListType implements ListTypeInterface
         if ($showEdit && $hasEditEnum) {
             /** @var Url $editUrl */
             $editUrl = $urlEnums['edit'];
-            $generatedUrl = $editUrl->url(['id' => '{id}'], $routeType);
+            $generatedUrl = $this->urlGeneratorService->generateUrl($editUrl, ['id' => '{id}']);
+
+            // $generatedUrl = $editUrl->url(['id' => '{id}'], $routeType);
             $label        = $editUrl->label();
 
             // $this->logger->debug('AbstractListType::addActions() Adding edit action', [

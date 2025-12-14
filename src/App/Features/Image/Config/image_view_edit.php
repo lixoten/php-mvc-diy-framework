@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 return [
     'render_options' => [ // gen
-        'from'                  => 'testy_view_edit-config',
+        'from'                  => 'testy_view_create-config',
 
         // HTML attributes (id, data-*, aria-*)
         'attributes' => [
@@ -28,23 +28,21 @@ return [
         // 'force_captcha'        => false,
         // 'security_level'       => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
         // 'layout_type'           => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
-        'layout_type'           => 'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
+        'layout_type'           =>  'sequential', //'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
         // 'error_display'        => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-        'error_display'         => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
+        'error_display'         => 'inline', //'inline', //'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
         'css_form_theme_class'  => '', // "form-theme-christmas",
         'css_form_theme_file'   => '', // "christmas",
         'default_form_theme'    => '', // 'christmas' ?? 'default',
 
-        // 'title_heading_level'         => 'h3', // Default is 'h2'
-        'title_heading'               => "form.heading",
+        'show_title_heading'    => true,
+        'title_heading_level'         => 'h3', // Default is 'h2'
         'title_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
         'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
 
-        'submit_text'           => "button.save",
         'submit_button_variant' => 'primary',
-        'cancel_text'           => 'button.cancel', // Added for translation
         'cancel_button_variant' => 'secondary',
 
 
@@ -55,9 +53,15 @@ return [
             'title' => 'Your Favorite',
            'fields'    => [
                 // 'id',
-                // 'title',
+                'title',
+
+                // 'is_verified',
+                // 'generic_text',
+                // 'generic_number',
                 // 'status',
-                'generic_text',
+                // 'gender_id',
+                // 'state_code',
+                // 'super_powers',
                 // 'telephone',
                 // 'primary_email',
             ],
