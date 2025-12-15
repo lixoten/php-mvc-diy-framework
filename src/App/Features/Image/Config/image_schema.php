@@ -86,6 +86,19 @@ return [
             // 'data-char-counter'    => true,
             // 'data-live-validation' => true,
         ],
+        'file_id' => [
+            'db_type' => 'string',
+            'length'    => 255,
+            'nullable'  => false,
+            'comment'   => 'Title',
+            'required'  => true,
+            'minlength' => 5,
+            'maxlength' => 50,
+            // 'pattern'   => '[a-z0-9]/',
+            // 'style'     => 'background: cyan;',
+            // 'data-char-counter'    => true,
+            // 'data-live-validation' => true,
+        ],
         'generic_text' => [
             'db_type'   => 'string',
             'length'    => 60,
@@ -95,6 +108,12 @@ return [
             'required'  => true,
             'minlength' => 5,
             'maxlength' => 50,
+        ],
+        'filename_original' => [
+            'db_type'   => 'string',
+            'length'    => 60,
+            'nullable'  => true,
+            'comment'   => 'Generic text',
         ],
         'created_at' => [
             'db_type'   => 'dateTime',

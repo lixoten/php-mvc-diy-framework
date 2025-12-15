@@ -55,14 +55,15 @@ return [
 
 
         // 'is_verified',
-        // 'generic_text',
+        'generic_text',
         // 'generic_number',
         // 'status',
         // 'gender_id',
         // 'state_code',
-        'super_powers',
+        // 'super_powers',
         // 'telephone',
         // 'primary_email',
+        // 'profile_picture',
 
 
 
@@ -98,7 +99,6 @@ return [
         // 'wake_up_time',
         // 'favorite_week_day',
         // 'online_address',
-        // 'profile_picture',
         // 'created_at',
         // 'updated_at',
     ]

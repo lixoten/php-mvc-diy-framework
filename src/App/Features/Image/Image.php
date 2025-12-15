@@ -46,6 +46,12 @@ class Image
 
 
     /**
+     * @var ?string
+     */
+    private ?string $file_name = null;
+
+
+    /**
      * @var string
      */
     private string $created_at = '';
@@ -161,6 +167,27 @@ class Image
         $this->title = $title;
         return $this;
     }
+
+
+    /**
+     * @return ?int
+     */
+    public function getFileName(): ?int
+    {
+        return $this->file_name;
+    }
+
+    /**
+     * @param ?int $file_id
+     * @return self
+     */
+    public function setFileId(?string $file_name): self
+    {
+        $this->file_name = $file_name;
+        return $this;
+    }
+
+
 
     /**
      * @return string

@@ -1,25 +1,3 @@
-
-
-Of course. Here are some practical examples of why a single product might use multiple, distinct image groups:
-
-Official vs. User-Generated Content:
-
-Group 1 (Type: official_gallery): This is your main product gallery with professional, high-quality studio and lifestyle shots that you control.
-Group 2 (Type: customer_photos): This group contains photos submitted by actual customers. Displaying this separately builds trust and social proof without cluttering your main gallery.
-Marketing Campaigns:
-
-Group 1 (Type: main): The standard, evergreen product photos.
-Group 2 (Type: lookbook_summer_2026): A special, curated set of images showing the product as part of a seasonal "lookbook" or style guide. You can easily feature this group on a campaign landing page.
-Different Product Aspects:
-
-Group 1 (Type: product_shots): The primary images showing the product itself.
-Group 2 (Type: how_to_use): A step-by-step visual guide on how to assemble or use the product. This is very useful for complex items.
-Group 3 (Type: packaging): Photos specifically showing the product's packaging, which is important for gifts or high-end items where the "unboxing experience" matters.
-By using a type on the relationship table, you can easily query for "the official gallery for this product" or "all customer photos for this product" and display them in different sections of your page.
-
-
-
-lllllllllllllllllllll
 # Flexible Gallery Image Architecture
 
 This document outlines a highly flexible and scalable database architecture for managing image galleries. The design allows a single gallery to be associated with multiple, distinct collections of images, each serving a different purpose.

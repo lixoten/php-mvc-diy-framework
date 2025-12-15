@@ -698,7 +698,7 @@ return [
             'forbidden'                => ['values' => 'array', 'default' => ['#000000']],
         ],
     ],
-    'check_group' => [ // 21 ✅ New entry for radio_group
+    'checkbox_group' => [ // 21 ✅ New entry for radio_group
         // Global Like if not applicable set to null
         'autocomplete'  => null, // Not Applicable: Only for data input
         'dir'           => null, // Not Applicable: Not content-based

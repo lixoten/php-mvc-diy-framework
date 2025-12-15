@@ -144,6 +144,7 @@ class ConfigFieldsGenerator
                             'super_powers',
                             'telephone',
                             'primary_email',
+                            'profile_picture',
                         ]
                     )
                 ) {
@@ -508,7 +509,7 @@ PHP;
                 $numClass = $config['enum_class'];
                 $type = $config['db_type'];
                 // $temp[] = "$s12'text' => [";
-                $temp[] = "$s12'{$$type}' => [";
+                $temp[] = "$s12'{$type}' => [";
                 $temp[] = "    $s12'enum_class' => \App\Enums\\{$numClass}::class,";
                 $temp[] = "    $s12'separator' => ', ',";
                 $temp[] = "    $s12'empty_text' => 'None',";

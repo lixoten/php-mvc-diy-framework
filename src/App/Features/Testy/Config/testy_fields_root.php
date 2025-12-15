@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Generated File - Date: 20251206_075530 origgggggggggggggggggggg
+ * Generated File - Date: 20251206_075530 origggggggggggggggggg
  * Field definitions for the testy_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
@@ -350,6 +350,27 @@ return [
                 // 'ignore_forbidden' => false,
                 // 'allowed'          => [111],
                 // 'forbidden'        => [444, 888],
+            ],
+        ],
+    ],
+    'profile_picture' => [
+        'list' => [
+            'sortable'    => false,
+        ],
+        'form' => [
+            'type'        => '?????????',
+            'placeholder' => true,
+            'attributes'  => [
+                // 'required'    => false,
+                'maxlength'   => 255,
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+            ],
+        ],
+        'validators' => [
+            'text' => [
             ],
         ],
     ],
