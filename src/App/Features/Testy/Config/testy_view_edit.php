@@ -62,7 +62,7 @@ return [
                 // 'gender_id',
                 // 'state_code',
                 'super_powers',
-                // 'telephone',
+                'telephone',
                 // 'primary_email',
             ],
             'divider' => true,

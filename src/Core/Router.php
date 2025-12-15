@@ -143,6 +143,7 @@ class Router implements RouterInterface
             $url = 'home/index'; // Or handle root route explicitly if needed
         }
 
+        // findme - router match url
         if ($this->match($url)) {
             // Process matched parameters (namespace, case conversion)
             $this->params['controller'] = $this->toPascalCase($this->params['controller']);

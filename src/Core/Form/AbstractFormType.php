@@ -174,7 +174,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
-                $options['formatters'] = $columnDef['formatters'] ?? null;
+                //$options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
 
 
@@ -196,7 +196,7 @@ abstract class AbstractFormType implements FormTypeInterface
                             if (interface_exists($className)) {
                                 // If it's an interface, it MUST be resolved as a service from the container.
                                 $service = $this->container->get($className);
-                                $allParams = array_merge(array_values($params), [$this->pageName]); 
+                                $allParams = array_merge(array_values($params), [$this->pageName]);
                                 $resolvedOptions = $service->$methodName(...$allParams);
                             } elseif (class_exists($className)) {
                                 // If it's a concrete class (like an Enum or a static helper class)

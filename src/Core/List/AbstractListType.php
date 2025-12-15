@@ -152,7 +152,7 @@ abstract class AbstractListType implements ListTypeInterface
 
             if ($columnDef && isset($columnDef['list'])) {
                 $listOptions = $columnDef['list'];
-                $listOptions['formatters'] = $columnDef['formatters'] ?? [];
+                // $listOptions['formatters'] = $columnDef['formatters'] ?? [];
                 $builder->addColumn($fieldName, $listOptions);
             } else {
                 $this->logger->warning('AbstractListType: Field definition not found', [

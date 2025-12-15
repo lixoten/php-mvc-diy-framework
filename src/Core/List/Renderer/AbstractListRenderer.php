@@ -711,7 +711,16 @@ abstract class AbstractListRenderer implements ListRendererInterface
         // original value(code) to find variant, but we apply valiant to value(translated value)
         $originalValue = $value;
 
+
+        //$columnConfig = $columns[$column] ?? [];
+        //$formattersConfig = $columnConfig['formatters'] ?? [];
+
+
+        // findme - read formatter from list
         $columnConfig = $columns[$column] ?? [];
+        // $formattersConfig = $columnConfig['formatters'] ?? [];
+        // $listConfig = $columnConfig['list'] ?? [];
+        //$listConfig = $columnConfig ?? [];
         $formattersConfig = $columnConfig['formatters'] ?? [];
 
         // Validate formatter chains to prevent accidental incompatibilities

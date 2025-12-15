@@ -30,6 +30,20 @@ return [
         'data_transformer' => 'json_array',
         'list' => [
             'sortable'   => false,
+            'formatters' => [
+                'array' => [
+                    'enum_class' => \App\Enums\SuperPower::class,
+                    'separator' => ', ',
+                    'empty_text' => 'None',
+                ],
+                'badge' => [
+                    'variant' => 'primary',
+                ],
+                'badge_collection' => [
+                    'options_provider' => [\App\Enums\SuperPower::class, 'getFormatterOptions'],
+                    'separator' => ' ',
+                ],
+            ]
         ],
         'form' => [
             'type'       => 'checkbox_group',
@@ -38,20 +52,6 @@ return [
             'attributes' => [
                 // 'required' => false,
                 // 'style'       => 'background:yellow;',
-            ],
-        ],
-        'formatters' => [
-            'array' => [
-                'enum_class' => \App\Enums\SuperPower::class,
-                'separator' => ', ',
-                'empty_text' => 'None',
-            ],
-            'badge' => [
-                'variant' => 'primary',
-            ],
-            'badge_collection' => [
-                'options_provider' => [\App\Enums\SuperPower::class, 'getFormatterOptions'],
-                'separator' => ' ',
             ],
         ],
         'validators' => [
@@ -64,6 +64,16 @@ return [
     'status' => [
         'list' => [
             'sortable'   => false,
+            'formatters' => [
+                'text' => [
+                    // 'enum_class' => \App\Enums\TestyStatus::class,
+                    'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
+                ],
+                'badge' => [
+                    // 'enum_class' => \App\Enums\TestyStatus::class,
+                    'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
+                ],
+            ],
         ],
         'form' => [
             'type'       => 'select',
@@ -74,16 +84,6 @@ return [
                 // 'style'       => 'background:yellow;',
             ],
         ],
-        'formatters' => [
-            'text' => [
-                // 'enum_class' => \App\Enums\TestyStatus::class,
-                'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
-            ],
-            'badge' => [
-                // 'enum_class' => \App\Enums\TestyStatus::class,
-                'options_provider' => [\App\Enums\TestyStatus::class, 'getFormatterOptions'],
-            ],
-        ],
         'validators' => [
             'select' => [
             ],
@@ -92,6 +92,20 @@ return [
     'generic_text' => [
         'list' => [
             'sortable'    => false,
+            'formatters' => [
+                'text' => [
+                    // 'xxxxxxmax_length' => 5,
+                    // 'truncate_suffix' => '...',          // Defaults to ...
+                    // 'null_value' => 'Nothing here',      // Replaces null value with string
+                    // 'suffix'     => "Boo",               // Appends to end of text
+                    // 'transform'  => 'lowercase',
+                    // 'transform'  => 'uppercase',
+                    // 'transform'  => 'capitalize',
+                    // 'transform'  => 'title',
+                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                    // 'transform'  => 'last2char_upper',
+                ],
+            ],
         ],
         'form' => [
             'type'        => 'text',
@@ -106,20 +120,6 @@ return [
                 // 'data-live-validation' => false,
             ],
         ],
-        'formatters' => [
-            'text' => [
-                // 'xxxxxxmax_length' => 5,
-                // 'truncate_suffix' => '...',          // Defaults to ...
-                // 'null_value' => 'Nothing here',      // Replaces null value with string
-                // 'suffix'     => "Boo",               // Appends to end of text
-                // 'transform'  => 'lowercase',
-                // 'transform'  => 'uppercase',
-                // 'transform'  => 'capitalize',
-                // 'transform'  => 'title',
-                // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                // 'transform'  => 'last2char_upper',
-            ],
-        ],
         'validators' => [
             'text' => [
                 // 'ignore_allowed'   => true,
@@ -131,7 +131,16 @@ return [
     ],
     'telephone' => [
         'list' => [
-                'sortable'    => false,
+            'sortable'    => false,
+            'formatters' => [
+                'tel' => [
+                    // 'format' => 'default', // not needed, is default. FYI National format if its detected
+                    // 'format' => 'dashes',  // Force dashes
+                    // 'format' => 'dots',    // Force dots
+                    // 'format' => 'spaces',  // Force spaces
+                    // 'region' => 'PT',      // Optional: provide a specific region context
+                ],
+            ],
         ],
         'form' => [
              //  'region' => 'US',
@@ -148,14 +157,14 @@ return [
                 // 'xxdata-mask'             => 'phone', // todo - mast does not validate.
                 // 'xxdata-country'          => 'pt',    // todo - revisit for validation -  'pattern, maxlength
             ],
-        ],
-        'formatters' => [
-            'tel' => [
-                // 'format' => 'default', // not needed, is default. FYI National format if its detected
-                // 'format' => 'dashes',  // Force dashes
-                // 'format' => 'dots',    // Force dots
-                // 'format' => 'spaces',  // Force spaces
-                // 'region' => 'PT',      // Optional: provide a specific region context
+            'formatters' => [
+                'tel' => [
+                    // 'format' => 'default', // not needed, is default. FYI National format if its detected
+                    // 'format' => 'dashes',  // Force dashes
+                    // 'format' => 'dots',    // Force dots
+                    // 'format' => 'spaces',  // Force spaces
+                    // 'region' => 'PT',      // Optional: provide a specific region context
+                ],
             ],
         ],
         'validators' => [
@@ -172,6 +181,16 @@ return [
     'state_code' => [
         'list' => [
             'sortable'   => false,
+            'formatters' => [
+                'text' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'state_code',
+                ],
+                'badge' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'state_code',
+                ],
+            ],
         ],
         'form' => [
             'type'       => 'select',
@@ -183,16 +202,6 @@ return [
                 // 'style'       => 'background:yellow;',
             ],
         ],
-        'formatters' => [
-            'text' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'state_code',
-            ],
-            'badge' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'state_code',
-            ],
-        ],
         'validators' => [
             'select' => [
             ],
@@ -201,6 +210,16 @@ return [
     'gender_id' => [
         'list' => [
             'sortable'   => false,
+            'formatters' => [
+                'text' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'gender',
+                ],
+                'badge' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'gender',
+                ],
+            ],
         ],
         'form' => [
             'type'       => 'radio_group',
@@ -212,16 +231,6 @@ return [
                 // 'style'       => 'background:yellow;',
             ],
         ],
-        'formatters' => [
-            'text' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'gender',
-            ],
-            'badge' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'gender',
-            ],
-        ],
         'validators' => [
             'radio_group' => [
             ],
@@ -231,6 +240,34 @@ return [
         'data_transformer' => 'boolean',
         'list' => [
             'sortable'   => false,
+            'formatters' => [
+                'boolean' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'bool_yes_no_code',
+                ],
+                'badge' => [
+                    'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
+                    'lookup_type' => 'bool_yes_no_code',
+                ],
+            ],
+            // 'formatters' => [
+            //     'boolean' => [
+            //         'true_code' => 'y',
+            //         'false_code' => 'n',
+            //     ],
+            //     'badge' => [
+            //         'boolean_badges' => [
+            //             'true' => [
+            //                 'code' => 'code.is_verified.v',
+            //                 'variant' => 'success',
+            //             ],
+            //             'false' => [
+            //                 'code' => 'code.is_verified.u',
+            //                 'variant' => 'secondary',
+            //             ],
+            //         ],
+            //     ],
+            // ],
         ],
         'form' => [
             'type'       => 'checkbox',
@@ -239,34 +276,6 @@ return [
                 // 'style'       => 'background:yellow;',
             ],
         ],
-        'formatters' => [
-            'boolean' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'bool_yes_no_code',
-            ],
-            'badge' => [
-                'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getFormatterOptions'],
-                'lookup_type' => 'bool_yes_no_code',
-            ],
-        ],
-        // 'formatters' => [
-        //     'boolean' => [
-        //         'true_code' => 'y',
-        //         'false_code' => 'n',
-        //     ],
-        //     'badge' => [
-        //         'boolean_badges' => [
-        //             'true' => [
-        //                 'code' => 'code.is_verified.v',
-        //                 'variant' => 'success',
-        //             ],
-        //             'false' => [
-        //                 'code' => 'code.is_verified.u',
-        //                 'variant' => 'secondary',
-        //             ],
-        //         ],
-        //     ],
-        // ],
         'validators' => [
             'checkbox' => [
             ],
@@ -275,6 +284,23 @@ return [
     'primary_email' => [
         'list' => [
             'sortable'    => false,
+            'formatters' => [
+                'email' => [
+                    // 'mask'             => true, // Or false, or omit for default
+                ],
+                'text' => [
+                    // 'xxxxxxmax_length' => 5,
+                    // 'truncate_suffix' => '...',          // Defaults to ...
+                    // 'null_value' => 'Nothing here',      // Replaces null value with string
+                    // 'suffix'     => "Boo",               // Appends to end of text
+                    // 'transform'  => 'lowercase',
+                    // 'transform'  => 'uppercase',
+                    // 'transform'  => 'capitalize',
+                    // 'transform'  => 'title',
+                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                    // 'transform'  => 'last2char_upper',
+                ],
+            ],
         ],
         'form' => [
             'type'        => 'email',
@@ -285,23 +311,6 @@ return [
                 // 'style'       => 'background:yellow;',
                 // 'data-char-counter'    => false,
                 // 'data-live-validation' => false,
-            ],
-        ],
-        'formatters' => [
-            'email' => [
-                // 'mask'             => true, // Or false, or omit for default
-            ],
-            'text' => [
-                // 'xxxxxxmax_length' => 5,
-                // 'truncate_suffix' => '...',          // Defaults to ...
-                // 'null_value' => 'Nothing here',      // Replaces null value with string
-                // 'suffix'     => "Boo",               // Appends to end of text
-                // 'transform'  => 'lowercase',
-                // 'transform'  => 'uppercase',
-                // 'transform'  => 'capitalize',
-                // 'transform'  => 'title',
-                // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                // 'transform'  => 'last2char_upper',
             ],
         ],
         'validators' => [
@@ -316,6 +325,20 @@ return [
     'generic_number' => [
         'list' => [
             'sortable'    => true,
+            'formatters' => [
+                'text' => [
+                    // 'xxxxxxmax_length' => 5,
+                    // 'truncate_suffix' => '...',          // Defaults to ...
+                    // 'null_value' => 'Nothing here',      // Replaces null value with string
+                    // 'suffix'     => "Boo",               // Appends to end of text
+                    // 'transform'  => 'lowercase',
+                    // 'transform'  => 'uppercase',
+                    // 'transform'  => 'capitalize',
+                    // 'transform'  => 'title',
+                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                    // 'transform'  => 'last2char_upper',
+                ],
+            ],
         ],
         'form' => [
             'type'        => 'number',
@@ -324,20 +347,6 @@ return [
                 // 'required'    => false,
                 'min'   => 11,
                 // 'style'       => 'background:yellow;',
-            ],
-        ],
-        'formatters' => [
-            'text' => [
-                // 'xxxxxxmax_length' => 5,
-                // 'truncate_suffix' => '...',          // Defaults to ...
-                // 'null_value' => 'Nothing here',      // Replaces null value with string
-                // 'suffix'     => "Boo",               // Appends to end of text
-                // 'transform'  => 'lowercase',
-                // 'transform'  => 'uppercase',
-                // 'transform'  => 'capitalize',
-                // 'transform'  => 'title',
-                // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                // 'transform'  => 'last2char_upper',
             ],
         ],
         'validators' => [
@@ -356,6 +365,10 @@ return [
     'profile_picture' => [
         'list' => [
             'sortable'    => false,
+            'formatters' => [
+                'text' => [
+                ],
+            ],
         ],
         'form' => [
             'type'        => '?????????',
@@ -363,10 +376,6 @@ return [
             'attributes'  => [
                 // 'required'    => false,
                 'maxlength'   => 255,
-            ],
-        ],
-        'formatters' => [
-            'text' => [
             ],
         ],
         'validators' => [

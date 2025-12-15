@@ -69,14 +69,28 @@ Note: generate a completely new stored_filename whenever a user replaces an imag
 
 
 image table - actial image table
-- image_id
+- image_id (int)
+- store_id (int): Essential for your multi-tenant marketplace to keep images organized by store.
+- user_id (int): Tracks which user uploaded the image, which is useful for permissions and logging.
 - name
 - description
-
+- stored_filename: This is a security best practice. We never use the user's original filename on the server. Instead, we generate a random, unique name to prevent URL guessing and conflicts.
+- original_filename: We store this so that when a user views their media library, they see the familiar name they originally uploaded.
+- mime_type: Crucial for telling the browser how to correctly render the image.
+- file_size_bytes: Useful for displaying file sizes to the user and for system analytics.
+- alt_text: Very important for website accessibility (for screen readers) and for SEO.
+- hash (string): A unique hash (like MD5 or SHA-256) of the image file's contents.
+- width
+- height (integer): Storing the dimensions (in pixels) of the original uploaded image. It allows you to calculate aspect ratios on the fly without having to read the image file
+- focal_point (JSON or string): Stores the X and Y coordinates of the most important part of the image (e.g., {"x":0.5, "y":0.3}). This is for "smart cropping." When you generate thumbnails, instead of just cropping to the center, you can crop around the focal point (like a person's face), resulting in much better-looking thumbnails automatically. This is an advanced but very powerful feature.
+- copyright or license(string)
+- created_at
+- updated_at: Standard timestamps to track when the image record was created and last modified.
 
 ig_image_rel table - image group to image relationship table
 - ig_id
 - image_id
+
 
 
 ig - image group table
@@ -113,3 +127,16 @@ so when i attach the ig to is i insert a new gallery_image_group_relations
 so i will need several features added to my diy framework?
 image_group features - add/edit/view/del
 - add add
+
+
+
+<!--
+  The browser is given a "menu" of options. It will automatically
+  download the best one for the user's screen resolution.
+-->
+<img
+    srcset="<?= $imageService->getUrl($image, 'thumbnail_2x') ?> 2x,
+            <?= $imageService->getUrl($image, 'thumbnail') ?> 1x"
+    src="<?= $imageService->getUrl($image, 'thumbnail') ?>"
+    alt="A descriptive alt text"
+>
