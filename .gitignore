@@ -106,3 +106,4 @@ blank.*
 blank.php
 _testy_list_fields*
 src/Core/Form/Validation/temp.php
+src/public_html/store/*

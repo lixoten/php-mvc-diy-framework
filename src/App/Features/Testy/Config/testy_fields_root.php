@@ -366,16 +366,21 @@ return [
         'list' => [
             'sortable'    => false,
             'formatters' => [
-                'text' => [
+                'image_link' => [
+                    'preset' => 'thumbs', // ✅ Use 'preset' for ImageStorageService to resolve path
+                    'default_image' => '/assets/images/default-avatar.png', // ✅ Fallback
+                    'alt_field' => 'generic_text', // ✅ Use this field for alt text
+                    'width' => 150, // ✅ Thumbnail size
+                    'height' => 150,
+                    // 'link_to' => '/testy/view/{id}', // ✅ OPTIONAL: Make image clickable
                 ],
             ],
         ],
         'form' => [
-            'type'        => '?????????',
-            'placeholder' => true,
+            'type'        => 'file',
+            // 'placeholder' => true,
             'attributes'  => [
-                // 'required'    => false,
-                'maxlength'   => 255,
+                'accept' => 'image/*',
             ],
         ],
         'validators' => [

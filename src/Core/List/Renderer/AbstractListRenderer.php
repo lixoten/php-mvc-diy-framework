@@ -701,8 +701,13 @@ abstract class AbstractListRenderer implements ListRendererInterface
 
 
     /** {@inheritdoc} */
-    public function renderValue(string $pageName, string $column, $value, array $record, array $columns = []): string
-    {
+    public function renderValue(
+        string $pageName,
+        string $column,
+        $value,
+        array $record,
+        array $columns = []
+    ): string {
         if ($value === null) {
             return '';
         }
@@ -710,10 +715,6 @@ abstract class AbstractListRenderer implements ListRendererInterface
         // We need to preserve original value for Enum Classes, Since they use translationKey. We need the
         // original value(code) to find variant, but we apply valiant to value(translated value)
         $originalValue = $value;
-
-
-        //$columnConfig = $columns[$column] ?? [];
-        //$formattersConfig = $columnConfig['formatters'] ?? [];
 
 
         // findme - read formatter from list
@@ -736,11 +737,28 @@ abstract class AbstractListRenderer implements ListRendererInterface
                     // ✅ Always inject common context and services into formatter options
                     $formatterOptions['page_name'] = $pageName;
 
-                    // This is a hack
-                    // This was the only way to be about to apply BadgeCollectionFormatter on top of ArrayFormatter
-                    if ($formatterName === 'badge_collection') {
-                        $value = $originalValue;
+
+
+
+                    // ✅ NEW/IMPROVED LOGIC: Enhance image_link formatter options with runtime data
+                    // This block populates formatter options that are dynamic, based on the current record.
+                    if ($formatterName === 'image_link') {
+                        $formatterOptions['record'] = $record; // Pass the entire record for URL placeholders ({id})
+                        $formatterOptions['store_id'] = 6; // $record['store_id'] ?? $this->currentContext->getStoreId(); // Resolve store_id
+
+                        // Resolve alt_text from alt_field if specified in config, otherwise fall back
+                        $altFieldName = $formatterOptions['alt_field'] ?? 'title'; // Default alt_field from config
+                        $formatterOptions['alt_text'] = $record[$altFieldName] ?? 'Image'; // Dynamically set alt_text
                     }
+
+
+
+
+                    // // This is a hack
+                    // // This was the only way to be about to apply BadgeCollectionFormatter on top of ArrayFormatter
+                    // if ($formatterName === 'badge_collection') {
+                    //     $value = $originalValue;
+                    // }
                     // Apply each formatter in sequence with the (now fully resolved) options
                     $value = $this->formatterService->format($formatterName, $value, $formatterOptions, $originalValue);
 

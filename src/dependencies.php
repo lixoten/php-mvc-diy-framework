@@ -175,6 +175,22 @@ return [
     'App\Services\Interfaces\FlashMessageServiceInterface' => \DI\get('flash'),
 
 
+    // -----------------------------------------------------------------
+    // Filesystem Configuration (Ensure these paths are correct for your setup)
+    // -----------------------------------------------------------------
+    // 'filesystems.public_html_root' => dirname(__DIR__) . '/public_html',
+    // 'filesystems.storage_root'     => dirname(__DIR__) . '/storage',
+    // 'filesystems.public_base_url.store_images' => '/store', // Public URL prefix for store images
+
+    // -----------------------------------------------------------------
+    // NEW: ImageStorageService (interface and concrete)
+    // -----------------------------------------------------------------
+    \Core\Services\ImageStorageServiceInterface::class => \DI\autowire(\Core\Services\ImageStorageService::class)
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+
+
+
 
 
     // ✅ Return URL Manager Service
@@ -1457,6 +1473,10 @@ return [
     'formatterz.truncate5' => \DI\autowire(\Core\Formatters\Truncate5Formatter::class),
     'formatterz.badge'     => \DI\autowire(\Core\Formatters\BadgeFormatter::class)
         ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface')),
+    'formatterz.image_link'     => \DI\autowire(\Core\Formatters\ImageLinkFormatter::class)
+        ->constructorParameter('themeService', \DI\get('Core\Services\ThemeServiceInterface'))
+        ->constructorParameter('imageStorageService', \DI\get(\Core\Services\ImageStorageServiceInterface::class)) // ✅ NEW
+        ->constructorParameter('currentContext', \DI\get(\Core\Context\CurrentContext::class)), // ✅ NEW
 
     // ✅ NEW: BadgeCollectionFormatter for handling arrays of values
     'formatterz.badge_collection' => \DI\autowire(\Core\Formatters\BadgeCollectionFormatter::class)
@@ -1468,6 +1488,8 @@ return [
     'formatterz.array'     => \DI\autowire(\Core\Formatters\ArrayFormatter::class),
     'formatterz.boolean' => \DI\autowire(\Core\Formatters\BooleanFormatter::class),
 
+
+
     'Core\Formatters\FormatterInterface'    => \DI\get('Core\Formatters\TextFormatter'),
 
     \Core\Formatters\FormatterRegistry::class => \DI\factory(function (ContainerInterface $c) {
@@ -1475,11 +1497,12 @@ return [
             $c->get('formatterz.text'),
             $c->get('formatterz.tel'),
             $c->get('formatterz.email'),
-            // $c->get('formatterz.image'),
+            // $c->get('formatterz.image'), // todo remove old imageFormatter
             $c->get('formatterz.decimal'),
             $c->get('formatterz.currency'),
             $c->get('formatterz.foo'),
             $c->get('formatterz.truncate5'),
+            $c->get('formatterz.image_link'),
             $c->get('formatterz.badge'),
             $c->get('formatterz.badge_collection'),
             $c->get('formatterz.array'),
@@ -1488,6 +1511,21 @@ return [
         ]);
         return $registry;
     }),
+    // // ✅ ADD: Register in FormatterRegistry
+    // \Core\Formatters\FormatterRegistry::class => \DI\autowire()
+    //     ->constructor([
+    //         \DI\get(\Core\Formatters\TextFormatter::class),
+    //         \DI\get(\Core\Formatters\BadgeFormatter::class),
+    //         \DI\get(\Core\Formatters\PhoneNumberFormatter::class),
+    //         \DI\get(\Core\Formatters\BooleanFormatter::class),
+    //         \DI\get(\Core\Formatters\EmailFormatter::class),
+    //         \DI\get(\Core\Formatters\EnumFormatter::class),
+    //         \DI\get(\Core\Formatters\ArrayFormatter::class),
+    //         \DI\get(\Core\Formatters\BadgeCollectionFormatter::class),
+    //         \DI\get(\Core\Formatters\ImageLinkFormatter::class), // ✅ NEW
+    //     ]),
+
+
 
     'Core\Services\ClosureFormatterService' => \DI\autowire(),
 
