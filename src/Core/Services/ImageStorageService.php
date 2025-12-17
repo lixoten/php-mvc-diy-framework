@@ -43,10 +43,16 @@ class ImageStorageService implements ImageStorageServiceInterface
         private ConfigInterface $configService,
         private LoggerInterface $logger,
         private ImageProcessingService $imageProcessingService,
+        string $publicHtmlRoot,
+        string $storageRoot
     ) {
         // Assume these are configured in a config file, e.g., `config/app.php` or `config/storage.php`
-        $this->publicHtmlRoot = $this->configService->get('storage.multi_tenant_images.public_html_root');
-        $this->storageRoot    = $this->configService->get('storage.multi_tenant_images.storage_root');
+        //$publicHtmlRootConfig = $this->configService->get('storage.multi_tenant_images.public_html_root');
+        //$storageRootConfig    = $this->configService->get('storage.multi_tenant_images.storage_root');
+
+        $this->publicHtmlRoot = $publicHtmlRoot;
+        $this->storageRoot    = $storageRoot;
+
         $this->publicBaseUrl  = $this->configService->get('storage.multi_tenant_images.public_base_url');
 
         // Load image presets from storage.php
@@ -54,6 +60,23 @@ class ImageStorageService implements ImageStorageServiceInterface
             'thumbs' => ['width' => 150, 'height' => 150, 'quality' => 85, 'crop' => true],
             'web' => ['width' => 800, 'height' => null, 'quality' => 90, 'crop' => false],
         ]);
+
+
+        // // ✅ FIX: Resolve relative paths to absolute paths
+        // // Use getcwd() as the base for resolving relative paths, as it should be the project root
+        // // when index.php in public_html is the entry point.
+        // $projectRoot = getcwd();
+        // if ($projectRoot === false) {
+        //     // Fallback: If getcwd() somehow fails, manually derive from __DIR__.
+        //     // This assumes ImageStorageService.php is 3 levels deep from the project root (src/Core/Services).
+        //     $projectRoot = dirname(__DIR__, 3); // d:\xampp\htdocs\my_projects\mvclixo
+        // }
+
+        // // Apply path resolution to ensure absolute paths are used for filesystem checks
+        // $this->publicHtmlRoot = $this->resolvePath($publicHtmlRootConfig, $projectRoot);
+        // $this->storageRoot = $this->resolvePath($storageRootConfig, $projectRoot);
+
+
 
         if (!is_dir($this->publicHtmlRoot)) {
             throw new RuntimeException(
@@ -87,6 +110,32 @@ class ImageStorageService implements ImageStorageServiceInterface
             );
         }
     }
+
+
+    // /**
+    //  * Resolves a given path to an absolute path, using a base path if the configured path is relative.
+    //  *
+    //  * @param string $configuredPath The path from configuration (can be absolute or relative).
+    //  * @param string $basePath The base path (e.g., project root) to resolve relative paths against.
+    //  * @return string The resolved absolute path.
+    //  * @throws \InvalidArgumentException If the configured path is empty.
+    //  */
+    // private function resolvePath(string $configuredPath, string $basePath): string
+    // {
+    //     if (empty($configuredPath)) {
+    //         throw new \InvalidArgumentException("Configured path cannot be empty.");
+    //     }
+
+    //     // Check if path is already absolute (starts with '/' or 'X:\' on Windows)
+    //     if (preg_match('/^(?:[A-Za-z]:\\\\|\/)/', $configuredPath)) {
+    //         return rtrim($configuredPath, '/\\');
+    //     }
+
+    //     // If relative, resolve against the provided base path
+    //     return rtrim(rtrim($basePath, '/\\') . DIRECTORY_SEPARATOR . ltrim($configuredPath, '/\\'), '/\\');
+    // }
+
+
 
     /** {@inheritdoc} */
     public function getUrl(string $hash, int $storeId, string $preset = 'web', ?string $extension = null): string

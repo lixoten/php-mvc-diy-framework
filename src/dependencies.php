@@ -205,8 +205,9 @@ return [
     \Core\Services\ImageStorageServiceInterface::class => \DI\autowire(\Core\Services\ImageStorageService::class)
         ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
         ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
-        ->constructorParameter('imageProcessingService', \DI\get(\Core\Services\ImageProcessingService::class)),
-
+        ->constructorParameter('imageProcessingService', \DI\get(\Core\Services\ImageProcessingService::class))
+        ->constructorParameter('publicHtmlRoot', \DI\get('app.public_path'))
+        ->constructorParameter('storageRoot', \DI\get('app.storage_path')),
 
 
 

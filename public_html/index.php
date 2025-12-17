@@ -28,7 +28,6 @@ if (preg_match('#\.(css|js|png|jpg|jpeg|gif|svg|woff2?|ttf|eot|ico)$#i', $uri)) 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
 date_default_timezone_set('America/Los_Angeles');
 
 /**
@@ -36,7 +35,7 @@ date_default_timezone_set('America/Los_Angeles');
  */
 
 // Composer autoloader
-require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
 
 // // ✅ NEW: TEMPORARY AUTOLOADING DEBUGGING BLOCK
@@ -81,11 +80,66 @@ if (!defined('BASE_URL')) {
     define('BASE_URL', rtrim(dirname($_SERVER['SCRIPT_NAME']), '/'));
 }
 
-// Load .env file if it exists
-if (file_exists(__DIR__ . '/../../.env')) {
-    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+// // Load .env file if it exists
+// if (file_exists(__DIR__ . '/../../.env')) {
+//     $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/../..');
+//     $dotenv->load();
+// }
+
+
+// ✅ FIX: Implement robust .env loading with proper error handling.
+// This will clearly tell you if the file is missing, or if required variables are absent.
+try {
+    // Use the correct path (project root from public_html/index.php)
+    $dotenv = \Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
     $dotenv->load();
+
+    // Validate required environment variables.
+    // ✅ Suggestion: Expand this list with all *critical* environment variables
+    // that your application absolutely needs to start (e.g., DB credentials, image paths).
+    $dotenv->required([
+        'APP_NAME', // Added from your .env file
+        'APP_ENV',
+        'APP_DEBUG', // Added from your .env file
+        'APP_URL', // Added from your .env file
+        'APP_KEY', // Added from your .env file
+        'APP_TIMEZONE', // Added from your .env file
+        'MAIL_API_DEFAULT',
+        'SMTP_USERNAME',
+        'SMTP_PASSWORD',
+        'MAILGUN_API_KEY',
+        'MAILGUN_DOMAIN',
+        // Example additions (you need to fill these in based on your actual needs):
+        // 'DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME', 'DB_PASSWORD',
+        // 'IMAGE_PUBLIC_ROOT', 'IMAGE_STORAGE_ROOT', 'IMAGE_BASE_URL',
+        // 'RECAPTCHA_SITE_KEY', 'RECAPTCHA_SECRET_KEY',
+        // 'STORAGE_PROVIDER', 'STORAGE_BASE_PATH', 'STORAGE_BASE_URL',
+    ])->notEmpty();
+
+    // Validate specific values
+    $dotenv->required('MAIL_API_DEFAULT')->allowedValues(['smtp', 'mailgun']);
+
+} catch (\Dotenv\Exception\InvalidPathException $e) {
+    // This catches if the .env file itself cannot be found at the specified path.
+    error_log('FATAL: Environment file (.env) not found or path is invalid: ' . $e->getMessage());
+    http_response_code(500);
+    die('Application startup error: Environment configuration file is missing. Please ensure .env exists in the project root.');
+} catch (\Dotenv\Exception\ValidationException $e) {
+    // This catches if any of the $dotenv->required() variables are missing or empty.
+    error_log('FATAL: Missing or invalid required environment variables: ' . $e->getMessage());
+    http_response_code(500);
+    die('Application startup error: Critical environment variables are not set. Please check your .env file and ensure all required variables are present and not empty. Details: ' . $e->getMessage());
+} catch (\Throwable $e) {
+    // Catch any other unexpected errors during the .env loading process.
+    error_log('FATAL: An unexpected error occurred during environment variable loading: ' . $e->getMessage());
+    http_response_code(500);
+    die('Application startup error: An unexpected error occurred during configuration loading. Please check server logs for more details.');
 }
+
+
+
+
+
 
 
 // Validate required environment variables
@@ -106,21 +160,37 @@ $dotenv->required('MAIL_API_DEFAULT')->allowedValues(['smtp', 'mailgun']);
 // Initialize error handling
 $environment = $_SERVER['APP_ENV'] ?? 'development';
 
-///////////////////////////////////////////////////////
-// Create PHP-DI container
-$containerBuilder = new \DI\ContainerBuilder();
-$containerBuilder->useAutowiring(true);
-
-if ($environment === 'production') {
-    $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
-}
 
 
 
-$definitions = require __DIR__ . '/../dependencies.php';
 
-$containerBuilder->addDefinitions($definitions);
-$container = $containerBuilder->build();
+
+
+/////////////////////////////////////////////////////////////////
+// // Create PHP-DI container
+// $containerBuilder = new \DI\ContainerBuilder();
+// $containerBuilder->useAutowiring(true);
+
+// if ($environment === 'production`') {
+//     $containerBuilder->enableCompilation(__DIR__ . '/../var/cache');
+// }
+
+// $definitions = require __DIR__ . '/../src/dependencies.php';
+
+// $containerBuilder->addDefinitions($definitions);
+// $container = $containerBuilder->build();
+
+$app = new \Core\Application(dirname(__DIR__));
+$container = $app->bootstrap();
+///////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
 
 // Get ErrorHandler from container
 $errorHandler = $container->get('errorHandler');

@@ -43,7 +43,7 @@ return [
     // Paths
     'paths' => [
         'base' => dirname(__DIR__),
-        'public' => dirname(dirname(__DIR__)) . '/public',
+        'public' => dirname(dirname(__DIR__)) . '/public_html',
         'storage' => dirname(dirname(__DIR__)) . '/storage',
         'logs' => dirname(dirname(__DIR__)) . '/storage/logs',
     ],

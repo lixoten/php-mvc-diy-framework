@@ -24,8 +24,8 @@ return [
 
     // MULTI-TENANT IMAGE STORAGE
     'multi_tenant_images' => [
-        'public_html_root' => $_ENV['IMAGE_PUBLIC_ROOT'] ?? __DIR__ . '/../xxblic_html',
-        'storage_root' => $_ENV['IMAGE_STORAGE_ROOT'] ?? __DIR__ . '/../xxorage',
+        // 'public_html_root' => $_ENV['IMAGE_PUBLIC_ROOT'] ?? __DIR__ . '/../../public_html',
+        // 'storage_root' => $_ENV['IMAGE_STORAGE_ROOT'] ?? __DIR__ . '/../../storage',
         'public_base_url' => $_ENV['IMAGE_BASE_URL'] ?? '/store',
     ],
 
