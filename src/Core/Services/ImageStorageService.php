@@ -26,6 +26,7 @@ class ImageStorageService implements ImageStorageServiceInterface
     private string $publicHtmlRoot;
     private string $storageRoot;
     private string $publicBaseUrl; // e.g., /store
+    private array $presets;
 
     /**
      * Simple per-request cache for getUrls results to avoid repeated disk checks.
@@ -40,21 +41,50 @@ class ImageStorageService implements ImageStorageServiceInterface
      */
     public function __construct(
         private ConfigInterface $configService,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private ImageProcessingService $imageProcessingService,
     ) {
-        // Assume these are configured in a config file, e.g., `config/app.php` or `config/filesystems.php`
-        $this->publicHtmlRoot = $this->configService->get('filesystems.public_html_root');
-        $this->storageRoot    = $this->configService->get('filesystems.storage_root');
-        $this->publicBaseUrl  = $this->configService->get('filesystems.public_base_url.store_images');
+        // Assume these are configured in a config file, e.g., `config/app.php` or `config/storage.php`
+        $this->publicHtmlRoot = $this->configService->get('storage.multi_tenant_images.public_html_root');
+        $this->storageRoot    = $this->configService->get('storage.multi_tenant_images.storage_root');
+        $this->publicBaseUrl  = $this->configService->get('storage.multi_tenant_images.public_base_url');
 
-        // Basic validation for paths
-        if (!is_dir($this->publicHtmlRoot) || !is_writable($this->publicHtmlRoot)) {
-            $this->logger->error("ImageStorageService: Public HTML root is invalid or not writable: {$this->publicHtmlRoot}");
-            // In a real app, you might throw an exception or handle gracefully
+        // Load image presets from storage.php
+        $this->presets = $this->configService->get('storage.image_presets', [
+            'thumbs' => ['width' => 150, 'height' => 150, 'quality' => 85, 'crop' => true],
+            'web' => ['width' => 800, 'height' => null, 'quality' => 90, 'crop' => false],
+        ]);
+
+        if (!is_dir($this->publicHtmlRoot)) {
+            throw new RuntimeException(
+                "Public HTML root does not exist: {$this->publicHtmlRoot}. " .
+                "This directory must exist and be writable. Create it manually or check your deployment."
+            );
         }
-        if (!is_dir($this->storageRoot) || !is_writable($this->storageRoot)) {
-            $this->logger->error("ImageStorageService: Storage root is invalid or not writable: {$this->storageRoot}");
-            // In a real app, you might throw an exception or handle gracefully
+
+        if (!is_writable($this->publicHtmlRoot)) {
+            throw new RuntimeException(
+                "Public HTML root is not writable: {$this->publicHtmlRoot}. " .
+                "Check directory permissions (recommended: 0755 owned by web server user)."
+            );
+        }
+
+        // ✅ AUTO-CREATE: Private storage root (safe to auto-create)
+        if (!is_dir($this->storageRoot)) {
+            if (!mkdir($this->storageRoot, 0755, true)) {
+                throw new RuntimeException(
+                    "Failed to create storage root: {$this->storageRoot}. " .
+                    "Check parent directory permissions."
+                );
+            }
+            $this->logger->info("Created storage root directory: {$this->storageRoot}");
+        }
+
+        if (!is_writable($this->storageRoot)) {
+            throw new RuntimeException(
+                "Storage root is not writable: {$this->storageRoot}. " .
+                "Check directory permissions (recommended: 0755 owned by web server user)."
+            );
         }
     }
 
@@ -70,7 +100,7 @@ class ImageStorageService implements ImageStorageServiceInterface
             return '';
         }
 
-        $finalExtension = $this->determineFinalExtension($preset, $extension);
+        $finalExtension = $this->determineFinalExtension($extension);
 
         return sprintf(
             '%s/%d/images/%s/%s.%s',
@@ -102,14 +132,38 @@ class ImageStorageService implements ImageStorageServiceInterface
      *
      * Safe for probing (getUrls) because it has no side-effects.
      */
+    // private function buildFilePath(string $hash, int $storeId, string $preset = 'web', ?string $extension = null): string
+    // {
+    //     $base = ($preset === 'original') ? $this->storageRoot : $this->publicHtmlRoot;
+    //     $directory = sprintf('%s/store/%d/images/%s', rtrim($base, '/'), $storeId, $preset);
+    //     $finalExtension = $this->determineFinalExtension($preset, $extension);
+    //     return sprintf('%s/%s.%s', $directory, $hash, $finalExtension);
+    // }
     private function buildFilePath(string $hash, int $storeId, string $preset = 'web', ?string $extension = null): string
     {
-        $base = ($preset === 'original') ? $this->storageRoot : $this->publicHtmlRoot;
-        $directory = sprintf('%s/store/%d/images/%s', rtrim($base, '/'), $storeId, $preset);
-        $finalExtension = $this->determineFinalExtension($preset, $extension);
-        return sprintf('%s/%s.%s', $directory, $hash, $finalExtension);
-    }
+        $finalExtension = $this->determineFinalExtension($extension);
 
+        if ($preset === 'original') {
+            // ✅ Originals: storage_root/store/{storeId}/originals/{hash}.{ext}
+            return sprintf(
+                '%s/store/%d/originals/%s.%s',
+                rtrim($this->storageRoot, '/'),
+                $storeId,
+                $hash,
+                $finalExtension
+            );
+        }
+
+        // ✅ Public presets: public_html_root/store/{storeId}/images/{preset}/{hash}.{ext}
+        return sprintf(
+            '%s/store/%d/images/%s/%s.%s',
+            rtrim($this->publicHtmlRoot, '/'),
+            $storeId,
+            $preset,
+            $hash,
+            $finalExtension
+        );
+    }
 
 
     /**
@@ -129,7 +183,7 @@ class ImageStorageService implements ImageStorageServiceInterface
             return $this->getUrlsCache[$cacheKey];
         }
 
-        $preferred = $this->configService->get('filesystems.image_generation.preferred_formats')
+        $preferred = $this->configService->get('storage.image_generation.preferred_formats') // ✅ Changed config path
             ?? $this->configService->get('image_generation.preferred_formats')
             ?? ['avif', 'webp', 'jpg'];
 
@@ -157,7 +211,7 @@ class ImageStorageService implements ImageStorageServiceInterface
         }
 
         // Basic validation (real-world needs more: MIME type, file size limits, image dimensions, security scanning)
-        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        $allowedMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif']; // ✅ Added WebP and AVIF
         $clientMediaType = $file->getClientMediaType();
 
         if (!in_array($clientMediaType, $allowedMimeTypes, true)) {
@@ -170,44 +224,142 @@ class ImageStorageService implements ImageStorageServiceInterface
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/gif' => 'gif',
+            'image/webp' => 'webp',
+            'image/avif' => 'avif',
             default => pathinfo($file->getClientFilename() ?? 'file.jpg', PATHINFO_EXTENSION), // Fallback
         };
         // Ensure extension is clean
         $extension = strtolower(ltrim($extension, '.'));
 
-        // Generate a unique hash for the filename (e.g., SHA256 of file content or unique ID)
-        // Using uniqid as hash_file on stream can be problematic or slow for large files
-        $hash = uniqid('img_', true);
+        // Generate content-based SHA-256 hash (deduplication)
+        $hash = $this->generateHash($file);
 
-        // Ensure directories exist and get paths with the correct extension
+        // ✅ Check if original already exists (deduplication)
         $originalPath = $this->getPath($hash, $storeId, 'original', $extension);
+
+        if (file_exists($originalPath)) {
+            $this->logger->info('Image already exists (deduplication)', [
+                'hash' => $hash,
+                'store_id' => $storeId,
+                'original_name' => $file->getClientFilename(),
+            ]);
+
+            // ✅ Image already exists - no need to upload again
+            return ['hash' => $hash, 'extension' => $extension];
+        }
+
+        // ✅ Image doesn't exist yet - get paths for all presets
         $webPath = $this->getPath($hash, $storeId, 'web', $extension);
         $thumbsPath = $this->getPath($hash, $storeId, 'thumbs', $extension);
 
-        try {
-            // Store original in private storage
-            $file->moveTo($originalPath);
-            $this->logger->info("Original image saved to: {$originalPath}");
+        // try {
+        //     // Store original in private storage
+        //     $file->moveTo($originalPath);
+        //     $this->logger->info("Original image saved", [
+        //         'path' => $originalPath,
+        //         'hash' => $hash,
+        //         'store_id' => $storeId,
+        //     ]);
 
-            // --- Simplified Preset Generation (Placeholder) ---
-            // In a real application, you'd use an image manipulation library (e.g., Intervention Image)
-            // to create resized/optimized versions for 'web' and 'thumbs'.
-            // For now, we're just copying, but ideally, you'd convert/resize as needed for each preset.
-            copy($originalPath, $webPath);
-            $this->logger->info("Web preset (simulated) saved to: {$webPath}");
-            copy($originalPath, $thumbsPath);
-            $this->logger->info("Thumbs preset (simulated) saved to: {$thumbsPath}");
-            // --- End Simplified Preset Generation ---
+
+
+        //     // ✅ Generate web preset (resize to 800px, 90% quality)
+        //     $webPreset = $this->presets['web'] ?? ['width' => 800, 'height' => null, 'quality' => 90, 'crop' => false];
+        //     $webSuccess = $this->imageProcessingService->processImage($originalPath, $webPath, $webPreset);
+
+        //     if ($webSuccess) {
+        //         $this->logger->info("Web preset generated", ['path' => $webPath]);
+        //     } else {
+        //         $this->logger->warning("Failed generating web preset, using original", ['path' => $webPath]);
+        //         copy($originalPath, $webPath); // ✅ Fallback to copy if processing fails
+        //     }
+
+
+        //     // ✅ Generate thumbs preset (crop to 150x150, 85% quality)
+        //     $thumbsPreset = $this->presets['thumbs'] ?? ['width' => 150, 'height' => 150, 'quality' => 85, 'crop' => true];
+        //     $thumbsSuccess = $this->imageProcessingService->processImage($originalPath, $thumbsPath, $thumbsPreset);
+
+        //     if ($thumbsSuccess) {
+        //         $this->logger->info("Thumbs preset generated", ['path' => $thumbsPath]);
+        //     } else {
+        //         $this->logger->warning("Failed generating thumbs preset, using original", ['path' => $thumbsPath]);
+        //         copy($originalPath, $thumbsPath); // ✅ Fallback to copy if processing fails
+        //     }
+
+
+        //     // // Generate web preset (simulated - TODO: Use image library for actual resizing)
+        //     // copy($originalPath, $webPath);
+        //     // $this->logger->info("Web preset (simulated) saved to: {$webPath}");
+
+        //     // // Generate thumbs preset (simulated - TODO: Use image library for actual resizing)
+        //     // copy($originalPath, $thumbsPath);
+        //     // $this->logger->info("Thumbs preset (simulated) saved to: {$thumbsPath}");
+
+        // } catch (\Throwable $e) {
+        //     $this->logger->error("Error moving/copying uploaded image: {$e->getMessage()}");
+
+        //     // Clean up any partially moved files
+        //     @unlink($originalPath);
+        //     @unlink($webPath);
+        //     @unlink($thumbsPath);
+
+        //     throw new RuntimeException('Failed to process image upload.', 0, $e);
+        // }
+
+        try {
+            // ✅ Store original in private storage (no processing)
+            $file->moveTo($originalPath);
+            $this->logger->info("Original image saved", [
+                'path' => $originalPath,
+                'hash' => $hash,
+                'store_id' => $storeId,
+            ]);
+
+            // ✅ Get preferred output formats from config
+            $preferredFormats = $this->configService->get('storage.image_generation.preferred_formats', ['avif', 'webp', 'jpg']);
+            // ✅ Generate web preset (800px) in multiple formats
+            $webPreset = $this->presets['web'] ?? ['width' => 800, 'height' => null, 'quality' => 90, 'crop' => false];
+            foreach ($preferredFormats as $format) {
+                $webPath = $this->getPath($hash, $storeId, 'web', $format);
+                $webSuccess = $this->imageProcessingService->processImage($originalPath, $webPath, $webPreset, $format);
+
+                if ($webSuccess) {
+                    $this->logger->info("Web preset generated", ['path' => $webPath, 'format' => $format]);
+                } else {
+                    $this->logger->warning("Failed generating web preset in {$format} format", ['path' => $webPath]);
+                }
+            }
+
+            // ✅ Generate thumbs preset (150x150) in multiple formats
+            $thumbsPreset = $this->presets['thumbs'] ?? ['width' => 150, 'height' => 150, 'quality' => 85, 'crop' => true];
+            foreach ($preferredFormats as $format) {
+                $thumbsPath = $this->getPath($hash, $storeId, 'thumbs', $format);
+                $thumbsSuccess = $this->imageProcessingService->processImage($originalPath, $thumbsPath, $thumbsPreset, $format);
+
+                if ($thumbsSuccess) {
+                    $this->logger->info("Thumbs preset generated", ['path' => $thumbsPath, 'format' => $format]);
+                } else {
+                    $this->logger->warning("Failed generating thumbs preset in {$format} format", ['path' => $thumbsPath]);
+                }
+            }
+
         } catch (\Throwable $e) {
-            $this->logger->error("Error moving/copying uploaded image: {$e->getMessage()}");
-            // Clean up any partially moved files
+            $this->logger->error("Error processing uploaded image: {$e->getMessage()}");
+
+            // ✅ Clean up any partially moved files
             @unlink($originalPath);
-            @unlink($webPath);
-            @unlink($thumbsPath);
+
+            // Clean up all generated formats
+            foreach (['web', 'thumbs'] as $preset) {
+                foreach ($preferredFormats as $format) {
+                    @unlink($this->getPath($hash, $storeId, $preset, $format));
+                }
+            }
+
             throw new RuntimeException('Failed to process image upload.', 0, $e);
         }
 
-        return ['hash' => $hash, 'extension' => $extension]; // ✅ Return hash and extension
+        return ['hash' => $hash, 'extension' => $extension];
     }
 
     /** {@inheritdoc} */
@@ -216,7 +368,7 @@ class ImageStorageService implements ImageStorageServiceInterface
         $deletedCount = 0;
         $presets = ['original', 'web', 'thumbs']; // All known presets
 
-        $preferred = $this->configService->get('filesystems.image_generation.preferred_formats')
+        $preferred = $this->configService->get('storage.image_generation.preferred_formats')
             ?? $this->configService->get('image_generation.preferred_formats')
             ?? ['avif', 'webp', 'jpg'];
 
@@ -256,18 +408,17 @@ class ImageStorageService implements ImageStorageServiceInterface
     /**
      * Determine final extension to use given a preset and optional explicit extension.
      */
-    private function determineFinalExtension(string $preset, ?string $extension = null): string
+    private function determineFinalExtension(?string $extension = null): string
     {
         if ($extension !== null) {
             return strtolower(ltrim($extension, '.'));
         }
 
-        $cfg = $this->configService->get("filesystems.default_image_extension.{$preset}");
-        if (!empty($cfg)) {
-            return strtolower(ltrim((string)$cfg, '.'));
-        }
+        // ✅ Get preferred formats from config
+        $preferredFormats = $this->configService->get('storage.image_generation.preferred_formats', ['avif', 'webp', 'jpg']);
 
-        return 'jpg';
+        // ✅ Return first preferred format as default
+        return strtolower(ltrim($preferredFormats[0] ?? 'jpg', '.'));
     }
 
     /**
@@ -280,5 +431,41 @@ class ImageStorageService implements ImageStorageServiceInterface
                 unset($this->getUrlsCache[$key]);
             }
         }
+    }
+
+
+
+    /**
+     * Generate SHA-256 hash from file content for deduplication.
+     *
+     * This method reads the uploaded file's content and generates a content-based hash.
+     * Benefits:
+     * - Deduplication: Same file uploaded multiple times = same hash = no duplicate storage
+     * - Integrity verification: Can re-hash file later to verify it hasn't been corrupted
+     * - Predictable filenames: Hash-based filenames are deterministic
+     *
+     * @param UploadedFileInterface $file Uploaded file (PSR-7)
+     * @return string 64-character SHA-256 hash (e.g., "abc123def456...")
+     * @throws RuntimeException If stream cannot be read
+     */
+    private function generateHash(UploadedFileInterface $file): string
+    {
+        $stream = $file->getStream();
+
+        // ✅ Rewind stream to beginning (in case it was read before)
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
+        // ✅ Read entire file content
+        $content = $stream->getContents();
+
+        // ✅ Rewind again for later use by moveTo() or other operations
+        if ($stream->isSeekable()) {
+            $stream->rewind();
+        }
+
+        // ✅ Generate SHA-256 hash of content
+        return hash('sha256', $content);
     }
 }

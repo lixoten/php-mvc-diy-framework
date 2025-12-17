@@ -54,6 +54,7 @@ use Core\Services\DataNormalizerService;
 use Core\Services\FormatterService;
 use Core\Services\SchemaLoaderService;
 use Core\Services\ThemeServiceInterface;
+use Core\Storage\LocalStorageService;
 use Psr\Log\LoggerInterface;
 
 // Define services
@@ -132,15 +133,35 @@ return [
 
 
     // Storage provider (local disk)
-    Core\Storage\StorageProviderInterface::class => \DI\autowire(\Core\Storage\LocalStorageService::class)
-        ->constructorParameter('basePath', __DIR__ . '/../src/public_html/uploads')
-        ->constructorParameter('baseUrl', '/uploads'),
+    // Core\Storage\StorageProviderInterface::class => \DI\autowire(\Core\Storage\LocalStorageService::class)
+    //     ->constructorParameter('basePath', __DIR__ . '/../src/public_html/uploads')
+    //     ->constructorParameter('baseUrl', '/uploads'),
+    // ✅ Storage Provider (Local Filesystem)
+    Core\Storage\StorageProviderInterface::class => DI\factory(function (ContainerInterface $container) {
+        // Load config from environment or ConfigService
+        $config = $container->get('config');
 
-    // High-level file upload service (validates and delegates to StorageProvider)
-    Core\Form\Upload\FileUploadServiceInterface::class => \DI\autowire(\Core\Form\Upload\FileUploadService::class)
-        ->constructorParameter('storage', \DI\get(Core\Storage\StorageProviderInterface::class))
-        ->constructorParameter('logger', \DI\get('logger')),
+        $basePath = $config->get('storage.local.base_path', __DIR__ . '/../public_html/uploads');
+        $baseUrl = $config->get('storage.local.base_url', '/uploads');
 
+        return new LocalStorageService($basePath, $baseUrl);
+    }),
+
+
+    // ✅ Image Processing Service (handles resize, crop, compress)
+    \Core\Services\ImageProcessingService::class => \DI\autowire()
+        ->constructorParameter('logger', \DI\get(LoggerInterface::class)),
+
+
+    // // High-level file upload service (validates and delegates to StorageProvider)
+    // // ✅ File Upload Service
+    // Core\Form\Upload\FileUploadServiceInterface::class => \DI\autowire(\Core\Form\Upload\FileUploadService::class)
+    //     ->constructorParameter('storage', \DI\get(Core\Storage\StorageProviderInterface::class))
+    //     ->constructorParameter('logger', \DI\get(LoggerInterface::class))
+    //     ->constructorParameter('defaultMaxSize', \DI\factory(function (ContainerInterface $container) {
+    //         $config = $container->get('config');
+    //         return $config->get('storage.upload.default_max_size', 5242880); // Default: 5MB
+    //     })),
 
 
     //-----------------------------------------------------------------
@@ -178,16 +199,13 @@ return [
     // -----------------------------------------------------------------
     // Filesystem Configuration (Ensure these paths are correct for your setup)
     // -----------------------------------------------------------------
-    // 'filesystems.public_html_root' => dirname(__DIR__) . '/public_html',
-    // 'filesystems.storage_root'     => dirname(__DIR__) . '/storage',
-    // 'filesystems.public_base_url.store_images' => '/store', // Public URL prefix for store images
-
     // -----------------------------------------------------------------
     // NEW: ImageStorageService (interface and concrete)
     // -----------------------------------------------------------------
     \Core\Services\ImageStorageServiceInterface::class => \DI\autowire(\Core\Services\ImageStorageService::class)
         ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
-        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
+        ->constructorParameter('imageProcessingService', \DI\get(\Core\Services\ImageProcessingService::class)),
 
 
 

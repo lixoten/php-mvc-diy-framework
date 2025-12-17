@@ -79,4 +79,15 @@ class LocalStorageService implements StorageProviderInterface
         }
         return $this->baseUrl . '/' . $key;
     }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function exists(string $key): bool
+    {
+        $key = ltrim($key, '/');
+        $path = $this->basePath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $key);
+        return file_exists($path) && is_file($path);
+    }
+
 }

@@ -63,7 +63,9 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         $formatters = $field->getFormatters();
         // Important!!! Only allow certain formatters - Those Masking like the telephone
         // Formatting in general is not allowed in Forms
-        if (!isset($formatters['tel'])) {
+        // - tel: Phone number masking
+        // - image_link: File input preview (read-only display)
+        if (!isset($formatters['tel']) && !isset($formatters['image_link'])) {
             $formatters = null;
         }
 
@@ -379,6 +381,17 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 //         }
                 //     }
                 // }
+                // ✅ NEW: Only show preview if field has a value AND formatters processed it
+                // $value is already set by formatter processing (lines 233-280)
+                // ✅ Server-side preview (existing image from database)
+                if (!empty($rawValue) && !empty($value)) {
+                    $output .= '<div class="mb-2" id="' . $id . '-preview-container">';
+                    $output .= $value; // Contains <img> HTML from FormatterService
+                    $output .= '</div>';
+                } else {
+                    // ✅ Empty container for client-side preview (new file selection)
+                    $output .= '<div class="mb-2" id="' . $id . '-preview-container" style="display:none;"></div>';
+                }
 
                 $output .= '<input type="file" class="' . $class . $errorClass . '" id="' . $id . '" name="' .
                                                                    $name . '"' . $attrString . '>';

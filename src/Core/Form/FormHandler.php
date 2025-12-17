@@ -17,6 +17,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use SebastianBergmann\Environment\Console;
 use Core\Form\DataSanitizer;
 use Core\Services\DataNormalizerService;
+use Core\Services\ImageStorageServiceInterface;
 
 /**
  * Form handler implementation
@@ -43,9 +44,10 @@ class FormHandler implements FormHandlerInterface
         private FormatterService $formatterService,
         private DataSanitizer $dataSanitizer,
         private DataNormalizerService $dataNormalizerService,
-        FileUploadServiceInterface $fileUploadService,
+        private ImageStorageServiceInterface $imageStorageService,
         ?CaptchaServiceInterface $captchaService = null,
         ?EventDispatcherInterface $eventDispatcher = null,
+        private ?\Psr\Log\LoggerInterface $logger = null,
     ) {
         //$this->validatorRegistry = $validatorRegistry;
         $this->formatterService = $formatterService;
@@ -53,7 +55,8 @@ class FormHandler implements FormHandlerInterface
         $this->dataNormalizerService = $dataNormalizerService;
         $this->captchaService = $captchaService;
         $this->eventDispatcher = $eventDispatcher;
-        $this->fileUploadService = $fileUploadService;
+        $this->imageStorageService = $imageStorageService;
+        $this->logger = $logger;
     }
 
     /**
@@ -95,33 +98,99 @@ class FormHandler implements FormHandlerInterface
         }
 
         // --- File upload handling ---
-        if (! empty($uploadedFiles)) {
-            // Validate/store uploaded files and get metadata per field
-            $fileValues = $this->fileUploadService->handleFiles($uploadedFiles, $form->getFields());
+        // if (! empty($uploadedFiles)) {
+        //     // Validate/store uploaded files and get metadata per field
+        //     $fileValues = $this->fileUploadService->handleFiles($uploadedFiles, $form->getFields());
 
-            // Normalize metadata into simple storage keys for existing form flows:
-            // single file: ['key'=>...] -> 'field' => 'storage/key.ext'
-            // multi file: [ ['key'=>...], ... ] -> 'field' => ['storage/one', 'storage/two']
-            foreach ($fileValues as $field => $meta) {
-                if (is_array($meta) && isset($meta['key'])) {
-                    $data[$field] = $meta['key'];
+        //     // ✅ DEBUG: Log file metadata returned
+        //     // $this->logger?->debug('File upload results', [
+        //     //     'metadata' => $fileValues,
+        //     // ]);
+
+        //     // ✅ NEW: Check if any uploads failed and add errors to form
+        //     foreach ($uploadedFiles as $fieldName => $uploadedFile) {
+        //         // Skip if this field wasn't processed (e.g., empty upload)
+        //         if (!isset($fileValues[$fieldName])) {
+        //             // Check if file upload was attempted but failed
+        //             if ($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
+        //                 && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
+        //             ) {
+        //                 // ✅ Add generic error to field
+        //                 $field = $form->getField($fieldName);
+        //                 if ($field) {
+        //                     // $field->getErrors() addError('File upload failed. Please try again or choose a different file.');
+        //                 }
+        //             }
+        //         }
+        //     }
+
+
+        //     // Normalize metadata into simple storage keys for existing form flows:
+        //     // single file: ['key'=>...] -> 'field' => 'storage/key.ext'
+        //     // multi file: [ ['key'=>...], ... ] -> 'field' => ['storage/one', 'storage/two']
+        //     foreach ($fileValues as $field => $meta) {
+        //         if (is_array($meta) && isset($meta['key'])) {
+        //             $data[$field] = $meta['key'];
+        //             continue;
+        //         }
+
+        //         if (is_array($meta) && isset($meta[0]) && is_array($meta[0]) && isset($meta[0]['key'])) {
+        //             $keys = [];
+        //             foreach ($meta as $m) {
+        //                 if (is_array($m) && isset($m['key'])) {
+        //                     $keys[] = $m['key'];
+        //                 }
+        //             }
+        //             if (! empty($keys)) {
+        //                 $data[$field] = $keys;
+        //             }
+        //         }
+        //     }
+        // }
+        if (! empty($uploadedFiles)) {
+            foreach ($uploadedFiles as $fieldName => $uploadedFile) {
+                // Skip if no file uploaded
+                if (!$uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
+                    || $uploadedFile->getError() === \UPLOAD_ERR_NO_FILE
+                ) {
                     continue;
                 }
 
-                if (is_array($meta) && isset($meta[0]) && is_array($meta[0]) && isset($meta[0]['key'])) {
-                    $keys = [];
-                    foreach ($meta as $m) {
-                        if (is_array($m) && isset($m['key'])) {
-                            $keys[] = $m['key'];
-                        }
-                    }
-                    if (! empty($keys)) {
-                        $data[$field] = $keys;
-                    }
+                // Get field definition
+                $field = $form->getField($fieldName);
+                if (!$field) {
+                    continue;
+                }
+
+                // Get storeId from form context (or default to 1)
+                // $storeId = $form->getContext()['store_id'] ?? 1;
+                //$storeId = $form->getData()['store_id'] ?? 1;
+                $storeId = 6; // fixme 
+
+                // Upload image using ImageStorageService
+                try {
+                    $imageMetadata = $this->imageStorageService->upload($uploadedFile, $storeId);
+
+                    // Store hash in database (e.g., 'abc123def456...xyz')
+                    $data[$fieldName] = $imageMetadata['hash'];
+
+                    $this->logger?->info('Image uploaded successfully', [
+                        'field' => $fieldName,
+                        'hash' => $imageMetadata['hash'],
+                        'extension' => $imageMetadata['extension'],
+                    ]);
+                } catch (\Throwable $e) {
+                    $this->logger?->error('Image upload failed', [
+                        'field' => $fieldName,
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    // Add validation error to field
+                    // $field->addError('Image upload failed. Please try again.');
+                    $form->addError($data[$fieldName], 'Image upload failed. Please try again.');
                 }
             }
         }
-
 
         // // Sanitize submitted data using the DataSanitizer
         // $data = $this->dataSanitizer->sanitize($data, $form->getFields());

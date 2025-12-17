@@ -95,14 +95,16 @@ class ImageLinkFormatter extends AbstractFormatter
 
         // If explicit extension provided, prefer a single URL (fast path)
         if ($explicitExt !== null) {
+            // ✅ Use getUrl with explicit extension
             $url = $this->imageStorageService->getUrl($hash, (int)$storeId, $preset, $explicitExt);
             return $this->wrapWithLink($this->buildImgTag($url, $options, $record), $options, false, $record);
         }
 
-        // Probe available formats
+        // Probe available formats (getUrls handles all discovered formats)
         $urls = $this->imageStorageService->getUrls($hash, (int)$storeId, $preset);
 
         if (empty($urls)) {
+            // ✅ No formats found - use default image
             return $this->wrapWithLink($defaultImage, $options, true, $record);
         }
 
@@ -122,10 +124,9 @@ class ImageLinkFormatter extends AbstractFormatter
             'png'  => 'image/png',
         ];
 
-        // Order sources by preference in config (preferred_formats), but keep discovered order if not present
-        $preferred = $this->configService->get('filesystems.image_generation.preferred_formats')
-            ?? $this->configService->get('image_generation.preferred_formats')
-            ?? array_keys($urls);
+        // ✅ Use preferred_formats from config (don't force order, just use what exists)
+        $preferred = $this->configService->get('storage.image_generation.preferred_formats')
+            ?? array_keys($urls); // Fallback to discovered formats
 
         foreach ($preferred as $ext) {
             if (isset($urls[$ext])) {
@@ -161,8 +162,8 @@ class ImageLinkFormatter extends AbstractFormatter
     private function buildImgTag(string $url, array $options, array $record = []): string
     {
         $preset = (string)($options['preset'] ?? 'thumbs');
-        $width = $options['width'] ?? $this->configService->get("filesystems.image_presets.{$preset}.width");
-        $height = $options['height'] ?? $this->configService->get("filesystems.image_presets.{$preset}.height");
+        $width = $options['width'] ?? $this->configService->get("storage.image_presets.{$preset}.width");
+        $height = $options['height'] ?? $this->configService->get("storage.image_presets.{$preset}.height");
 
         $alt = (string)($options['alt_text'] ?? ($record[$options['alt_field']] ?? 'Image'));
         $class = $options['css_class'] ?? $this->themeService->getElementClass('image_link.img') ?? '';
@@ -246,114 +247,5 @@ class ImageLinkFormatter extends AbstractFormatter
             'css_class' => null, // Will use ThemeService default
             'store_id' => null, // Can be explicitly passed, otherwise derived from CurrentContext
         ];
-    }
-
-    /**
-     * Resolve the full image source URL using ImageStorageService or a direct path.
-     *
-     * @param mixed $value The image hash or direct path.
-     * @param array<string, mixed> $options Formatter options (preset, default_image, alt_field, etc.).
-     * @param array<string, mixed> $record The full record data for context.
-     * @return string The resolved image URL or HTML string.
-     */
-    protected function resolveImageSrc(mixed $value, array $options): string // ✅ ADD $record to signature
-    {
-        if (empty($value)) {
-            return $options['default_image'] ?? ''; // Ensure fallback for default_image
-        }
-
-        $hash = (string)$value;
-
-        if (!empty($options['preset'])) {
-            $storeId = $options['store_id'] ?? $this->currentContext->getStoreId();
-            if ($storeId === null) {
-                // Log and return default image if storeId is missing for a preset-based image
-                $this->logger->warning(
-                    "ImageLinkFormatter: Missing store_id for preset-based image. Falling back to default image.",
-                    ['hash' => $value,
-                    'preset' => $options['preset']]
-                );
-                return $options['default_image'] ?? '';
-            }
-
-            $presetName = (string)$options['preset'];
-
-            // Pass explicit extension from options, or null to let ImageStorageService determine
-            //$extension = $options['extension'] ?? 'jpg';//null;
-            $extension = $options['extension']
-                     ?? $this->configService->get("filesystems.default_image_extension.{$presetName}");
-
-            $imageUrl = $this->imageStorageService->getUrl(
-                hash: $hash,
-                storeId: $storeId,
-                preset: $presetName,
-                extension: $extension
-            );
-
-            // ✅ NEW LOGIC: Determine width and height, prioritizing options, then config
-            $width = $options['width']
-                     ?? $this->configService->get("filesystems.image_presets.{$presetName}.width");
-            $height = $options['height']
-                      ?? $this->configService->get("filesystems.image_presets.{$presetName}.height");
-
-            $imgAttributes = [
-                'src' => htmlspecialchars($imageUrl),
-                // Use alt_field from record, or alt_text from options, or a generic 'Image'
-                'alt' => htmlspecialchars((string) ($options['alt_text'])),// ?? ($record[$options['alt_field']] ?? 'Image'))),
-                'class' => htmlspecialchars(
-                    $options['css_class'] ?? $this->themeService->getElementClass('image_link.img') ?? ''
-                ),
-            ];
-
-            if ($width !== null) {
-                $imgAttributes['width'] = (string)$width;
-            }
-            if ($height !== null) {
-                $imgAttributes['height'] = (string)$height;
-            }
-
-            // Build attribute string
-            $attrString = '';
-            foreach ($imgAttributes as $key => $val) {
-                if ($val !== null && $val !== '') { // Only add if not null or empty
-                    $attrString .= sprintf(' %s="%s"', $key, $val);
-                }
-            }
-
-            $imgTag = sprintf('<img%s>', $attrString);
-
-            // Optional: wrap in a link if 'link_to' is provided
-            if (!empty($options['link_to'])) {
-                $linkUrl = str_replace('{id}', (string)($record['id'] ?? ''), (string)$options['link_to']);
-                $linkClass = htmlspecialchars(
-                    $options['link_css_class'] ?? $this->themeService->getElementClass('image_link.a') ?? ''
-                );
-                return sprintf('<a href="%s" class="%s">%s</a>', htmlspecialchars($linkUrl), $linkClass, $imgTag);
-            }
-
-            return $imgTag;
-        }
-
-        // Fallback for direct path if no preset is used
-        return rtrim($options['base_path'] ?? '', '/') . '/' . ltrim((string)$value, '/');
-    }
-
-
-    /**
-     * Resolve link URL from pattern.
-     */
-    private function resolveLinkUrl(array $options): string
-    {
-        $linkPattern = $options['link_to'];
-
-        // Replace placeholders like {id} with actual record values
-        if (isset($options['record']) && is_array($options['record'])) {
-            foreach ($options['record'] as $key => $val) {
-                // Ensure value is a string for str_replace
-                $linkPattern = str_replace('{' . $key . '}', (string)$val, $linkPattern);
-            }
-        }
-
-        return $linkPattern;
     }
 }

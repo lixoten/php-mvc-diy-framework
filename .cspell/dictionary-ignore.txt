@@ -73,6 +73,8 @@ htmlspecialchars
 httponly
 humy
 ignt
+imageavif
+imagecreatefromavif
 imaskjs
 incase
 Inno

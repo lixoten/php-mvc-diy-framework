@@ -17,7 +17,7 @@ class Form implements FormInterface
     private string $pageKey;
     private string $pageName;
     private array $fields = [];
-    private array $data = [];
+    private array $data   = [];
     private array $errors = [];
     private CSRFToken $csrf;
     private ?Validator $validator = null;
@@ -29,7 +29,8 @@ class Form implements FormInterface
     // private ?FormRendererInterface $renderer = null;
     // private array $layout = [];
     private array $renderOptions = [];
-    private array $layout = [];
+    private array $layout        = [];
+    private array $context       = [];
 
     /**
      * Constructor
@@ -79,6 +80,20 @@ class Form implements FormInterface
     public function getPageName(): string
     {
         return $this->pageName;
+    }
+
+    /** {@inheritdoc} */
+    public function addContext(array $context): self
+    {
+        $this->context = array_merge($this->context, $context);
+        return $this;
+    }
+
+
+    /** {@inheritdoc} */
+    public function getContext(): array
+    {
+        return $this->context;
     }
 
     /**

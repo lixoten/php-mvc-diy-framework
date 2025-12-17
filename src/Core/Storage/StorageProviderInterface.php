@@ -37,4 +37,7 @@ interface StorageProviderInterface
      * @return string
      */
     public function url(string $key, array $options = []): string;
+
+
+    public function exists(string $key): bool;
 }

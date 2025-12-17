@@ -105,6 +105,32 @@ interface FormInterface
      */
     public function getPageName(): string;
 
+
+
+    /**
+     * Merge additional contextual data into the form.
+     *
+     * Context is an associative array used to provide minimal data required by
+     * validators/formatters (e.g., ['store_id' => 1], ['region' => 'US'], 'data' => [...]).
+     * Do NOT pass entire request objects; pass only the minimal data required by validators.
+     *
+     * @param array<string,mixed> $context Additional context to merge into the form
+     * @return self
+     * @see \Core\Form\Form::addContext
+     */
+    public function addContext(array $context): self;
+
+    /**
+     * Get the current merged context for the form.
+     *
+     * @return array<string,mixed> Current context previously added via addContext()
+     * @see \Core\Form\Form::getContext
+     */
+    public function getContext(): array;
+
+
+
+
     /**
      * Add an error to the form
      *

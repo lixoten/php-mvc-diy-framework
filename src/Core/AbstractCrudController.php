@@ -746,7 +746,7 @@ abstract class AbstractCrudController extends Controller
             $initialData = $recordArray;
         }
 
-
+        // findme - FormFactory-Create
         // Create the form instance.
         // If it's a GET request, it will be populated with $initialData.
         // If it's a POST request, $initialData is empty, and the formHandler will populate it.
@@ -755,7 +755,8 @@ abstract class AbstractCrudController extends Controller
             data: $initialData
         );
 
-
+        // 🟢 This ensures the FormHandler has access to the store_id for operations like image uploads.
+        $form->addContext(['store_id' => $this->scrap->getStoreId()]);
 
         // The form handler processes the request.
         // For a GET request, it does nothing.
