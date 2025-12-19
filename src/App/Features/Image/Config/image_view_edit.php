@@ -54,6 +54,7 @@ return [
            'fields'    => [
                 // 'id',
                 'title',
+                'filename',
 
                 // 'is_verified',
                 // 'generic_text',

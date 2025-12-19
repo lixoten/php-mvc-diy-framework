@@ -366,30 +366,14 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 break;
             case 'file':
                 $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
-                $output .= '<div class="mb-2">' . $value . '</div>';
 
-                // // Display current image if value exists
-                // if (!empty($rawValue)) {
-                //     // Use the image formatter if defined
-                //     foreach ($formatters as $formatter) {
-                //         $formatterName = is_array($formatter) ? $formatter['name'] : $formatter;
-                //         $formatterOptions = is_array($formatter) ? ($formatter['options'] ?? []) : [];
-                //         if ($formatterName === 'image') {
-                //             $imgHtml = $this->formatterService->format('image', $rawValue, $formatterOptions);
-                //             $output .= '<div class="mb-2">' . $imgHtml . '</div>';
-                //             break;
-                //         }
-                //     }
-                // }
-                // ✅ NEW: Only show preview if field has a value AND formatters processed it
-                // $value is already set by formatter processing (lines 233-280)
-                // ✅ Server-side preview (existing image from database)
+                // 📌 Only show preview if field has a value AND formatters processed it
                 if (!empty($rawValue) && !empty($value)) {
                     $output .= '<div class="mb-2" id="' . $id . '-preview-container">';
                     $output .= $value; // Contains <img> HTML from FormatterService
                     $output .= '</div>';
                 } else {
-                    // ✅ Empty container for client-side preview (new file selection)
+                    // 📌 Empty container for client-side preview (new file selection)
                     $output .= '<div class="mb-2" id="' . $id . '-preview-container" style="display:none;"></div>';
                 }
 

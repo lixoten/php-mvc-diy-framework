@@ -286,6 +286,22 @@ class ImageStorageService implements ImageStorageServiceInterface
         // ✅ Check if original already exists (deduplication)
         $originalPath = $this->getPath($hash, $storeId, 'original', $extension);
 
+
+        // // If already exists, return metadata from existing file
+        // if (file_exists($originalPath)) {
+        //     $imageInfo = @getimagesize($originalPath);
+        //     return [
+        //         'hash' => $hash,
+        //         'extension' => $extension,
+        //         'original_filename' => $file->getClientFilename(),
+        //         'mime_type' => $clientMediaType,
+        //         'file_size_bytes' => filesize($originalPath),
+        //         'width' => $imageInfo[0] ?? null,
+        //         'height' => $imageInfo[1] ?? null,
+        //     ];
+        // }
+
+
         if (file_exists($originalPath)) {
             $this->logger->info('Image already exists (deduplication)', [
                 'hash' => $hash,
@@ -294,66 +310,23 @@ class ImageStorageService implements ImageStorageServiceInterface
             ]);
 
             // ✅ Image already exists - no need to upload again
-            return ['hash' => $hash, 'extension' => $extension];
+            // return ['hash' => $hash, 'extension' => $extension];
+            $imageInfo = @getimagesize($originalPath);
+
+            return [
+                'filename' => $hash,
+                'extension' => $extension,
+                'original_filename' => $file->getClientFilename(),
+                'mime_type' => $clientMediaType,
+                'file_size_bytes' => filesize($originalPath),
+                'width' => $imageInfo[0] ?? null,
+                'height' => $imageInfo[1] ?? null,
+            ];
         }
 
         // ✅ Image doesn't exist yet - get paths for all presets
         $webPath = $this->getPath($hash, $storeId, 'web', $extension);
         $thumbsPath = $this->getPath($hash, $storeId, 'thumbs', $extension);
-
-        // try {
-        //     // Store original in private storage
-        //     $file->moveTo($originalPath);
-        //     $this->logger->info("Original image saved", [
-        //         'path' => $originalPath,
-        //         'hash' => $hash,
-        //         'store_id' => $storeId,
-        //     ]);
-
-
-
-        //     // ✅ Generate web preset (resize to 800px, 90% quality)
-        //     $webPreset = $this->presets['web'] ?? ['width' => 800, 'height' => null, 'quality' => 90, 'crop' => false];
-        //     $webSuccess = $this->imageProcessingService->processImage($originalPath, $webPath, $webPreset);
-
-        //     if ($webSuccess) {
-        //         $this->logger->info("Web preset generated", ['path' => $webPath]);
-        //     } else {
-        //         $this->logger->warning("Failed generating web preset, using original", ['path' => $webPath]);
-        //         copy($originalPath, $webPath); // ✅ Fallback to copy if processing fails
-        //     }
-
-
-        //     // ✅ Generate thumbs preset (crop to 150x150, 85% quality)
-        //     $thumbsPreset = $this->presets['thumbs'] ?? ['width' => 150, 'height' => 150, 'quality' => 85, 'crop' => true];
-        //     $thumbsSuccess = $this->imageProcessingService->processImage($originalPath, $thumbsPath, $thumbsPreset);
-
-        //     if ($thumbsSuccess) {
-        //         $this->logger->info("Thumbs preset generated", ['path' => $thumbsPath]);
-        //     } else {
-        //         $this->logger->warning("Failed generating thumbs preset, using original", ['path' => $thumbsPath]);
-        //         copy($originalPath, $thumbsPath); // ✅ Fallback to copy if processing fails
-        //     }
-
-
-        //     // // Generate web preset (simulated - TODO: Use image library for actual resizing)
-        //     // copy($originalPath, $webPath);
-        //     // $this->logger->info("Web preset (simulated) saved to: {$webPath}");
-
-        //     // // Generate thumbs preset (simulated - TODO: Use image library for actual resizing)
-        //     // copy($originalPath, $thumbsPath);
-        //     // $this->logger->info("Thumbs preset (simulated) saved to: {$thumbsPath}");
-
-        // } catch (\Throwable $e) {
-        //     $this->logger->error("Error moving/copying uploaded image: {$e->getMessage()}");
-
-        //     // Clean up any partially moved files
-        //     @unlink($originalPath);
-        //     @unlink($webPath);
-        //     @unlink($thumbsPath);
-
-        //     throw new RuntimeException('Failed to process image upload.', 0, $e);
-        // }
 
         try {
             // ✅ Store original in private storage (no processing)
@@ -407,8 +380,17 @@ class ImageStorageService implements ImageStorageServiceInterface
 
             throw new RuntimeException('Failed to process image upload.', 0, $e);
         }
+        $imageInfo = @getimagesize($originalPath);
 
-        return ['hash' => $hash, 'extension' => $extension];
+        return [
+            'hash' => $hash,
+            'extension' => $extension,
+            'original_filename' => $file->getClientFilename(),
+            'mime_type' => $clientMediaType,
+            'file_size_bytes' => filesize($originalPath),
+            'width' => $imageInfo[0] ?? null,
+            'height' => $imageInfo[1] ?? null,
+        ];
     }
 
     /** {@inheritdoc} */

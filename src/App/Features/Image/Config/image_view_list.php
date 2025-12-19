@@ -49,6 +49,7 @@ return [
     'list_fields' => [
         'id',
         'title',
+        'filename',
 
         // 'super_powers',
         // 'telephone',

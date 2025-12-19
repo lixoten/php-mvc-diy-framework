@@ -14,4 +14,5 @@ use Core\Repository\BaseRepositoryInterface;
  */
 interface ImageRepositoryInterface extends BaseRepositoryInterface
 {
+        //public function create(object $image): object;
 }

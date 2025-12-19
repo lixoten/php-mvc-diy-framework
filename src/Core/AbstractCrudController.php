@@ -272,6 +272,7 @@ abstract class AbstractCrudController extends Controller
             && $request->getHeaderLine('X-Requested-With') !== 'XMLHttpRequest'
         ) {
             $data = $form->getUpdatableData();
+            $fullFormData = $form->getExtraProcessedData(); // ✅ All data, including metadata
 
             $fullRecordObj = $this->repository->findById($recordId);
 
@@ -303,7 +304,8 @@ abstract class AbstractCrudController extends Controller
             //     }
             // }
 
-            $savedId = $this->saveRecord($data, $recordId);
+            $savedId = $this->saveRecord($data, $fullFormData, $recordId); // ✅ Pass both data arrays
+            //$savedId = $this->saveRecord($data, $recordId);
             // if ($this->repository->updateFields($recordId, $data)) {
             if ($savedId) {
                 $this->flash22->add("Record updated successfully", FlashMessageType::Success);
@@ -500,6 +502,7 @@ abstract class AbstractCrudController extends Controller
             && $request->getHeaderLine('X-Requested-With') !== 'XMLHttpRequest'
         ) {
             $data = $form->getUpdatableData();
+            $fullFormData = $form->getData(); // ✅ All data, including metadata
 
             // Add owner foreign key for new records
             $currentUserId = $this->scrap->getUserId();
@@ -538,7 +541,7 @@ abstract class AbstractCrudController extends Controller
 
 
             //$newRecordId = $this->repository->insertFields($data);
-            $newRecordId = $this->saveRecord($data);
+            $newRecordId = $this->saveRecord($data, $fullFormData);
 
             if ($newRecordId) {
                 $this->flash22->add("Record added successfully", FlashMessageType::Success);
@@ -604,8 +607,9 @@ abstract class AbstractCrudController extends Controller
 
             if ($result['handled'] && $result['valid']) {
                 $data = $form->getUpdatableData();
+                $fullFormData = $form->getData(); // ✅ All data, including metadata
 
-                $savedId = $this->saveRecord($data, $recordId); // ✅ Calls abstract method
+                $savedId = $this->saveRecord($data, $fullFormData, $recordId); // ✅ Calls abstract method
 
 
                 // if ($this->repository->updateFields($recordId, $data)) {
@@ -755,7 +759,7 @@ abstract class AbstractCrudController extends Controller
             data: $initialData
         );
 
-        // 🟢 This ensures the FormHandler has access to the store_id for operations like image uploads.
+        // 📌 This ensures the FormHandler has access to the store_id for operations like image uploads.
         $form->addContext(['store_id' => $this->scrap->getStoreId()]);
 
         // The form handler processes the request.
@@ -970,22 +974,23 @@ abstract class AbstractCrudController extends Controller
      * Child controllers can override this to define how record data is saved,
      * e.g., using a specific service for business logic and validation, then a repository.
      *
-     * @param array<string, mixed> $formData The validated data from the form.
+     * @param array<string, mixed> $updatableData The validated and filtered data, ready for direct DB update (e.g., from form->getUpdatableData()).
+     * @param array<string, mixed> $fullFormData The complete validated data from the form, including any auxiliary data (e.g., from form->getData()).
      * @param int|null $id The ID of the record to update, or null for a new record.
      * @return int|null The ID of the saved record (new ID for create, existing for update), or null on failure.
      */
-    // abstract protected function saveRecord(array $formData, ?int $id = null): ?int;
-    protected function saveRecord(array $formData, ?int $id = null): ?int
+    // abstract protected function saveRecord(array $updatableData, ?int $id = null): ?int;
+    protected function saveRecord(array $updatableData, array $fullFormData, ?int $id = null): ?int // ✅ UPDATED SIGNATURE
     {
         // This is where TestyController uses its specific repository (or service) to save data.
         // If you had a TestyService with business logic, you'd call it here:
-        // return $this->testyService->save($formData, $id);
+        // return $this->testyService->save($updatableData, $id);
         if ($id) {
             // Update existing record
-            return $this->repository->updateFields($id, $formData) ? $id : null;
+            return $this->repository->updateFields($id, $updatableData) ? $id : null;
         } else {
             // Create new record
-            return $this->repository->insertFields($formData);
+            return $this->repository->insertFields($updatableData);
         }
     }
 

@@ -42,6 +42,23 @@ interface FormInterface
     public function getData(): array;
 
 
+
+    /**
+     * Get the complete data array after form handling and processing.
+     * This includes data for defined fields and any auxiliary data (e.g., file metadata)
+     * that was passed via setData() by the FormHandler.
+     *
+     * @return array<string, mixed>
+     */
+    public function getExtraProcessedData(): array;
+
+
+    public function setExtraProcessedData(array $extraProcessedData): self;
+
+
+    // public function hasExtraProcessedData(): bool;
+
+
     /**
      * Get form updatable data
      *

@@ -8,6 +8,7 @@ use App\Features\Image\ImageRepository;
 use App\Features\Image\ImageRepositoryInterface;
 use App\Features\Gallery\GalleryRepository;
 use App\Features\Gallery\GalleryRepositoryInterface;
+use App\Features\Image\ImageService;
 use App\Features\User\UserRepository;
 use App\Features\User\UserRepositoryInterface;
 use App\Helpers\DebugRt;
@@ -703,12 +704,15 @@ return [
     // UserService
     UserService::class => \DI\autowire()
         ->constructorParameter('userRepository', \DI\get(UserRepositoryInterface::class))
-        ->constructorParameter('tokenService', \DI\get('Core\Security\TokenServiceInterface'))
         ->constructorParameter('dataTransformer', \DI\get(\Core\Services\DataTransformerService::class)),
 
     // UserValidationService
     'App\Services\UserValidationService' => \DI\autowire(),
 
+    // ImageService
+    \App\Features\Image\ImageService::class => \DI\autowire()
+        ->constructorParameter('imageRepository', \DI\get(\App\Features\Image\ImageRepositoryInterface::class)),
+        // ->constructorParameter('dataTransformer', \DI\get(\Core\Services\DataTransformerService::class)),
 
 
 
@@ -2298,6 +2302,7 @@ return [
         ->constructorParameter('formType', \DI\get('Core\Form\ZzzzFormType'))
         ->constructorParameter('listType', \DI\get('Core\List\ZzzzListType'))
         ->constructorParameter('viewType', \DI\get('Core\View\ZzzzViewType')),
+        // ->constructorParameter('imageService', \DI\get(ImageService::class)),
         // ->constructorParameter('viewType', \DI\get('Core\List\ZzzzViewType')),
 
 

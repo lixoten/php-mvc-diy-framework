@@ -1,106 +1,641 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Sep 03, 2025 at 06:59 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+<?php
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
+/**
+ * ImageController.php
+ *
+ * This file contains the ImageController class, which handles various actions
+ * such as logging, session management, database testing, and email testing.
+ * It is part of the Image feature in the application.
+ *
+ * @package App\Features\Image
+ */
+
+declare(strict_types=1);
+
+namespace App\Features\Image;
+
+use Core\Services\FormatterService;
+use App\Helpers\DebugRt;
+use App\Enums\FlashMessageType;
+use App\Enums\PostFields2;
+use App\Enums\Url;
+use App\Services\Email\EmailNotificationService;
+use App\Services\FeatureMetadataService;
+use App\Services\Interfaces\FlashMessageServiceInterface;
+use App\Services\PaginationService;
+use Core\AbstractCrudController;
+use Core\Context\CurrentContext;
+use Core\Enum\SortDirection;
+use Core\Services\ConfigService;
+use stdClass;
+use Core\Http\HttpFactory;
+use Core\View;
+use Psr\Container\ContainerInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Core\Form\FormFactoryInterface;
+use Core\Form\FormHandlerInterface;
+use Core\Form\FormTypeInterface;
+use Core\Form\Renderer\FormRendererInterface;
+use Core\Formatters\TextFormatter;
+use Core\Interfaces\ConfigInterface;
+use Core\List\ListFactoryInterface;
+use Core\List\ListTypeInterface;
+use Core\Services\TypeResolverService;
+use Psr\Log\LoggerInterface;
+use Core\List\Renderer\ListRendererInterface;
+use Core\Services\BaseFeatureService;
+use Core\Services\ReturnUrlManagerServiceInterface;
+use Core\View\ViewFactoryInterface;
+use Core\View\ViewTypeInterface;
+use Core\View\Renderer\ViewRendererInterface;
+
+/**
+ * Image controller
+ *
+ */
+class ImageController extends AbstractCrudController
+{
+    protected ?ServerRequestInterface $request = null;
+
+    public function __construct(
+        array $route_params,
+        FlashMessageServiceInterface $flash22,
+        View $view,
+        HttpFactory $httpFactory,
+        ContainerInterface $container,
+        CurrentContext $scrap,
+        //-----------------------------------------
+        FeatureMetadataService $featureMetadataService,
+        FormFactoryInterface $formFactory, // 1
+        FormHandlerInterface $formHandler, //
+        FormTypeInterface $formType,       // 2
+        ListFactoryInterface $listFactory, // 1
+        ListTypeInterface $listType,       // 2
+        ViewFactoryInterface $viewFactory,
+        ViewTypeInterface $viewType,
+        ImageRepositoryInterface $repository,
+        TypeResolverService $typeResolver,
+        ListRendererInterface $listRenderer,
+        FormRendererInterface $formRenderer,
+        ViewRendererInterface $viewRenderer,
+        BaseFeatureService $baseFeatureService,
+        //-----------------------------------------
+        protected ConfigInterface $config,
+        protected LoggerInterface $logger,
+        protected EmailNotificationService $emailNotificationService,
+        private PaginationService $paginationService,
+        private FormatterService $formatter,
+        //-----------------------------------------
+        ReturnUrlManagerServiceInterface $returnUrlManager,
+        private ImageService $imageService,
+    ) {
+        parent::__construct(
+            $route_params,
+            $flash22,
+            $view,
+            $httpFactory,
+            $container,
+            $scrap,
+            //-----------------------------------------
+            $featureMetadataService,
+            $formFactory,
+            $formHandler,
+            $formType,
+            $listFactory,
+            $listType,
+            $viewFactory,
+            $viewType,
+            $repository,
+            $typeResolver,
+            $listRenderer,
+            $formRenderer,
+            $viewRenderer,
+            $baseFeatureService,
+            //-----------------------------------------
+            $returnUrlManager,
+            $imageService,
+        );
+        // constructor uses promotion php8+
+    }
+
+    /**
+     * Show the index page
+     *
+     * @return ResponseInterface
+     */
+    public function indexAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $viewData = [
+            'title' => 'Placeholder Action Page',
+            'actionLinks' => [],
+        ];
+
+        // return $this->view(Url::CORE_IMAGE_LIST->view(), $this->buildCommonViewData($viewData));
 
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+        return parent::listAction(request: $request);
+        // $viewData = [
+        //     'title' => 'Image Index Action',
+        //     'actionLinks' => $this->getReturnActionLinks(),
+        // ];
 
---
--- Database: `mvclixotest2`
---
+        // return $this->view(Url::CORE_IMAGE->view(), $this->buildCommonViewData($viewData));
+    }
 
--- --------------------------------------------------------
 
---
--- Table structure for table `testys`
---
 
-CREATE TABLE `testys` (
-  `testy_id` bigint(20) UNSIGNED NOT NULL,
-  `testy_store_id` bigint(20) UNSIGNED NOT NULL,
-  `testy_user_id` bigint(20) UNSIGNED NOT NULL,
-  `testy_status` char(1) NOT NULL DEFAULT 'P',
-  `slug` varchar(100) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `content` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    /**
+     * Show the index page
+     *
+     * @return ResponseInterface
+     */
+    // public function listAction(ServerRequestInterface $request): ResponseInterface
+    // {
+    //     return parent::listAction(request: $request);
+    // }
+    public function listAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $pageKey        = $this->scrap->getPageKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
 
---
--- Dumping data for table `testys`
---
+        $this->listType->setFocus(
+            $pageKey,
+            $pageName,
+            $pageAction,
+            $pageFeature,
+            $pageEntity,
+        );
 
-INSERT INTO `testys` (`testy_id`, `testy_store_id`, `testy_user_id`, `testy_status`, `slug`, `title`, `content`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 'P', 'first-blog-testy', 'My First Blog Testy', 'This is the content of my first blog testy. Welcome to my blog!', '2025-07-31 23:20:05', '2025-07-31 23:20:05'),
-(2, 1, 1, 'P', 'learning-php', 'Learning PHP in 2025', 'PHP has evolved significantly over the years. Here are some tips for learning PHP in 2025...', '2025-07-30 23:20:05', '2025-07-30 23:20:05'),
-(3, 1, 1, 'P', 'mvc-architecture', 'Understanding MVC Architecture', 'Model-View-Controller (MVC) is a software design pattern commonly used for developing user interfaces that divide the related program logic into three interconnected elements...', '2025-07-29 23:20:05', '2025-07-29 23:20:05'),
-(4, 1, 1, 'P', 'database-migrations', 'The Power of Database Migrations', 'Database migrations provide a way to reliably update your database schema and apply data changes...', '2025-07-28 23:20:05', '2025-07-28 23:20:05'),
-(5, 1, 1, 'P', 'web-security', 'Web Security Best Practices', 'Security is critical for any web application. Here are some best practices to keep your site secure...', '2025-07-27 23:20:05', '2025-07-27 23:20:05'),
-(6, 1, 1, 'P', 'rest-api-design', 'REST API Design Guidelines', 'When designing a REST API, it\'s important to follow these principles...', '2025-07-26 23:20:05', '2025-07-26 23:20:05'),
-(7, 1, 1, 'D', 'draft-testy', 'This is a Draft Testy', 'This testy is still being drafted and should not appear in the public listing.', '2025-07-25 23:20:05', '2025-07-25 23:20:05'),
-(8, 1, 1, 'P', 'php-8-features', 'New Features in PHP 8', 'PHP 8 introduced several amazing features that every developer should know about...', '2025-07-24 23:20:05', '2025-07-24 23:20:05'),
-(9, 1, 1, 'P', 'composer-best-practices', 'Composer Best Practices', 'Learn how to make the most of Composer for managing your PHP dependencies...', '2025-07-23 23:20:05', '2025-07-23 23:20:05'),
-(10, 1, 1, 'P', 'dependency-injection', 'Understanding Dependency Injection', 'Dependency Injection is a design pattern that implements Inversion of Control for resolving dependencies...', '2025-07-22 23:20:05', '2025-07-22 23:20:05'),
-(12, 4, 4, 'D', 'draft-testy', 'This is a Draft Testy', 'This testy is still being drafted and should not appear in the public listing.', '2025-07-25 23:20:05', '2025-07-25 23:20:05'),
-(13, 4, 4, 'P', 'first-blog-testy', 'My First Blog Testy', 'This is the content of my first blog testy. Welcome to my blog!', '2025-08-01 06:20:05', '2025-08-01 06:20:05'),
-(14, 4, 4, 'P', 'learning-php', 'Learning PHP in 2025', 'PHP has evolved significantly over the years. Here are some tips for learning PHP in 2025...', '2025-07-31 06:20:05', '2025-07-31 06:20:05'),
-(15, 4, 4, 'P', 'mvc-architecture', 'Understanding MVC Architecture', 'Model-View-Controller (MVC) is a software design pattern commonly used for developing user interfaces that divide the related program logic into three interconnected elements...', '2025-07-30 06:20:05', '2025-07-30 06:20:05'),
-(16, 4, 4, 'P', 'database-migrations', 'The Power of Database Migrations', 'Database migrations provide a way to reliably update your database schema and apply data changes...', '2025-07-29 06:20:05', '2025-07-29 06:20:05'),
-(17, 4, 4, 'P', 'web-security', 'Web Security Best Practices', 'Security is critical for any web application. Here are some best practices to keep your site secure...', '2025-07-28 06:20:05', '2025-07-28 06:20:05'),
-(18, 4, 4, 'P', 'rest-api-design', 'REST API Design Guidelines', 'When designing a REST API, it\'s important to follow these principles...', '2025-07-27 06:20:05', '2025-07-27 06:20:05'),
-(19, 4, 4, 'P', 'php-8-features', 'New Features in PHP 8', 'PHP 8 introduced several amazing features that every developer should know about...', '2025-07-25 06:20:05', '2025-07-25 06:20:05'),
-(20, 4, 4, 'P', 'composer-best-practices', 'Composer Best Practices', 'Learn how to make the most of Composer for managing your PHP dependencies...', '2025-07-24 06:20:05', '2025-07-24 06:20:05'),
-(21, 4, 4, 'P', 'dependency-injection', 'Understanding Dependency Injection', 'Dependency Injection is a design pattern that implements Inversion of Control for resolving dependencies...', '2025-07-23 06:20:05', '2025-07-23 06:20:05');
+        // ✅ Allow child controllers to override list rendering or other list configs
+        $this->overrideListTypeRenderOptions();
 
---
--- Indexes for dumped tables
---
+        $options            = $this->listType->getOptions() ?? [];
+        $renderOptions      = [];
+        $paginationOptions  = $this->listType->getPaginationOptions() ?? [];
+        $listFields         = $this->listType->getFields() ?? [];
 
---
--- Indexes for table `testys`
---
-ALTER TABLE `testys`
-  ADD PRIMARY KEY (`testy_id`),
-  ADD UNIQUE KEY `unique_testys_slug` (`testy_store_id`,`slug`) USING BTREE,
-  ADD KEY `idx_testys_testy_store_id` (`testy_store_id`),
-  ADD KEY `idx_testys_testy_user_id` (`testy_user_id`),
-  ADD KEY `idx_testys_testy_status` (`testy_status`);
 
---
--- AUTO_INCREMENT for dumped tables
---
+        $sortField = $options['default_sort_key']
+            ?? $this->listType->getOptions()['default_sort_key'] ?? PostFields2::TITLE->value;
+        $sortDirection = $options['default_sort_direction']
+            ?? $this->listType->getOptions()['default_sort_direction'] ?? SortDirection::ASC->value;
 
---
--- AUTO_INCREMENT for table `testys`
---
-ALTER TABLE `testys`
-  MODIFY `testy_id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+        // Get the record with pagination
+        $page = isset($this->route_params['page']) ? (int)$this->route_params['page'] : 1;
+        $limit = $paginationOptions['per_page']
+            ?? $this->listType->getPaginationOptions()['per_page'] ?? 2;
+        $offset = ($page - 1) * $limit;
 
---
--- Constraints for dumped tables
---
 
---
--- Constraints for table `testys`
---
-ALTER TABLE `testys`
-  ADD CONSTRAINT `fk_testys_stores` FOREIGN KEY (`testy_store_id`) REFERENCES `stores` (`store_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_testys_users` FOREIGN KEY (`testy_user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
-COMMIT;
+        $routeType = $this->scrap->getRouteType();
 
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+        $totalRecords = 0;
+        // 1. Fetch total records first to determine total pages
+        //$totalRecords = $this->fetchTotalListRecords($request);
+
+        //////////////////////////////////////////////////////
+        $pageEntity = $this->scrap->getPageEntity();
+        $routeType  = $this->scrap->getRouteType();
+
+        // Implement Testy-specific logic to get total count
+        if ($routeType === "account") {
+            $userId = $this->scrap->getUserId();
+            $totalRecords =  $this->imageService->countByUserId($userId);
+        } elseif ($routeType === "public") {
+            $storeId = $this->scrap->getStoreId();
+            $totalRecords =  $this->imageService->countByStoreId($storeId);
+        } else { // 'core' route or other default
+            if ($pageEntity === 'user') { // This logic would typically be in UserController
+                $totalRecords = $this->imageService->countAllImages();
+            } else {
+                $totalRecords = $this->imageService->countAllImages();
+            }
+        }
+        ///////////////////////////////////////////////////////
+
+
+        // 2. Calculate total pages. Ensure it's at least 1, even if no records.
+        $totalPages = ($totalRecords > 0) ? ceil($totalRecords / $limit) : 1;
+
+        // 3. Validate the requested page number and adjust internally
+        if ($page < 1) {
+            $page = 1; // If page is less than 1, default to page 1
+        } elseif ($page > $totalPages) {
+            $page = (int)$totalPages; // If page is too high, set to the last valid page
+        }
+
+        // 4. Recalculate offset with the potentially corrected page number
+        $offset = ($page - 1) * $limit;
+
+        // 5. Fetch actual records
+        //$records = $this->fetchListRecords($request, $limit, $offset, [$sortField => $sortDirection]);
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        $orderBy = [$sortField => $sortDirection];
+        $listFields = $this->listType->getFields(); // Get fields from ListType
+        $pageEntity = $this->scrap->getPageEntity();
+        $routeType  = $this->scrap->getRouteType();
+
+        // Implement Testy-specific logic to fetch records
+        if ($routeType === "account") {
+            $userId = $this->scrap->getUserId();
+            $records =  $this->imageService->getImageByUserIdWithFields(
+                $userId,
+                $listFields,
+                $orderBy,
+                $limit,
+                $offset
+            );
+        } else { // 'core' route or other default
+            // Assuming for 'user' entity in core, we fetch all, otherwise by store ID
+            if ($pageEntity === 'user') { // This logic would typically be in UserController
+                $userId = $this->scrap->getUserId();
+                $records =  $this->imageService->getImageByUserIdWithFields(
+                        $userId,
+                        $listFields,
+                        $orderBy,
+                        $limit,
+                        $offset
+                    );
+            } else {
+                $storeId = $this->scrap->getStoreId();
+                // $records =  $this->imageService->findByStoreIdWithFields(
+                $records =  $this->imageService->getImageByStoreIdWithFields(
+                        $storeId,
+                        $listFields,
+                        $orderBy,
+                        $limit,
+                        $offset
+                    );
+            }
+        }
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////
+        //$records = $this->imageService->getAllImagesWithFields($request, $limit, $offset, [$sortField => $sortDirection]);
+        // $record2 = $this->baseFeatureService->transformToDisplay($records, $pageKey, $pageEntity);
+        $dataRecords = array_map(function ($record) use ($pageKey, $pageEntity) {
+            $rrr = $this->baseFeatureService->transformToDisplay($record, $pageKey, $pageEntity);
+            return $rrr;
+        }, $records);
+
+        $paginationOptions['current_page'] = $page;
+        $paginationOptions['total_pages'] = $totalPages;
+        $paginationOptions['total_items'] = $totalRecords;
+        $paginationOptions['listUrlEnum'] = $this->feature->listUrlEnum;
+
+        // $dataRecords = $records;
+
+        // ✅ Update the ListType with the calculated runtime pagination options
+        $this->listType->setPaginationOptions($paginationOptions);
+
+        $this->listType->mergeRenderOptions([
+            'url_enums' => [
+                'list' => $this->feature->listUrlEnum,
+                'edit' => $this->feature->editUrlEnum,
+                'delete' => $this->feature->deleteUrlEnum ?? $this->feature->editUrlEnum,
+                'view' => $this->feature->viewUrlEnum ?? $this->feature->baseUrlEnum,
+                'add' => $this->feature->createUrlEnum ?? $this->feature->baseUrlEnum,
+            ],
+            'add_url' => $this->feature->createUrlEnum?->url([], $routeType) ?? '',
+            'route_type' => $this->scrap->getRouteType(),
+            'current_query_params' => $this->scrap->getPageQueryParms(),
+            'view_type' => $this->scrap->getPageListViewType(),
+        ]);
+
+        $list = $this->listFactory->create(
+            listType: $this->listType,
+            data: $dataRecords,
+            // The 'options' array is now empty as all configuration is on the ListType.
+            // You can remove it entirely or leave it as an empty array for future factory-specific flags.
+            options: [],
+        );
+
+        $renderedList = $this->listRenderer->renderList($list, []);
+
+        $viewData = [
+            'title' => 'List Action',
+            'renderedList' => $renderedList,
+        ];
+
+        $url = $this->feature->listUrlEnum;
+        return $this->view($url->view(), $this->buildCommonViewData($viewData));
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Reusable getReturnActionLinks for all actions
+     *
+     * @return array
+     */
+    public function getReturnActionLinks(): array
+    {
+        $rrr = Url::CORE_POST_EDIT->url(['id' => 22]);
+        return $this->getActionLinks(
+            Url::CORE_IMAGE,
+            Url::CORE_IMAGE_LIST,
+            Url::CORE_IMAGE_CREATE,
+            Url::CORE_IMAGE_EDIT,
+        );
+    }
+
+
+    public function editAction(ServerRequestInterface $request): ResponseInterface
+    {
+        // $url = $this->feature->baseUrlEnum;
+        // $url = Url::CORE_IMAGE;
+        // $rrr = $url->action();
+        // $rrr = $url->getSection('CORE');
+        // $rrr = $url->url();
+        // $rrr = $this->scrap();
+        // $rrr = $url->action();
+        // $rrr = $url->action();
+        // $rrr = $url->action();
+
+        return parent::editAction(request: $request);
+    }
+
+    public function viewAction(ServerRequestInterface $request): ResponseInterface
+    {
+        return parent::viewAction(request: $request);
+    }
+
+
+    /** {@inheritdoc} */
+    protected function overrideFormTypeRenderOptions(): void
+    {
+        // $options = [
+            // 'options' can contain general form options if defined in your config
+            // For example, if you had a 'force_recaptcha' in form options config:
+            // 'options' => [
+            //     'force_recaptcha' => true,
+            // ],
+            // 'render_options' => [
+            //     'error_display' => 'summary', // Override how errors are displayed
+            //     'layout_type'   => 'fieldsets', // Specify layout type
+            //     // 'submit_text'   => "Custom Submit Text", // Override submit button text
+            //     // You can specify which fields to display in a form (if not all in config)
+            //     // 'form_fields'   => [
+            //     //     'content', 'title', 'generic_text',
+            //     // ],
+            //     'layout'        => [ // Override the entire layout structure if needed
+            //         [
+            //             'title' => 'Your Primary Information',
+            //             'fields' => ['title', 'content'],
+            //             'divider' => true
+            //         ],
+            //         [
+            //             'title' => 'Additional Details',
+            //             'fields' => ['generic_text'],
+            //             'divider' => true,
+            //         ],
+            //     ],
+            // ],
+            // 'hidden_fields' can be merged if you need to add more hidden fields
+            // 'hidden_fields' => ['additional_hidden_field'],
+        // ];
+
+        // ✅ IMPORTANT: UNCOMMENT this line to apply the overrides
+        $this->formType->overrideConfig(options: []);
+    }
+
+    /** {@inheritdoc} */
+    protected function overrideViewTypeRenderOptions(): void
+    {
+        $this->viewType->overrideConfig(options: []);
+    }
+
+
+    /** {@inheritdoc} */
+    protected function overrideListTypeRenderOptions(): void
+    {
+        // By default, no overrides are applied.
+        // If you need to override list options, uncomment and use this:
+        /*
+        $options = [
+            'options' => [
+                'default_sort_key' => 'title',
+                'default_sort_direction' => 'ASC',
+            ],
+            'pagination' => [
+                'per_page' => 10,
+            ],
+            'render_options' => [
+                'title' => 'Custom Image List Title',
+                'show_action_edit' => false,
+            ],
+            // 'list_fields' => ['id', 'title', 'created_at'], // Override displayed fields
+        ];
+        $this->listType->overrideConfig(options: $options);
+        */
+        // Or, for an empty override:
+        $this->listType->overrideConfig(options: []); // Call with empty array if no overrides
+    }
+
+
+    /**
+     * Handles updating a resource via an AJAX request.
+     * Responds to POST /image/edit/{id}/update
+     *
+     * @param ServerRequestInterface $request The incoming server request.
+     * @return ResponseInterface The JSON response.
+     */
+    public function updateAction(ServerRequestInterface $request): ResponseInterface
+    {
+        return parent::updateAction(request: $request);
+    }
+
+
+    // /**
+    //  * Show the posts form
+    //  */
+    // public function createAction(ServerRequestInterface $request): ResponseInterface
+    // {
+    //     return parent::createAction(request: $request);
+    // }
+
+    /**
+     * Create a new record. Handles standard GET requests.
+     *
+     * @param ServerRequestInterface $request The incoming server request.
+     * @return ResponseInterface The response, rendering the view.
+     */
+    public function createAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $pageKey       = $this->scrap->getPageKey();
+        $pageName       = $this->scrap->getPageName();
+        $pageAction     = $this->scrap->getPageAction();
+        $pageFeature    = $this->scrap->getPageFeature();
+        $pageEntity     = $this->scrap->getPageEntity();
+
+        $this->formType->setFocus(
+            $pageKey,
+            $pageName,
+            $pageAction,
+            $pageFeature,
+            $pageEntity,
+        );
+
+
+        // ✅ Allow child controllers to override form rendering or other form configs
+        $this->overrideFormTypeRenderOptions();
+        $this->overrideFormTypeRenderOptions();
+
+
+        // ✅ NEW: Inject form URLs and route context via render options
+        $routeType = $this->scrap->getRouteType();
+
+        // $this->formType->mergeRenderOptions([
+        //     'url_enums' => [
+        //         'action' => $this->feature->createUrlEnum, // Form action URL enum (for store)
+        //         'cancel' => $this->feature->listUrlEnum, // Cancel/back button URL enum
+        //     ],
+        //     'action_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store', // Full action URL
+        //     'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Full cancel URL
+        //     'route_type' => $routeType, // Current route context
+        //     'ajax_store_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store',
+        // ]);
+        $this->formType->mergeRenderOptions([
+            'action_url' => $this->feature->createUrlEnum->url([], $routeType),
+            'cancel_url' => $this->feature->listUrlEnum->url([], $routeType),
+            'route_type' => $routeType,
+        ]);
+
+
+
+        // 1. Define all columns needed for this request (form fields + permission fields).
+        $ownerForeignKey = $this->feature->ownerForeignKey;
+        // $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
+
+        // // 2. For create, no record array is needed (new record).
+        // $recordArray = null;
+
+        // For create, no record array is needed
+        $result = $this->processForm($request, null);
+        $form = $result['form'];
+
+        // Prepare the form for JavaScript
+        //$form->setAttribute('data-ajax-action', $this->feature->createUrlEnum->url() . '/store');
+
+
+
+        // This block handles the submission AFTER the form has been processed
+        if (
+            $result['handled']
+            && $result['valid']
+            && $request->getHeaderLine('X-Requested-With') !== 'XMLHttpRequest'
+        ) {
+            $data = $form->getUpdatableData();
+
+            // Add owner foreign key for new records
+            $currentUserId = $this->scrap->getUserId();
+            // $currentUserId = 4; // Hack because not logged in
+            $data[$ownerForeignKey] = $currentUserId;
+
+            if ($this->scrap->getPageFeature() !== 'User') {
+                $data['store_id'] = $this->scrap->getStoreId(); // Hack because not logged in
+            }
+
+            if (array_key_exists('title', $data)) {
+                // Slug regeneration if needed
+                if (isset($data['title'])) {
+                    // Regenerate slug if the current slug was auto-generated before or no slug supplied
+                    $data['slug'] = $this->generateSlug((string)$data['title']);
+                } else {
+                    $data['title'] = $this->generateTitle(3, 6);
+                    // protected function generateTitle(int $wordCount = 2, int $wordLength = 6): string
+
+                    $data['slug'] = $this->generateSlug((string)$data['title']);
+                }
+            }
+
+            // Transform form data before saving
+            // $data = $this->baseFeatureService->transformToStorage($data, $pageKey);
+            // Transform form data before saving
+            $data = $this->baseFeatureService->transformToStorage($data, $pageKey, $pageEntity);
+
+
+            // foreach ($data as $name => $field) {
+            //     if ($field->getAttribute('type') === 'hidden' ||
+            //                             $field->getAttribute('disabled') || $field->getAttribute('readonly')) {
+            //         unset($data[$name]);
+            //     }
+            // }
+
+
+            //$newRecordId = $this->repository->insertFields($data);
+            $newRecordId = $this->saveRecord($data);
+
+            if ($newRecordId) {
+                $this->flash22->add("Record added successfully", FlashMessageType::Success);
+                return $this->redirect($this->getRedirectUrlAfterSave((int)$newRecordId));
+            }
+
+            $form->addError('_form', 'Failed to save the record in the database.');
+        }
+
+        $renderedForm = $this->formRenderer->renderForm($form, []);
+
+
+        // This block handles the initial page load (GET)
+        $viewData = [
+            'title' => 'Create New Record',
+            'form' => $form,
+            'formTheme' => $form->getCssFormThemeFile(),
+            'renderedForm' => $renderedForm,
+        ];
+
+        $url = $this->feature->editUrlEnum;
+        // $url = $this->feature->createUrlEnum;
+        $response = $this->view($url->view(), $this->buildCommonViewData($viewData));
+
+        // If the form has errors (unlikely on GET), return a 422 status code
+        if ($form->hasErrors()) {
+            return $response->withStatus(422);
+        }
+
+        return $response;
+    }
+
+
+
+
+
+    public function placeHolderAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $viewData = [
+            'title' => 'Placeholder Action Page',
+            'actionLinks' => $this->getReturnActionLinks(),
+        ];
+
+        return $this->view(Url::CORE_IMAGE_PLACEHOLDER->view(), $this->buildCommonViewData($viewData));
+    }
+
+
+
+}
+## 697 764 804 403 372

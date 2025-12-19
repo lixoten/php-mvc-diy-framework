@@ -47,15 +47,11 @@ return [
             ],
         ],
         'status' => [
-            // 'db_type'   => 'char',
             'db_type'   => 'enum',
-            // 'length'    => 1,
-            // 'nullable'  => false,
             'default'   => 'a',
             'comment'   => 'Status',
             'comment2'  => 'P=Pending, A=Active, S=Suspended, B=Banned, D=Deleted',
-            'check'     => "status IN ('j', 'p','a','s','b','d')", // Using CHECK constraint as per instructions
-            // 'comment'   => 'P=Pending, A=Active, I=Inactive',
+            'check'     => "status IN ('p','a','s','b','d')", // Using CHECK constraint as per instructions
             'lookup'    => 'image_status',
             'enum_class' => 'ImageStatus',
             'codes'     => [
@@ -65,13 +61,6 @@ return [
                 'b' => 'Banned',
                 'd' => 'Deleted',
             ],
-        ],
-        'slug' => [
-            'db_type'   => 'string',
-            'length'    => 100,
-            'nullable'  => false,
-            'unique'    => true, // From migration
-            'comment'   => 'Unique SEO-friendly slug for the image',
         ],
         'title' => [
             'db_type' => 'string',
@@ -86,34 +75,83 @@ return [
             // 'data-char-counter'    => true,
             // 'data-live-validation' => true,
         ],
-        'file_id' => [
+        'slug' => [
+            'db_type'   => 'string',
+            'length'    => 100,
+            'nullable'  => false,
+            'unique'    => true,
+            'comment'   => 'Slug',
+            'comment2'   => 'Unique SEO-friendly slug for the image',
+        ],
+        'description' => [
+            'db_type' => 'text',
+            'nullable'  => false,
+            'comment'   => 'Description',
+            'required'  => true,
+            'minlength' => 5,
+        ],
+        'filename' => [
             'db_type' => 'string',
             'length'    => 255,
-            'nullable'  => false,
-            'comment'   => 'Title',
-            'required'  => true,
-            'minlength' => 5,
-            'maxlength' => 50,
-            // 'pattern'   => '[a-z0-9]/',
-            // 'style'     => 'background: cyan;',
-            // 'data-char-counter'    => true,
-            // 'data-live-validation' => true,
-        ],
-        'generic_text' => [
-            'db_type'   => 'string',
-            'length'    => 60,
             'nullable'  => true,
-            'comment'   => 'Generic text',
-            'comment2'  => 'Generic short text',
-            'required'  => true,
-            'minlength' => 5,
-            'maxlength' => 50,
+            'comment'   => 'Hash filename',
         ],
-        'filename_original' => [
-            'db_type'   => 'string',
-            'length'    => 60,
+
+        'original_filename' => [
+            'db_type' => 'string',
+            'length'    => 255,
             'nullable'  => true,
-            'comment'   => 'Generic text',
+            'comment'   => 'Original filename',
+        ],
+
+        'mime_type' => [
+            'db_type' => 'string',
+            'length' => 50,
+            'nullable'  => true,
+            'comment' => 'MIME type (e.g., image/jpeg)',
+        ],
+        'file_size_bytes' => [
+            'db_type' => 'bigInteger',
+            'nullable'  => true,
+            'comment' => 'File size in bytes',
+        ],
+        'width' => [
+            'db_type' => 'integer',
+            'nullable' => true,
+            'comment' => 'Original image width in pixels',
+        ],
+        'height' => [
+            'db_type' => 'integer',
+            'nullable' => true,
+            'comment' => 'Original image height in pixels',
+        ],
+        'focal_point' => [
+            'db_type' => 'json',
+            'nullable' => true,
+            'comment' => 'Smart crop focal point (e.g., {"x":0.5,"y":0.3})',
+        ],
+        'is_optimized' => [
+            'db_type' => 'boolean',
+            'default' => false,
+            'comment' => 'Whether the image has been optimized',
+        ],
+        'checksum' => [
+            'db_type' => 'string',
+            'length' => 64,
+            'nullable' => true,
+            'comment' => 'Optional file checksum for integrity',
+        ],
+        'alt_text' => [
+            'db_type' => 'string',
+            'length' => 255,
+            'nullable' => true,
+            'comment' => 'Accessibility alt text',
+        ],
+        'license' => [
+            'db_type' => 'string',
+            'length' => 100,
+            'nullable' => true,
+            'comment' => 'Usage license',
         ],
         'created_at' => [
             'db_type'   => 'dateTime',
@@ -124,6 +162,12 @@ return [
         'updated_at' => [
             'db_type'   => 'dateTime',
             'nullable'  => false,
+            'comment'   => 'Last update',
+            'comment2'  => 'Timestamp when the record was last updated',
+        ],
+        'deleted_at' => [
+            'db_type'   => 'dateTime',
+            'nullable'  => true,
             'comment'   => 'Last update',
             'comment2'  => 'Timestamp when the record was last updated',
         ]

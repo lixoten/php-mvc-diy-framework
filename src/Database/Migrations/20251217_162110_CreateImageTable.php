@@ -8,7 +8,7 @@ use Core\Database\Migrations\Migration;
 use Core\Database\Schema\Blueprint;
 
 /**
- * Generated File - Date: 20251212_181524
+ * Generated File - Date: 20251217_162110
  * Migration for creating the 'image' table.
  */
 class CreateImageTable extends Migration
@@ -36,24 +36,61 @@ class CreateImageTable extends Migration
             $table->char('status', 1)
                     ->default('a')
                     ->comment('Status');
-            $table->string('slug', 100)
-                    ->nullable(false)
-                    ->comment('Unique SEO-friendly slug for the image');
             $table->string('title', 255)
                     ->nullable(false)
                     ->comment('Title');
-            $table->string('generic_text', 60)
+            $table->string('slug', 100)
+                    ->nullable(false)
+                    ->comment('Slug');
+            $table->text('description')
+                    ->nullable(false)
+                    ->comment('Description');
+            $table->string('filename', 255)
                     ->nullable()
-                    ->comment('Generic text');
+                    ->comment('Hash filename');
+            $table->string('original_filename', 255)
+                    ->nullable()
+                    ->comment('Original filename');
+            $table->string('mime_type', 50)
+                    ->nullable()
+                    ->comment('MIME type (e.g., image/jpeg)');
+            $table->bigInteger('file_size_bytes')
+                    ->nullable()
+                    ->comment('File size in bytes');
+            $table->integer('width')
+                    ->nullable()
+                    ->comment('Original image width in pixels');
+            $table->integer('height')
+                    ->nullable()
+                    ->comment('Original image height in pixels');
+            $table->json('focal_point')
+                    ->nullable()
+                    ->comment('Smart crop focal point (e.g., {\"x\":0.5,\"y\":0.3})');
+            $table->boolean('is_optimized')
+                    ->nullable()
+                    ->default(false)
+                    ->comment('Whether the image has been optimized');
+            $table->string('checksum', 64)
+                    ->nullable()
+                    ->comment('Optional file checksum for integrity');
+            $table->string('alt_text', 255)
+                    ->nullable()
+                    ->comment('Accessibility alt text');
+            $table->string('license', 100)
+                    ->nullable()
+                    ->comment('Usage license');
             $table->dateTime('created_at')
                     ->nullable(false)
                     ->comment('Created Date');
             $table->dateTime('updated_at')
                     ->nullable(false)
                     ->comment('Last update');
+            $table->dateTime('deleted_at')
+                    ->nullable()
+                    ->comment('Last update');
 
             // CHECK Constraints
-            $table->check('status IN (\'j\', \'p\',\'a\',\'s\',\'b\',\'d\')', 'chk_image_status');
+            $table->check('status IN (\'p\',\'a\',\'s\',\'b\',\'d\')', 'chk_image_status');
 
             // Foreign Keys
             $table->foreign('store_id', 'store', 'id', 'fk_image_store')

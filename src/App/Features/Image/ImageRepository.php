@@ -74,6 +74,30 @@ class ImageRepository extends AbstractMultiTenantRepository implements ImageRepo
     {
         $image = new Image();
 
+        // Hydrate all fields from database row
+        $image->setId($data['id'] ?? null);
+        $image->setStoreId($data['store_id'] ?? null);
+        $image->setUserId($data['user_id'] ?? null);
+        //$image->setStatus($data['status'] ?? null);
+        $image->setStatus(ImageStatus::from($data['status']));
+        $image->setTitle($data['title'] ?? null);
+        $image->setSlug($data['slug'] ?? null);
+        $image->setDescription($data['description'] ?? null);
+        $image->setFilename($data['filename'] ?? null);
+        $image->setOriginalFilename($data['original_filename'] ?? null);
+        $image->setMimeType($data['mime_type'] ?? null);
+        // $image->setFileSizeBytes(GetBytes($data['file_size_bytes'] ?? null);
+        $image->setFileSizeBytes($data['file_size_bytes'] ?? null);
+        $image->setWidth($data['width'] ?? null);
+        $image->setHeight($data['height'] ?? null);
+        $image->setFocalPoint($data['focal_point'] ?? null);
+        $image->setIsOptimized((bool) $data['is_optimized'] ?? false);
+        $image->setChecksum($data['checksum'] ?? null);
+        $image->setAltText($data['alt_text'] ?? null);
+        $image->setLicense($data['license'] ?? null);
+        $image->setCreatedAt($data['created_at'] ?? null);
+        $image->setUpdatedAt($data['updated_at'] ?? null);
+        $image->setDeletedAt($data['deleted_at'] ?? null);
 
         return $image;
     }

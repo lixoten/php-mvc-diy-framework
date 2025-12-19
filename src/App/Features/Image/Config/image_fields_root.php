@@ -66,5 +66,47 @@ return [
             ],
         ],
     ],
+    'filename' => [
+        'list' => [
+            'sortable'    => false,
+            'formatters' => [
+                'image_link' => [
+                    'preset' => 'thumbs', // ✅ Use 'preset' for ImageStorageService to resolve path
+                    'default_image' => '/assets/images/default-avatar.png', // ✅ Fallback
+                    'alt_field' => 'generic_text', // ✅ Use this field for alt text
+                    'width' => 150, // ✅ Thumbnail size
+                    'height' => 150,
+                    // 'link_to' => '/testy/view/{id}', // ✅ OPTIONAL: Make image clickable
+                ],
+            ],
+        ],
+        'form' => [
+            'type'        => 'file',
+            // 'placeholder' => true,
+            'attributes'  => [
+                'accept' => 'image/*',
+            ],
+            'upload' => [
+                'max_size' => 2097152, // 2MB
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+                'subdir' => 'profiles',
+            ],
+            'formatters' => [
+                'image_link' => [
+                    'preset' => 'thumbs', // ✅ Use 'preset' for ImageStorageService to resolve path
+                    'default_image' => '/assets/images/default-avatar.png', // ✅ Fallback
+                    'alt_text' => 'Current Profile Picture', // ✅ Static alt text
+                    'width' => 150, // ✅ Thumbnail size
+                    'height' => 150,
+                    'css_class' => 'img-thumbnail mb-2', // Add some Bootstrap styling
+                    // 'link_to' => '/testy/view/{id}', // ✅ OPTIONAL: Make image clickable
+                ],
+            ],
+        ],
+        'validators' => [
+            'text' => [
+            ],
+        ],
+    ],
 ];
 //334

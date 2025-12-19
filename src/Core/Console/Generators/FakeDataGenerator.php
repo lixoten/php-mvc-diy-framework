@@ -42,6 +42,7 @@ class FakeDataGenerator
             return null;
         }
 
+
         // 2. Handle explicit default values from schema
         if (array_key_exists('default', $fieldConfig)) {
             // Special handling for array defaults like `[]` which are often strings in schema config
@@ -56,6 +57,44 @@ class FakeDataGenerator
         }
 
 
+            if (in_array($fieldName, [
+                'filename',
+                'original_filename',
+                'mime_type',
+                'file_size_bytes',
+                'width',
+                'height',
+                'focal_point',
+                'checksum',
+                'alt_text',
+                'license',
+                'xxx',
+                'xxx',
+                'xxx',
+                'xxx',
+                ])) {
+                return null;
+            }
+           if ($fieldName === 'focal_point') {
+                // Generate a JSON object with x and y between 0 and 1
+                return json_encode([
+                    'x' => $this->faker->randomFloat(2, 0, 1),
+                    'y' => $this->faker->randomFloat(2, 0, 1),
+                ]);
+            }
+            // Special case for focal_point
+            if ($fieldName === 'focal_point') {
+                // Generate a JSON object with x and y between 0 and 1
+                return json_encode([
+                    'x' => $this->faker->randomFloat(2, 0, 1),
+                    'y' => $this->faker->randomFloat(2, 0, 1),
+                ]);
+            }
+            // // Generic JSON: return a random associative array as JSON
+            // return json_encode([
+            //     $this->faker->word() => $this->faker->word(),
+            //     $this->faker->word() => $this->faker->word(),
+            // ]);
 
         //$this->faker->userName();
         // 3. Apply smart field name heuristics for more realistic data

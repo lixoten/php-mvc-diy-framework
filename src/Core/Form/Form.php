@@ -18,6 +18,7 @@ class Form implements FormInterface
     private string $pageName;
     private array $fields = [];
     private array $data   = [];
+    private array $extraProcessedData   = [];
     private array $errors = [];
     private CSRFToken $csrf;
     private ?Validator $validator = null;
@@ -177,6 +178,36 @@ class Form implements FormInterface
 
         return $data;
     }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setExtraProcessedData($extraProcessedData): self
+    {
+        $this->extraProcessedData = $extraProcessedData;
+
+        return $this;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExtraProcessedData(): array
+    {
+        if (empty($this->extraProcessedData)) {
+            return [];
+        } else {
+            return $this->extraProcessedData;
+        }
+    }
+
+    // public function hasExtraProcessedData(): bool
+    // {
+    //     return !empty($this->extraProcessedData);
+    // }
+
 
     /**
      * {@inheritdoc}

@@ -86,6 +86,7 @@ class ImageController extends AbstractCrudController
         private FormatterService $formatter,
         //-----------------------------------------
         ReturnUrlManagerServiceInterface $returnUrlManager,
+        protected ImageService $imageService,
     ) {
         parent::__construct(
             $route_params,
@@ -110,8 +111,10 @@ class ImageController extends AbstractCrudController
             $viewRenderer,
             $baseFeatureService,
             //-----------------------------------------
-            $returnUrlManager,        );
+            $returnUrlManager,
+        );
         // constructor uses promotion php8+
+        $this->imageService = $imageService;
     }
 
     /**
@@ -152,7 +155,21 @@ class ImageController extends AbstractCrudController
 
 
 
-
+    /**
+     * Overrides the default saveRecord method to delegate complex image data processing
+     * (including file metadata updates) to the ImageService.
+     *
+     * @param array<string, mixed> $updatableData The validated and filtered data (e.g., from form->getUpdatableData()).
+     * @param array<string, mixed> $fullFormData The complete validated data from the form, including any auxiliary data (e.g., from form->getData()).
+     * @param int|null $id The ID of the record to update, or null for a new record.
+     * @return int The ID of the created or updated record.
+     */
+    protected function saveRecord(array $updatableData, array $fullFormData, ?int $id = null): ?int // ✅ Updated signature
+    {
+        // Delegate the complex image data processing (including metadata) to ImageService.
+        // ImageService will need the full form data to find '_image_metadata_filename'.
+        return $this->imageService->processImageData($fullFormData, $id); // ✅ Pass fullFormData to ImageService
+    }
 
 
 

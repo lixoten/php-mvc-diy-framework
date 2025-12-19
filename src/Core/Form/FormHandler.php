@@ -71,6 +71,7 @@ class FormHandler implements FormHandlerInterface
 
         // Parse form data from the request (keeps files separate)
         $parsed = $this->parseRequestData($request);
+        $extraProcessedData = [];
         $data = $parsed['data'] ?? [];
         // $data['generic_color'] = '#errrrr'; // fixme - just for testing invalid color
         //$data['secret_code_hash'] = '-22'; // fixme - just for testing invalid color
@@ -165,14 +166,15 @@ class FormHandler implements FormHandlerInterface
                 // Get storeId from form context (or default to 1)
                 // $storeId = $form->getContext()['store_id'] ?? 1;
                 //$storeId = $form->getData()['store_id'] ?? 1;
-                $storeId = 6; // fixme 
+                $storeId = $form->getContext()['store_id']; // fixme
 
                 // Upload image using ImageStorageService
                 try {
                     $imageMetadata = $this->imageStorageService->upload($uploadedFile, $storeId);
 
                     // Store hash in database (e.g., 'abc123def456...xyz')
-                    $data[$fieldName] = $imageMetadata['hash'];
+                    $data['filename'] = $imageMetadata['filename'];
+                    $extraProcessedData['image_metadata'] = $imageMetadata; //fixme lllllllllllllll
 
                     $this->logger?->info('Image uploaded successfully', [
                         'field' => $fieldName,
@@ -256,6 +258,7 @@ class FormHandler implements FormHandlerInterface
 
         // Set form data
         $form->setData($data);
+        $form->setExtraProcessedData($extraProcessedData);
 
         // Dispatch POST_SUBMIT event
         $this->dispatchEvent(FormEvents::POST_SUBMIT, $form, $data);
