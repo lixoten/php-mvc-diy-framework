@@ -37,15 +37,32 @@ interface ImageStorageServiceInterface
 
 
     /**
-     * Upload and process an image file.
-     * Returns an array containing the generated hash and the determined extension.
-     *
-     * @param UploadedFileInterface $file Uploaded file (PSR-7)
-     * @param int $storeId Target store ID
-     * @return array<string, string> An associative array with 'hash' and 'extension'
-     * @throws \RuntimeException If upload fails or file processing encounters an error.
+     * @deprecated Use `uploadFromTemporary` instead.
+     * @throws ImageUploadException Always throws, as this method is deprecated.
      */
     public function upload(UploadedFileInterface $file, int $storeId): array;
+
+
+    /**
+     * Uploads an image from a temporary file path to permanent storage,
+     * generates presets, and cleans up the temporary file.
+     *
+     * @param string $temporaryFilePath The absolute path to the uploaded file in temporary storage.
+     * @param int $storeId The ID of the store the image belongs to.
+     * @param string $originalMimeType The original MIME type of the uploaded file.
+     * @param string $originalFilename The original client filename.
+     * @return array<string, mixed> Metadata of the permanently stored image.
+     * @throws ImageUploadException If image processing or storage fails.
+     */
+    public function uploadFromTemporary(
+        string $temporaryFilePath,
+        int $storeId,
+        string $originalMimeType,
+        string $originalFilename
+    ): array; // ✅ NEW METHOD SIGNATURE
+
+
+
 
     /**
      * Return associative array of available extensions => public URL for a given image/preset.

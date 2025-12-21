@@ -92,6 +92,8 @@ class ErrorsController extends Controller
             'data' => $data,
         ];
 
-        return $this->view("errors/{$code}", $viewData, (int)$code);
+        $fullViewData = $this->buildCommonViewData($viewData);
+
+        return $this->view("errors/{$code}", $fullViewData, (int)$code);
     }
 }

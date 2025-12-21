@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Core\List\Renderer;
 
+use Core\Context\CurrentContext;
 use Core\I18n\I18nTranslator;
 use Core\List\ListInterface;
 use Core\List\ListView;
@@ -31,14 +32,16 @@ class VanillaListRenderer extends AbstractListRenderer
         protected I18nTranslator $translator,
         FormatterService $formatterService,
         LoggerInterface $logger,
-        ContainerInterface $container
+        ContainerInterface $container,
+        protected CurrentContext $currentContext
     ) {
         parent::__construct(
             $themeService,
             $translator,
             $formatterService,
             $logger,
-            $container
+            $container,
+            $currentContext
         );
 
         // Vanilla CSS-specific default options, fetched from ThemeService

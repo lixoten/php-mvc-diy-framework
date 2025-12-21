@@ -41,7 +41,7 @@ class EntityGenerator
 
         // Use the service to get the output directory
         $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
-        $filePath = $outputDir . '/' . $entityName . '.php'; // Entity files are named directly after the entity
+        $filePath = $outputDir . $entityName . '.php'; // Entity files are named directly after the entity
 
         $entityContent = $this->generateEntityClass($entityName, $fields);
 

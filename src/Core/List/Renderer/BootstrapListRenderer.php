@@ -10,6 +10,7 @@ use Core\List\ListView;
 use Core\Services\ThemeServiceInterface;
 use Core\I18n\I18nTranslator;
 use App\Enums\Url;
+use Core\Context\CurrentContext;
 use Core\Services\FormatterService;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -27,14 +28,16 @@ class BootstrapListRenderer extends AbstractListRenderer
         protected I18nTranslator $translator,
         protected FormatterService $formatterService,
         protected LoggerInterface $logger,
-        protected ContainerInterface $container
+        protected ContainerInterface $container,
+        protected CurrentContext $currentContext
     ) {
         parent::__construct(
             $themeService,
             $translator,
             $formatterService,
             $logger,
-            $container
+            $container,
+            $currentContext
         );
         $this->defaultOptions['view_type'] = self::VIEW_TABLE; // Fik - Override List View Default - GRID TABLE LIST
     }

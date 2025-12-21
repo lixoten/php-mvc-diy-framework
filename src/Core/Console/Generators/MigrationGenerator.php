@@ -44,7 +44,7 @@ class MigrationGenerator
 
         // output directory
         $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
-        $filePath = $outputDir . '/' . $fileName;
+        $filePath = $outputDir . $fileName;
 
         // Get the generated timestamp from the service
         $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();

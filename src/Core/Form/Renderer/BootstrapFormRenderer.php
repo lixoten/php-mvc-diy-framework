@@ -49,15 +49,23 @@ class BootstrapFormRenderer extends AbstractFormRenderer
 
         $type = $field->getType();
         $name = $field->getName();
+        // if (isset($options['show_label']))
         $id = $field->getAttribute('id') ?? $name;
-        $label = $this->translator->get($id . '.form.label', pageName: $pageName);
-        // $label = $this->translator->get($field->getLabel(), pageName: $pageName);
 
         //---------------------------------------------------------------------
 
         // Get the raw value
         $rawValue     = $field->getValue();
         $fieldOptions = $field->getOptions();
+
+        if ($field->showLabel()) {
+            $label = $this->translator->get($id . '.form.label', pageName: $pageName);
+            // $label = $this->translator->get($field->getLabel(), pageName: $pageName);
+        } else {
+            $label = null;
+        }
+
+
         $value = '';
 
         $formatters = $field->getFormatters();
@@ -359,13 +367,15 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         // Different rendering based on field type
         switch ($type) {
             case 'display':
-                $output .= '<span class="form-label" for="' . $id . '">' . $label . '</span>';
+                $output .= $this->getLabelNow($id, $label);
+                                // $xxx = $field->get
                 $output .= "<div class=\"{$class}{$errorClass}\" id=\"{$id}\" name=\"{$name}\"" .
                     "{$ariaAttrs}{$attrString}>{$value}</div>";
                 //$output .= $errorHTML;
                 break;
             case 'file':
-                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= $this->getLabelNow($id, $label);
+                //$output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
 
                 // 📌 Only show preview if field has a value AND formatters processed it
                 if (!empty($rawValue) && !empty($value)) {
@@ -564,9 +574,10 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 break;
 
             case 'select':
-                $output .= '<label class="form-label" for="' . $id . '">';
-                $output .= $label;
-                $output .= '</label>';
+                $output .= $this->getLabelNow($id, $label);
+                // $output .= '<label class="form-label" for="' . $id . '">';
+                // $output .= $label;
+                // $output .= '</label>';
 
                 $output .= '<select class="' . $class . $errorClass . '" id="' . $id . '" name="' . $name . '"' .
                     $ariaAttrs . $attrString . '>';
@@ -603,6 +614,8 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 break;
 
             case 'textarea':
+                $output .= $this->getLabelNow($id, $label);
+                //$output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
                 $output .= "<label class=\"form-label\" for=\"{$id}\">{$label}</label>";
                 $output .= "<textarea class=\"{$class}{$errorClass}\" id=\"{$id}\" name=\"{$name}\"" .
                     "{$ariaAttrs}{$attrString}>{$value}</textarea>";
@@ -625,9 +638,14 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 break;
 
             case 'text':
-                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
-                $output .= '<input type="text" class="' . $class . $errorClass . '" id="' . $id .
-                    '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
+                $output .= $this->getLabelNow($id, $label);
+                $output .= <<<HTML
+                <input type="text"
+                       class="{$class} xxx {$errorClass}"
+                       id="{$id}" name="{$name}" value="{$value}" {$attrString}>
+                HTML;
+
+
                 // Add datalist if provided
                 if (isset($fieldOptions['datalist']) && is_array($fieldOptions['datalist'])) {
                     $datalistId = $attributes['list'] ?? $id . '-list';
@@ -648,9 +666,7 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                 break;
 
             case 'email':
-                //$fieldOptions = $field->getOptions();
-
-                $output .= '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+                $output .= $this->getLabelNow($id, $label);
                 $output .= '<input type="email" class="' . $class . $errorClass . '" id="' . $id .
                     '" name="' . $name . '" value="' . $value . '"' . $attrString . '>';
                 $output .= $errorHTML;
@@ -798,7 +814,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
         return $output;
     }
 
-
+    protected function getLabelNow($id,  $label): string {
+        if (isset($label)) {
+            return '<label class="form-label" for="' . $id . '">' . $label . '</label>';
+        }
+        return '';
+    }
 
 
 

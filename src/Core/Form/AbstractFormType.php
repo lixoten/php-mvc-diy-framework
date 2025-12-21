@@ -21,6 +21,7 @@ abstract class AbstractFormType implements FormTypeInterface
     protected array $renderOptions = [];
     protected array $layout = [];
     protected array $hiddenFields = [];
+    protected array $extraFields = [];
     protected array $fields = [];
 
     public readonly string $pageKey;
@@ -71,15 +72,16 @@ abstract class AbstractFormType implements FormTypeInterface
             $pageEntity,
         );
 
-        // ✅ Apply loaded configuration to properties
+        // 📌 Apply loaded configuration to properties
         // Use ?? [] to ensure it's an array if not defined in config
-        $this->options       = $config['options'] ?? []; // For general form options
-        $this->renderOptions = $config['render_options'] ?? [];
-        $this->layout        = $config['layout'] ?? [];
-        $this->hiddenFields  = $config['hidden_fields'] ?? [];
+        $this->options        = $config['options'] ?? [];
+        $this->renderOptions  = $config['render_options'] ?? [];
+        $this->layout         = $config['layout'] ?? [];
+        $this->hiddenFields   = $config['hidden_fields'] ?? [];
+        $this->extraFields    = $config['extra_fields'] ?? [];
         // $this->fields is populated by filterValidateFormFields()
 
-        // ✅ Validate and clean fields based on layout
+        // 📌 Validate and clean fields based on layout
         $this->filterValidateFormFields();
     }
 
@@ -147,6 +149,18 @@ abstract class AbstractFormType implements FormTypeInterface
     }
 
     /** {@inheritdoc} */
+    public function getExtraFields(): array
+    {
+        return $this->extraFields;
+    }
+
+    /** {@inheritdoc} */
+    public function setExtraFields(array $extraFields): void
+    {
+        $this->extraFields = $extraFields;
+    }
+
+    /** {@inheritdoc} */
     public function buildForm(FormBuilderInterface $builder): void
     {
         // Set Render Options for the builder
@@ -174,8 +188,39 @@ abstract class AbstractFormType implements FormTypeInterface
 
             if ($columnDef && isset($columnDef['form'])) {
                 $options = $columnDef['form'];
-                //$options['formatters'] = $columnDef['formatters'] ?? null;
                 $options['validators'] = $columnDef['validators'] ?? null;
+
+
+                // findme - override field
+                // 📌 Conditionally adjust 'filename' field type and formatters
+                if ($fieldName === 'filename') {
+                    $formFieldOverrides = $this->getOptions()['form_field_overrides'] ?? [];
+                    $filenameOverrides = $formFieldOverrides['filename'] ?? [];
+
+                    if (($filenameOverrides['current_filename_exists'] ?? false) === true) {
+                        // 📌 If an image already exists, render as a 'display' field
+                        $options['type']       = 'display';
+                        $options['attributes'] = [];
+                    }
+
+                    if (isset($filenameOverrides['value_override'])) {
+                        // 📌 If an image already exists, render as a 'display' field
+                        $options['value_override']       = $filenameOverrides['value_override'];
+                    }
+                    //  else {
+                    //     // If no image exists, render as a 'file' input to allow upload
+                    //     $options['type'] = 'file';
+                    //     // Remove the 'image_link' formatter if it was present for 'display',
+                    //     // as we don't want to show a default image when expecting a new file upload.
+                    //     if (isset($options['formatters']['image_link'])) {
+                    //         unset($options['formatters']['image_link']);
+                    //     }
+                    //     // Ensure 'required' attribute is set for new file uploads if needed
+                    //     $options['attributes']['required'] = true; // Assuming a file is required for a new image record
+                    // }
+                }
+
+
 
 
                 if (
@@ -183,23 +228,22 @@ abstract class AbstractFormType implements FormTypeInterface
                     in_array($options['type'], ['select', 'radio_group', 'checkbox_group'], true) &&
                     isset($options['options_provider'])
                 ) {
-                    // ✅ FIX: Start the try block here, encapsulating all the options_provider resolution logic
+                    // 📌options_provider resolution logic
                     try {
                         $provider = $options['options_provider'];
                         $params = $options['options_provider_params'] ?? [];
                         $resolvedOptions = [];
 
-                        // ✅ REFACTORED: Add robust logic to handle interfaces, classes with static methods, and instance methods
                         if (is_array($provider) && count($provider) === 2) {
                             [$className, $methodName] = $provider;
 
                             if (interface_exists($className)) {
-                                // If it's an interface, it MUST be resolved as a service from the container.
+                                // 📌 If it's an interface, it MUST be resolved as a service from the container.
                                 $service = $this->container->get($className);
                                 $allParams = array_merge(array_values($params), [$this->pageName]);
                                 $resolvedOptions = $service->$methodName(...$allParams);
                             } elseif (class_exists($className)) {
-                                // If it's a concrete class (like an Enum or a static helper class)
+                                // 📌 If it's a concrete class (like an Enum or a static helper class)
                                 $reflection = new \ReflectionMethod($className, $methodName);
 
                                 if ($reflection->isStatic()) {
@@ -317,6 +361,10 @@ abstract class AbstractFormType implements FormTypeInterface
             $this->hiddenFields = array_merge($this->hiddenFields, $options['hidden_fields']);
         }
 
+        if (isset($options['extra_fields']) && is_array($options['extra_fields'])) {
+            $this->extraFields = array_merge($this->extraFields, $options['extra_fields']);
+        }
+
         // Clean up after applying controller overrides
         $this->filterValidateFormFields();
     }
@@ -327,8 +375,9 @@ abstract class AbstractFormType implements FormTypeInterface
     ////////////////////////////////////////////////////////////////////////////////////
     protected function filterValidateFormFields(): void
     {
-        $layout             = $this->getLayout();
-        $viewHiddenFields   = $this->getHiddenFields();
+        $layout           = $this->getLayout();
+        $viewHiddenFields = $this->getHiddenFields();
+        $extraFields      = $this->getExtraFields();
 
         // 1. Collect all field names from layout sections
         $layoutFields = [];
@@ -368,6 +417,7 @@ abstract class AbstractFormType implements FormTypeInterface
         $this->setFields($validFields);
         $this->setLayout($validatedLayout);
         $this->setHiddenFields($validatedHiddenFields);
+        $this->setExtraFields($extraFields); // fixme not validated????
     }
 
     /**

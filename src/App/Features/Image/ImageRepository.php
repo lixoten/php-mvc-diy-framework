@@ -62,6 +62,33 @@ class ImageRepository extends AbstractMultiTenantRepository implements ImageRepo
     }
 
     /**
+     * Finds an Image entity by its unique filename (hash).
+     *
+     * @param string $filename The unique filename (hash) of the image.
+     * @return Image|null The Image entity or null if not found.
+     */
+    public function findByFilename(string $filename): ?Image // ✅ NEW METHOD IMPLEMENTATION
+    {
+        $sql = "SELECT t.*
+                FROM {$this->tableName} t
+                WHERE t.filename = :filename";
+
+        $stmt = $this->connection->prepare($sql);
+        $stmt->bindValue(':filename', $filename, \PDO::PARAM_STR);
+        $stmt->execute();
+
+        $data = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$data) {
+            return null;
+        }
+
+        return $this->mapToEntity($data);
+    }
+
+
+
+    /**
      * Map database row to Image entity.
      *
      * Hydrates a Image entity from database result set including

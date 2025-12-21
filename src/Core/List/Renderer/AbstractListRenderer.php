@@ -9,6 +9,7 @@ use Core\List\ListInterface;
 use Core\Services\FormatterService;
 use Core\Services\ThemeServiceInterface;
 use App\Enums\Url;
+use Core\Context\CurrentContext;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 
@@ -70,7 +71,8 @@ abstract class AbstractListRenderer implements ListRendererInterface
         protected I18nTranslator $translator,
         protected FormatterService $formatterService,
         protected LoggerInterface $logger,
-        protected ContainerInterface $container
+        protected ContainerInterface $container,
+        protected CurrentContext $currentContext
 
     ) {
         // Todo Change it to use configService  (single source of truth)
@@ -744,7 +746,8 @@ abstract class AbstractListRenderer implements ListRendererInterface
                     // This block populates formatter options that are dynamic, based on the current record.
                     if ($formatterName === 'image_link') {
                         $formatterOptions['record'] = $record; // Pass the entire record for URL placeholders ({id})
-                        $formatterOptions['store_id'] = 6; // $record['store_id'] ?? $this->currentContext->getStoreId(); // Resolve store_id
+                        // $formatterOptions['store_id'] = 6; // $record['store_id'] ?? $this->currentContext->getStoreId(); // Resolve store_id
+                        $formatterOptions['store_id'] = $record['store_id'] ?? $this->currentContext->getStoreId();
 
                         // Resolve alt_text from alt_field if specified in config, otherwise fall back
                         $altFieldName = $formatterOptions['alt_field'] ?? 'title'; // Default alt_field from config
