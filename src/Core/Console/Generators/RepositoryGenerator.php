@@ -40,10 +40,9 @@ class RepositoryGenerator
 
         // Use the service to get the base output directory (e.g., src/Generated/Testy)
         $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
-        // $repositoryOutputDir = $outputDir . '/';
         $repositoryOutputDir = $outputDir;
 
-        // // Ensure the specific repository output directory exists
+        // // Ensure the specific repository output directory exists.
         // if (!is_dir($repositoryOutputDir)) {
         //     if (!mkdir($repositoryOutputDir, 0777, true) && !is_dir($repositoryOutputDir)) {
         //         throw new \RuntimeException("Failed to create repository output directory: {$repositoryOutputDir}");

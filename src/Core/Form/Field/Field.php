@@ -257,6 +257,14 @@ class Field implements FieldInterface
         return $this->getAttribute('required', false);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function showLabel(): bool
+    {
+        return $this->options['show_label'] ?? true;
+    }
+
     /** //fixme we need?
      * Set field required state
      *

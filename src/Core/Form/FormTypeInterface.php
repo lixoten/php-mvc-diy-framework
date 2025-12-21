@@ -99,6 +99,23 @@ interface FormTypeInterface
     public function setLayout(array $layout): void;
 
     /**
+     * Get the extra required fields for this form type.
+     *
+     * Should return an array of field names that are needed not in form but business logic checks.
+     *
+     * @return array<string> List of extra required field names.
+     */
+    public function getExtraFields(): array;
+
+    /**
+     * Set the extra required fields for this form type.
+     *
+     * @param array<string> $extraFields An array of extra required field names.
+     * @return void
+     */
+    public function setExtraFields(array $extraFields): void;
+
+    /**
      * Get the hidden fields for this form type.
      *
      * Should return an array of field names that are hidden in the form.

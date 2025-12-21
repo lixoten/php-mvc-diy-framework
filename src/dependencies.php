@@ -27,6 +27,7 @@ use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\Interfaces\GenericDataServiceInterface;
+use Core\Console\Commands\CleanupTempUploadsCommand;
 use Core\Console\Generators\ConfigViewGenerator;
 use Core\Console\Generators\GeneratorOutputService;
 use Core\Console\Generators\MigrationGenerator;
@@ -45,6 +46,8 @@ use Core\Middleware\CSRFMiddleware;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
 use Core\Form\Schema\FieldSchema;
+use Core\Form\Upload\FileUploadServiceInterface;
+use Core\Form\Upload\TemporaryFileUploadService;
 use Core\Form\Validation\ValidatorRegistry;
 use Core\I18n\I18nTranslator;
 use Core\Interfaces\ConfigInterface;
@@ -53,6 +56,7 @@ use Core\Middleware\RoutingMiddleware;
 use Core\RouterInterface;
 use Core\Services\DataNormalizerService;
 use Core\Services\FormatterService;
+use Core\Services\ImageStorageServiceInterface;
 use Core\Services\SchemaLoaderService;
 use Core\Services\ThemeServiceInterface;
 use Core\Storage\LocalStorageService;
@@ -163,6 +167,11 @@ return [
     //         $config = $container->get('config');
     //         return $config->get('storage.upload.default_max_size', 5242880); // Default: 5MB
     //     })),
+
+    // Temporary File Upload Service (for generic file handling by FormHandler)
+    FileUploadServiceInterface::class => \DI\autowire(TemporaryFileUploadService::class)
+        ->constructorParameter('logger', \DI\get(LoggerInterface::class))
+        ->constructorParameter('tempUploadDir', \DI\string(dirname(__DIR__) . '/storage/temp_uploads')), // ✅ Configure your temporary upload directory here
 
 
     //-----------------------------------------------------------------
@@ -710,9 +719,10 @@ return [
     'App\Services\UserValidationService' => \DI\autowire(),
 
     // ImageService
-    \App\Features\Image\ImageService::class => \DI\autowire()
-        ->constructorParameter('imageRepository', \DI\get(\App\Features\Image\ImageRepositoryInterface::class)),
-        // ->constructorParameter('dataTransformer', \DI\get(\Core\Services\DataTransformerService::class)),
+    ImageService::class => \DI\autowire()
+        ->constructorParameter('imageRepository', \DI\get(ImageRepositoryInterface::class))
+        ->constructorParameter('imageStorageService', \DI\get(ImageStorageServiceInterface::class)) // ✅ NEW
+        ->constructorParameter('logger', \DI\get(LoggerInterface::class)), // ✅ NEW
 
 
 
@@ -1795,6 +1805,14 @@ return [
         ->constructorParameter('seederGenerator', \DI\get(\Core\Console\Generators\SeederGenerator::class)),
 
 
+    CleanupTempUploadsCommand::class => \DI\autowire()
+        ->constructorParameter('logger', \DI\get(LoggerInterface::class))
+        ->constructorParameter('tempUploadDir', \DI\string(dirname(__DIR__) . '/storage/temp_uploads')) // Should match the path in TemporaryFileUploadService
+        ->constructorParameter('retentionHours', 24), // Default to 24 hours retention
+
+
+
+
     //-------------------------------------------------------------------------
 
     // // Line 192 - This will throw "Entry cannot be resolved"
@@ -2088,7 +2106,7 @@ return [
 
     // List renderer with theme service
     'Core\List\Renderer\ListRendererInterface' => function (
-        \Psr\Container\ContainerInterface $container
+        \Psr\Container\ContainerInterface $container,
     ) {
         // Get the ListRendererRegistry and ask it for the currently active renderer
         return $container->get(\Core\List\Renderer\ListRendererRegistry::class)->getRenderer();

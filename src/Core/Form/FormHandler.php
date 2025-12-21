@@ -44,7 +44,8 @@ class FormHandler implements FormHandlerInterface
         private FormatterService $formatterService,
         private DataSanitizer $dataSanitizer,
         private DataNormalizerService $dataNormalizerService,
-        private ImageStorageServiceInterface $imageStorageService,
+        // private ImageStorageServiceInterface $imageStorageService,
+        FileUploadServiceInterface $fileUploadService,
         ?CaptchaServiceInterface $captchaService = null,
         ?EventDispatcherInterface $eventDispatcher = null,
         private ?\Psr\Log\LoggerInterface $logger = null,
@@ -55,7 +56,8 @@ class FormHandler implements FormHandlerInterface
         $this->dataNormalizerService = $dataNormalizerService;
         $this->captchaService = $captchaService;
         $this->eventDispatcher = $eventDispatcher;
-        $this->imageStorageService = $imageStorageService;
+        $this->fileUploadService = $fileUploadService;
+        // $this->imageStorageService = $imageStorageService;
         $this->logger = $logger;
     }
 
@@ -73,19 +75,6 @@ class FormHandler implements FormHandlerInterface
         $parsed = $this->parseRequestData($request);
         $extraProcessedData = [];
         $data = $parsed['data'] ?? [];
-        // $data['generic_color'] = '#errrrr'; // fixme - just for testing invalid color
-        //$data['secret_code_hash'] = '-22'; // fixme - just for testing invalid color
-        // $data['secret_code_hash'] = '12'; // fixme - just for testing invalid color
-        // $data['generic_date'] = 22; // fixme - just for testing invalid color
-        // $data['generic_datetime'] = 22; // fixme - just for testing invalid color
-        // $data['generic_month'] = 22; // fixme - just for testing invalid color
-        // $data['generic_week'] = 22; // fixme - just for testing invalid color
-        // $data['generic_time'] = 22; // fixme - just for testing invalid color
-        // $data['generic_number'] = 'w'; // fixme - just for testing invalid color
-        // $data['generic_decimal'] = 'w'; // fixme - just for testing invalid color
-        // $data['volume_level'] = 10; // fixme - just for testing invalid color
-        // $data['start_rating'] = 1.51; // fixme - just for testing invalid color
-        // $data['generic_color'] = "22"; // fixme - just for testing invalid color
         $uploadedFiles = $parsed['files'] ?? [];
         $rawData = $data; // Keep a copy of the original scalar user input
 
@@ -98,101 +87,116 @@ class FormHandler implements FormHandlerInterface
             return false;
         }
 
-        // --- File upload handling ---
         // if (! empty($uploadedFiles)) {
-        //     // Validate/store uploaded files and get metadata per field
-        //     $fileValues = $this->fileUploadService->handleFiles($uploadedFiles, $form->getFields());
-
-        //     // ✅ DEBUG: Log file metadata returned
-        //     // $this->logger?->debug('File upload results', [
-        //     //     'metadata' => $fileValues,
-        //     // ]);
-
-        //     // ✅ NEW: Check if any uploads failed and add errors to form
         //     foreach ($uploadedFiles as $fieldName => $uploadedFile) {
-        //         // Skip if this field wasn't processed (e.g., empty upload)
-        //         if (!isset($fileValues[$fieldName])) {
-        //             // Check if file upload was attempted but failed
-        //             if ($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
-        //                 && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
-        //             ) {
-        //                 // ✅ Add generic error to field
-        //                 $field = $form->getField($fieldName);
-        //                 if ($field) {
-        //                     // $field->getErrors() addError('File upload failed. Please try again or choose a different file.');
-        //                 }
-        //             }
-        //         }
-        //     }
-
-
-        //     // Normalize metadata into simple storage keys for existing form flows:
-        //     // single file: ['key'=>...] -> 'field' => 'storage/key.ext'
-        //     // multi file: [ ['key'=>...], ... ] -> 'field' => ['storage/one', 'storage/two']
-        //     foreach ($fileValues as $field => $meta) {
-        //         if (is_array($meta) && isset($meta['key'])) {
-        //             $data[$field] = $meta['key'];
+        //         // Skip if no file uploaded
+        //         if (!$uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
+        //             || $uploadedFile->getError() === \UPLOAD_ERR_NO_FILE
+        //         ) {
         //             continue;
         //         }
 
-        //         if (is_array($meta) && isset($meta[0]) && is_array($meta[0]) && isset($meta[0]['key'])) {
-        //             $keys = [];
-        //             foreach ($meta as $m) {
-        //                 if (is_array($m) && isset($m['key'])) {
-        //                     $keys[] = $m['key'];
-        //                 }
-        //             }
-        //             if (! empty($keys)) {
-        //                 $data[$field] = $keys;
-        //             }
+        //         // Get field definition
+        //         $field = $form->getField($fieldName);
+        //         if (!$field) {
+        //             continue;
+        //         }
+
+        //         // Get storeId from form context (or default to 1)
+        //         // $storeId = $form->getContext()['store_id'] ?? 1;
+        //         //$storeId = $form->getData()['store_id'] ?? 1;
+        //         $storeId = $form->getContext()['store_id']; // fixme
+
+        //         // Upload image using ImageStorageService
+        //         try {
+        //             $imageMetadata = $this->imageStorageService->upload($uploadedFile, $storeId);
+
+        //             // Store hash in database (e.g., 'abc123def456...xyz')
+        //             $data['filename'] = $imageMetadata['filename'];
+        //             $extraProcessedData['image_metadata'] = $imageMetadata; //fixme lllllllllllllll
+
+        //             $this->logger?->info('Image uploaded successfully', [
+        //                 'field' => $fieldName,
+        //                 'hash' => $imageMetadata['hash'],
+        //                 'extension' => $imageMetadata['extension'],
+        //             ]);
+        //         } catch (\Throwable $e) {
+        //             $this->logger?->error('Image upload failed', [
+        //                 'field' => $fieldName,
+        //                 'error' => $e->getMessage(),
+        //             ]);
+
+        //             // Add validation error to field
+        //             // $field->addError('Image upload failed. Please try again.');
+        //             $form->addError($data[$fieldName], 'Image upload failed. Please try again.');
         //         }
         //     }
         // }
+
+
+        // --- File upload handling ---
         if (! empty($uploadedFiles)) {
+            // ✅ Use the generic FileUploadService to handle files and get temporary metadata
+            // This method should return an array of processed file info, keyed by fieldName
+            $fileProcessedMetadata = $this->fileUploadService->handleFiles($uploadedFiles);
+
+            // ✅ Store the generic temporary file metadata in extraProcessedData
+            // This structure allows domain services (like ImageService) to retrieve
+            // the temporary file paths and info for further processing.
+            // We use a prefix like '_uploaded_file_temp_info' to clearly separate it.
+            $extraProcessedData['_uploaded_file_temp_info'] = [];
             foreach ($uploadedFiles as $fieldName => $uploadedFile) {
-                // Skip if no file uploaded
-                if (!$uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
-                    || $uploadedFile->getError() === \UPLOAD_ERR_NO_FILE
+                // If a file for this field was processed by the fileUploadService, add its metadata
+                // Also handle cases where handleFiles returns an array of metadata for multi-file inputs
+                if (isset($fileProcessedMetadata[$fieldName])) {
+                    $extraProcessedData['_uploaded_file_temp_info'][$fieldName] = $fileProcessedMetadata[$fieldName];
+                } else {
+                    // For files that were attempted but not processed by the service (e.g., UPLOAD_ERR_NO_FILE
+                    // might be filtered by the service if it only returns 'success' or 'failed' status),
+                    // or if the service simply didn't return metadata for it due to an error.
+                    if (
+                        $uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
+                        && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
+                        && $uploadedFile->getError() !== \UPLOAD_ERR_OK // Also capture PHP errors here if service didn't
+                    ) {
+                        // Store error info directly from the raw UploadedFileInterface if the service didn't handle it
+                        $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
+                        $extraProcessedData['_uploaded_file_temp_info'][$fieldName] = [
+                            'status' => 'failed',
+                            'error_code' => $uploadedFile->getError(),
+                            'error_message' => $errorMessage,
+                            'original_filename' => $uploadedFile->getClientFilename(),
+                            'mime_type' => $uploadedFile->getClientMediaType(),
+                            'size_bytes' => $uploadedFile->getSize(),
+                            'temporary_path' => null, // No temp path if failed early
+                        ];
+                    }
+                }
+            }
+
+            // ✅ Handle generic PHP upload errors (e.g., file too large)
+            foreach ($uploadedFiles as $fieldName => $uploadedFile) {
+                if (
+                    $uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
+                    && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
+                    && $uploadedFile->getError() !== \UPLOAD_ERR_OK
                 ) {
-                    continue;
-                }
-
-                // Get field definition
-                $field = $form->getField($fieldName);
-                if (!$field) {
-                    continue;
-                }
-
-                // Get storeId from form context (or default to 1)
-                // $storeId = $form->getContext()['store_id'] ?? 1;
-                //$storeId = $form->getData()['store_id'] ?? 1;
-                $storeId = $form->getContext()['store_id']; // fixme
-
-                // Upload image using ImageStorageService
-                try {
-                    $imageMetadata = $this->imageStorageService->upload($uploadedFile, $storeId);
-
-                    // Store hash in database (e.g., 'abc123def456...xyz')
-                    $data['filename'] = $imageMetadata['filename'];
-                    $extraProcessedData['image_metadata'] = $imageMetadata; //fixme lllllllllllllll
-
-                    $this->logger?->info('Image uploaded successfully', [
+                    $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
+                    $form->addError(
+                        $fieldName,
+                        'File upload failed: ' . $errorMessage . ' (' . $uploadedFile->getError() . ')'
+                    );
+                    $this->logger?->error('Generic file upload failed (PHP error)', [
                         'field' => $fieldName,
-                        'hash' => $imageMetadata['hash'],
-                        'extension' => $imageMetadata['extension'],
+                        'error_code' => $uploadedFile->getError(),
+                        'error_message' => $errorMessage,
                     ]);
-                } catch (\Throwable $e) {
-                    $this->logger?->error('Image upload failed', [
-                        'field' => $fieldName,
-                        'error' => $e->getMessage(),
-                    ]);
-
-                    // Add validation error to field
-                    // $field->addError('Image upload failed. Please try again.');
-                    $form->addError($data[$fieldName], 'Image upload failed. Please try again.');
                 }
             }
         }
+
+
+
 
         // // Sanitize submitted data using the DataSanitizer
         // $data = $this->dataSanitizer->sanitize($data, $form->getFields());
@@ -266,8 +270,7 @@ class FormHandler implements FormHandlerInterface
         // Dispatch PRE_VALIDATE event
         $this->dispatchEvent(FormEvents::PRE_VALIDATE, $form, $data);
 
-        // Validate form
-        // $geoLocation = $request->getAttribute('geo_location');
+        // $geoLocatio  n = $request->getAttribute('geo_location');
         // $regionCode = $geoLocation['countryCode'] ?? 'fookville'; // Fixme 3
 
 
@@ -359,6 +362,27 @@ class FormHandler implements FormHandlerInterface
             'files' => $uploadedFiles,
         ];
     }
+
+    /**
+     * Returns a human-readable error message for a given PHP file upload error code.
+     *
+     * @param int $errorCode One of PHP's UPLOAD_ERR_XXX constants.
+     * @return string The error message.
+     */
+    private function getPhpUploadErrorMessage(int $errorCode): string
+    {
+        return match ($errorCode) {
+            UPLOAD_ERR_INI_SIZE => 'The uploaded file exceeds the upload_max_filesize directive in php.ini.',
+            UPLOAD_ERR_FORM_SIZE => 'The uploaded file exceeds the MAX_FILE_SIZE directive that was specified in the HTML form.',
+            UPLOAD_ERR_PARTIAL => 'The uploaded file was only partially uploaded.',
+            UPLOAD_ERR_NO_FILE => 'No file was uploaded.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing a temporary folder.',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+            UPLOAD_ERR_EXTENSION => 'A PHP extension stopped the file upload.',
+            default => 'Unknown upload error.',
+        };
+    }
+
 
     /**
      * Dispatch a form event

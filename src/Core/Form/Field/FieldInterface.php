@@ -154,6 +154,16 @@ interface FieldInterface
      */
     public function isRequired(): bool;
 
+    /**
+     *
+     *
+     * @return array
+     */
+    public function showLabel(): bool;
+
+
+
+
 //    public function setOptions(array $options): self;
 //
 //

@@ -32,6 +32,7 @@ return [
         ],
         'form' => [
             'type'        => 'text',
+            // 'show_label'    => false,
             'placeholder' => true,
             'attributes'  => [
                 'required'    => true,
@@ -66,6 +67,26 @@ return [
             ],
         ],
     ],
+    'original_filename' => [
+        'list' => [
+            'sortable'    => false,
+        ],
+        'form' => [
+            'type'        => 'display',
+            // 'show_label'    => false,
+            // 'placeholder' => true,
+            'attributes'  => [
+            ],
+        ],
+        'formatters' => [
+            'text' => [
+            ],
+        ],
+        'validators' => [
+            'text' => [
+            ],
+        ],
+    ],
     'filename' => [
         'list' => [
             'sortable'    => false,
@@ -82,6 +103,7 @@ return [
         ],
         'form' => [
             'type'        => 'file',
+            // 'show_label'    => false,
             // 'placeholder' => true,
             'attributes'  => [
                 'accept' => 'image/*',

@@ -17,6 +17,7 @@ use App\Services\Interfaces\FlashMessageServiceInterface;
 use Core\Enum\SortDirection;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
+use Core\Form\FormInterface;
 use Core\Form\FormTypeInterface;
 use Core\Form\Renderer\FormRendererInterface;
 use Core\List\ListFactoryInterface;
@@ -205,22 +206,19 @@ abstract class AbstractCrudController extends Controller
             $pageEntity
         );
 
-        // ✅ Allow child controllers to override form rendering or other form configs
-        $this->overrideFormTypeRenderOptions();
-
         $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
         if ($recordId === null) {
             $this->flash22->add("Invalid record ID.", FlashMessageType::Error);
             return $this->redirect($this->feature->baseUrlEnum->view());
         }
 
-        // ✅ Store caller URL in session when entering edit page (GET only)
+        // 📌 Store caller URL in session when entering edit page (GET only)
         if ($request->getMethod() === 'GET') {
             $callerUrl = $_SERVER['HTTP_REFERER'] ?? $this->feature->listUrlEnum->url([], $this->scrap->getRouteType());
             $this->returnUrlManager->setReturnUrl($recordId, $callerUrl);
         }
 
-        // ✅ Inject form URLs and route context via render options
+        // 📌 Inject form URLs and route context via render options
         $routeType = $this->scrap->getRouteType();
 
         $this->formType->mergeRenderOptions([
@@ -233,11 +231,12 @@ abstract class AbstractCrudController extends Controller
 
 
         // 1. Define all columns needed for this request (form fields + permission fields).
-        $formFields = $this->formType->getFields();
+        $formFields      = $this->formType->getFields();
+        $formExtraFields = $this->formType->getExtraFields();
 
         $ownerForeignKey = $this->feature->ownerForeignKey;
         if (isset($ownerForeignKey)) {
-            $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
+            $requiredFields = array_unique(array_merge($formFields, $formExtraFields, [$ownerForeignKey]));
         }
 
         if ($request->getMethod() === 'GET') {
@@ -254,9 +253,15 @@ abstract class AbstractCrudController extends Controller
             $recordArray = null;
         }
 
+        // findme - override field
+        // Important!!! -  atm, only used by image to change a field type from file to display
+        $this->overrideFormTypeRenderOptions($recordArray);
+
+
         // 4. Pass the fetched array to the form processor.
         $result = $this->processForm($request, $recordArray);
         $form   = $result['form'];
+
 
         // Prepare the form for JavaScript
         $form->setAttribute(
@@ -272,7 +277,7 @@ abstract class AbstractCrudController extends Controller
             && $request->getHeaderLine('X-Requested-With') !== 'XMLHttpRequest'
         ) {
             $data = $form->getUpdatableData();
-            $fullFormData = $form->getExtraProcessedData(); // ✅ All data, including metadata
+            $extraProcessData = $form->getExtraProcessedData(); // ✅ All data, including metadata
 
             $fullRecordObj = $this->repository->findById($recordId);
 
@@ -304,7 +309,7 @@ abstract class AbstractCrudController extends Controller
             //     }
             // }
 
-            $savedId = $this->saveRecord($data, $fullFormData, $recordId); // ✅ Pass both data arrays
+            $savedId = $this->saveRecord($data, $extraProcessData, $recordId); // ✅ Pass both data arrays
             //$savedId = $this->saveRecord($data, $recordId);
             // if ($this->repository->updateFields($recordId, $data)) {
             if ($savedId) {
@@ -453,11 +458,6 @@ abstract class AbstractCrudController extends Controller
         );
 
 
-        // ✅ Allow child controllers to override form rendering or other form configs
-        $this->overrideFormTypeRenderOptions();
-        $this->overrideFormTypeRenderOptions();
-
-
         // ✅ NEW: Inject form URLs and route context via render options
         $routeType = $this->scrap->getRouteType();
 
@@ -489,6 +489,13 @@ abstract class AbstractCrudController extends Controller
         // For create, no record array is needed
         $result = $this->processForm($request, null);
         $form = $result['form'];
+
+
+        // ✅ PLACEMENT: Call the override hook here, after the form is created.
+        $this->overrideFormTypeRenderOptions(null);
+
+
+
 
         // Prepare the form for JavaScript
         //$form->setAttribute('data-ajax-action', $this->feature->createUrlEnum->url() . '/store');
@@ -604,6 +611,7 @@ abstract class AbstractCrudController extends Controller
             // 4. Pass the array to the form processor.
             $result = $this->processForm($request, $recordArray);
             $form = $result['form'];
+
 
             if ($result['handled'] && $result['valid']) {
                 $data = $form->getUpdatableData();
@@ -775,14 +783,17 @@ abstract class AbstractCrudController extends Controller
     }
 
     /**
-     * Abstract method to allow child controllers to override form type rendering options.
+     * Hook method for child controllers to override form type rendering options.
      *
      * This method is called during form processing to apply feature-specific
      * display adjustments or configuration overrides to the FormType.
      *
+     * @param array<string, mixed>|null $recordData The existing record data as an array (if in edit context),
+     *                      or null for new creation.
      * @return void
      */
-    abstract protected function overrideFormTypeRenderOptions(): void;
+    abstract protected function overrideFormTypeRenderOptions(?array $recordData = null): void;
+
 
     /**
      * Abstract method to allow child controllers to override view type rendering options.

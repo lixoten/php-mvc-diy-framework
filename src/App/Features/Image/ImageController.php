@@ -33,6 +33,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Core\Form\FormFactoryInterface;
 use Core\Form\FormHandlerInterface;
+use Core\Form\FormInterface;
 use Core\Form\FormTypeInterface;
 use Core\Form\Renderer\FormRendererInterface;
 use Core\Formatters\TextFormatter;
@@ -160,15 +161,20 @@ class ImageController extends AbstractCrudController
      * (including file metadata updates) to the ImageService.
      *
      * @param array<string, mixed> $updatableData The validated and filtered data (e.g., from form->getUpdatableData()).
-     * @param array<string, mixed> $fullFormData The complete validated data from the form, including any auxiliary data (e.g., from form->getData()).
+     * @param array<string, mixed> $extraProcessData The complete validated data from the form, including any auxiliary data (e.g., from form->getData()).
      * @param int|null $id The ID of the record to update, or null for a new record.
      * @return int The ID of the created or updated record.
      */
-    protected function saveRecord(array $updatableData, array $fullFormData, ?int $id = null): ?int // ✅ Updated signature
+    protected function saveRecord(array $updatableData, array $extraProcessData, ?int $id = null): ?int
     {
+        $fullFormData = $updatableData + $extraProcessData;
+
+        // ✅ NEW: Get storeId from the reliable CurrentContext
+        $currentStoreId = $this->scrap->getStoreId();
+
         // Delegate the complex image data processing (including metadata) to ImageService.
         // ImageService will need the full form data to find '_image_metadata_filename'.
-        return $this->imageService->processImageData($fullFormData, $id); // ✅ Pass fullFormData to ImageService
+        return $this->imageService->processImageData($fullFormData, $currentStoreId, $id);
     }
 
 
@@ -204,7 +210,7 @@ class ImageController extends AbstractCrudController
     }
 
 
-    public function editAction(ServerRequestInterface $request): ResponseInterface
+    public function xxxeditAction(ServerRequestInterface $request): ResponseInterface
     {
         // $url = $this->feature->baseUrlEnum;
         // $url = Url::CORE_IMAGE;
@@ -219,6 +225,10 @@ class ImageController extends AbstractCrudController
         return parent::editAction(request: $request);
     }
 
+
+
+
+
     public function viewAction(ServerRequestInterface $request): ResponseInterface
     {
         return parent::viewAction(request: $request);
@@ -226,42 +236,27 @@ class ImageController extends AbstractCrudController
 
 
     /** {@inheritdoc} */
-    protected function overrideFormTypeRenderOptions(): void
+    protected function overrideFormTypeRenderOptions(?array $recordData = null): void
     {
-        // $options = [
-            // 'options' can contain general form options if defined in your config
-            // For example, if you had a 'force_recaptcha' in form options config:
-            // 'options' => [
-            //     'force_recaptcha' => true,
-            // ],
-            // 'render_options' => [
-            //     'error_display' => 'summary', // Override how errors are displayed
-            //     'layout_type'   => 'fieldsets', // Specify layout type
-            //     // 'submit_text'   => "Custom Submit Text", // Override submit button text
-            //     // You can specify which fields to display in a form (if not all in config)
-            //     // 'form_fields'   => [
-            //     //     'content', 'title', 'generic_text',
-            //     // ],
-            //     'layout'        => [ // Override the entire layout structure if needed
-            //         [
-            //             'title' => 'Your Primary Information',
-            //             'fields' => ['title', 'content'],
-            //             'divider' => true
-            //         ],
-            //         [
-            //             'title' => 'Additional Details',
-            //             'fields' => ['generic_text'],
-            //             'divider' => true,
-            //         ],
-            //     ],
-            // ],
-            // 'hidden_fields' can be merged if you need to add more hidden fields
-            // 'hidden_fields' => ['additional_hidden_field'],
-        // ];
+        // findme - override field
+        $options = []; // Initialize options array
 
-        // ✅ IMPORTANT: UNCOMMENT this line to apply the overrides
-        $this->formType->overrideConfig(options: []);
+        // Logic to determine if a filename exists for an existing record
+        $currentFilenameExists = false;
+        // ✅ Check if recordData exists and has a 'filename' key with a non-null value
+        if ($recordData !== null && isset($recordData['filename']) && $recordData['filename'] !== null) {
+            $currentFilenameExists = true;
+        }
+
+        // Set the override for the 'filename' field
+        $options['options']['form_field_overrides']['filename'] = [
+            'current_filename_exists' => $currentFilenameExists,
+            'value_override'          => $recordData['original_filename']
+        ];
+
+        $this->formType->overrideConfig(options: $options);
     }
+
 
     /** {@inheritdoc} */
     protected function overrideViewTypeRenderOptions(): void

@@ -40,14 +40,14 @@ class FormConfigurationService
         string $pageFeature,
         string $pageEntity,
     ): array {
-        // 1. Load base/default configuration
-        // Finloc loadBaseConfiguration
+        // 1. 📌Load base/default configuration
+        // Findme loadBaseConfiguration
         $baseConfig = $this->loadBaseConfiguration();
 
-        // 2. Load page-specific configuration
+        // 2. 📌 Load page-specific configuration
         $pageConfig = $this->loadPageConfiguration($pageFeature, $pageKey, $pageName, $pageAction);
 
-        // 3. Merge configurations (page > base)
+        // 3. 📌 Merge configurations (page > base)
         $mergedRenderOptions = $this->deepMerge(
             $baseConfig['render_options'] ?? [],
             $pageConfig['render_options'] ?? []
@@ -58,11 +58,13 @@ class FormConfigurationService
 
         // Hidden fields: page-specific takes precedence
         $hiddenFields = $pageConfig['form_hidden_fields'] ?? [];
+        $extraFields  = $pageConfig['form_extra_fields'] ?? [];
 
         return [
             'render_options' => $mergedRenderOptions,
-            'layout' => $layout,
-            'hidden_fields' => $hiddenFields,
+            'layout'         => $layout,
+            'hidden_fields'  => $hiddenFields,
+            'extra_fields'   => $extraFields,
         ];
     }
 

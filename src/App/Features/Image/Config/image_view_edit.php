@@ -54,8 +54,8 @@ return [
            'fields'    => [
                 // 'id',
                 'title',
+                'original_filename',
                 'filename',
-
                 // 'is_verified',
                 // 'generic_text',
                 // 'generic_number',
@@ -138,5 +138,9 @@ return [
         // 'id',
         // 'store_id',
         // 'testyXxxx_user_id',
+    ],
+    'form_extra_fields' => [
+        'original_filename', // Needed for business logic or display
+        // Add any other fields needed for checks, validation, or logic
     ],
 ];
