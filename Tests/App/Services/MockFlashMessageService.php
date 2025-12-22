@@ -10,11 +10,12 @@ class MockFlashMessageService implements FlashMessageServiceInterface
 {
     private array $messages = [];
 
-    public function add(string $message, FlashMessageType $type = FlashMessageType::Info, bool $sticky = false): FlashMessageServiceInterface
+    public function add(string $message, FlashMessageType $type = FlashMessageType::Info, bool $sticky = false, ?array $linkData = null): FlashMessageServiceInterface
     {
         $this->messages[$type->value][] = [
             'message' => $message,
-            'sticky' => $sticky
+            'sticky' => $sticky,
+            'linkData' => $linkData,
         ];
 
         return $this;

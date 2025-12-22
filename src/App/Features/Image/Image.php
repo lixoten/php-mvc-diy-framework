@@ -509,7 +509,7 @@ class Image
             'id' => $this->id,
             'store_id' => $this->store_id,
             'user_id' => $this->user_id,
-            'status' => $this->status?->value, // ✅ Get the scalar value from the Enum
+            'status' => $this->status?->value,
             'title' => $this->title,
             'slug' => $this->slug,
             'description' => $this->description,
@@ -519,8 +519,8 @@ class Image
             'file_size_bytes' => $this->file_size_bytes,
             'width' => $this->width,
             'height' => $this->height,
-            'focal_point' => $this->focal_point, // Should already be JSON string or null
-            'is_optimized' => $this->is_optimized, // Should be bool, will be cast by DB
+            'focal_point' => $this->focal_point,
+            'is_optimized' => $this->is_optimized,
             'checksum' => $this->checksum,
             'alt_text' => $this->alt_text,
             'license' => $this->license,

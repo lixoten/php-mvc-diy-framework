@@ -43,11 +43,12 @@ abstract class AbstractFormatter implements FormatterInterface
 
 
     /**
-     * Child classes must implement transformation logic only.
+     * Transforms a given value based on a set of options.
      *
-     * @param mixed $value
-     * @param array<string, mixed> $options
-     * @return string
+     * @param mixed $value The value to transform (string, numeric, or null).
+     * @param array<string, mixed> $options An associative array of transformation options.
+     * @param mixed $originalValue The original value before any transformations, if applicable.
+     * @return string The transformed string.
      */
     abstract protected function transform(mixed $value, array $options = [], mixed $originalValue = null): string;
 

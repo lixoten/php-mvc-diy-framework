@@ -829,11 +829,12 @@ abstract class AbstractCrudController extends Controller
      */
     protected function getRedirectUrlAfterSave(int $recordId): string
     {
-        // ✅ Check session first: if user came from a specific caller page, return there
-        $returnUrl = $this->returnUrlManager->getAndClearReturnUrl($recordId);
-        if ($returnUrl) {
-            return $returnUrl;
-        }
+        // Important!!!   - this is jusy temp out
+        // // ✅ Check session first: if user came from a specific caller page, return there
+        // $returnUrl = $this->returnUrlManager->getAndClearReturnUrl($recordId);
+        // if ($returnUrl) {
+        //     return $returnUrl;
+        // }
 
         // Fall back to config-driven redirect
         if ($this->feature->redirectAfterSave === 'list') {

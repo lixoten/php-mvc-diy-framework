@@ -6,6 +6,8 @@ applyTo: '**'
 
 This document serves as a guide for GitHub Copilot to ensure all code contributions align with the project's standards, conventions, and architecture.
 
+"Start every single response by stating exactly which model you are using
+in bold. please, the true model...not a generica answer like copilot. Then proceed with the answer."
 
 **Mandate (Mandatory Rules for All Code Generation):**
 

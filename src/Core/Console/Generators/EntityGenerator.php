@@ -65,8 +65,9 @@ class EntityGenerator
     {
         $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
 
-        $properties = $this->generateProperties($entityName, $fields);
-        $methods = $this->generateMethods($entityName, $fields);
+        $properties    = $this->generateProperties($entityName, $fields);
+        $getsetMethods = $this->generateGettersAndSettersMethods($entityName, $fields);
+        $toArrayMethod = $this->generateToArrayMethod($entityName, $fields);
 
         // --- START FIX: Conditionally add use statement for dynamically named Status Enum ---
         $usesStatusEnum = false;
@@ -103,7 +104,9 @@ namespace $nameSpace;
 class {$entityName}
 {
 {$properties}
-{$methods}
+{$getsetMethods}
+
+{$toArrayMethod}
 }
 
 PHP;
@@ -194,7 +197,7 @@ PHP;
      * @param array<string, array<string, mixed>> $fields
      * @return string
      */
-    protected function generateMethods(string $entityName, array $fields): string
+    protected function generateGettersAndSettersMethods(string $entityName, array $fields): string
     {
         $methods = [];
         foreach ($fields as $fieldName => $config) {
@@ -234,6 +237,55 @@ PHP;
 PHP;
         }
         return implode("\n\n", $methods);
+    }
+
+    /**
+     * Generate toArray method.
+     *
+     * @param string $entityName
+     * @param array<string, array<string, mixed>> $fields
+     * @return string
+     */
+    protected function generateToArrayMethod(string $entityName, array $fields): string
+    {
+        $methods = [];
+
+        $methods[] = <<<PHP
+            /**
+             * Convert the {$entityName} entity to an array for persistence.
+             * This method is used by the {$entityName}Service when calling array-based
+             * repository methods like insertFields() and updateFields().
+             *
+             * @return array<string, mixed>
+             */
+            public function toArray(): array
+            {
+                return [
+        PHP;
+
+
+
+        foreach ($fields as $fieldName => $config) {
+            $type = $this->phpType($config);
+
+            if ($type === 'enum') {
+                $methods[] = <<<PHP
+                            '{$fieldName}' => \$this->{$fieldName}?->value,
+                PHP;
+            } else {
+                $methods[] = <<<PHP
+                            '{$fieldName}' => \$this->{$fieldName},
+                PHP;
+            }
+        }
+
+        $methods[] = <<<PHP
+                ];
+            }
+        PHP;
+
+
+        return implode("\n", $methods);
     }
 
     /**

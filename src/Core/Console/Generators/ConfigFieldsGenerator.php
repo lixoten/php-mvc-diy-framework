@@ -131,20 +131,22 @@ class ConfigFieldsGenerator
                         $fieldName,
                         [
                             // 'primary_email',
-                            // 'title',
+                            'title',
                             // 'created_at', 'updated_at',
                             // 'slug',
                             'id',
-                            'is_verified',
-                            'generic_text',
-                            'generic_number',
-                            'status',
-                            'gender_id',
-                            'state_code',
-                            'super_powers',
-                            'telephone',
-                            'primary_email',
-                            'profile_picture',
+                            // 'is_verified',
+                            // 'generic_text',
+                            // 'generic_number',
+                            // 'status',
+                            // 'gender_id',
+                            // 'state_code',
+                            // 'super_powers',
+                            // 'telephone',
+                            // 'primary_email',
+                            // 'profile_picture',
+                            'original_filename',
+                            'filename',
                         ]
                     )
                 ) {
@@ -662,6 +664,7 @@ PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
                     $s08'type'        => '{$type}',
+                    $s12// 'show_label' => false,
                     $s12'placeholder' => true,
                     $s12'attributes'  => [
                     $formAttr
@@ -690,6 +693,7 @@ PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
                     $s08'type'        => '{$type}',
+                    $s12// 'show_label' => false,
                     $s12'placeholder' => true,
                     $s12'attributes'  => [
                     $formAttr
@@ -720,6 +724,7 @@ PHP;
                 } elseif ($blockName === 'form') {
                     $block = <<<PHP
                     $s08'type'        => '{$type}',
+                    $s12// 'show_label' => false,
                     $s12'placeholder' => true,
                     $s12'attributes'  => [
                     $formAttr
@@ -727,6 +732,38 @@ PHP;
                     PHP;
                 } elseif ($blockName === 'formatter') {
                     $block .= $this->getTextFormatterSample();
+                } elseif ($blockName === 'validator') {
+                    $block .= <<<PHP
+                    $formValidator
+                    PHP;
+                }
+                break;
+            // TEXT /////////////////////////////////////////////////////////
+            case 'file':
+                if ($blockName === 'list') {
+                    $block = <<<PHP
+                    $s08'sortable'    => false,
+                    PHP;
+                } elseif ($blockName === 'form') {
+                    $block = <<<PHP
+                    $s08'type'        => '{$type}',
+                    $s12// 'show_label' => false,
+                    $s12'placeholder' => true,
+                    $s12'attributes'  => [
+                    $formAttr
+                    $s12],
+                    PHP;
+                } elseif ($blockName === 'formatter') {
+                    $block = <<<PHP
+                    $s12'image_link' => [
+                        $s12// 'preset'     => 'thumbs',        // ✅ Use 'preset' for ImageStorageService to resolve path
+                        $s12// 'default_image' => '/assets/images/default-avatar.png', // ✅ Fallback
+                        $s12// 'null_value' => 'Nothing here',  // Replaces null value with string
+                        $s12// 'alt_field'  => "generic_text",  // ✅ Use this field for alt text
+                        $s12// 'width'      => 150,             // ✅ Thumbnail size
+                        $s12// 'height'     => 150,
+                    $s12],
+                    PHP;
                 } elseif ($blockName === 'validator') {
                     $block .= <<<PHP
                     $formValidator

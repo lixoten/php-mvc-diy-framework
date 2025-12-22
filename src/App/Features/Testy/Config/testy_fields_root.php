@@ -89,6 +89,46 @@ return [
             ],
         ],
     ],
+    'title' => [
+        'list' => [
+            'sortable'    => false,
+            'formatters' => [
+                'text' => [
+                    // 'xxxxxxmax_length' => 5,
+                    // 'truncate_suffix' => '...',          // Defaults to ...
+                    // 'null_value' => 'Nothing here',      // Replaces null value with string
+                    // 'suffix'     => "Boo",               // Appends to end of text
+                    // 'transform'  => 'lowercase',
+                    // 'transform'  => 'uppercase',
+                    // 'transform'  => 'capitalize',
+                    // 'transform'  => 'title',
+                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                    // 'transform'  => 'last2char_upper',
+                ],
+            ],
+        ],
+        'form' => [
+            'type'        => 'text',
+            'placeholder' => true,
+            'attributes'  => [
+                'required'    => true,
+                'minlength'   => 5,
+                'maxlength'   => 50,
+                // 'pattern'     => '/^[a-z0-9./',
+                // 'style'       => 'background:yellow;',
+                // 'data-char-counter'    => false,
+                // 'data-live-validation' => false,
+            ],
+        ],
+        'validators' => [
+            'text' => [
+                // 'ignore_allowed'   => true,
+                // 'ignore_forbidden' => false,
+                // 'allowed'          => [aaaa, bbbb],
+                // 'forbidden'        => [fuck, dick],
+            ],
+        ],
+    ],
     'generic_text' => [
         'list' => [
             'sortable'    => false,
@@ -306,8 +346,8 @@ return [
             'type'        => 'email',
             'placeholder' => true,
             'attributes'  => [
-                'required'    => true,
-                'maxlength'   => 255,
+                // 'required'    => true,
+                // 'maxlength'   => 255,
                 // 'style'       => 'background:yellow;',
                 // 'data-char-counter'    => false,
                 // 'data-live-validation' => false,

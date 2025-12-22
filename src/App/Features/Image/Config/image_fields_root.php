@@ -2,7 +2,7 @@
 
 /**
  * Generated File - Date: 20251206_075530 origgggggggggggggggggggg
- * Field definitions for the testy_root entity.
+ * Field definitions for the image_root entity.
  *
  * This file defines how each field should be rendered in forms and lists,
  * including labels, input types, attributes, formatters, and validators.
@@ -11,15 +11,9 @@
 declare(strict_types=1);
 
 // id
-// super_powers
-// status
-// generic_text
-// telephone
-// state_code
-// gender_id
-// is_verified
-// primary_email
-// generic_number
+// title
+// filename
+// original_filename
 return [
     'id' => [
         'list' => [
@@ -29,10 +23,24 @@ return [
     'title' => [
         'list' => [
             'sortable'    => false,
+            'formatters' => [
+                'text' => [
+                    // 'xxxxxxmax_length' => 5,
+                    // 'truncate_suffix' => '...',          // Defaults to ...
+                    // 'null_value' => 'Nothing here',      // Replaces null value with string
+                    // 'suffix'     => "Boo",               // Appends to end of text
+                    // 'transform'  => 'lowercase',
+                    'transform'  => 'uppercase',
+                    // 'transform'  => 'capitalize',
+                    // 'transform'  => 'title',
+                    // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
+                    // 'transform'  => 'last2char_upper',
+                ],
+            ]
         ],
         'form' => [
             'type'        => 'text',
-            // 'show_label'    => false,
+            // 'show_label'  => false,
             'placeholder' => true,
             'attributes'  => [
                 'required'    => true,
@@ -44,46 +52,12 @@ return [
                 // 'data-live-validation' => false,
             ],
         ],
-        'formatters' => [
-            'text' => [
-                // 'xxxxxxmax_length' => 5,
-                // 'truncate_suffix' => '...',          // Defaults to ...
-                // 'null_value' => 'Nothing here',      // Replaces null value with string
-                // 'suffix'     => "Boo",               // Appends to end of text
-                // 'transform'  => 'lowercase',
-                // 'transform'  => 'uppercase',
-                // 'transform'  => 'capitalize',
-                // 'transform'  => 'title',
-                // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
-                // 'transform'  => 'last2char_upper',
-            ],
-        ],
         'validators' => [
             'text' => [
                 // 'ignore_allowed'   => true,
                 // 'ignore_forbidden' => false,
                 // 'allowed'          => [aaaa, bbbb],
                 // 'forbidden'        => [fuck, dick],
-            ],
-        ],
-    ],
-    'original_filename' => [
-        'list' => [
-            'sortable'    => false,
-        ],
-        'form' => [
-            'type'        => 'display',
-            // 'show_label'    => false,
-            // 'placeholder' => true,
-            'attributes'  => [
-            ],
-        ],
-        'formatters' => [
-            'text' => [
-            ],
-        ],
-        'validators' => [
-            'text' => [
             ],
         ],
     ],
@@ -124,6 +98,30 @@ return [
                     // 'link_to' => '/testy/view/{id}', // ✅ OPTIONAL: Make image clickable
                 ],
             ],
+        ],
+        'validators' => [
+            'text' => [
+            ],
+        ],
+    ],
+    'original_filename' => [
+        'list' => [
+            'sortable'    => false,
+            'formatters' => [
+                'text' => [
+                ],
+        ],
+        ],
+        'form' => [
+            'type'        => 'display',
+            // 'show_label'    => false,
+            // 'placeholder' => true,
+            'attributes'  => [
+            ],
+            'formatters' => [
+                'text' => [
+                ],
+        ],
         ],
         'validators' => [
             'text' => [

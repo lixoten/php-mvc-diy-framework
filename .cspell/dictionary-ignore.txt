@@ -27,6 +27,7 @@ configviewedit
 configviewlist
 copyzzzz
 ctype
+customtype
 dangerdanger
 Datalists
 dealerdirect
@@ -40,6 +41,7 @@ dynfully
 easymock
 ecfg
 ERRORLEVEL
+exämple
 extratest
 Fabio
 fieldconfig
@@ -57,6 +59,7 @@ friendsofphp
 GENPOST
 Gert
 getenv
+getset
 giggsey
 girel
 greew
@@ -72,6 +75,7 @@ htdocs
 htmlspecialchars
 httponly
 humy
+IDNA
 ignt
 imageavif
 imagecreatefromavif
@@ -82,6 +86,7 @@ Inno
 instantiator
 Instantiator
 intelephense
+invalidemail
 invis
 ircmaxell
 Jagielski
@@ -117,6 +122,7 @@ mynotes
 nesbot
 nikic
 noaction
+NONTRANSITIONAL
 noparms
 nordmann
 Nordmann

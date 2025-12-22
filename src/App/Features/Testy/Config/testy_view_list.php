@@ -54,15 +54,15 @@ return [
         // 'telephone',
 
 
-        // 'is_verified',
-        'generic_text',
+        'is_verified',
+        // 'generic_text',
         // 'generic_number',
         // 'status',
         // 'gender_id',
         // 'state_code',
         // 'super_powers',
         // 'telephone',
-        // 'primary_email',
+        'primary_email',
         'profile_picture',
 
 

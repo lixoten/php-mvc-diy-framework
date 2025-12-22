@@ -9,6 +9,7 @@ namespace Core\Form;
 /**
  * Sanitizes form data using formatters
  */
+// todo create a proper service for it.
 class DataSanitizer
 {
     // public function __construct(private FormatterService $formatterService) {}

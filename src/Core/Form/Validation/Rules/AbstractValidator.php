@@ -199,33 +199,32 @@ abstract class AbstractValidator implements ValidatorInterface
             return null; // Skip validation if flag is set
         }
 
-        if ($type === 'string'){
-            // Convert all forbidden values to strings first
-            $options['allowed'] = array_map('strval', $options['allowed']);
 
+        // ✅ FIX: Ensure 'allowed' key exists and is an array before processing
+        $allowedValues = (isset($options['allowed']) && is_array($options['allowed'])) ? $options['allowed'] : [];
+
+    if ($type === 'string') {
+            // Convert all allowed values to strings first
+            $allowedValues = array_map('strval', $allowedValues); // ✅ USE $allowedValues
             // 1. Convert the input to lowercase.
             $value = strtolower($value);
-
             // 2. Convert ALL allowed to lowercase for case-insensitive checking.
-            $options['allowed'] = array_map('strtolower', $options['allowed']);
+            $allowedValues = array_map('strtolower', $allowedValues); // ✅ USE $allowedValues
         } elseif ($type === 'int') {
             // Convert all allowed values to ints
-            $options['allowed'] = array_map('intval', $options['allowed']);
-
+            $allowedValues = array_map('intval', $allowedValues); // ✅ USE $allowedValues
             // 1. Convert the input to int.
             $value = (int)($value);
-        } else {
+        } else { // 'dec' or 'float'
             // Convert all allowed values to floats
-            $options['allowed'] = array_map('floatval', $options['allowed']);
-
-            // 1. Convert the input to lowercase.
+            $allowedValues = array_map('floatval', $allowedValues); // ✅ USE $allowedValues
+            // 1. Convert the input to float.
             $value = (float)($value);
         }
 
 
-        if (!empty($options['allowed']) && !in_array($value, $options['allowed'], true)) {
+        if (!empty($allowedValues) && !in_array($value, $allowedValues, true)) {
             $options['message'] ??= $options['allowed_message'] ?? null;
-
             return $this->getErrorMessage($options, 'validation.allowed');
         }
         return null;
@@ -245,35 +244,35 @@ abstract class AbstractValidator implements ValidatorInterface
             return null; // Skip validation if flag is set
         }
 
+        // ✅ FIX: Ensure 'forbidden' key exists and is an array before processing
+        $forbiddenValues = (isset($options['forbidden']) && is_array($options['forbidden'])) ? $options['forbidden'] : [];
+
+
         if ($type === 'string'){
             // Convert all forbidden values to strings first
-            $options['forbidden'] = array_map('strval', $options['forbidden']);
-
+            $forbiddenValues = array_map('strval', $forbiddenValues); // ✅ USE $forbiddenValues
             // 1. Convert the input to lowercase.
             $value = strtolower($value);
-
-            // 2. Convert ALL allowed to lowercase for case-insensitive checking.
-            $options['forbidden'] = array_map('strtolower', $options['forbidden']);
+            // 2. Convert ALL forbidden to lowercase for case-insensitive checking.
+            $forbiddenValues = array_map('strtolower', $forbiddenValues); // ✅ USE $forbiddenValues
         } elseif ($type === 'int') {
             // Convert all forbidden values to ints
-            $options['forbidden'] = array_map('intval', $options['forbidden']);
-
+            $forbiddenValues = array_map('intval', $forbiddenValues); // ✅ USE $forbiddenValues
             // 1. Convert the input to int.
             $value = (int)($value);
-        } else {
+        } else { // 'dec' or 'float'
             // Convert all forbidden values to floats
-            $options['forbidden'] = array_map('floatval', $options['forbidden']);
-
-            // 1. Convert the input to lowercase.
+            $forbiddenValues = array_map('floatval', $forbiddenValues); // ✅ USE $forbiddenValues
+            // 1. Convert the input to float.
             $value = (float)($value);
         }
 
-
-
-        if (!empty($options['forbidden']) && in_array($value, $options['forbidden'], true)) {
+        // ✅ CORRECTED FIX: Use $forbiddenValues for the check
+        if (!empty($forbiddenValues) && in_array($value, $forbiddenValues, true)) {
             return $this->getErrorMessage($options, 'validation.forbidden');
         }
         return null;
+
     }
 
 

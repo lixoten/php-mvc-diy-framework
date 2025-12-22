@@ -125,6 +125,7 @@ return [
     //-----------------------------------------------------------------
 
 
+    \Core\Services\IdnConverterService::class => \DI\autowire(),
 
     // Register GeoLocationService
     'App\Services\GeoLocationService' => \DI\autowire(),

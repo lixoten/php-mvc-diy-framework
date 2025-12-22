@@ -33,17 +33,30 @@ class BooleanFormatter extends AbstractFormatter
         // ✅ STEP 1: Check if options_provider resolved a 'label' (HIGHEST PRIORITY)
         if (isset($options['label'])) {
             $label = $options['label'];
+            $translatedLabel = $this->translateLabel($label, $options['page_name'] ?? null);
+            return $translatedLabel;
+        }
 
-            // Translate if label looks like a translation key
-            if (is_string($label) && str_contains($label, '.')) {
-                $label = $this->translator->get($label, pageName: $options['page_name'] ?? null);
-            }
+        // ✅ STEP 2: Handle arrays explicitly
+        if (is_array($value)) {
+            return ''; // Return empty string for arrays
+        }
 
-            return htmlspecialchars($label);
+        // ✅ FIX: Explicitly convert booleans to '0' or '1' before htmlspecialchars
+        if (is_bool($value)) {
+            return (string)(int)$value; // Converts false to '0', true to '1'
         }
 
         return htmlspecialchars((string)$value);
     }
+
+    private function translateLabel(string $labelKey, ?string $pageName = null): string
+    {
+        // Use the translator to get the label
+        $translated = $this->translator->get($labelKey, [], $pageName);
+        return $translated;
+    }
+
 
     protected function getDefaultOptions(): array
     {
