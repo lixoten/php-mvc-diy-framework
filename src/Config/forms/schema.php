@@ -838,6 +838,9 @@ return [
         'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
         'val_fields' => [
+            'choices'    => ['default' => 'array', 'values' => []],
+                        // 'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
+
         ],
     ],
     'file' => [ // 24

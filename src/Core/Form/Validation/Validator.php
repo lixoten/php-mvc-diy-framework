@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Form\Validation;
 
 use App\Helpers\DebugRt;
+use Core\Exceptions\ValidatorNotFoundException;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Schema\FieldSchema;
 use Psr\Log\LoggerInterface;
@@ -35,13 +36,15 @@ class Validator
     ) {
         $this->registry    = $registry;
         $this->fieldSchema = $fieldSchema;
-        $this->logger      = $logger;
+        // $this->logger      = $logger;
     }
 
 
     /**
      * Normalize validator list to ensure consistent associative array format.
-     * Converts simple string validators (e.g., ['tel']) to ['tel' => []].
+     * E.g., ['required'] => ['required' => []]
+     * E.g., ['text' => ['minlength' => 5]] remains as is.
+     * This method is designed to handle the structure returned by `FieldInterface::getValidators()`.
      *
      * @param array<int|string, mixed> $validatorList
      * @return array<string, array<string, mixed>>
@@ -56,10 +59,59 @@ class Validator
             } elseif (is_string($key)) {
                 // Already associative: keep as is
                 $normalized[$key] = is_array($value) ? $value : [];
+            } else {
+                // Log a warning for malformed rule if encountered, though ideally input is well-formed.
+                $this->logWarning("Malformed validation rule encountered. Skipping: " . json_encode([$key => $value]));
             }
             // Ignore invalid entries (e.g., non-string keys/values) to avoid errors
         }
         return $normalized;
+    }
+
+
+    /**
+     * Validate a set of data against a set of rules.
+     *
+     * @param array<string, mixed> $data The data to validate (e.g., form input).
+     * @param array<string, array<string, mixed>> $rules The validation rules for each field.
+     *                                                      Format: ['fieldName' => ['validatorName' => ['option' => 'value'] | true]]
+     * @return array<string, array<string>> An associative array of field names to arrays of error messages.
+     */
+    public function validateData(array $data, array $rules): array // ✅ NEW / IMPLEMENTED METHOD
+    {
+        $allErrors = [];
+
+        foreach ($rules as $fieldName => $fieldRules) {
+            $value = $data[$fieldName] ?? null;
+            $fieldErrors = [];
+
+            // $fieldRules is already expected to be in a normalized format: validatorName => options
+            // (assuming normalizeValidatorList might be called internally or rules come pre-normalized)
+            // If rules come from user input, you might want to call $this->normalizeValidatorList($fieldRules);
+            foreach ($fieldRules as $validatorName => $validatorOptions) {
+                // Ensure validatorOptions is an array, as validatorService->validate expects array $options
+                $effectiveOptions = is_array($validatorOptions) ? $validatorOptions : [];
+
+                try {
+                    $validatorService = $this->registry->get($validatorName);
+                } catch (ValidatorNotFoundException $e) {
+                    $this->logWarning("Validator '{$validatorName}' not found for field '{$fieldName}'. " . $e->getMessage());
+                    continue; // Skip this rule if validator isn't found
+                }
+
+                $error = $validatorService->validate($value, $effectiveOptions);
+
+                if ($error !== null) {
+                    $fieldErrors[] = $error;
+                }
+            }
+
+            if (!empty($fieldErrors)) {
+                $allErrors[$fieldName] = $fieldErrors;
+            }
+        }
+
+        return $allErrors;
     }
 
 
@@ -70,7 +122,7 @@ class Validator
      * @param array<string, array<string, mixed>> $rules   Validation rules per field
      * @return array<string, array<int, string>>   Validation errors per field
      */
-    public function validateData(array $data, array $rules): array
+    public function oldvalidateData(array $data, array $rules): array
     {
         $errors = [];
 
@@ -102,7 +154,7 @@ class Validator
      * @param array<string, mixed> $context   Additional context for validation
      * @return array<int, string>   Validation errors for the field
      */
-    public function validateField(FieldInterface $field, array $context = []): array
+    public function oldvalidateField(FieldInterface $field, array $context = []): array
     {
         $errors     = [];
         // 1. Get Field Options, attributes and value
@@ -243,13 +295,68 @@ class Validator
 
         return $errors;
     }
+
+
     /**
-     * Log a warning message in development mode
+     * Validate a single FieldInterface object.
+     *
+     * @param FieldInterface $field The field object to validate.
+     * @param array<string, mixed> $context Additional context for validation (currently unused).
+     * @return array<string, array<string>> An associative array mapping the field's name to an array of error messages.
      */
-    private function logWarning(string $message): void
+    public function validateField(FieldInterface $field, array $context = []): array // ✅ NEW / IMPLEMENTED METHOD
     {
-        trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
+        $fieldName = $field->getName();
+        $fieldValue = $field->getValue();
+        // Assume getValidators() returns an array in format: ['validatorName' => ['option' => 'value'] | true]
+        $fieldValidators = $field->getValidators();
+
+        $errors = [];
+
+        // It's good practice to normalize the field's validators too if they aren't guaranteed to be.
+        // $normalizedFieldValidators = $this->normalizeValidatorList($fieldValidators);
+
+        foreach ($fieldValidators as $validatorName => $validatorOptions) {
+            // Ensure validatorOptions is an array
+            $effectiveOptions = is_array($validatorOptions) ? $validatorOptions : [];
+
+            try {
+                $validatorService = $this->registry->get($validatorName);
+            } catch (ValidatorNotFoundException $e) {
+                $this->logWarning("Validator '{$validatorName}' not found for field '{$fieldName}'. " . $e->getMessage());
+                continue;
+            }
+
+            $error = $validatorService->validate($fieldValue, $effectiveOptions);
+
+            if ($error !== null) {
+                $errors[] = $error;
+            }
+        }
+
+        if (!empty($errors)) {
+            return [$fieldName => $errors];
+        }
+
+        return [];
     }
+    /**
+     * Logs a warning message through the configured logger.
+     */
+    private function logWarning(string $message): void // ✅ NEW / IMPLEMENTED METHOD
+    {
+        $this->logger->warning($message);
+    }
+
+
+
+    // /**
+    //  * Log a warning message in development mode
+    //  */
+    // private function logWarning(string $message): void
+    // {
+    //     trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
+    // }
 
     /**
      * Build merged validation attributes from field schema, validator options, and context.

@@ -48,22 +48,21 @@ return [
     ],
     'list_fields' => [
         'id',
-        // 'title',
-
-        // 'super_powers',
-        // 'telephone',
-
-
+        'title',
+        'generic_text',
+        'status',
         'is_verified',
-        // 'generic_text',
+        'primary_email',
+        'super_powers',
+        'telephone',
+
+
         // 'generic_number',
-        // 'status',
         // 'gender_id',
         // 'state_code',
         // 'super_powers',
         // 'telephone',
-        'primary_email',
-        'profile_picture',
+        // 'profile_picture',
 
 
 

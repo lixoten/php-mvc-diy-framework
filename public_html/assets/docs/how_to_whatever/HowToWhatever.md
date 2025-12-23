@@ -30,15 +30,18 @@ HowToWhatever.md
         1. [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
 8. [Apache Server](#apache-server)
 9. [XAMPP - Recover](#xampp---recover)
-10. [Run Composer](#run-composer)
-11. [File-Program Locations](#file-program-locations)
+10. [Unit Test](#unit-test)
+     1. [PHP Unit testing Commands - Modules with unit tests Guide](#php-unit-testing-commands---modules-with-unit-tests-guide)
+         1. [Quick commands](#quick-commands)
+11. [Run Composer](#run-composer)
+12. [File-Program Locations](#file-program-locations)
      1. [hosts](#hosts)
      2. [Terminal History](#terminal-history)
-12. [Terminal History](#terminal-history-1)
-13. [Abbreviations](#abbreviations)
-14. [Ideas](#ideas)
-15. [Redirect URLS](#redirect-urls)
-16. [Start here](#start-here)
+13. [Terminal History](#terminal-history-1)
+14. [Abbreviations](#abbreviations)
+15. [Ideas](#ideas)
+16. [Redirect URLS](#redirect-urls)
+17. [Start here](#start-here)
      1. [External Doc 'whatever\_notes'](#external-doc-whatever_notes)
      2. [**Current Status:**](#current-status)
      3. [**Missing View Helpers:**](#missing-view-helpers)
@@ -314,7 +317,20 @@ Validation adding
 
 ---
 
----
+# Unit Test
+
+## [PHP Unit testing Commands - Modules with unit tests Guide](<Modules with unit tests Guide.md>)
+### Quick commands
+1. single using **--testdox**
+    - `vendor/bin/phpunit --testdox Tests\Core\Form\Validation\Rules\TextValidatorTest.php`
+    - `vendor/bin/phpunit --testdox Tests\Core\Form\Validation\Rules\CheckboxValidatorTest.php`
+    - `xxx`
+    - `xxx`
+    - `xxx`
+    - `xxx`
+2. groups - **lixoten**, **validators**, **formatters**, **email**, **text**, **boolean**, **checkbox**,
+    - `vendor/bin/phpunit --testdox --group lixoten`
+    - `xxx`
 
 ---
 

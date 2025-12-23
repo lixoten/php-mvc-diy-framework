@@ -42,6 +42,7 @@
         "squizlabs/php_codesniffer": "^4.0",
         "phpunit/phpunit": "^9.6",
         "phpstan/phpstan": "^1.10",
-        "fakerphp/faker": "^1.24"
+        "fakerphp/faker": "^1.24",
+        "maximebf/debugbar": "^2.2"
     }
 }

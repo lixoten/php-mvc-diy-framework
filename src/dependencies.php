@@ -105,6 +105,10 @@ return [
     },
     'Psr\Log\LoggerInterface' => \DI\get('logger'),
 
+
+
+
+
     //-----------------------------------------------------------------
 
     'route_params' => \DI\factory(function () {
@@ -131,7 +135,7 @@ return [
     'App\Services\GeoLocationService' => \DI\autowire(),
 
 
-
+    \Core\Services\DebugBarService::class => \DI\autowire(),
 
     'Core\View' => \DI\get('view'),
 
@@ -1500,7 +1504,6 @@ return [
 
     'formatterz.tel'       => \DI\autowire(\Core\Formatters\PhoneNumberFormatter::class),
     'formatterz.email'     => \DI\autowire(\Core\Formatters\EmailFormatter::class),
-    // 'formatterz.image'     => \DI\autowire(\Core\Formatters\ImageFormatter::class),
     'formatterz.decimal'   => \DI\autowire(\Core\Formatters\DecimalFormatter::class),
     'formatterz.currency'  => \DI\autowire(\Core\Formatters\CurrencyFormatter::class),
     'formatterz.foo'       => \DI\autowire(\Core\Formatters\FooFormatter::class),
@@ -1531,7 +1534,6 @@ return [
             $c->get('formatterz.text'),
             $c->get('formatterz.tel'),
             $c->get('formatterz.email'),
-            // $c->get('formatterz.image'), // todo remove old imageFormatter
             $c->get('formatterz.decimal'),
             $c->get('formatterz.currency'),
             $c->get('formatterz.foo'),

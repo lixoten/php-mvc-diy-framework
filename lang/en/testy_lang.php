@@ -68,6 +68,15 @@ return [
                 'invalid'   => 'Invalid Testy xStatus.',
         ],
     ],
+    'title' => [
+        'list' => [
+            'label'       => 'Title',
+        ],
+        'form' => [
+            'label'       => 'Title',
+            'placeholder' => 'Enter Title',
+        ],
+    ],
     'generic_text' => [
         'list' => [
             'label'       => 'xGeneric text',

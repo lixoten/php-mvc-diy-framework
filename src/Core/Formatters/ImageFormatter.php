@@ -8,7 +8,9 @@ namespace Core\Formatters;
  * Formatter for transforming an image path/filename into a complete URL string.
  * It does NOT generate HTML <img> tags.
  */
-class ImageFormatter extends AbstractFormatter
+// fixme ..removeme is not used
+// removeme
+class XxxxImageFormatter extends AbstractFormatter
 {
     public function getName(): string
     {

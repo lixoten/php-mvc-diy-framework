@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Helpers\DebugRt;
+use Core\Interfaces\ConfigInterface;
 
 /**
  * Bootstrap framework layout template
@@ -124,5 +125,18 @@ use App\Helpers\DebugRt;
 
     <!-- Theme JS (footer) -->
     <?= $themeAssets->renderJsScripts('default', 'footer') ?>
+    <?php
+    // ✅ Render DebugBar in development mode
+    if (
+        isset($container)
+        && $container->get(ConfigInterface::class)->get('app.env') === 'development'
+    ) {
+        /** @var \Core\Services\DebugBarService $debugBarService */
+        $debugBarService = $container->get(\Core\Services\DebugBarService::class);
+        $renderer = $debugBarService->getJavascriptRenderer();
+        echo $renderer->renderHead();
+        echo $renderer->render();
+    }
+    ?>
 </body>
 </html>

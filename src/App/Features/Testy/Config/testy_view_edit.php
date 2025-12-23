@@ -59,7 +59,7 @@ return [
                 // 'generic_text',
                 // 'profile_picture',
                 // 'generic_number',
-                // 'status',
+                'status',
                 // 'gender_id',
                 // 'state_code',
                 // 'super_powers',
