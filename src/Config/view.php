@@ -38,6 +38,7 @@ return [
         ],
     ],
 
+    // css
     // CSS Frameworks (renamed from 'themes')
     'css_frameworks' => [
         'default' => $_ENV['DEFAULT_CSS_FRAMEWORK'] ?? 'bootstrap',
@@ -61,7 +62,7 @@ return [
         ],
         'render_options' => [
             'from'                  => 'view.php-config',
-            'css_framework'         => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
+            // 'css_framework'         => $_ENV['LIST_CSS_FRAMEWORK'] ?? 'bootstrap',
             'show_title_heading'    => false,
             'title_heading_level'   => 'h2',
             'title_heading_class'   => null, // Use ThemeService default, or provide custom class if needed
@@ -102,11 +103,10 @@ return [
 
             'css_form_theme_class'  => "form-theme-christmas",
             'css_form_theme_file'   => "christmas",
-            'default_form_theme'    => 'christmas' ?? 'default',
 
             'show_title_heading'    => true,
             'title_heading_level'   => "h2",
-            'title_heading_class'         => null, // Do-not change. It uses ThemeService default, See note-#53
+            'title_heading_class'   => null, // Do-not change. It uses ThemeService default, See note-#53
             'form_heading_wrapper_class' => null, // Do-not change. It uses ThemeService default, See note-#53
 
             // 'submit_text'           => "button.save",
@@ -114,59 +114,30 @@ return [
             // 'cancel_text'           => 'button.cancel', // Added for translation
             'cancel_button_variant' => 'secondary',
 
-
-
             //---???????-----------------------------------
-            'css_framework'         => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
+            // 'css_framework'         => $_ENV['FORM_CSS_FRAMEWORK'] ?? 'bootstrap',
             'show_error_container'  => false,
-
-
-            'themes'                => [
-                'default' => [
-                    'css' => ''
-                ],
-                'dotted' => [
-                    'css' => '/assets/css/themes/forms/dotted.css',
-                    'class' => 'form-theme-dotted'  // Class applied to form container
-                ],
-                'neon' => [
-                    'css' => '/assets/css/themes/forms/neon.css',
-                    'class' => 'form-theme-neon'  // Class applied to form container
-                ],
-                'christmas' => [
-                    'css' => '/assets/css/themes/forms/christmas.css',
-                    'class' => 'form-theme-christmas'
-                ],
-                'rounded' => [
-                    'css' => '/assets/css/themes/forms/rounded.css',
-                    'class' => 'form-theme-rounded'
-                ]
-            ],
-        ],
-        'form_fields' => [
-            //'title', 'boo abstract'
-        ],
-
-    ],
-
-
-    // Visual Themes (to be implemented later)
-    'visual_themes' => [
-        'active' => $_ENV['VISUAL_THEME'] ?? '',
-        'available' => [
-            'standard' => [
-                'css' => '',
-            ],
-            'christmas' => [
-                'for_framework' => 'bootstrap', // Which framework this theme works with
-                'css' => '/assets/css/themes/christmas-theme.css',
-            ],
-            'halloween' => [
-                'for_framework' => 'bootstrap',
-                'css' => '/assets/css/themes/halloween-theme.css',
-            ],
         ],
     ],
+
+
+    // // Visual Themes (to be implemented later)
+    // 'visual_themes' => [
+    //     'active' => $_ENV['VISUAL_THEME'] ?? '',
+    //     'available' => [
+    //         'ignore' => [
+    //             'css' => '',
+    //         ],
+    //         'christmas' => [
+    //             'for_framework' => 'bootstrap', // Which framework this theme works with
+    //             'css' => '/assets/css/themes/christmas-theme.css',
+    //         ],
+    //         'halloween' => [
+    //             'for_framework' => 'bootstrap',
+    //             'css' => '/assets/css/themes/halloween-theme.css',
+    //         ],
+    //     ],
+    // ],
 
     // Assets
     'assets' => [

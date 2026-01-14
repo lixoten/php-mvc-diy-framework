@@ -6,6 +6,7 @@ use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use App\Helpers\DebugRt as Debug;
 use App\Helpers\DebugRt;
+use Core\I18n\I18nTranslator;
 
 // myNotes:
 // - composer require psr/log
@@ -58,6 +59,7 @@ class Logger implements LoggerInterface
      * @param float $samplingRate Sampling rate for non-error logs (0-1)
      */
     public function __construct(
+        protected I18nTranslator $translator,
         string $logDirectory = null,
         int $minLevel = self::INFO,
         bool $debugMode = false,
@@ -132,14 +134,22 @@ class Logger implements LoggerInterface
             return;
         }
 
-        // For non-errors, apply sampling
-        if ($level < self::ERROR && mt_rand(1, 100) > ($this->samplingRate * 100)) {
-            return;
-        }
+        // // Fixme - tempout
+        // // For non-errors, apply sampling
+        // if ($level < self::ERROR && mt_rand(1, 100) > ($this->samplingRate * 100)) {
+        //     return;
+        // }
+        // // Fixme - tempout
 
         // Format log message
         $levelName = $this->getLevelName($level);
         $timestamp = date('Y-m-d H:i:s');
+
+        // if (isset($context['me'])) {
+            // $message =  explode("\n", $message);
+        // }
+
+
 
         // Process message placeholders with context data
         $message = $this->interpolate($message, $context);
@@ -152,23 +162,27 @@ class Logger implements LoggerInterface
 
         $logMessage = "[$timestamp] [$levelName] $message$contextData\n";
 
+        // ✅ Wrap for dev mode
+        if ($this->isAppInDevelopment()) {
+            $logMessage = $this->wrapLogMessage($logMessage, 120);
+            $logMessage .= str_repeat('──', 60) . "\n";
+        }
+
         // Write to file
         $filename = $this->getLogFilePath();
 
-        //error_log("did we reach");
-        //Debug::p($this->debugMode);
-        // Debug log writing
-        if ($this->debugMode) {
-            $this->addDebug(
-                "<h4>Log</h4>" .
-                "Writing log: " . htmlspecialchars($logMessage) .
-                "<br>To file: " . $filename
-            );
-        }
+        // //error_log("did we reach");
+        // //Debug::p($this->debugMode);
+        // // Debug log writing
+        // if ($this->debugMode) {
+        //     $this->addDebug(
+        //         "<h4>Log</h4>" .
+        //         "Writing log: " . htmlspecialchars($logMessage) .
+        //         "<br>To file: " . $filename
+        //     );
+        // }
 
-        // $result = @file_put_contents($filename, $logMessage, FILE_APPEND);
-
-// Use fopen/fwrite/fflush for real-time visibility in tools like LogExpert
+        // Use fopen/fwrite/fflush for real-time visibility in tools like LogExpert
         // 'a' mode opens the file for writing only; places the file pointer at the end.
         $fp = @fopen($filename, 'a');
 
@@ -199,9 +213,9 @@ class Logger implements LoggerInterface
             }
         }
 
-// cmd /c "msg %USERNAME% /TIME:10 hello work & exit"
+        // cmd /c "msg %USERNAME% /TIME:10 hello work & exit"
 
-// cmd /c "msg %USERNAME% /TIME:10 WARNING Detected! Line: %L% & exit"
+        // cmd /c "msg %USERNAME% /TIME:10 WARNING Detected! Line: %L% & exit"
 
 
 
@@ -222,6 +236,20 @@ class Logger implements LoggerInterface
             }
         }
     }
+
+    /**
+     * Break a log message into lines of up to $length characters, wrapping at word boundaries.
+     *
+     * @param string $message
+     * @param int $length
+     * @return string
+     */
+    private function wrapLogMessage(string $message, int $length = 120): string
+    {
+        // wordwrap inserts "\n" at logical breakpoints (spaces)
+        return wordwrap($message, $length, "\n", false);
+    }
+
 
     /**
      * Get the log file path for today
@@ -366,7 +394,15 @@ class Logger implements LoggerInterface
      */
     public function critical($message, array $context = []): void
     {
-        $this->log(self::CRITICAL, $message, $context);
+        // Check for a custom 'dev_code' in context to trigger warningDev only if app IS in development.
+        if ($this->isAppInDevelopment() && isset($context['dev_code']) && is_string($context['dev_code'])) {
+            $devCode = $context['dev_code'];
+            // ✅ Pass the full context to warningDev. warningDev will handle stripping 'dev_code' for its internal log.
+            $this->devLog('critical', (string)$message, $devCode, $context);
+        } else {
+            // Default behavior: log a standard warning
+            $this->log(self::CRITICAL, (string)$message, $context);
+        }
     }
 
     /**
@@ -377,13 +413,52 @@ class Logger implements LoggerInterface
         $this->log(self::ERROR, $message, $context);
     }
 
+    // /**
+    //  * Warning conditions
+    //  */
+    // public function warning($message, array $context = []): void
+    // {
+    //     $this->log(self::WARNING, $message, $context);
+
+    //     //DebugRt::j('0', 'WARNING: ', $message, trace: false);
+    // }
+
     /**
-     * Warning conditions
+     * Warning conditions.
+     *
+     * Exceptional occurrences that are not errors.
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     *
+     * @param string|\Stringable $message The message to log.
+     * @param array<string, mixed> $context Additional context information.
+     *                                      If a 'dev_code' (string) is present in context,
+     *                                      it will trigger the dev-specific warning via `warningDev`.
+     * @return void
      */
-    public function warning($message, array $context = []): void
+    public function warning(string|\Stringable $message, array $context = []): void
     {
-        $this->log(self::WARNING, $message, $context);
+        // Check for a custom 'dev_code' in context to trigger warningDev only if app IS in development.
+        if ($this->isAppInDevelopment() && isset($context['dev_code']) && is_string($context['dev_code'])) {
+            $devCode = $context['dev_code'];
+            // ✅ Pass the full context to warningDev. warningDev will handle stripping 'dev_code' for its internal log.
+            $this->devLog('warning', (string)$message, $devCode, $context);
+        } else {
+            // Default behavior: log a standard warning
+            $this->log(self::WARNING, (string)$message, $context);
+
+            // $booMessage = "My important data: {qqq} and {www} and {rrr}";
+            // $booContent['qqq'] = 'aaaaaaaaaaaaaaaaaaaa';
+            // $booContent['www'] = 'cccccccccccccccccccc';
+            // $booContent['rrr'] = 'ffffffffffffffffffff';
+            // $this->log(self::WARNING, (string)$booMessage, $booContent);
+        }
     }
+
+//
+
+
+
 
     /**
      * Normal but significant events
@@ -486,9 +561,22 @@ class Logger implements LoggerInterface
         return $this->appInDevelopment;
     }
 
-    /** {@inheritdoc} */
-    public function warningDev(string $plainMessage, string $devWarning, array $context = []): void
+
+    /**
+     * Triggers a fatal E_USER_WARNING specifically for development mode,
+     * formatted to catch attention for configuration bugs.
+     *
+     * This method should only be called if `isAppInDevelopment()` returns true.
+     *
+     * @param string $plainMessage The core message of the warning.
+     * @param string $devCode help.
+     * @param array<string, mixed> $context Optional context for the warning.
+     * @return void
+     * @throws \RuntimeException Always throws E_USER_WARNING in development, does not return.
+     */
+    private function devLog(string $level, string $plainMessage, string $devCode, array $context = []): void
     {
+        // unset($context['dev_code']); // Prevent 'dev_code' from showing in standard log file context if desired
         if (!$this->isAppInDevelopment()) {
             // This method should ideally not be called in production.
             // If it is, log a standard error to avoid unintended fatal errors.
@@ -496,69 +584,248 @@ class Logger implements LoggerInterface
             return;
         }
 
+        // if (isset($context['details']['suggestions'])) {
+        //     $plainMessage .= " -- {$context['details']['suggestions']}";
+        // }
+
+
         // You can integrate context into the message here if desired
         $contextString = '';
         if (!empty($context)) {
             $contextString = "\nContext: " . json_encode($context, JSON_PRETTY_PRINT);
         }
 
-        // ✅ Find the actual caller's file and line number for the message display
         $callerFile = 'unknown_file';
         $callerLine = 'unknown_line';
-        // Limit the trace to avoid performance overhead and unnecessary depth
-        // $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 10);
-
-
-        ## Danger Danger not sure if index 1 will work well, might depend o how deep?
-        $i = 0;
-        $callerFile       = debug_backtrace()[$i]['file'];
-        $callerLine  = debug_backtrace()[$i]['line'];
-        if (isset(debug_backtrace()[$i]['class'])) {
-            $class      = debug_backtrace()[$i]['class'];
-        }
-        if (isset(debug_backtrace()[$i]['function'])) {
-            $function   = debug_backtrace()[$i]['function'];
+        // ✅ Adjust trace.
+        // [0] is warningDev()
+        // [1] is warning()
+        // [2] is the actual calling code that invoked warning()
+        // Limiting trace depth to 3 for performance, as we only need up to index 2.
+        $index = 2;
+        $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        if (isset($trace[ $index])) {
+            $callerFile = $trace[$index]['file'] ?? 'unknown_file';
+            $callerLine = $trace[$index]['line'] ?? 'unknown_line';
         }
 
-        // // Iterate through the trace to find the first relevant caller outside the logger itself
-        // foreach ($trace as $frame) {
-        //     if (isset($frame['file']) && isset($frame['line'])) {
-        //         // Skip frames that are internal to the logger and its direct wrappers
-        //         // Adjust this condition if you have other internal wrapper methods that should be skipped
-        //         if (str_contains($frame['file'], 'src' . DIRECTORY_SEPARATOR . 'Core' . DIRECTORY_SEPARATOR . 'Logger.php')) {
-        //             continue;
-        //         }
-        //         // If you have a specific wrapper in AbstractFieldType, ensure to skip it too.
-        //         // Example: if (isset($frame['class']) && $frame['class'] === 'Core\\Form\\Field\\Type\\AbstractFieldType' && $frame['function'] === 'logDevWarning') {
-        //         //     continue;
-        //         // }
+        // ✅ 1. Log to file first.
+        // Remove 'dev_code' from context for the standard log if it's considered internal to dev warnings.
+        $logContext = $context;
+        unset($logContext['dev_code']); // Prevent 'dev_code' from showing in standard log file context if desired
+        //$this->log(self::WARNING, "$devWarning - " . $plainMessage, $logContext);
 
-        //         // This frame should be the actual initiator of the warning in your application logic
-        //         $callerFile = $frame['file'];
-        //         $callerLine = $frame['line'];
-        //         break;
-        //     }
-        // }
+        // If the Level is critical, no use to try to display, error 500, clears the buffer, so nothing would
+        // be displayed anyways.
+        if ($level !== 'critical') {
+            $this->displayDevelopmentMessage($level, $plainMessage, $context, $callerFile, $callerLine);
+        }
+
+        $this->logDevelopmentMessage(
+            $level,
+            $plainMessage,
+            $context,
+            $callerFile,
+            $callerLine,
+            $devCode,
+            $logContext
+        );
 
 
+        // ///////////
 
-        $fullErrorMessage = str_repeat('#', 100) . "<br />\n";
-        $fullErrorMessage .= '#### ---------- waaaaaaDEV MODE BUG - CATCH MY EYE ----------' . "<br />\n";
-        $fullErrorMessage .= str_repeat('#', 100) . "<br />\n";
-        $fullErrorMessage .= "Dev Error #: \"{$devWarning}\" look it up" . "<br />\n";
-        $fullErrorMessage .= $plainMessage . $contextString . "<br /><br />\n\n";
-        $fullErrorMessage .= "Initiated by: {$callerFile} on line {$callerLine}<br />\n";
-        $fullErrorMessage .= str_repeat('#', 100) . "<br /><br />\n\n";
 
-        // error_log(strip_tags($fullErrorMessage)); // Log plain text to actual error log
-
-        // trigger_error($fullErrorMessage, E_USER_WARNING);
-        DebugRt::j('0', '', $fullErrorMessage, trace: false, code: $devWarning);
-        // Execution stops here due to E_USER_ERROR
     }
 
-    /** {@inheritdoc} */
-    public function errorDev(string $plainMessage, string $devError, array $context = []): void
+    private function logDevelopmentMessage(
+        string $level,
+        string $plainMessage,
+        array $context,
+        string $callerFile,
+        string $callerLine,
+        string $devCode,
+        array $logContext,
+    ): void {
+
+        ////////////////////////////////////////////
+        // ///////////////////////////////////////////////////////
+        // ///////////////////////////////////////////////////////
+        // ///////////////////////////////////////////////////////
+        $fullErrorMessage = '';
+        $line = [];
+        // ✅ 2. Trigger the development-specific output/fatal error.
+        // $fullErrorMessage = "<strong>Warning: $devWarning</strong> - " . $plainMessage . $contextString . "<br />\n";
+        $title = $this->translator->get('dev_code.' . $context['dev_code'], pageName: 'xxxx');
+        $title = '❌ ' . $level . ': ' . $context['dev_code'] . ' - ' . $title;
+        // $fullErrorMessage = "";
+        $line[] = $title;
+        $line[] .= '✉️ Message : ' . $plainMessage ;
+        $line[] .= '💡 Suggestions: ' . $context['suggestion'];
+        if (isset($context['details'])) {
+            $fullErrorMessage = '';
+            foreach ($context['details'] as $key => $value) {
+                if ($key ===  'title') {
+                } elseif ($key ===  'error') {
+                    $line[$key] = "🔴 $key: " . $value;
+                } elseif ($key ===  'error_code') {
+                    // $line[$key] = "🔴 $key: " . '<strong>' . $value . '</strong>';
+                } elseif ($key ===  'error_dev_code') {
+                    $line[$key] = "🔴 $key: " . $value;
+                } elseif ($key ===  'type') {
+                    $line[$key] = "📄 $key: " . $value;
+                } elseif ($key ===  'entity') {
+                    $line[$key] = "📄 $key: " . $value;
+                } elseif ($key ===  'type') {
+                    $line[$key] = "📄  $key: " . $value;
+                } elseif ($key ===  'field') {
+                    $line[$key] = "🔹 $key: " . $value;
+                } elseif ($key ===  'configKey') {
+                    // $line[$key] = "🔑 $key: " . $value;
+                } elseif ($key ===  'fix') {
+                    // $line[$key] = "💡 $key: " . $value;
+                } elseif ($key ===  'suggestions') {
+                    // $line[$key] = "💡 $key: " . $value;
+                } elseif ($key ===  'msg') {
+                } else {
+                    $line[$key] = '📄 ' . $key . ': ' . $value; // 📝 💡 Fix t 🏷️ 🆔 ! ⚠️
+                }
+            }
+        }
+        // $line[] .= "Initiated by: {$callerFile} on line {$callerLine}";
+        $line[] .=  str_repeat('──', 40);
+        $fullErrorMessage .=  implode("\n ", $line);
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////
+
+        // $this->log(self::WARNING, "$devWarning - " . $fullErrorMessage, $logContext);
+        // $this->log(self::WARNING, "$devWarning - " . $fullErrorMessage);
+        $this->log($level, "$devCode - " . $fullErrorMessage);
+    }
+
+    private function displayDevelopmentMessage(
+        string $level,
+        string $plainMessage,
+        array $context,
+        string $callerFile,
+        string $callerLine
+    ): void {
+        // ✅ 2. Trigger the development-specific output/fatal error.
+        // $fullErrorMessage = "<strong>Warning: $devWarning</strong> - " . $plainMessage . $contextString . "<br />\n";
+        $title = $this->translator->get('dev_code.' . $context['dev_code'], pageName: 'xxxx');
+        $title = '❌eeeeeeee <strong>' . $level . ': ' . $context['dev_code'] . ' - ' . $title . '</strong>';
+        $fullErrorMessage = "";
+        $line[] = $title;
+        $line[] .= '✉️ <strong>Message :</strong> ' . $plainMessage ;
+        $line[] .= '💡 <strong>Suggestions:</strong> ' . $context['suggestion'];
+        if (isset($context['details'])) {
+            // $fullErrorMessage = '';
+            foreach ($context['details'] as $key => $value) {
+            //foreach ($context['details'] as $error) {
+                //foreach ($error as $key => $value) {
+                    if ($key ===  'title') {
+                    } elseif ($key ===  'error') {
+                        $line[$key] = "🔴 $key: " . '<strong>' . $value . '</strong>';
+                    } elseif ($key ===  'error_code') {
+                        // $line[$key] = "🔴 $key: " . '<strong>' . $value . '</strong>';
+                    } elseif ($key ===  'error_dev_code') {
+                        $line[$key] = "🔴 $key: " . $value;
+                    } elseif ($key ===  'type') {
+                        $line[$key] = "📄 $key: " . $value;
+                    } elseif ($key ===  'entity') {
+                        $line[$key] = "📄 <strong>$key:</strong> " . $value;
+                    } elseif ($key ===  'type') {
+                        $line[$key] = "📄  $key: " . $value;
+                    } elseif ($key ===  'field') {
+                        $line[$key] = "🔹 $key: " . $value;
+                    } elseif ($key ===  'configKey') {
+                        // $line[$key] = "🔑 $key: " . $value;
+                    } elseif ($key ===  'fix') {
+                        // $line[$key] = "💡 $key: " . $value;
+                    } elseif ($key ===  'suggestions') {
+                        // $line[$key] = "💡 $key: " . $value;
+                    } elseif ($key ===  'msg') {
+                    } else {
+                        $line[$key] = '📄 <strong>' . $key . ':</strong> ' . $value; // 📝 💡 Fix t 🏷️ 🆔 ! ⚠️
+                    }
+                //}
+            }
+        }
+        $line[] .= "<strong>Initiated by:</strong> {$callerFile} on line {$callerLine}";
+        $line[] .=  str_repeat('──', 40);
+        $fullErrorMessage .=  implode("\n <br />", $line);
+        // $fullErrorMessage . [$key] = str_repeat('──', 40);
+
+        // DebugRt::j('0', '', $fullErrorMessage, trace: false, code: $devWarning);
+        $this->j($fullErrorMessage);
+    }
+
+
+
+    /**
+     *
+     * @param mixed $arr The value to be outputted. Can be any data type.
+     *
+     * @return void
+     */
+    private static function j(
+        mixed $arr = "-----------------------------------",
+    ): void {
+        if (is_bool($arr)) {
+            $b = $arr ? '1 (true)' : '0 (false)';
+            print "<br />$b";
+        } elseif (is_null($arr)) {
+            print "<br />NULL";
+        } elseif (is_string($arr)) {
+            print "<br />$arr";
+        } elseif (is_numeric($arr)) {
+            print "<br />$arr";
+        } elseif (is_object($arr)) {
+            print "<hr />";
+                print "<pre>";
+                print_r($arr);
+                echo '</pre><hr />';
+        } else {
+            print "<hr />";
+            print "<pre>";
+            print_r($arr);
+            echo '</pre><hr />';
+        }
+    }
+
+    // private static function getBacktraceInfo()
+    // {
+    //     ## Danger Danger not sure if index 1 will work well, might depend o how deep?
+    //     $i = 1;
+    //     $file       = debug_backtrace()[$i]['file'];
+    //     $line       = debug_backtrace()[$i]['line'];
+    //     if (isset(debug_backtrace()[$i]['class'])) {
+    //         $class      = debug_backtrace()[$i]['class'];
+    //     }
+    //     if (isset(debug_backtrace()[$i]['function'])) {
+    //         $function   = debug_backtrace()[$i]['function'];
+    //     }
+
+    //     self::$traceLine = $file . ", Line: " . $line   ;
+    // }
+
+
+    /**
+     * Triggers a fatal E_USER_ERROR specifically for development mode,
+     * formatted to catch attention for configuration bugs.
+     *
+     * This method should only be called if `isAppInDevelopment()` returns true.
+     *
+     * @param string $plainMessage The core message of the error.
+     * @param string $devError help.
+     * @param array<string, mixed> $context Optional context for the error.
+     * @return void
+     * @throws \RuntimeException Always throws E_USER_ERROR in development, does not return.
+     */
+    private function errorDev(string $plainMessage, string $devError, array $context = []): void
     {
         if (!$this->isAppInDevelopment()) {
             // This method should ideally not be called in production.

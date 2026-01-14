@@ -18,7 +18,7 @@ return [
 
 
         'owner_foreign_key'   => 'user_id',
-        'redirect_after_save' => 'list',//list edit
+        'redirect_after_save' => 'edit',//list edit
         'redirect_after_add'  => 'list',
         'pageKey'             => 'image_edit',
         'entityName'          => 'image',

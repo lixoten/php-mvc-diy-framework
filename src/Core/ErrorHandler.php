@@ -13,8 +13,10 @@ use App\Helpers\ReturnPageManager;
 use App\Helpers\DebugRt;
 use App\Services\ActivationTokenGenerationException;
 use Core\Exceptions\BadRequestException;
+use Core\Exceptions\ConfigurationValidationException;
 use Core\Exceptions\ConnectionException;
 use Core\Exceptions\DatabaseException;
+use Core\Exceptions\FieldSchemaValidationException;
 use Core\Exceptions\ForbiddenException;
 use Core\Exceptions\HttpException;
 use Core\Exceptions\PageNotFoundException;
@@ -30,6 +32,7 @@ use Throwable;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Core\Http\HttpFactory;
+use PHP_CodeSniffer\Generators\HTML;
 
 class ErrorHandler
 {
@@ -176,6 +179,8 @@ class ErrorHandler
                     $e->getPrevious()
                 );
             }
+        } elseif ($e instanceof ConfigurationValidationException) {
+            $statusCode = 500;
         } else {
             // DebugRt::p($e);
             // DebugRt::j('1', '', $e);
@@ -190,8 +195,11 @@ class ErrorHandler
             $logLevel = 'warning';
         }
 
-        // Single comprehensive log with all context
-        $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
+        // important!!! - No need to log and take up space in development mode
+        if (!$this->developmentMode) {
+            // Single comprehensive log with all context
+            $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
+        }
 
         // If httpFactory is not available, create a simple response
         if (!$this->httpFactory) {
@@ -210,14 +218,13 @@ class ErrorHandler
         if ($request) {
             $sessionManager = $request->getAttribute('session');
         }
-        $this->logger?->$logLevel(get_class($e) . ": " . $e->getMessage(), $additionalContext);
 
         // If no session in request, create a fallback one
         if (!$sessionManager) {
             $this->logger?->notice(AttentionType::FALLBACK->errorMessage('for $sessionManager'));
             $sessionManager = new \Core\Session\SessionManager([
-                'name' => 'mvc3_session',
-                'secure' => false,
+                'name'     => 'mvc3_session',
+                'secure'   => false,
                 'httponly' => true,
                 'samesite' => 'Lax'
             ]);
@@ -229,7 +236,10 @@ class ErrorHandler
                 $errorController = $this->container->get('Core\Errors\ErrorsController');
 
                 // Use the response object directly instead of output buffering
-                $debugHelp = $this->generateDevelopmentErrorPage($e, $request);
+                $debugHelp = null;
+                if ($this->developmentMode) {
+                    $debugHelp = $this->generateDevelopmentErrorPage($e, $request);
+                }
 
                 $errorResponse = $errorController->showError(
                     $statusCode,
@@ -239,7 +249,7 @@ class ErrorHandler
                         'file' => $e->getFile(),
                         'line' => $e->getLine(),
                         'additionalContext' => $additionalContext,
-                        'debugHelp' => $debugHelp
+                        'debugHelp' => $debugHelp,
                     ]
                 );
 
@@ -374,48 +384,113 @@ class ErrorHandler
      * @param ServerRequestInterface|null $request
      * @return string
      */
-    private function generateDevelopmentErrorPage(Throwable $exception, ?ServerRequestInterface $request): string
+    private function generateDevelopmentErrorPage(Throwable $exception, ?ServerRequestInterface $request): array
     {
         //$content = '<h1>Error: ' . htmlspecialchars($exception->getMessage()) . '</h1>';
         //$content .= '<p>Uncaught exception: ' . get_class($exception) . '</p>';
-        $content = '';
+        $devErrorContent = [];
+        $devErrorContent['helpInfo']  = null;
 
         // Special handling for configuration exceptions
         if ($exception instanceof \Core\Exceptions\ConfigurationException) {
-            $content .= '<div style="background-color: #fff3cd; padding: 15px; ';
-            $content .= 'border: 1px solid #ffeeba; margin: 10px 0;">';
-            $content .= '<h3>Configuration Issue</h3>';
-            $content .= '<p><strong>Config File:</strong> ' . htmlspecialchars($exception->getConfigFile()
+            $devErrorContent['helpInfo'] .= '<div style="background-color: #fff3cd; padding: 15px; ';
+            $devErrorContent['helpInfo'] .= 'border: 1px solid #ffeeba; margin: 10px 0;">';
+            $devErrorContent['helpInfo'] .= '<h3>Configuration Issue</h3>';
+            $devErrorContent['helpInfo'] .= '<p><strong>Config File:</strong> ' . htmlspecialchars($exception->getConfigFile()
             ?? 'Unknown') . '</p>';
-            $content .= '<p><strong>Entity Type:</strong> ' . htmlspecialchars($exception->getEntityType()
+            $devErrorContent['helpInfo'] .= '<p><strong>Entity Type:</strong> ' . htmlspecialchars($exception->getEntityType()
             ?? 'Unknown') . '</p>';
             if ($exception->getSuggestion()) {
-                $content .= '<h4>How to Fix:</h4>';
-                $content .= '<p>' . htmlspecialchars($exception->getSuggestion()) . '</p>';
+                $devErrorContent['helpInfo'] .= '<h4>How to Fix:</h4>';
+                $devErrorContent['helpInfo'] .= '<p>' . htmlspecialchars($exception->getSuggestion()) . '</p>';
             }
-            $content .= '</div>';
+            $devErrorContent['helpInfo'] .= '</div>';
+        }
+        // Special handling for configuration exceptions
+        if ($exception instanceof \Core\Exceptions\ConfigurationValidationException) {
+            // $displayHelp = $this->generateConfigValidationErrorHelp($exception);
+            $displayHelp = $exception->toHtmlHelp();
+            // $devErrorContent['helpInfo'] .= '<div style="background-color: #fff3cd; padding: 15px; ';
+            // $devErrorContent['helpInfo'] .= 'border: 1px solid #ffeeba; margin: 10px 0;">';
+            // $devErrorContent['helpInfo'] .= '<h3>Configuration Issue</h3>';
+            // $devErrorContent['helpInfo'] .= '<p><strong>Config File:</strong> ' . htmlspecialchars($exception->getConfigIdentifier()
+            // ?? 'Unknown') . '</p>';
+            // $devErrorContent['helpInfo'] .= '<p><strong>Entity Type:</strong> ' . htmlspecialchars($exception->getEntityName()
+            // ?? 'Unknown') . '</p>';
+            // if ($exception->getSuggestion()) {
+                // $devErrorContent['helpInfo'] .= '<h4>How to Fix:</h4>';
+                // $devErrorContent['helpInfo'] .= $displayHelp;
+                // $content .= '<p>' . htmlspecialchars($exception->getSuggestion()) . '</p>';
+                //$content .= '<p>' . htmlspecialchars($exception['message']) . '</p>';
+            // }
+            // $devErrorContent['helpInfo'] .= '</div>';
+            $configIdInfo = htmlspecialchars($exception->getConfigIdentifier() ?? 'Unknown');
+            $configEntityName = htmlspecialchars($exception->getEntityName() ?? 'Unknown');
+
+            $devErrorContent['helpInfo'] .= <<<HTML
+            <div style="background-color: #fff3cd; padding: 15px; border: 1px solid #ffeeba; margin: 10px 0;">
+                <h3>Configuration Issue</h3>
+                <p><strong>Config File:</strong> $configIdInfo</p>
+                <p><strong>Entity Type:</strong> $configEntityName</p>
+                <h3>How to Fix:</h3>
+                $displayHelp
+            </div>
+            HTML;
+        }
+        if ($exception instanceof \Core\Exceptions\FieldSchemaValidationException) {
+            $displayHelp = $this->generateConfigValidationErrorHelp();
+            //$displayHelp = $exception->generateConfigValidationErrorHelpXX();
+            // $devErrorContent['helpInfo'] .= '<div style="background-color: #fff3cd; padding: 15px; ';
+            // $devErrorContent['helpInfo'] .= 'border: 1px solid #ffeeba; margin: 10px 0;">';
+            // $devErrorContent['helpInfo'] .= '<h3>Configuration Issue</h3>';
+            // $devErrorContent['helpInfo'] .= '<p><strong>Config File:</strong> ' . htmlspecialchars($exception->getConfigIdentifier()
+            // ?? 'Unknown') . '</p>';
+            // $devErrorContent['helpInfo'] .= '<p><strong>Entity Type:</strong> ' . htmlspecialchars($exception->getEntityName()
+            // ?? 'Unknown') . '</p>';
+            // if ($exception->getSuggestion()) {
+                // $devErrorContent['helpInfo'] .= '<h4>How to Fix:</h4>';
+                // $devErrorContent['helpInfo'] .= $displayHelp;
+                // $content .= '<p>' . htmlspecialchars($exception->getSuggestion()) . '</p>';
+                //$content .= '<p>' . htmlspecialchars($exception['message']) . '</p>';
+            // }
+            // $devErrorContent['helpInfo'] .= '</div>';
+            $configIdInfo = 'aaa';//htmlspecialchars($exception->getConfigIdentifier() ?? 'Unknown');
+            $configEntityName = 'xxcc';//htmlspecialchars($exception->getEntityName() ?? 'Unknown');
+
+            $devErrorContent['helpInfo'] .= <<<HTML
+            <div style="background-color: #fff3cd; padding: 15px; border: 1px solid #ffeeba; margin: 10px 0;">
+                <h3>Configuration Issue</h3>
+                <p><strong>Config File:</strong> $configIdInfo</p>
+                <p><strong>Entity Type:</strong> $configEntityName</p>
+                <h3>How to Fix:</h3>
+                $displayHelp
+            </div>
+            HTML;
         }
 
 
-        $content .= '<p>Code: ' . $exception->getCode() . '</p>';
-        $content .= '<p>File: ' . $exception->getFile() . ' (line ' . $exception->getLine() . ')</p>';
 
-        $content .= '<h2>Stack Trace</h2>';
-        $content .= '<pre>' . htmlspecialchars($exception->getTraceAsString()) . '</pre>';
+        //$devErrorContent['helpInfo'] .= '<p>Code: ' . $exception->getCode() . '</p>';
+        //$devErrorContent['helpInfo'] .= '<p>File: ' . $exception->getFile() . ' (line ' . $exception->getLine() . ')</p>';
+
+        // $devErrorContent['helpTrace'] = '<div style="background-color: #fff3cd; padding: 15px; ';
+        // $devErrorContent['helpTrace'] .= '<h3>sssStack Trace</h3>';
+        // $devErrorContent['helpTrace'] .= '<pre>' . $exception->getTraceAsString() . '</pre>';
+        // $devErrorContent['helpTrace'] .= '</div>';
 
         if ($request) {
-            $content .= '<h2>Request Details</h2>';
-            $content .= '<p>Method: ' . htmlspecialchars($request->getMethod()) . '</p>';
-            $content .= '<p>URI: ' . htmlspecialchars((string)$request->getUri()) . '</p>';
+            $devErrorContent['helpInfo'] .= '<h2>Request Details</h2>';
+            $devErrorContent['helpInfo'] .= '<p>Method: ' . htmlspecialchars($request->getMethod()) . '</p>';
+            $devErrorContent['helpInfo'] .= '<p>URI: ' . htmlspecialchars((string)$request->getUri()) . '</p>';
 
-            $content .= '<h3>Query Parameters</h3>';
-            $content .= '<pre>' . htmlspecialchars(print_r($request->getQueryParams(), true)) . '</pre>';
+            $devErrorContent['helpInfo'] .= '<h3>Query Parameters</h3>';
+            $devErrorContent['helpInfo'] .= '<pre>' . htmlspecialchars(print_r($request->getQueryParams(), true)) . '</pre>';
 
-            $content .= '<h3>Request Body</h3>';
-            $content .= '<pre>' . htmlspecialchars(print_r($request->getParsedBody(), true)) . '</pre>';
+            $devErrorContent['helpInfo'] .= '<h3>Request Body</h3>';
+            $devErrorContent['helpInfo'] .= '<pre>' . htmlspecialchars(print_r($request->getParsedBody(), true)) . '</pre>';
         }
 
-        return $content;
+        return $devErrorContent;
     }
 
     /**
@@ -434,6 +509,274 @@ class ErrorHandler
         $message = $messages[$statusCode] ?? 'An error occurred.';
 
         return '<h1>Error</h1><p>' . $message . '</p>';
+    }
+
+
+    /**
+     * Generate a developer-friendly HTML error page for configuration validation failures.
+     */
+    private function generateConfigValidationErrorPage(
+        ConfigurationValidationException $exception
+    ): string {
+        $errors = $exception->getErrors();
+        $configFile = htmlspecialchars($exception->getConfigIdentifier());
+        $pageKey = htmlspecialchars($exception->getPageKey());
+        $entityName = htmlspecialchars($exception->getEntityName());
+
+        $errorListHtml = '';
+        foreach ($errors as $index => $error) {
+            $errorListHtml .= '<li class="error-item">' . htmlspecialchars($error) . '</li>';
+        }
+        $xxxx = count($errors);
+
+        return <<<HTML
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Configuration Validation Error</title>
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 40px 20px;
+                color: #333;
+            }
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+                background: white;
+                border-radius: 12px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                overflow: hidden;
+            }
+            .header {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 30px 40px;
+            }
+            .header h1 {
+                font-size: 28px;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .header p {
+                font-size: 16px;
+                opacity: 0.9;
+            }
+            .content {
+                padding: 40px;
+            }
+            .meta-info {
+                background: #f8f9fa;
+                border-left: 4px solid #667eea;
+                padding: 20px;
+                margin-bottom: 30px;
+                border-radius: 4px;
+            }
+            .meta-info p {
+                margin: 8px 0;
+                font-size: 14px;
+            }
+            .meta-info strong {
+                color: #667eea;
+                font-weight: 600;
+            }
+            .error-section {
+                margin-top: 30px;
+            }
+            .error-section h2 {
+                font-size: 20px;
+                color: #e53e3e;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #fed7d7;
+            }
+            .error-list {
+                list-style: none;
+                padding: 0;
+            }
+            .error-item {
+                background: #fff5f5;
+                border-left: 4px solid #e53e3e;
+                padding: 15px 20px;
+                margin-bottom: 12px;
+                border-radius: 4px;
+                font-size: 14px;
+                line-height: 1.6;
+                color: #742a2a;
+            }
+            .footer {
+                background: #f8f9fa;
+                padding: 20px 40px;
+                text-align: center;
+                color: #666;
+                font-size: 14px;
+                border-top: 1px solid #e2e8f0;
+            }
+            .icon {
+                font-size: 32px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>
+                    <span class="icon">⚠️</span>
+                    1 Configuration Validation Failed
+                </h1>
+                <p>Your form configuration contains errors that must be fixed before the page can render.</p>
+            </div>
+
+            <div class="content">
+                <div class="meta-info">
+                    <p><strong>📄 Config File:</strong> {$configFile}</p>
+                    <p><strong>📝 Page Key:</strong> {$pageKey}</p>
+                    <p><strong>🏷️ Entity:</strong> {$entityName}</p>
+                </div>
+
+                <div class="error-section">
+                    <h2>🔴 Errors Found ({$xxxx})</h2>
+                    <ul class="error-list">
+                        {$errorListHtml}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer">
+                💡 Fix these issues in your configuration file and refresh the page.
+            </div>
+        </div>
+    </body>
+    </html>
+    HTML;
+    }
+
+
+
+
+    /**
+     * Generate a developer-friendly HTML error page for configuration validation failures.
+     */
+    private function generateConfigValidationErrorHelp(
+        ConfigurationValidationException $exception
+    ): string {
+        $errors = $exception->getErrors();
+        $configFile = htmlspecialchars($exception->getConfigIdentifier());
+        $pageKey = htmlspecialchars($exception->getPageKey());
+        $entityName = htmlspecialchars($exception->getEntityName());
+
+        $errorListHtml = '';
+        foreach ($errors as $index => $error) {
+            if (is_string($error)) {
+                $errorListHtml .= '<li class="error-item">' . htmlspecialchars($error) . '</li>';
+            }
+
+            if (is_array($error)) {
+                $errorListHtml .= '<li class="error-item">' . htmlspecialchars($error['message']) . '</li>';
+            }
+
+        }
+
+        $xxxx = count($errors);
+        $errorListHtml = <<<HTML
+                    <ul class="error-list">
+                        {$errorListHtml}
+                    </ul>
+        HTML;
+
+
+        return <<<HTML
+        <div class="container">
+            <div class="header">
+                <h5>
+                    <span class="icon">⚠️</span>
+                    2 Configuration Validation Failed
+                </h5>
+                <p>Your form configuration contains errors that must be fixed before the page can render.</p>
+            </div>
+
+            <div class="content">
+                <div class="meta-info">
+                    <p><strong>📄 Config File:</strong> {$configFile}</p>
+                    <p><strong>📝 Page Key:</strong> {$pageKey}</p>
+                    <p><strong>🏷️ Entity:</strong> {$entityName}</p>
+                </div>
+
+                <div class="error-section">
+                    <h5>🔴 Errors Found ({$xxxx})</h5>
+                    <ul class="error-list">
+                        {$errorListHtml}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer">
+                💡 Fix these issues in your configuration file and refresh the page.
+            </div>
+        </div>
+    HTML;
+    }
+
+    /**
+     * Generate a developer-friendly HTML error page for configuration validation failures.
+     */
+    private function generateConfigValidationErrorHelp2(
+        FieldSchemaValidationException $exception
+    ): string {
+        $errors     = [];//$exception->getErrors();
+        $configFile = "";//htmlspecialchars($exception->getConfigIdentifier());
+        $pageKey    = "";//htmlspecialchars($exception->getPageKey());
+        $entityName = "";//htmlspecialchars($exception->getEntityName());
+
+        $errorListHtml = '';
+        foreach ($errors as $index => $error) {
+            $errorListHtml .= '<li class="error-item">' . htmlspecialchars($error) . '</li>';
+        }
+
+        $xxxx = count($errors);
+        $errorListHtml = <<<HTML
+                    <ul class="error-list">
+                        {$errorListHtml}
+                    </ul>
+        HTML;
+
+
+        return <<<HTML
+        <div class="container">
+            <div class="header">
+                <h5>
+                    <span class="icon">⚠️</span>
+                    2 Configuration Validation Failed
+                </h5>
+                <p>Your form configuration contains errors that must be fixed before the page can render.</p>
+            </div>
+
+            <div class="content">
+                <div class="meta-info">
+                    <p><strong>📄 Config File:</strong> {$configFile}</p>
+                    <p><strong>📝 Page Key:</strong> {$pageKey}</p>
+                    <p><strong>🏷️ Entity:</strong> {$entityName}</p>
+                </div>
+
+                <div class="error-section">
+                    <h5>🔴 Errors Found ({$xxxx})</h5>
+                    <ul class="error-list">
+                        {$errorListHtml}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer">
+                💡 Fix these issues in your configuration file and refresh the page.
+            </div>
+        </div>
+    HTML;
     }
 }
 

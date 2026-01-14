@@ -28,10 +28,13 @@ use Core\Interfaces\ConfigInterface;
     <title><?= $title ?? 'MVC LIXO' ?></title>
 
     <!-- Theme CSS -->
-    <?= $themeAssets->renderCssLinks() ?>
+    <?= $themeAssets->renderCssLinks('default', get_defined_vars()) ?>
 
     <!-- Theme JS (head) -->
     <?= $themeAssets->renderJsScripts('default', 'head') ?>
+
+
+
 
     <?php if ($themePreview->isPreviewModeActive()) : ?>
     <style>

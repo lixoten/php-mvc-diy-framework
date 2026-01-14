@@ -21,103 +21,68 @@ return [
         ],
 
         // Behavior flags
-        'ajax_save'         => true,     // js-feature: renderer/JS should enable ajax save behavior
-        'auto_save'         => false,    // js-feature: enable auto-save/draft for the whole form
-        'use_local_storage' => false,    // js-feature: Use localStorage for drafts
+        'ajax_save'         => true,    // js-feature: renderer/JS should enable ajax save behavior
+        'auto_save'         => true,    // js-feature: enable auto-save/draft for the whole form
+        'use_local_storage' => true,    // js-feature: Use localStorage for drafts
+
+
+        // 'uszzzzzzzzzzzzrage' => false,    // js-feature: Use localStorage for drafts
+
+
 
         // 'force_captcha'        => false,
-        // 'security_level'       => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
-        // 'layout_type'           => 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
-        'layout_type'           =>  'sequential', //'fieldsets', // 'sequential', //CONST_L::SEQUENTIAL,    // FIELDSETS / SECTIONS / SEQUENTIAL
-        // 'error_display'        => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-        'error_display'         => 'inline', //'inline', //'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
-        'html5_validation'      => false,
+        'security_level'       => 'low', // 'low', 'medium', 'high'
+        'layout_type'          => 'sequential', //'fieldsets', 'sequential', 'sections'
+        'error_display'        => 'inline', //'inline', 'summary',
+        'html5_validation'     => false,
 
-        'css_form_theme_class'  => '', // "form-theme-christmas",
-        'css_form_theme_file'   => '', // "christmas",
-        'default_form_theme'    => '', // 'christmas' ?? 'default',
+        'css_form_theme_class' => "form-theme-neon",
+        'css_form_theme_file'  => 'neon', // "christmas", neon
 
-        'show_title_heading'    => true,
-        'title_heading_level'         => 'h3', // Default is 'h2'
-        'title_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        'show_title_heading'   => true,
+        'title_heading_level'  => 'h3', // Default is 'h2'
+        'title_heading_class'  => null, // Use ThemeService default, or provide custom class if needed
         'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
 
         'submit_button_variant' => 'primary',
         'cancel_button_variant' => 'secondary',
 
-
+        // 'theme'
 
     ],
     'form_layout' => [
         [
             'title' => 'Your Favorite',
-           'fields'    => [
+            'fields'    => [
+                'title'
+            ],
+            // 'fields' => 'Your Favorite',
+            // 'fieldxxs'    => [
                 // 'id',
-                'title',
+                // 'title',
+                // 'titlessss',
 
-                'is_verified',
+                // 'is_verified',
+                // 'status',
+                // 'primary_email',
+
                 // 'generic_text',
                 // 'profile_picture',
                 // 'generic_number',
-                'status',
                 // 'gender_id',
                 // 'state_code',
                 // 'super_powers',
                 // 'telephone',
-                'primary_email',
-            ],
+            // ],
             'divider' => true,
         ],
-        [
-            'title'     => 'Your Title',
-            'fields'    => [
-                // 'id',
-                // 'title',
-                // 'status',
-                // 'generic_text',
-                // 'telephone',
-                // 'primary_email',
-                // 'super_powers',
-                // ------
-                // 'store_id',
-                // 'user_id',
-                // 'status',
-                // 'slug',
-                // 'content',
-                // 'image_count',
-                // 'cover_image_id',
-                // 'generic_code',
-                // 'super_powers',
-                // 'date_of_birth',
-                // 'generic_date',
-                // 'generic_month',
-                // 'generic_week',
-                // 'generic_time',
-                // 'generic_datetime',
-                // 'gender_id',
-                // 'gender_other',
-                // 'is_verified',
-                // 'interest_soccer_ind',
-                // 'interest_baseball_ind',
-                // 'interest_football_ind',
-                // 'interest_hockey_ind',
-                // 'secret_code_hash',
-                // 'balance',
-                // 'generic_decimal',
-                // 'volume_level',
-                // 'start_rating',
-                // 'generic_number',
-                // 'generic_num',
-                // 'generic_color',
-                // 'wake_up_time',
-                // 'favorite_week_day',
-                // 'online_address',
-                // 'profile_picture',
-                // 'created_at',
-                // 'updated_at',
-            ],
-            'divider'   => true
-        ],
+        // [
+        //     'title'     => 'Your Title',
+        //     // 'fields'    => [
+        //         'generic_text',
+        //     // ],
+        //     'divider'   => true
+        // ],
         // [
         //     'title' => 'Your Favorite',
         //     'fields' => [
@@ -134,9 +99,14 @@ return [
         // ],
     ],
     'form_hidden_fields' => [
-        // 'primary_emailsssccc',
+        'primary_email',
         // 'id',
         // 'store_id',
         // 'testyXxxx_user_id',
     ],
+    'form_extra_fields' => [
+        'telephone', // Needed for business logic or display
+        // 'primary_emailsssccc',
+        // Add any other fields needed for checks, validation, or logic
+    ]
 ];

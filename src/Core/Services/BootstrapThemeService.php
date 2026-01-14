@@ -45,7 +45,7 @@ class BootstrapThemeService implements ThemeServiceInterface
         'form.heading.wrapper' => 'form-heading-wrapper bg-light px-3 py-2 border-bottom',
         'title.heading' => 'title-heading', // Assuming 'title-heading' is a general base class
 
-        'form.validation' => 'needs-validation', // Bootstrap's client-side validation class
+        'form.validation' => ' needs-validation', // Bootstrap's client-side validation class
 
         // Alert classes (for renderErrors)
         'alert.danger.summary' => 'alert alert-danger mb-4', // ✅ For summary error display

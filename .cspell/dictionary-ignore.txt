@@ -46,6 +46,8 @@ extratest
 Fabio
 fieldconfig
 fieldsconfig
+fieldsets
+FIELDSETS
 fielsdset
 findloc
 flushdns

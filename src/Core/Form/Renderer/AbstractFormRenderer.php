@@ -592,7 +592,10 @@ abstract class AbstractFormRenderer implements FormRendererInterface
             if (!empty($allErrors) || ($options['show_error_container'] ?? false)) {
                 $output = '<div class="' . $alertClass . '" role="alert">';
                 if (!empty($allErrors)) {
-                    $errorInstructions = $this->translator->get('form.error.instructions', pageName: $pageName);
+                    $errorInstructions = $this->translator->get(
+                        'form.error.instructions',
+                        pageName: $form->getPageName()
+                    );
                     $output .= "<h5>$errorInstructions</h5>";
 
                     $output .= '<ul>' . implode('', $allErrors) . '</ul>';
@@ -834,7 +837,7 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         if ($type === 'tel') {
             $onFocus[] = [
                 'icon' => $this->themeService->getIconHtml('constraint_tel'),
-                
+
                 'text' => 'form.hints.tel',
                 'replacements' => [],
                 'class' => 'constraint-tel'

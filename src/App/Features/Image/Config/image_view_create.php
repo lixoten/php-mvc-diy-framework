@@ -33,9 +33,9 @@ return [
         'error_display'         => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
-        'css_form_theme_class'  => '', // "form-theme-christmas",
-        'css_form_theme_file'   => '', // "christmas",
-        'default_form_theme'    => '', // 'christmas' ?? 'default',
+        'c..ss_form_theme_class'  => '', // "form-theme-christmas",
+        'c..ss_form_theme_file'   => '', // "christmas",
+        'd..efault_form_theme'    => '', // 'christmas' ?? 'default',
 
         // 'title_heading_level'         => 'h3', // Default is 'h2'
         'title_heading'               => "form.heading",
@@ -56,6 +56,7 @@ return [
            'fields'    => [
                 // 'id',
                 'title',
+                'filename',
                 // 'status',
                 // 'generic_text',
                 // 'telephone',

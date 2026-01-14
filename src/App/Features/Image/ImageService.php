@@ -68,7 +68,7 @@ class ImageService
             $image->setUpdatedAt($now);
         } else {
             $image = new Image();
-            $image->setStatus(ImageStatus::from($formData['status'])); // Should default to PENDING or similar for new records
+            // $image->setStatus(ImageStatus::from($formData['status'])); // Should default to PENDING or similar for new records
             $image->setUserId($formData['user_id'] ?? null);
             $image->setStoreId($formData['store_id'] ?? null);
         }

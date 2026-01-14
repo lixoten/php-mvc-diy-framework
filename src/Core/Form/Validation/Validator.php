@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Core\Form\Validation;
 
 use App\Helpers\DebugRt;
-use Core\Exceptions\ValidatorNotFoundException;
 use Core\Form\Field\FieldInterface;
 use Core\Form\Schema\FieldSchema;
 use Psr\Log\LoggerInterface;
@@ -36,15 +35,13 @@ class Validator
     ) {
         $this->registry    = $registry;
         $this->fieldSchema = $fieldSchema;
-        // $this->logger      = $logger;
+        $this->logger      = $logger;
     }
 
 
     /**
      * Normalize validator list to ensure consistent associative array format.
-     * E.g., ['required'] => ['required' => []]
-     * E.g., ['text' => ['minlength' => 5]] remains as is.
-     * This method is designed to handle the structure returned by `FieldInterface::getValidators()`.
+     * Converts simple string validators (e.g., ['tel']) to ['tel' => []].
      *
      * @param array<int|string, mixed> $validatorList
      * @return array<string, array<string, mixed>>
@@ -59,59 +56,10 @@ class Validator
             } elseif (is_string($key)) {
                 // Already associative: keep as is
                 $normalized[$key] = is_array($value) ? $value : [];
-            } else {
-                // Log a warning for malformed rule if encountered, though ideally input is well-formed.
-                $this->logWarning("Malformed validation rule encountered. Skipping: " . json_encode([$key => $value]));
             }
             // Ignore invalid entries (e.g., non-string keys/values) to avoid errors
         }
         return $normalized;
-    }
-
-
-    /**
-     * Validate a set of data against a set of rules.
-     *
-     * @param array<string, mixed> $data The data to validate (e.g., form input).
-     * @param array<string, array<string, mixed>> $rules The validation rules for each field.
-     *                                                      Format: ['fieldName' => ['validatorName' => ['option' => 'value'] | true]]
-     * @return array<string, array<string>> An associative array of field names to arrays of error messages.
-     */
-    public function validateData(array $data, array $rules): array // ✅ NEW / IMPLEMENTED METHOD
-    {
-        $allErrors = [];
-
-        foreach ($rules as $fieldName => $fieldRules) {
-            $value = $data[$fieldName] ?? null;
-            $fieldErrors = [];
-
-            // $fieldRules is already expected to be in a normalized format: validatorName => options
-            // (assuming normalizeValidatorList might be called internally or rules come pre-normalized)
-            // If rules come from user input, you might want to call $this->normalizeValidatorList($fieldRules);
-            foreach ($fieldRules as $validatorName => $validatorOptions) {
-                // Ensure validatorOptions is an array, as validatorService->validate expects array $options
-                $effectiveOptions = is_array($validatorOptions) ? $validatorOptions : [];
-
-                try {
-                    $validatorService = $this->registry->get($validatorName);
-                } catch (ValidatorNotFoundException $e) {
-                    $this->logWarning("Validator '{$validatorName}' not found for field '{$fieldName}'. " . $e->getMessage());
-                    continue; // Skip this rule if validator isn't found
-                }
-
-                $error = $validatorService->validate($value, $effectiveOptions);
-
-                if ($error !== null) {
-                    $fieldErrors[] = $error;
-                }
-            }
-
-            if (!empty($fieldErrors)) {
-                $allErrors[$fieldName] = $fieldErrors;
-            }
-        }
-
-        return $allErrors;
     }
 
 
@@ -122,7 +70,7 @@ class Validator
      * @param array<string, array<string, mixed>> $rules   Validation rules per field
      * @return array<string, array<int, string>>   Validation errors per field
      */
-    public function oldvalidateData(array $data, array $rules): array
+    public function validateData(array $data, array $rules): array
     {
         $errors = [];
 
@@ -154,11 +102,11 @@ class Validator
      * @param array<string, mixed> $context   Additional context for validation
      * @return array<int, string>   Validation errors for the field
      */
-    public function oldvalidateField(FieldInterface $field, array $context = []): array
+    public function validateField(FieldInterface $field, array $context = []): array
     {
         $errors     = [];
-        // 1. Get Field Options, attributes and value
-        // $options    = $field->getOptions();
+        // 📌 1. Get Field Options, attributes, choices and value
+        // -- We look at field-->options-->validators for a `validatorList` from config file
         $validatorList = $field->getValidators();
         $validatorList = $this->normalizeValidatorList($validatorList);
 
@@ -167,31 +115,40 @@ class Validator
         $type          = $field->getType();
         $attributes    = $field->getAttributes();
         $options       = $field->getOptions();
+        $choices       = $field->getChoices();
 
         // Merge context into attributes
         $mergedAttributes     = array_merge($attributes, $context);
 
-        // 2. extract all validation-related attributes
-        $validationAttributes = $this->extractValidationAttributes($mergedAttributes);
+        // 📌 2. Get all validation-related attributes from $attributes. These are ValidationRules
+        $attributeValidationRules = $this->extractValidationAttributes($mergedAttributes);
 
-        // Ensure the field's choices (if any) are included in validator options
-        $validatorOptionsForType = $validatorList[$type] ?? [];
-        if (isset($options['choices'])) {
-            $validatorOptionsForType['choices'] = $options['choices'];
+        // 📌 3. Get Validation Rules from the specific Validator.
+        // -- These come from the config file (feature)_fields_(root, edit, view)
+        $validatorValidationRules = $validatorList[$type] ?? [];
+        // if (isset($choices)) {
+            // $validatorValidationRules['choices'] = $choices;
+        // }
+        // 3. Some elements like select have choices, we need to  merge those.
+        if (isset($choices)) {
+        // if (isset($options['choices'])) {
+            // $validatorValidationRules['choices'] = $options['choices'];
+            $validatorValidationRules['choices'] = $choices;
         }
-        $finalValidationAttributes = $this->buildValidationAttributes(
+
+        // 📌 4. Log Warning id attributes are repeated in attributes and in validator
+        // -- Also Log Warning by checking if an attribute is valid for that element typee using Form Schema
+        $finalValidationRules = $this->buildValidationRules(
             $type,
-            $validationAttributes,
-            $validatorOptionsForType,
+            $attributeValidationRules,
+            $validatorValidationRules,
             $context
         );
 
-
-
-        // 3. Required validation
+        // 📌 5. Required validation
         $required = $attributes['required'] ?? false;
         if ($required) {
-            $error = $this->registry->validate($value, 'required', $finalValidationAttributes);
+            $error = $this->registry->validate($value, 'required', $finalValidationRules);
             if ($error) {
                 // $errors[] = $error;
                 $errors[] = $fieldName . '.' . $error;
@@ -199,7 +156,7 @@ class Validator
             }
         }
 
-        // Skip other validations if empty and not required
+        // 📌 6. Skip other validations if empty and is not required
         if (($value === null || $value === '') && !$required) {
             return $errors;
         }
@@ -213,34 +170,19 @@ class Validator
         // }
 
 
-        // Unset so we do not run it more than once.
+        // 📌 7. We ran default Validator (always)
+        // regardless if default validator is present, we Unset so we do not run it more than once.
+        // default validator is always run. So if text element then we use TextValidator,
+        // if type is select, then we use SelectValidator...
         unset($validatorList[$type]);
         // $rrr = 123;
-        $error = $this->registry->validate($value, $type, $finalValidationAttributes);
+        $error = $this->registry->validate($value, $type, $finalValidationRules);
         if ($error) {
             $errors[] = $fieldName . '.' . $error;
             return $errors;
         }
 
-
-        // Length validation
-        // $minlength = $attributes['minlength'] ?? null;
-        // $maxlength = $attributes['maxlength'] ?? null;
-        // unset($validatorList['length']);
-        // if ($minlength !== null || $maxlength !== null) {
-        //     $lengthOptions = [
-        //         'min' => $minlength,
-        //         'max' => $maxlength,
-        //     ];
-        //     $error = $this->registry->validate($value, 'length', array_merge($lengthOptions, $context));
-        //     if ($error) {
-        //         $errors[] = $error;
-        //     }
-        // }
-
-
-
-        // 5. Custom validation rule
+        // 📌 8. extra validators, Custom validation rule
         if (isset($validatorList) && is_array($validatorList)) {
             foreach ($validatorList as $validator => $validatorOptions) {
                 if ($validator === 'callback') {
@@ -252,14 +194,14 @@ class Validator
                         }
                     }
                 } elseif (is_string($validator) && $this->registry->has($validator)) {
-                    $finalValidationAttributes = $this->buildValidationAttributes(
+                    $finalValidationRules = $this->buildValidationRules(
                         $validator,
-                        $validationAttributes,
+                        $attributeValidationRules,
                         $validatorList[$validator],
                         $context
                     );
 
-                    $error = $this->registry->validate($value, $validator, $finalValidationAttributes);
+                    $error = $this->registry->validate($value, $validator, $finalValidationRules);
 
                     if ($error) {
                         // $errors[] = $error;
@@ -273,22 +215,20 @@ class Validator
                         $field->getName(),
                         $field->getType()
                     );
-                    //$this->logger?->warning('finfo failed: ' . $e->getMessage());
-
 
                     if ($this->logger->isAppInDevelopment()) {
-                        $this->logger->warningDev(
+                        $this->logger->warning(
                             $message,
-                            "ERR-DEV93",
-                            ['validator' => $validator, 'unknown_options' => $field->getName()]
+                            [
+                                'validator' => $validator,
+                                'unknown_options' => $field->getName(),
+                                'dev_code' => 'ERR-DEV93'
+                            ]
                         );
                     } else {
                         // In production, log a warning to avoid breaking the application but still record the issue.
-                        // Assuming you have a logger injected, otherwise use error_log().
                         $this->logger->warning($message, ['field' => $field->getName(), 'type' => $field->getType()]);
                     }
-                    // Optionally, you might add a generic error message to the field for the user
-                    // $errors[] = $this->translator->get('common.error.validation_internal_error');
                 }
             }
         }
@@ -298,136 +238,96 @@ class Validator
 
 
     /**
-     * Validate a single FieldInterface object.
-     *
-     * @param FieldInterface $field The field object to validate.
-     * @param array<string, mixed> $context Additional context for validation (currently unused).
-     * @return array<string, array<string>> An associative array mapping the field's name to an array of error messages.
-     */
-    public function validateField(FieldInterface $field, array $context = []): array // ✅ NEW / IMPLEMENTED METHOD
-    {
-        $fieldName = $field->getName();
-        $fieldValue = $field->getValue();
-        // Assume getValidators() returns an array in format: ['validatorName' => ['option' => 'value'] | true]
-        $fieldValidators = $field->getValidators();
-
-        $errors = [];
-
-        // It's good practice to normalize the field's validators too if they aren't guaranteed to be.
-        // $normalizedFieldValidators = $this->normalizeValidatorList($fieldValidators);
-
-        foreach ($fieldValidators as $validatorName => $validatorOptions) {
-            // Ensure validatorOptions is an array
-            $effectiveOptions = is_array($validatorOptions) ? $validatorOptions : [];
-
-            try {
-                $validatorService = $this->registry->get($validatorName);
-            } catch (ValidatorNotFoundException $e) {
-                $this->logWarning("Validator '{$validatorName}' not found for field '{$fieldName}'. " . $e->getMessage());
-                continue;
-            }
-
-            $error = $validatorService->validate($fieldValue, $effectiveOptions);
-
-            if ($error !== null) {
-                $errors[] = $error;
-            }
-        }
-
-        if (!empty($errors)) {
-            return [$fieldName => $errors];
-        }
-
-        return [];
-    }
-    /**
-     * Logs a warning message through the configured logger.
-     */
-    private function logWarning(string $message): void // ✅ NEW / IMPLEMENTED METHOD
-    {
-        $this->logger->warning($message);
-    }
-
-
-
-    // /**
-    //  * Log a warning message in development mode
-    //  */
-    // private function logWarning(string $message): void
-    // {
-    //     trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
-    // }
-
-    /**
-     * Build merged validation attributes from field schema, validator options, and context.
+     * Build merged rules from validation attributes, Validator and from field schema, and context.
      *
      * This helper merges:
-     * 1. Field schema defaults (val_fields from FieldSchema)
-     * 2. Custom validator options (from field->getValidators())
-     * 3. Context attributes (from validation context)
+     * 1. Field schema defaults (default_validation_rules from FieldSchema)
+     * 2. field attributes in Config Form attributes
+     * 3. field validator options in Config Form validator
+     * 4. Context attributes (from validation context)
      *
      * @param string $type Field type (e.g., 'text', 'email', 'password')
-     * @param array<string, mixed> $validationAttributes Extracted validation attributes
-     * @param array<string, mixed> Custom validators from field definition
+     * @param array<string, mixed> $attributeValidationRules Extracted from validation attributes
+     * @param array<string, mixed> $validatorValidationRules Extracted from validator's config field definition
      * @param array<string, mixed> $context Additional context for validation
-     * @return array<string, mixed> Fully merged validation attributes
+     * @return array<string, mixed> Fully merged validation rules
      */
-    protected function buildValidationAttributes(
+    protected function buildValidationRules(
         string $type,
-        array $validationAttributes,
-        array $validator,
+        array $attributeValidationRules,
+        array $validatorValidationRules,
         array $context
     ): array {
-        // Retrieve schema data once to avoid multiple calls
+        // 1. Retrieve schema type data once to avoid multiple calls
         $schemaData = $this->fieldSchema->get($type);
-        //$schemaData = array_filter($schemaData);
-        if ($schemaData !== null) {
-            // 1. Get field schema defaults for validation
-            $schemaValFields = $schemaData['val_fields'] ?? [];
 
-            $schema = array_merge($validationAttributes, $schemaValFields);
+        $this->warnDuplicatedRule($attributeValidationRules, $validatorValidationRules, static::class);
+
+
+        // 2. Set/Build validation rules
+        if ($schemaData !== null) {
+            // 1. Get field schema defaults for validation rules
+            $defaultValidationRules = $schemaData['default_validation_rules'] ?? [];
+
+            $validationRules = array_merge($attributeValidationRules, $defaultValidationRules);
         } else {
             // Fallback if no schema exists
-            $schema = $validationAttributes;
+            $validationRules = $attributeValidationRules;
         }
 
-        // 2. Merge custom validator options for this field type
-        $validatorOptions = [];
-        if (isset($validator)) {
-            $validatorOptions = $validator;
-            $mergedOptions = array_merge($validationAttributes, $validatorOptions, $context);
-            $validatorOptions = $mergedOptions;
+        // 3. Merge custom validator options for this field type
+        $mergedValidatorRules = [];
+        if (isset($validatorValidationRules)) {
+            //$validatorOptions = $validatorValidationRules;
+            $mergedValidatorRules = array_merge($validationRules, $validatorValidationRules, $context);
+            // $validatorOptions = $mergedOptions;
         }
 
         // 3. Extract defaults from schema
-        $defaults = [];
-        foreach ($schema as $attribute => $details) {
+        $defaultsRules = [];
+        foreach ($mergedValidatorRules as $rule => $details) {
             if (is_array($details) && array_key_exists('default', $details)) {
-                $defaults[$attribute] = $details['default'];
+                $defaultsRules[$rule] = $details['default'];
             } else {
-                $defaults[$attribute] = $details;
+                $defaultsRules[$rule] = $details;
             }
         }
 
         // 4. Warn about unknown options in development
-        $this->warnUnknownOptions($validatorOptions, $defaults, static::class);
+        $this->warnUnknownOptions($mergedValidatorRules, $defaultsRules, static::class);
 
-        $defaults = array_filter($defaults);
+        $filteredRules = array_filter($defaultsRules);
 
-        // 5. Merge unique forbidden/allowed lists
-        $uniqueForbidden = $this->mergeUniqueList($defaults, $validatorOptions, 'forbidden');
-        $uniqueAllowed = $this->mergeUniqueList($defaults, $validatorOptions, 'allowed');
+
+        // 5. Merge unique allowed lists
+        if (isset($defaultsRules['ignore_allowed']) && $defaultsRules['ignore_allowed'] === true) {
+            unset ($defaultsRules['allowed']);
+            unset ($defaultsRules['ignore_allowed']);
+        } else {
+            $uniqueAllowed = $this->mergeUniqueList($filteredRules, $validationRules, 'allowed');
+        }
+
+        // 6. Merge unique forbidden lists
+        if (isset($defaultsRules['ignore_forbidden']) && $defaultsRules['ignore_forbidden'] === true) {
+            unset ($defaultsRules['forbidden']);
+            unset ($defaultsRules['ignore_forbidden']);
+        } else {
+            $uniqueForbidden = $this->mergeUniqueList($filteredRules, $validationRules, 'forbidden');
+        }
+
+
+        //$uniqueForbidden = $this->mergeUniqueList($filteredRules, $validationRules, 'forbidden');
+        //$uniqueAllowed = $this->mergeUniqueList($filteredRules, $validationRules, 'allowed');
         // $uniqueForbidden = $this->mergeUniqueList($defaults, $validatorOptions, 'blocked_domains');
         // $uniqueAllowed = $this->mergeUniqueList($defaults, $validatorOptions, 'allowed_domains');
 
-        // 6. Build final merged attributes
-        $finalAttributes = array_merge($defaults, $validatorOptions);
-        $finalAttributes['forbidden'] = $uniqueForbidden;
-        $finalAttributes['allowed'] = $uniqueAllowed;
-        // $finalAttributes['blocked_domains'] = $uniqueForbidden;
-        // $finalAttributes['allowed_domains'] = $uniqueAllowed;
+        // 7. Build final attributes
+        //$finalAttributes = array_merge($filteredRules, $finalValidatorRules);
+        $finalValidationRules = $filteredRules;
+        $finalValidationRules['forbidden'] = $uniqueForbidden ?? [];
+        $finalValidationRules['allowed'] = $uniqueAllowed ?? [];
 
-        return $finalAttributes;
+        return $finalValidationRules;
     }
 
 
@@ -468,7 +368,9 @@ class Validator
         $unknown = [];
         foreach ($options as $key => $val) {
             if (!array_key_exists($key, $defaults)) {
-                $unknown[] = $key;
+                if (!str_contains($key, 'message')) {
+                    $unknown[] = $key;
+                }
             }
         }
         if (!empty($unknown)) {
@@ -488,6 +390,40 @@ class Validator
     }
 
     /**
+     * Warn if unknown options are passed to the validator.
+     *
+     * @param array<string, mixed> $options
+     * @param array<string, mixed> $defaults
+     * @param string $validatorName
+     * @return void
+     */
+    protected function warnDuplicatedRule(array $attributeValidationRules, array $validatorValidationRules, string $validatorName): void
+    {
+        $unknown = [];
+        foreach ($attributeValidationRules as $key => $val) {
+            if (array_key_exists($key, $validatorValidationRules)) {
+                if (!str_contains($key, 'message')) {
+                    $unknown[] = $key;
+                }
+            }
+        }
+        if (!empty($unknown)) {
+            if ($this->logger->isAppInDevelopment()) {
+                $forItems = implode(', ', $unknown);
+                $message = "[{$validatorName}] An attribute(s) was duplicated in the validator Config File: " . implode(', ', $unknown);
+
+                $this->logger->warningDev(
+                    $message,
+                    " ---- ERR-DEV9222323111 - Do not repeat attribues in the Validator in '_root' file. " .
+                    " Look under \"validation =>\" for \"{$forItems}\" and remove it/them."
+                );
+            }
+
+            error_log("[{$validatorName}] An attribute(s) was duplicated in the validator Config File: " . implode(', ', $unknown));
+        }
+    }
+
+    /**
      * Merge and deduplicate forbidden/allowed lists from defaults and options.
      *
      * @param array<string, mixed> $defaults
@@ -498,8 +434,8 @@ class Validator
     protected function mergeUniqueList(array $defaults, array $options, string $key): array
     {
         $base  = $defaults[$key] ?? [];
-        $extra = (isset($options[$key]) && is_array($options[$key])) ? $options[$key] : [];
+        $extra = (isset($options[$key]['default']) && is_array($options[$key]['default'])) ? $options[$key]['default'] : [];
 
         return array_values(array_unique(array_merge($base, $extra)));
     }
-} // 371
+} // 371 407

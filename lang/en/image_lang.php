@@ -88,5 +88,18 @@ return [
                 'allowed'   => 'Please select a valid Image title text.',
                 'forbidden' => 'This Image title text is not allowed.',
         ],
+    ],
+    'filename' => [
+        'list' => [
+            'label'       => 'File',
+        ],
+        'form' => [
+            'label'       => 'FFile',
+            'placeholder' => 'Enter title text',
+        ],
+        'formatters' => [
+        ],
+        'validation' => [
+        ],
     ]
 ];

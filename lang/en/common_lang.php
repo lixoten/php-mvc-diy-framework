@@ -120,6 +120,33 @@ return [
     //     'black'     => 'Black',
     // ],
 
+    'dev_code' => [
+        'ERR-DEV-TL-001'    => 'Unexpected top-level configuration key found.',
+        'ERR-DEV-TL-002'    => 'Missing top-level configuration key.',
+        'ERR-DEV-TL-003'    => 'Top-level configuration key must be an array.',
+        'ERR-DEV-TL-004'    => 'Entity Class not found.',
+        'ERR-DEV-RO-001'    => 'Unexpected Render Option from in \'render_options\'',
+        'ERR-DEV-RO-002'    => 'Render Option that should be a boolean that is not.',
+        'ERR-DEV-RO-003'    => 'Invalid \'security_level\' in \'render_options\'',
+        'ERR-DEV-RO-004'    => 'Invalid \'layout_type\' in \'render_options\'',
+        'ERR-DEV-RO-005'    => 'Invalid \'error_display\' in \'render_options\'',
+        'ERR-DEV-RO-006'    => 'Invalid \'title_heading_level\' in \'render_options\'',
+        'ERR-DEV-RO-007a'   => 'Invalid \'button_variant\' in \'render_options\'',
+        'ERR-DEV-RO-007b'   => 'Invalid \'button_variant\' in \'render_options\'',
+        'ERR-DEV-005'       => 'Form hidden field not found in entity',
+        'ERR-DEV-029'       => 'form_layout field is empty',
+        'ERR-DEV-032'       => 'form_layout-field was not found  via FieldRegistryService',
+        'ERR-DEV-000'       => 'xxxx',
+        'ERR-DEV-FIELD-001' => 'Form Configuration Validation for Field Definition Failed.',
+        'ERR-DEV-FIELD-002' => 'xxxx',
+        'ERR-DEV-FIELD-003' => 'xxxx',
+        'ERR-DEV-FIELD-004' => 'xxxx',
+        'ERR-DEV-FIELD-005' => 'xxxx',
+        'ERR-DEV-FIELD-006' => 'xxxx',
+        'ERR-DEV-FIELD-007' => 'Form Configuration Validation for ConfigKeys Failed.',
+        'ERR-DEV-FIELD-008' => 'xxxx',
+        'ERR-DEV-FIELD-009' => 'xxxx',
+    ],
 
     // // Boolean Translations
     // 'bool_yes_no_code' => [
@@ -192,6 +219,7 @@ return [
         'negative_only'    => 'xxThis value must be a negative number.',
         'zero_not_allowed' => 'xxZero value is not allowed.',
         'enforce_step'     => 'xxNumber must be a multiple of %d.',
+        'file_to_large'     => 'The file is too large. Maximum allowed size is %d.',
     ],
 
 

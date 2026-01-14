@@ -70,7 +70,9 @@ interface FieldInterface
      */
     public function setValidators(null|callable|string|array $validators): self;
 
+    public function getChoices(): ?array;
 
+    // public function setChoices(array $choices): self;
 
 
 

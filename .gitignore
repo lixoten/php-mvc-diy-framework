@@ -70,6 +70,10 @@ logs
 /public/uploads/*
 !/public/uploads/.gitkeep
 
+src/App/Features/Account/MyStores/*
+src/App/Features/Auth/*
+/src/App/Features/Auth/*
+
 # Built assets
 /public/build/
 /public/assets/

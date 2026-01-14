@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Core\Services;
 
 use Core\Interfaces\ConfigInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Service for retrieving field definitions with layered fallbacks.
@@ -31,6 +32,8 @@ class FieldRegistryService
 
     public function __construct(
         ConfigInterface $configService,
+        protected LoggerInterface $logger,
+        protected FieldDefinitionSchemaValidatorService $fieldDefinitionSchemaValidatorService
     ) {
         $this->configService    = $configService;
     }
@@ -78,9 +81,15 @@ class FieldRegistryService
                 $message2 = "Page: {$pageKey}, Entity: {$entityName} ";
                 $string = implode(', ', $invalidFields);
                 $message .= ": $string";
+                $message .= " Look in config file \"(feature)_view_(edit/view/create).php\".";
                 $message .= "-- $message2";
-                $this->logWarning($message . ' - ERR-DEV88');
             }
+            $this->logger->warning(
+                $message,
+                [
+                    'dev_code' => 'ERR-DEV88'
+                ]
+            );
         }
 
         return $validFields;
@@ -104,37 +113,24 @@ class FieldRegistryService
         //$featureEntityName = str_replace(['_list', '_edit'], '', $pageKey); // Extract 'testy' from 'testy_list'
         $key = str_replace('_', '_fields_', $pageKey);
 
-        // fixme shit2 - ok
-        $devOnly = 'L-';
         // findloc - Read testy_fields_edit.php /..._fields_list.root.php
         $field = $this->configService->getFromFeature($entityName, $key . ".$fieldName");
         if ($field !== null) {
-            // $field['label'] = '*' . $field['label'];//fixme - t/he "*" is mine indicator
-            // $field['label'] = $devOnly  . $field['label'];//fixme - t/he "*" is mine indicator
             return $field;
         }
 
         // $key = str_replace('_', '_fields_', $pageKey);
         // 2. Entity-specific config: config: src/App/Features/{Entity}/Config/{entityName}_fields.php
-        // fixme shit2 - ok
-        $devOnly = 'R-';
         // findloc - Read testy_fields_root.php
         $field = $this->configService->getFromFeature($entityName, $entityName . '_fields_root' . ".$fieldName");
         if ($field !== null) {
-            //contains '_list'
-            //$field['list']['label'] =  $devOnly .  $field['list']['label']; // shitload3
-
-            // $field['label'] = '!' . $field['label'];
-            // $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 
         // 3. Base config: config/render/fields_base.php
-        $devOnly = 'B-';
         // findloc - Read base_fields.php
         $field = $this->configService->get('render/base_fields' . '.' . $fieldName);
         if ($field !== null) {
-            // $field['label'] = $devOnly . $field['label'];
             return $field;
         }
 
@@ -185,16 +181,16 @@ class FieldRegistryService
     }
 
 
-    /**
-     * Log a warning message in development mode
-     */
-    private function logWarning(string $message): void
-    {
-        if ($_ENV['APP_ENV'] === 'development') {
-            trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
-        }
+    // /**
+    //  * Log a warning message in development mode
+    //  */
+    // private function logWarning(string $message): void
+    // {
+    //     if ($_ENV['APP_ENV'] === 'development') {
+    //         trigger_error("Field Registry Service Warning: {$message}", E_USER_WARNING);
+    //     }
 
-        // Always log to system log
-        error_log("Field Registry Service: {$message}");
-    }
+    //     // Always log to system log
+    //     error_log("Field Registry Service: {$message}");
+    // }
 }

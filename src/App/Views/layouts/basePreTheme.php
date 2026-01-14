@@ -44,7 +44,7 @@ use App\Helpers\DebugRt;
           href="<?= $this->config->getConfigValue('view', "css_frameworks.available.{$defaultFramework}.css", '') ?>">
 
     <!-- Form CSS Framework (if different from default) -->
-    <?php $formFramework = $this->config->getConfigValue('view', 'form.css_framework', ''); ?>
+    <!-- <php $formFramework = $this->config->getConfigValue('view', 'form.css_framework', ''); ?> -->
     <?php if ($formFramework && $formFramework !== $defaultFramework) : ?>
         <link rel="stylesheet" type="text/css"
               href="<?= $this->config->getConfigValue('view', "css_frameworks.available.{$formFramework}.css", '') ?>">
@@ -52,7 +52,7 @@ use App\Helpers\DebugRt;
 
     <!-- Visual Theme (if specified) -->
     <?php $visualTheme = $this->config->getConfigValue('view', 'visual_themes.active', ''); ?>
-    <?php if ($visualTheme && $visualTheme !== 'standard') : ?>
+    <?php if ($visualTheme && $visualTheme !== 'ignore') : ?>
         <?php $themeCSS = $this->config->getConfigValue('view', "visual_themes.available.{$visualTheme}.css", ''); ?>
         <?php if ($themeCSS) : ?>
             <link rel="stylesheet" type="text/css" href="<?= $themeCSS ?>">

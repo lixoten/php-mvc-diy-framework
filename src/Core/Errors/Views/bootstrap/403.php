@@ -8,6 +8,9 @@ use App\Helpers\DebugRt as Debug;
  * @var array<string, mixed> $data
  * @var string $message
  */
+
+$fff = htmlspecialchars($data['additionalContext']['trace']);
+
 ?>
 <div class="container py-5">
     <div class="card border-warning mb-4">
@@ -48,17 +51,48 @@ use App\Helpers\DebugRt as Debug;
         </div>
         <?php if (app()->isDebug()) : ?>
             <div class="card-footer bg-light">
-                <h5>Debug Information (403 - Forbidden)</h5>
-                <p>File: <?= htmlspecialchars($data['file'] ?? 'N/A') ?></p>
-                <p>Line: <?= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p>
-                <p>Debug Help: <?= htmlspecialchars($data['debugHelp'] ?? 'Access forbidden') ?></p>
-                <p>Requested URI: <?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A') ?></p>
-                <p>User ID: <?= htmlspecialchars((string)($_SESSION['user_id'] ?? 'Not logged in')) ?></p>
-                <p>User Role: <?= htmlspecialchars($_SESSION['user_role'] ?? 'N/A') ?></p>
-                <?php if (isset($data['trace'])) : ?>
-                    <pre><?= htmlspecialchars($data['trace']) ?></pre>
-                <?php endif; ?>
+                <!-- <h5>Debug Information (403 - Forbidden)</h5> -->
+                <!-- <p>File: <= htmlspecialchars($data['file'] ?? 'N/A') ?></p> -->
+                <!-- <p>Line: <= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p> -->
+                <!-- <p>Debug Help: <= htmlspecialchars($data['debugHelp']['devHelp'] ?? 'Access forbidden') ?></p> -->
+                <!-- <p>Requested URI: <= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A') ?></p> -->
+                <!-- <p>User ID: <= htmlspecialchars((string)($_SESSION['user_id'] ?? 'Not logged in')) ?></p> -->
+                <!-- <p>User Role: <= htmlspecialchars($_SESSION['user_role'] ?? 'N/A') ?></p> -->
+                <!--
+                <= <<<HTML
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$fff </pre>
+                </div>
+                HTML
+                ?> -->
+
             </div>
+            <?php
+                $traceInfo = htmlspecialchars($data['additionalContext']['trace']);
+                $helpInfo  = $data['debugHelp']['helpInfo'] ?? 'Access forbidden';
+                $fileInfo  = htmlspecialchars($data['file'] ?? 'N/A');
+                $lineInfo  = htmlspecialchars((string)($data['line'] ?? 'N/A'));
+                $requestedUriInfo = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A');
+                $userIdInfo   = htmlspecialchars((string)($_SESSION['user_id'] ?? 'Not logged in'));
+                $userRoleInfo = htmlspecialchars($_SESSION['user_role'] ?? 'N/A');
+            ?>
+            <?= <<<HTML
+            <div class="card-footer bg-light">
+                <h5>Debug Information (403 - Forbidden)</h5>
+                <p>File: $fileInfo</p>
+                <p>Line: $lineInfo</p>
+                <p>Debug Help: $helpInfo</p>
+                <p>Requested URI: $requestedUriInfo</p>
+                <p>User ID: $userIdInfo</p>
+                <p>User Role: $userRoleInfo</p>
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$traceInfo</pre>
+                </div>
+            </div>
+            HTML
+            ?>
         <?php endif; ?>
     </div>
 </div>

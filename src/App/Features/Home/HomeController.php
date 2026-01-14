@@ -155,10 +155,11 @@ class HomeController extends Controller
             <li><a href=\"/home/test/forbidden\">403 - forbidden</a></li>
             <li><a href=\"/home/test/pagenotfound\">404 - pagenotfound</a></li>
             <li>
-                <a href=\"/home/test/recordnotfound\">404 - recordnotfound</a>
                 <ul>
-            <li><a href=\"/home/test/unauthenticated\">401 - unauthenticated</a></li>
-            </ul>
+                    <li>
+                        <a href=\"/home/test/recordnotfound\">404 - recordnotfound</a>
+                    </li>
+                </ul>
             </li>
             <li><a href=\"/home/test/badrequest\">400 - badrequest</a></li>
             <li><a href=\"/home/test/validation\">422 - validation</a></li>

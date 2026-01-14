@@ -24,6 +24,9 @@ class Field implements FieldInterface
     //  */
     protected $validators = null;
 
+    protected $choices = null;
+
+
     /** @var array<string, mixed> */
     protected array $options = [];
     /** @var array<string, mixed> */
@@ -51,11 +54,13 @@ class Field implements FieldInterface
         $this->value       = $options['value'] ?? null;
         $this->formatters  = $options['formatters'] ?? null;
         $this->validators  = $options['validators'] ?? [];
+        $this->choices     = $options['choices'] ?? null;
 
         unset($this->options['label']); // no longer need so we unset
         unset($this->options['type']); // no longer need so we unset
         unset($this->options['formatters']); // no longer need so we unset
         unset($this->options['validators']); // no longer need so we unset
+        unset($this->options['choices']); // no longer need so we unset
         unset($this->options['value']); // no longer need so we unset
 
 
@@ -172,7 +177,23 @@ class Field implements FieldInterface
         return $this;
     }
 
+    //-------choices------------------------------------------------------------------
+    /**
+     * {@inheritdoc}
+     */
+    public function getChoices(): ?array
+    {
+        return $this->choices ?? null;
+    }
 
+    // /**
+    //  * {@inheritdoc}
+    //  */
+    // public function setChoices(array $choices): self
+    // {
+    //     $this->choices = $choices;
+    //     return $this;
+    // }
 
 
 
@@ -262,7 +283,7 @@ class Field implements FieldInterface
      */
     public function showLabel(): bool
     {
-        return $this->options['show_label'] ?? true;
+        return $this->options['render']['show_label'] ?? true;
     }
 
     /** //fixme we need?

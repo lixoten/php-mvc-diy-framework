@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Core\Form;
 
+use Core\Exceptions\FooException;
+use Core\Http\NotFoundHandler;
 use Core\Services\FieldRegistryService;
 use Core\Interfaces\ConfigInterface;
 use Core\Security\Captcha\CaptchaServiceInterface;
@@ -76,10 +78,25 @@ abstract class AbstractFormType implements FormTypeInterface
         // Use ?? [] to ensure it's an array if not defined in config
         $this->options        = $config['options'] ?? [];
         $this->renderOptions  = $config['render_options'] ?? [];
-        $this->layout         = $config['layout'] ?? [];
-        $this->hiddenFields   = $config['hidden_fields'] ?? [];
-        $this->extraFields    = $config['extra_fields'] ?? [];
-        // $this->fields is populated by filterValidateFormFields()
+        $this->layout         = $config['form_layout'] ?? [];
+        $this->hiddenFields   = $config['form_hidden_fields'] ?? [];
+        $this->extraFields    = $config['form_extra_fields'] ?? [];
+
+        $layout           = $this->layout;
+
+        // 📌 Collect all field names from layout sections
+        $layoutFields = [];
+        foreach ($layout as $section) {
+            if (isset($section['fields']) && is_array($section['fields'])) {
+                foreach ($section['fields'] as $field) {
+                    // Skip commented-out fields (if present as strings with //)
+                    if (is_string($field) && strpos($field, '//') !== 0) {
+                        $layoutFields[] = $field;
+                    }
+                }
+            }
+        }
+        $this->setFields($layoutFields);
 
         // 📌 Validate and clean fields based on layout
         $this->filterValidateFormFields();
@@ -172,6 +189,9 @@ abstract class AbstractFormType implements FormTypeInterface
             $fieldNames[] = 'captcha';
         }
 
+
+
+
         // $actionType = 'login';
         // $captchaNeeded = $this->isCaptchaNeeded($actionType, $this->renderOptions);
         // if ($captchaNeeded) {
@@ -193,7 +213,7 @@ abstract class AbstractFormType implements FormTypeInterface
 
                 // findme - override field
                 // 📌 Conditionally adjust 'filename' field type and formatters
-                if ($fieldName === 'filename') {
+                 if ($fieldName === 'filename') {
                     $formFieldOverrides = $this->getOptions()['form_field_overrides'] ?? [];
                     $filenameOverrides = $formFieldOverrides['filename'] ?? [];
 
@@ -327,6 +347,16 @@ abstract class AbstractFormType implements FormTypeInterface
             }
         }
 
+
+        $hiddenFieldNames = $this->getHiddenFields();
+
+        // Process each field
+        foreach ($hiddenFieldNames as $fieldName) {
+            $options = ['type' => 'hidden'];
+            $builder->add($fieldName, $options);
+        }
+
+
         // if ($captchaNeeded) {
             // $this->renderOptions['captcha_required'] = $captchaNeeded;
             // $this->renderOptions['captcha_scripts'] = $this->captchaService->getScripts();
@@ -375,6 +405,16 @@ abstract class AbstractFormType implements FormTypeInterface
     ////////////////////////////////////////////////////////////////////////////////////
     protected function filterValidateFormFields(): void
     {
+
+
+
+
+        // fixme - remove filterValidateFormFields - it is obsolete????
+        return;
+
+
+
+
         $layout           = $this->getLayout();
         $viewHiddenFields = $this->getHiddenFields();
         $extraFields      = $this->getExtraFields();
@@ -464,11 +504,22 @@ abstract class AbstractFormType implements FormTypeInterface
                     // If no fields left in this section, remove it
                     if (empty($section['fields'])) {
                         unset($layout[$secId]);
-                        $this->logger->warning("Removed empty section at index {$secId} - ERR-DEV90");
+
+                        $this->logger->warning(
+                            "Removed empty section at index {$secId}. You have 'fields[],' that is empty.
+                            Look in config file \"(feature)_view_(edit/view/create).php\".",
+                             ['dev_code' => 'ERR-DEV90']
+                        );
                     }
                 } else {
-                     unset($layout[$secId]);
-                     $this->logger->warning("Removed empty section at index {$secId} - ERR-DEV91");
+                    unset($layout[$secId]);
+                    $this->logger->warning(
+                        "Removed bad key, only (title, fields, divider) keys are valid.
+                        if empty, remove/comment out the empty layout.
+                        Look in config file \"(feature)_view_(edit/view/create).php\".",
+                        ['dev_code' => 'ERR-DEV91']
+                    );
+
                 }
             }
 

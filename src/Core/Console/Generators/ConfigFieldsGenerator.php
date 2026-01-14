@@ -555,7 +555,7 @@ PHP;
         $items = [];
         $spaces = '                ';
         $spaces = '';
-        $valItems = $fieldFormSchema['val_fields'];
+        $valItems = $fieldFormSchema['default_validation_rules'];
 
 
 

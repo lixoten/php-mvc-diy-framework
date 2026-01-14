@@ -44,8 +44,8 @@ return [
     //     'security_level' => 'low', //CONST_SL::LOW,      // HIGH / MEDIUM / LOW
     //     'error_display' => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'  => false,
-    //     'css_form_theme_class' => "form-theme-christmas",
-    //     'css_form_theme_file' => "christmas",
+    //     'c.ss_form_theme_class' => "form-theme-christmas",
+    //     'c.ss_form_theme_file' => "christmas",
     //     'title_heading' => "Create Post Parent",
         'submit_text'       => "Savefook2",
     ],

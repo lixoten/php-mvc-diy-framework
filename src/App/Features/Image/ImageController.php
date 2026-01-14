@@ -248,11 +248,15 @@ class ImageController extends AbstractCrudController
             $currentFilenameExists = true;
         }
 
+
         // Set the override for the 'filename' field
         $options['options']['form_field_overrides']['filename'] = [
             'current_filename_exists' => $currentFilenameExists,
-            'value_override'          => $recordData['original_filename']
         ];
+        
+        if (isset($recordData['original_filename'])) {
+            $options['options']['form_field_overrides']['filename']['value_override'] = $recordData['original_filename'];
+        }
 
         $this->formType->overrideConfig(options: $options);
     }

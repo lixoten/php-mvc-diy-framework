@@ -56,6 +56,18 @@ class BootstrapFormRenderer extends AbstractFormRenderer
 
         // Get the raw value
         $rawValue     = $field->getValue();
+
+        // It's a hidden field, Quick Format Quick Exit
+        if ($type === 'hidden') {
+            $value = htmlspecialchars((string)$rawValue);
+            $output = <<<HTML
+                <input type="hidden" id="{$id}" name="{$name}" value="{$value}">
+            HTML;
+            return $output;
+        }
+
+
+
         $fieldOptions = $field->getOptions();
 
         if ($field->showLabel()) {
@@ -104,8 +116,12 @@ class BootstrapFormRenderer extends AbstractFormRenderer
             // Handle arrays (like checkbox_group values) appropriately
             if (is_array($rawValue)) {
                 $value = $rawValue; // Keep as array for field types that expect it
+            } elseif (is_object($rawValue)) { // ✅ ADDED: Handle objects gracefully
+                // If the raw value is an object (e.g., UploadedFileInterface),
+                // we cannot render it as a string directly. Use an empty string for display.
+                $value = '';
             } else {
-                $value = htmlspecialchars((string)$rawValue ?? '');
+                $value = htmlspecialchars((string)$rawValue); // ⚠️ MODIFIED: Removed ` ?? ''`
             }
         } elseif (isset($formatters)) {
             // Ensure formatters is an array for uniform processing
@@ -583,8 +599,9 @@ class BootstrapFormRenderer extends AbstractFormRenderer
                     $ariaAttrs . $attrString . '>';
 
                 // $options = $field->getOptions()['options'] ?? [];
-                $choices = $field->getOptions()['choices'] ?? [];
-                $displayDefaultChoice = $field->getOptions()['display_default_choice'] ?? false;
+                // $choices = $field->getOptions()['choices'] ?? [];
+                $choices = $field->getChoices() ?? [];
+                $displayDefaultChoice = $field->getOptions()['render']['display_default_choice'] ?? false;
 
                 if ($displayDefaultChoice) {
                     $translatedDefaultChoice = $this->translator->get(

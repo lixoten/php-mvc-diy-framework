@@ -76,125 +76,119 @@ class FormHandler implements FormHandlerInterface
         $extraProcessedData = [];
         $data = $parsed['data'] ?? [];
         $uploadedFiles = $parsed['files'] ?? [];
+        // DebugRt::j('0', 'uploadedFiles : ', $uploadedFiles);
         $rawData = $data; // Keep a copy of the original scalar user input
 
+        // // --- File upload handling ---
+        // // Files that were actually uploaded or had severe PHP errors (not UPLOAD_ERR_NO_FILE)
+        // $filesToProcessByService = [];
+        // // Will store UploadedFileInterface objects in $data for validators
+        // $fileInputsDataForValidation = [];
+        // // Flag to indicate if any critical PHP upload errors were detected
+        // $criticalPhpUploadErrorsDetected = false;
 
-        // Extract and validate CSRF token
-        $token = $data['csrf_token'] ?? '';
-        unset($data['csrf_token']);
-        if (!$form->validateCSRFToken($token)) {
-            $form->addError('_form', 'Invalid form submission.');
-            return false;
-        }
+        // foreach ($uploadedFiles as $fieldName => $uploadedFile) {
+        //     if ($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface) {
+        //         // ✅ Always pass the UploadedFileInterface object to the form data
+        //         // This makes it available for the FileValidator to inspect.
+        //         $fileInputsDataForValidation[$fieldName] = $uploadedFile;
 
-        // if (! empty($uploadedFiles)) {
-        //     foreach ($uploadedFiles as $fieldName => $uploadedFile) {
-        //         // Skip if no file uploaded
-        //         if (!$uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
-        //             || $uploadedFile->getError() === \UPLOAD_ERR_NO_FILE
+        //         // ✅ If no file was selected (UPLOAD_ERR_NO_FILE), do NOT pass it to FileUploadService.
+        //         // The service should only handle files that actually need to be moved/processed.
+        //         if ($uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE) {
+        //             $filesToProcessByService[$fieldName] = $uploadedFile;
+        //         }
+
+        //         // ✅ Catch generic PHP upload errors (like file too large, partial upload) that are NOT UPLOAD_ERR_NO_FILE.
+        //         // These are critical system errors that should fail immediately,
+        //         // regardless of whether the field is marked as 'required'.
+        //         if (
+        //             $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE &&
+        //             $uploadedFile->getError() !== \UPLOAD_ERR_OK
         //         ) {
-        //             continue;
-        //         }
-
-        //         // Get field definition
-        //         $field = $form->getField($fieldName);
-        //         if (!$field) {
-        //             continue;
-        //         }
-
-        //         // Get storeId from form context (or default to 1)
-        //         // $storeId = $form->getContext()['store_id'] ?? 1;
-        //         //$storeId = $form->getData()['store_id'] ?? 1;
-        //         $storeId = $form->getContext()['store_id']; // fixme
-
-        //         // Upload image using ImageStorageService
-        //         try {
-        //             $imageMetadata = $this->imageStorageService->upload($uploadedFile, $storeId);
-
-        //             // Store hash in database (e.g., 'abc123def456...xyz')
-        //             $data['filename'] = $imageMetadata['filename'];
-        //             $extraProcessedData['image_metadata'] = $imageMetadata; //fixme lllllllllllllll
-
-        //             $this->logger?->info('Image uploaded successfully', [
+        //             $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
+        //             $form->addError(
+        //                 $fieldName,
+        //                 'File upload failed: ' . $errorMessage . ' (' . $uploadedFile->getError() . ')'
+        //             );
+        //             $this->logger?->error('Generic file upload failed (PHP error)', [
         //                 'field' => $fieldName,
-        //                 'hash' => $imageMetadata['hash'],
-        //                 'extension' => $imageMetadata['extension'],
+        //                 'error_code' => $uploadedFile->getError(),
+        //                 'error_message' => $errorMessage,
         //             ]);
-        //         } catch (\Throwable $e) {
-        //             $this->logger?->error('Image upload failed', [
-        //                 'field' => $fieldName,
-        //                 'error' => $e->getMessage(),
-        //             ]);
-
-        //             // Add validation error to field
-        //             // $field->addError('Image upload failed. Please try again.');
-        //             $form->addError($data[$fieldName], 'Image upload failed. Please try again.');
+        //             $criticalPhpUploadErrorsDetected = true; // Mark that a critical PHP error occurred
         //         }
         //     }
         // }
 
+        // // ✅ If any critical PHP upload errors (not UPLOAD_ERR_NO_FILE) were detected, stop processing the form.
+        // // These are severe enough to warrant an immediate return.
+        // if ($criticalPhpUploadErrorsDetected) {
+        //     $form->setData($rawData); // Restore raw data for redisplay
+        //     $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data);
+        //     return false;
+        // }
 
-        // --- File upload handling ---
-        if (! empty($uploadedFiles)) {
-            // ✅ Use the generic FileUploadService to handle files and get temporary metadata
-            // This method should return an array of processed file info, keyed by fieldName
-            $fileProcessedMetadata = $this->fileUploadService->handleFiles($uploadedFiles);
+        // // ✅ Only call FileUploadService if there are actual files to move/process
+        // if (!empty($filesToProcessByService)) {
+        //     // Use the generic FileUploadService to handle files and get temporary metadata
+        //     $fileProcessedMetadata = $this->fileUploadService->handleFiles($filesToProcessByService);
+        //     DebugRt::j('0', 'filesToProcessByService', $filesToProcessByService);
 
-            // ✅ Store the generic temporary file metadata in extraProcessedData
-            // This structure allows domain services (like ImageService) to retrieve
-            // the temporary file paths and info for further processing.
-            // We use a prefix like '_uploaded_file_temp_info' to clearly separate it.
-            $extraProcessedData['_uploaded_file_temp_info'] = [];
-            foreach ($uploadedFiles as $fieldName => $uploadedFile) {
-                // If a file for this field was processed by the fileUploadService, add its metadata
-                // Also handle cases where handleFiles returns an array of metadata for multi-file inputs
-                if (isset($fileProcessedMetadata[$fieldName])) {
-                    $extraProcessedData['_uploaded_file_temp_info'][$fieldName] = $fileProcessedMetadata[$fieldName];
+        //     // Store the generic temporary file metadata in extraProcessedData
+        //     $extraProcessedData['_uploaded_file_temp_info'] = [];
+        //     foreach ($fileProcessedMetadata as $fieldName => $metadata) {
+        //         $extraProcessedData['_uploaded_file_temp_info'][$fieldName] = $metadata;
+        //     }
+        // }
+
+
+        $fileProcessingResult = $this->processIncomingUploadedFiles($form, $uploadedFiles);
+
+        $fileInputsDataForValidation = $fileProcessingResult['fileInputsForValidation'];
+        $criticalPhpUploadErrorsDetected = $fileProcessingResult['hasCriticalPhpErrors'];
+        $processedTempFileInfo = $fileProcessingResult['tempFileInfo'];
+
+        // Existing logic check for critical errors, remains as is but uses the variable from helper
+        if ($criticalPhpUploadErrorsDetected) {
+            $form->setData($rawData); // Restore raw data for redisplay
+            $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $data); // Uses $data as per your current code
+            return false;
+        }
+
+        // Populate extraProcessedData with temporary file info if available
+        if (!empty($processedTempFileInfo)) {
+            $extraProcessedData['_uploaded_file_temp_info'] = $processedTempFileInfo;
+        }
+
+
+
+        // ✅ Merge the UploadedFileInterface objects into the data array *before* setting data on the form.
+        // This makes them available for the FieldInterface and subsequently for the Validator.
+        // Note: The key in $data should match the field name in the config (e.g., 'filename').
+
+        // if ($fileInputsDataForValidation['filename']->getError() === 4) {
+        //     $fileInputsDataForValidation['filename'] = '';
+        //     $data = array_merge($data, $fileInputsDataForValidation);
+        // } else {
+        //     $data = array_merge($data, $fileInputsDataForValidation);
+        // }
+
+        // Create a new array $dataForValidation that merges original scalar data with file objects for validation.
+        // This ensures that the Form object (and its fields) holds UploadedFileInterface objects for FileValidator,
+        // but the original $data (scalar post data) can be safely used for final processing.
+        $dataForValidation = $data; // Start with scalar data
+        if (!empty($fileInputsDataForValidation)) {
+            foreach ($fileInputsDataForValidation as $fieldName => $fileValue) {
+                // If UPLOAD_ERR_NO_FILE, convert to empty string for consistent validator input.
+                // Otherwise, keep the UploadedFileInterface object for FileValidator to inspect its error state.
+                if ($fileValue instanceof \Psr\Http\Message\UploadedFileInterface && $fileValue->getError() === UPLOAD_ERR_NO_FILE) {
+                    $dataForValidation[$fieldName] = '';
                 } else {
-                    // For files that were attempted but not processed by the service (e.g., UPLOAD_ERR_NO_FILE
-                    // might be filtered by the service if it only returns 'success' or 'failed' status),
-                    // or if the service simply didn't return metadata for it due to an error.
-                    if (
-                        $uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
-                        && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
-                        && $uploadedFile->getError() !== \UPLOAD_ERR_OK // Also capture PHP errors here if service didn't
-                    ) {
-                        // Store error info directly from the raw UploadedFileInterface if the service didn't handle it
-                        $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
-                        $extraProcessedData['_uploaded_file_temp_info'][$fieldName] = [
-                            'status' => 'failed',
-                            'error_code' => $uploadedFile->getError(),
-                            'error_message' => $errorMessage,
-                            'original_filename' => $uploadedFile->getClientFilename(),
-                            'mime_type' => $uploadedFile->getClientMediaType(),
-                            'size_bytes' => $uploadedFile->getSize(),
-                            'temporary_path' => null, // No temp path if failed early
-                        ];
-                    }
-                }
-            }
-
-            // ✅ Handle generic PHP upload errors (e.g., file too large)
-            foreach ($uploadedFiles as $fieldName => $uploadedFile) {
-                if (
-                    $uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface
-                    && $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE
-                    && $uploadedFile->getError() !== \UPLOAD_ERR_OK
-                ) {
-                    $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
-                    $form->addError(
-                        $fieldName,
-                        'File upload failed: ' . $errorMessage . ' (' . $uploadedFile->getError() . ')'
-                    );
-                    $this->logger?->error('Generic file upload failed (PHP error)', [
-                        'field' => $fieldName,
-                        'error_code' => $uploadedFile->getError(),
-                        'error_message' => $errorMessage,
-                    ]);
+                    $dataForValidation[$fieldName] = $fileValue;
                 }
             }
         }
-
 
 
 
@@ -203,12 +197,34 @@ class FormHandler implements FormHandlerInterface
 
 
 
+
+
+        // // Extract and validate CSRF token
+        // $token = $data['csrf_token'] ?? '';
+        // unset($data['csrf_token']);
+        // if (!$form->validateCSRFToken($token)) {
+        //     $form->addError('_form', 'Invalid form submission.');
+        //     return false;
+        // }
+
+        // Extract and validate CSRF token (using $dataForValidation)
+        $token = $dataForValidation['csrf_token'] ?? '';
+        unset($dataForValidation['csrf_token']); // Remove from dataForValidation
+        if (!$form->validateCSRFToken($token)) {
+            $form->addError('_form', 'Invalid form submission.');
+            $form->setData($rawData); // Reset to raw data on CSRF failure
+            $this->dispatchEvent(FormEvents::POST_VALIDATE, $form, $rawData); // Use rawData for event
+            return false;
+        }
+
+
+
+
         // Determine if this is a security-critical form
         $isSecurityCritical = $form->getSecurityLevel() === 'high';
 
         $captchaValid = true; // Initialize with a default value
 
-        //DebugRt::j('1', '', "111-1"); // bingbing
         // If CAPTCHA is disabled globally, skip validation
         // Handle special fields like reCAPTCHA
         if ($form->hasField('captcha')) {
@@ -219,7 +235,7 @@ class FormHandler implements FormHandlerInterface
                 // CAPTCHA is enabled and required - validate it
                 //$captchaResponse = $request->getParsedBody()['g-recaptcha-response'] ?? '';
                 // prefer sanitized/parsed data (already extracted earlier)
-                $captchaResponse = $data['g-recaptcha-response'] ?? $data['g-recaptcha'] ?? '';
+                $captchaResponse = $dataForValidation['g-recaptcha-response'] ?? $dataForValidation['g-recaptcha'] ?? '';
 
                 // If CAPTCHA response is empty, mark form as invalid
                 if (empty($captchaResponse)) {
@@ -258,17 +274,17 @@ class FormHandler implements FormHandlerInterface
         // }
 
         // Dispatch PRE_SUBMIT event
-        $this->dispatchEvent(FormEvents::PRE_SUBMIT, $form, $data);
+        $this->dispatchEvent(FormEvents::PRE_SUBMIT, $form, $dataForValidation);
 
         // Set form data
-        $form->setData($data);
+        $form->setData($dataForValidation);
         $form->setExtraProcessedData($extraProcessedData);
 
         // Dispatch POST_SUBMIT event
-        $this->dispatchEvent(FormEvents::POST_SUBMIT, $form, $data);
+        $this->dispatchEvent(FormEvents::POST_SUBMIT, $form, $dataForValidation);
 
         // Dispatch PRE_VALIDATE event
-        $this->dispatchEvent(FormEvents::PRE_VALIDATE, $form, $data);
+        $this->dispatchEvent(FormEvents::PRE_VALIDATE, $form, $dataForValidation);
 
         // $geoLocatio  n = $request->getAttribute('geo_location');
         // $regionCode = $geoLocation['countryCode'] ?? 'fookville'; // Fixme 3
@@ -308,6 +324,89 @@ class FormHandler implements FormHandlerInterface
         // return $isValid;
         return $isValid && ($captchaValid ?? true);
     }
+
+
+
+    /**
+     * Helper method to process incoming uploaded files for the form.
+     * Encapsulates logic for detecting PHP upload errors, preparing data for validators,
+     * and coordinating with the FileUploadService for temporary storage.
+     *
+     * @param FormInterface $form The current form instance to add errors to.
+     * @param array<string, \Psr\Http\Message\UploadedFileInterface|array<mixed>> $uploadedFiles Raw uploaded files from the request.
+     * @return array{
+     *     fileInputsForValidation: array<string, \Psr\Http\Message\UploadedFileInterface|string>,
+     *     hasCriticalPhpErrors: bool,
+     *     tempFileInfo: array<string, array<string, mixed>>
+     * } Returns a structured array containing processed file data.
+     */
+    private function processIncomingUploadedFiles(FormInterface $form, array $uploadedFiles): array
+    {
+        // Files that were actually uploaded or had severe PHP errors (not UPLOAD_ERR_NO_FILE)
+        $filesToProcessByService = [];
+        // Will store UploadedFileInterface objects in $data for validators
+        $fileInputsDataForValidation = [];
+        // Flag to indicate if any critical PHP upload errors were detected
+        $criticalPhpUploadErrorsDetected = false;
+        // Store the generic temporary file metadata here before returning
+        $tempFileInfo = [];
+
+        foreach ($uploadedFiles as $fieldName => $uploadedFile) {
+            if ($uploadedFile instanceof \Psr\Http\Message\UploadedFileInterface) {
+                // ✅ Always pass the UploadedFileInterface object to the form data
+                // This makes it available for the FileValidator to inspect.
+                $fileInputsDataForValidation[$fieldName] = $uploadedFile;
+
+                // ✅ If no file was selected (UPLOAD_ERR_NO_FILE), do NOT pass it to FileUploadService.
+                // The service should only handle files that actually need to be moved/processed.
+                if ($uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE) {
+                    $filesToProcessByService[$fieldName] = $uploadedFile;
+                }
+
+                // ✅ Catch generic PHP upload errors (like file too large, partial upload) that are NOT UPLOAD_ERR_NO_FILE.
+                // These are critical system errors that should fail immediately,
+                // regardless of whether the field is marked as 'required'.
+                if (
+                    $uploadedFile->getError() !== \UPLOAD_ERR_NO_FILE &&
+                    $uploadedFile->getError() !== \UPLOAD_ERR_OK
+                ) {
+                    $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
+                    $form->addError(
+                        $fieldName,
+                        'File upload failed: ' . $errorMessage . ' (' . $uploadedFile->getError() . ')'
+                    );
+                    $this->logger?->error('Generic file upload failed (PHP error)', [
+                        'field' => $fieldName,
+                        'error_code' => $uploadedFile->getError(),
+                        'error_message' => $errorMessage,
+                    ]);
+                    $criticalPhpUploadErrorsDetected = true; // Mark that a critical PHP error occurred
+                }
+            }
+        }
+
+        // ✅ Only call FileUploadService if there are actual files to move/process
+        if (!empty($filesToProcessByService)) {
+            // Use the generic FileUploadService to handle files and get temporary metadata
+            $fileProcessedMetadata = $this->fileUploadService->handleFiles($filesToProcessByService);
+            DebugRt::j('0', 'filesToProcessByService', $filesToProcessByService);
+
+            // Store the generic temporary file metadata in tempFileInfo
+            foreach ($fileProcessedMetadata as $fieldName => $metadata) {
+                $tempFileInfo[$fieldName] = $metadata;
+            }
+        }
+
+        return [
+            'fileInputsForValidation' => $fileInputsDataForValidation,
+            'hasCriticalPhpErrors' => $criticalPhpUploadErrorsDetected,
+            'tempFileInfo' => $tempFileInfo,
+        ];
+    }
+
+
+
+
 
     /**
      * Parse request data based on content type

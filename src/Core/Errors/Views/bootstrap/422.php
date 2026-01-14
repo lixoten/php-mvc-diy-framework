@@ -50,19 +50,34 @@ use App\Helpers\DebugRt as Debug;
             </div>
         </div>
         <?php if (app()->isDebug()) : ?>
+            <?php
+                $traceInfo = htmlspecialchars($data['additionalContext']['trace']);
+                $helpInfo  = $data['debugHelp']['helpInfo'] ?? 'Validation failed';
+                $fileInfo  = htmlspecialchars($data['file'] ?? 'N/A');
+                $lineInfo  = htmlspecialchars((string)($data['line'] ?? 'N/A'));
+                $requestedMethodInfo = htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'N/A');
+                $requestedUriInfo    = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A');
+                if (isset($data['exception']) && $data['exception'] instanceof \Core\Exceptions\ValidationException) {
+                    $errorCount = count($data['exception']->getErrors());
+                    $errorCount2 = $data['exception']->getErrors();
+                }
+            ?>
+            <?= <<<HTML
             <div class="card-footer bg-light">
                 <h5>Debug Information (422 - Unprocessable Entity)</h5>
-                <p>File: <?= htmlspecialchars($data['file'] ?? 'N/A') ?></p>
-                <p>Line: <?= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p>
-                <p>Debug Help: <?= htmlspecialchars($data['debugHelp'] ?? 'Validation failed') ?></p>
-                <p>Request Method: <?= htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'N/A') ?></p>
-                <?php if (isset($data['exception']) && $data['exception'] instanceof \Core\Exceptions\ValidationException) : ?>
-                    <p>Validation Errors Count: <?= count($data['exception']->getErrors()) ?></p>
-                <?php endif; ?>
-                <?php if (isset($data['trace'])) : ?>
-                    <pre><?= htmlspecialchars($data['trace']) ?></pre>
-                <?php endif; ?>
+                <p>File: $fileInfo</p>
+                <p>Line: $lineInfo</p>
+                <p>Debug Help: $helpInfo</p>
+                <p>Request Method: $requestedMethodInfo</p>
+                <p>Request URI: $requestedUriInfo</p>
+                <p>Validation Errors Count: $errorCount</p>
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$traceInfo</pre>
+                </div>
             </div>
+            HTML
+            ?>
         <?php endif; ?>
     </div>
 </div>

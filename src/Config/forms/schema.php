@@ -169,12 +169,14 @@ return [
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
         'placeholder'   =>  ['default' => false, 'values' => 'bool'],
+        // 'placeholder'   => ['default' => "Enter Phoddddne", 'values' => 'string'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
+            'foofoo' => ['values' => 'bool', 'default' => true],
             'ignore_allowed'           => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'         => ['values' => 'bool', 'default' => false],
             'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
-            'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick']],
+            'forbidden'                => ['values' => 'array', 'default' => ['fuck', 'dick', 'cock']],
         ],
     ],
     'textarea' => [ // 5
@@ -195,7 +197,7 @@ return [
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'value_kind'               => ['values' => 'string', 'default' => 'integer'],
             // 'min' => 444,
             //  'max'           => ['default' => 999, 'values' => 'numeric'],
@@ -235,7 +237,7 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'value_kind'               => ['values' => 'string', 'default' => 'integer'],
             // 'min' => 444,
             //  'max'           => ['default' => 999, 'values' => 'numeric'],
@@ -276,7 +278,7 @@ return [
         'data-char-counter'     => ['default' => false, 'values' => 'bool'],
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'value_kind'               => ['values' => 'string', 'default' => 'integer'],
             // 'min' => 444,
             //  'max'           => ['default' => 999, 'values' => 'numeric'],
@@ -314,7 +316,7 @@ return [
         // 'spellcheck' -- global but we take out
         'placeholder'   => ['default' => '(e.g., https://example.com/)', 'values' => 'string'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'value_kind'               => ['values' => 'string', 'default' => 'integer'],
             // 'min' => 444,
             //  'max'           => ['default' => 999, 'values' => 'numeric'],
@@ -368,7 +370,7 @@ return [
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
         'data-intl-tel-input'   => ['default' => true, 'values' => 'bool'], // one-off
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'required_message'  => ['values' => 'string', 'default' => 'zzPhone is required.'],
             // 'invalid_message'  => ['values' => 'string', 'default' => 'zzPlease enter a valid international phone ' .
             //                                                           'number (e.g., +15551234567). Invalid Error.'],
@@ -399,7 +401,7 @@ return [
         // 'incremental' -- Live search, non-standard - do not use i guess
         // 'results'     -- number of results, non-standard - do not use i guess
 
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'date'   => [ // 11
@@ -427,7 +429,7 @@ return [
 
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'datetime' => [ // 12
@@ -455,7 +457,7 @@ return [
 
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'invalid_message'   => ['values' => 'string', 'default' => 'zzPlease enter a valid date and time " .
             //                                                            "(YYYY-MM-DDTHH:MM or YYYY-MM-DDTHH:MM:SS).'],
             // 'min_message'       => ['values' => 'string', 'default' => 'zzDate-Time  must not be before ___.'],
@@ -487,7 +489,7 @@ return [
 
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'week'   => [ // 14
@@ -515,7 +517,7 @@ return [
 
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'time'  => [ // 15
@@ -543,7 +545,7 @@ return [
 
         'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'number' => [ // 16
@@ -581,7 +583,7 @@ return [
         // 'data-char-counter'     => ['default' => false, 'values' => 'bool'], // fixme not sure id needed
         // 'data-live-validation'  => ['default' => false, 'values' => 'bool'], // fixme not sure id needed
 
-        'val_fields' => [
+        'default_validation_rules' => [
             'positive_only'            => ['values' => 'bool', 'default' => false],
             'negative_only'            => ['values' => 'bool', 'default' => false],
             'zero_not_allowed'         => ['values' => 'bool', 'default' => false],
@@ -628,7 +630,7 @@ return [
         // 'data-char-counter'     => ['default' => false, 'values' => 'bool'], // fixme not sure id needed
         // 'data-live-validation'  => ['default' => false, 'values' => 'bool'], // fixme not sure id needed
 
-        'val_fields' => [
+        'default_validation_rules' => [
             'positive_only'            => ['values' => 'bool', 'default' => false],
             'negative_only'            => ['values' => 'bool', 'default' => false],
             'zero_not_allowed'         => ['values' => 'bool', 'default' => false],
@@ -662,7 +664,7 @@ return [
         // 'data-char-counter'     -- not applicable
         // 'data-live-validation'  -- not applicable
 
-        'val_fields' => [
+        'default_validation_rules' => [
             'enforce_step'             => ['values' => 'bool', 'default' => true],
         ],
     ],
@@ -691,7 +693,7 @@ return [
 
         'value'       => ['default' => '#000000', 'values' => 'string'], // Format: #rrggbb
 
-        'val_fields' => [
+        'default_validation_rules' => [
             'ignore_allowed'           => ['values' => 'bool', 'default' => true],
             'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
             'allowed'                  => ['values' => 'array', 'default' => []],
@@ -722,7 +724,7 @@ return [
         'checked'     => ['default' => false, 'values' => 'bool'],
 
         // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'checkbox' => [ // 20
@@ -751,7 +753,7 @@ return [
         'checked'     => ['default' => false, 'values' => 'bool'],
         //'data-live-validation'  => ['default' => false, 'values' => 'bool'],
 
-        'val_fields' => [
+        'default_validation_rules' => [
             // 'ignore_allowed'           => ['values' => 'bool', 'default' => true],
             // 'ignore_forbidden'         => ['values' => 'bool', 'default' => true],
             // 'allowed'                  => ['values' => 'array', 'default' => []],
@@ -780,7 +782,7 @@ return [
         //End Global set to null
 
         // It will implicitly inherit global HTML attributes like 'required', 'id', 'class', etc.
-        'val_fields' => [
+        'default_validation_rules' => [
         ],
     ],
     'radio' => [ // 22
@@ -837,8 +839,9 @@ return [
         'multiple'      => ['default' => false, 'values' => 'bool'],
         'size'          => ['default' => null,  'values' => 'int'], // Number of visible options
 
-        'val_fields' => [
+        'default_validation_rules' => [
             'choices'    => ['default' => 'array', 'values' => []],
+            'choicesmoo'    => ['default' => 'array', 'values' => []],
                         // 'allowed'                  => ['values' => 'array', 'default' => ['aaaa', 'bbbb']],
 
         ],
@@ -872,13 +875,13 @@ return [
         'accept'    => ['default' => null, 'values' => 'string'], // e.g., 'image/*', '.pdf'
     ],
     'extratest' => [ // 25
-        'val_fields' => [
+        'default_validation_rules' => [
             'type' => ['default' => null, 'values' => 'string'],
             'forbidden'          => ['default' => [333], 'values' => []],
         ],
     ],
     'extratest2' => [ // 26
-        'val_fields' => [
+        'default_validation_rules' => [
             'type' => ['default' => null, 'values' => 'string'],
             'forbidden'          => ['default' => [333, 44], 'values' => []],
         ],

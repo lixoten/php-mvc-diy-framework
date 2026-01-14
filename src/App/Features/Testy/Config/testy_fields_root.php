@@ -109,10 +109,15 @@ return [
         ],
         'form' => [
             'type'        => 'text',
-            'placeholder' => true,
+            // 'placeholder' => false,
+            'renders' => [
+                'show_label'    => true,
+                'aaa' => true,
+                'bbb' => true,
+            ],
             'attributes'  => [
                 'required'    => true,
-                'minlength'   => 5,
+                'minlength'   => 4,
                 'maxlength'   => 50,
                 // 'pattern'     => '/^[a-z0-9./',
                 // 'style'       => 'background:yellow;',
@@ -124,8 +129,13 @@ return [
             'text' => [
                 // 'ignore_allowed'   => true,
                 // 'ignore_forbidden' => false,
-                // 'allowed'          => [aaaa, bbbb],
-                // 'forbidden'        => [fuck, dick],
+                // 'allowed'          => ['aaaa', 'bbbb'],
+                'forbidden'        => ['fuck1', 'dick1'],
+                'minlength_message'  => "Custom: Phddone  is required.",
+                'forbidden_message'  => "forbiddenforbiddenforbidden: Phddone  is required.",
+                // 'required_message'  => "Custom: Phone  is required.",
+                // 'required_message'  => "validation.required",
+
             ],
         ],
     ],
@@ -149,7 +159,7 @@ return [
         ],
         'form' => [
             'type'        => 'text',
-            'placeholder' => true,
+            // 'placeholder' => true,
             'attributes'  => [
                 'required'    => true,
                 'minlength'   => 5,
@@ -236,10 +246,13 @@ return [
             'type'       => 'select',
             'options_provider' => [\Core\Interfaces\CodeLookupServiceInterface::class, 'getSelectChoices'],
             'options_provider_params' => ['type' => 'state_code'],
-            'display_default_choice' => true,
+            'render' => [
+                'show_label'    => false,
+                'display_default_choice' => true,
+            ],
             'attributes' => [
                 'required'    => true,
-                // 'style'       => 'background:yellow;',
+                'style'       => 'background:yellow;',
             ],
         ],
         'validators' => [

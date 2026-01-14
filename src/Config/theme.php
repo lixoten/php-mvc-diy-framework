@@ -37,6 +37,64 @@ return [
     ],
 
 
+    // ✅ Form theme configuration (framework-neutral form styling)
+    'form_themes' => [
+        // Base path for all form theme CSS files
+        'base_path' => '/assets/css/themes/forms',
+
+        // Available form themes (framework-neutral)
+        'available' => [
+            'neon' => [
+                'name' => 'Neon Cyberpunk',
+                'description' => 'Glowing neon theme with cyberpunk aesthetics',
+                'css' => 'neon.css',
+                'preview_url' => '/theme/preview/form/neon',
+                'framework_neutral' => true, // ✅ Works with all frameworks
+                'tags' => ['futuristic', 'dark', 'glow'],
+            ],
+            // EXAMPLE of  'framework_neutral' => false,
+            // 'neon-bootstrap' => [
+            //     'name' => 'Neon Cyberpunk (Bootstrap Enhanced)',
+            //     'framework_neutral' => false, // ⚠️ Bootstrap-specific
+            //     'framework' => 'bootstrap',
+            //     'css' => 'neon-bootstrap.css', // ⚠️ Uses .input-group, .form-floating
+            //     'base_theme' => 'neon', // ✅ Extends neutral theme
+            // ],
+            'christmas' => [
+                'name' => 'Christmas Holiday',
+                'description' => 'Festive winter theme for forms',
+                'css' => 'christmas.css',
+                'preview_url' => '/theme/preview/form/christmas',
+                'framework_neutral' => true,
+                'tags' => ['seasonal', 'festive', 'holiday'],
+            ],
+            'retro' => [
+                'name' => 'Retro 80s',
+                'description' => 'Vintage 1980s aesthetic with bold colors',
+                'css' => 'retro.css',
+                'preview_url' => '/theme/preview/form/retro',
+                'framework_neutral' => true,
+                'tags' => ['vintage', 'colorful', '80s'],
+            ],
+            'minimal' => [
+                'name' => 'Minimal Clean',
+                'description' => 'Clean, minimalist form styling',
+                'css' => 'minimal.css',
+                'preview_url' => '/theme/preview/form/minimal',
+                'framework_neutral' => true,
+                'tags' => ['clean', 'simple', 'modern'],
+            ],
+        ],
+
+        // Default form theme (null = no form theme by default)
+        'default' => null,
+
+        // ✅ OPTIONAL: Cache busting version for form themes
+        'version' => '1.0.0',
+    ],
+
+
+
     // Theme metadata
     'metadata' => [
         'bootstrap' => [
@@ -67,6 +125,28 @@ return [
             'supports' => ['responsive']
         ],
     ],
+
+
+    ////////////////////////////////////////////////////////////
+    //// Metadata for UI ////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    /*
+    // ✅ Build a theme selector dropdown from config:
+    $availableThemes = $this->config->get('theme.form_themes.available', []);
+
+    foreach ($availableThemes as $key => $theme) {
+        echo "<option value='{$key}'>{$theme['name']} - {$theme['description']}</option>";
+    }
+
+    // output example
+    // <option value='neon'>Neon Cyberpunk - Glowing neon theme with cyberpunk aesthetics</option>
+    // <option value='christmas'>Christmas Holiday - Festive winter theme for forms</option>
+    // <option value='retro'>Retro 80s - Vintage 1980s aesthetic</option>
+
+    */
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
 
     // Theme assets
     'assets' => [

@@ -64,6 +64,8 @@ class TextValidator extends AbstractValidator
     /** {@inheritdoc} */
     protected function getDefaultOptions(): array
     {
-        return [];
+        return [
+            'message_required'   => 'This file field is required.',
+        ];
     }
 }

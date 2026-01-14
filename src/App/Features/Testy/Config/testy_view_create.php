@@ -35,7 +35,6 @@ return [
 
         'css_form_theme_class'  => '', // "form-theme-christmas",
         'css_form_theme_file'   => '', // "christmas",
-        'default_form_theme'    => '', // 'christmas' ?? 'default',
 
         // 'title_heading_level'         => 'h3', // Default is 'h2'
         'title_heading'               => "form.heading",

@@ -61,6 +61,8 @@ abstract class AbstractFieldType implements FieldTypeInterface
 
 
 
+        // if (isset($resolvedOptions['choices'])) {
+        // }
 
 
         //DebugRt::j('0', '', $type);
@@ -72,7 +74,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             ];
             if (!in_array($type, $validArray)) {
                 $message = "Invalid 'show_character_counter' for field type '{$type}'.";
-                $this->logger->warningDev($message, "ERR-DEV102");
+                $this->logger->warning($message, ['dev_code' => 'ERR-DEV102']);
             }
         }
         if (isset($resolvedOptions['live_validation'])) {
@@ -82,7 +84,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             'date'];
             if (!in_array($type, $validArray)) {
                 $message = "Invalid 'live_validation' for field type '{$type}'.";
-                $this->logger->warningDev($message, "ERR-DEV102");
+                $this->logger->warning($message, ['dev_code' => 'ERR-DEV103']);
             }
         }
 
@@ -153,7 +155,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
                 $message = "Invalid attribute '{$attrName}' for field type '{$fieldType}'. ";
                 $message .= "- To Fix it go to '_root' file and remove attribute \"{$attrName}\" for \"{$fieldType}\".";
 
-                $this->logger->warningDev($message, "ERR-DEV101-wtf1");
+                $this->logger->warning($message, ['dev_code' => 'ERR-DEV104']);
             }
         }
 
@@ -181,7 +183,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
             if (is_array($validationRule)) {
                 if (!in_array($attrValue, $validationRule)) {
                     $message = "Invalid value '{$attrValue}' for attribute '{$attrName}'.";
-                    $this->logger->warningDev($message, "ERR-DEV101");
+                    $this->logger->warning($message, ['dev_code' => 'ERR-DEV105']);
                     return null;
                 }
             // 2. Check for multiple allowed types (e.g., ['int', 'float'])
@@ -196,28 +198,28 @@ abstract class AbstractFieldType implements FieldTypeInterface
                 }
                 if (!$isValid) {
                     $message = "Invalid value '{$attrValue}' for attribute '{$attrName}'. Must be int or float.";
-                    $this->logger->warningDev($message, "ERR-DEV101");
+                    $this->logger->warning($message, ['dev_code' => 'ERR-DEV106']);
                     return null;
                 }
             // 3. Check for boolean values
             } elseif ($validationRule === 'bool') {
                 if (!is_bool($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a boolean (true or false).";
-                    $this->logger->warningDev($message, "ERR-DEV101");
+                    $this->logger->warning($message, ['dev_code' => 'ERR-DEV107']);
                     return null;
                 }
             // 4. Check for numeric values
             } elseif ($validationRule === 'numeric') {
                 if (!is_numeric($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a numeric value.";
-                    $this->logger->warningDev($message, "ERR-DEV101");
+                    $this->logger->warning($message, ['dev_code' => 'ERR-DEV108']);
                     return null;
                 }
             // 5. Check for string values
             } elseif ($validationRule === 'string') {
                 if (!is_string($attrValue)) {
                     $message = "Value '{$attrValue}' for '{$attrName}' must be a string.";
-                    $this->logger->warningDev($message, "ERR-DEV101");
+                    $this->logger->warning($message, ['dev_code' => 'ERR-DEV109']);
                     return null;
                 }
             }
@@ -237,7 +239,7 @@ abstract class AbstractFieldType implements FieldTypeInterface
     {
         $defaults = [];
         $schema = $this->fieldSchema->get($type); // Reuse your schema method
-        unset($schema['val_fields']); // val_fields These are not needed till Validation
+        unset($schema['default_validation_rules']); // default_validation_rules These are not needed till Validation
         foreach ($schema as $attribute => $details) {
             if (is_array($details) && array_key_exists('default', $details)) {
                 $defaults[$attribute] = $details['default'];

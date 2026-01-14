@@ -187,6 +187,7 @@ abstract class Controller
      */
     protected function getScrapInfoViewData(): array
     {
+        $viewData = [];
         if ($_ENV['APP_ENV'] === 'development') {
             $viewData['scrapInfo'] = (array) $this->scrap->printIt();
             $viewData['scrap'] = $this->scrap;

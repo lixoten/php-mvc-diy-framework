@@ -230,14 +230,22 @@ abstract class AbstractCrudController extends Controller
         ]);
 
 
-        // 1. Define all columns needed for this request (form fields + permission fields).
-        $formFields      = $this->formType->getFields();
-        $formExtraFields = $this->formType->getExtraFields();
+        // 📌 1. Define all columns needed for this request (form fields + permission fields).
+        $formFields       = $this->formType->getFields();
+        $formHiddenFields = $this->formType->getHiddenFields();
+        $formExtraFields  = $this->formType->getExtraFields();
 
         $ownerForeignKey = $this->feature->ownerForeignKey;
         if (isset($ownerForeignKey)) {
-            $requiredFields = array_unique(array_merge($formFields, $formExtraFields, [$ownerForeignKey]));
+            $requiredFields = array_unique(array_merge($formFields, $formExtraFields, $formHiddenFields, [$ownerForeignKey]));
         }
+        // end
+
+
+
+            //$recordArray = $this->fetchSingleRecord($recordId, $requiredFields);
+
+
 
         if ($request->getMethod() === 'GET') {
             // 2. Fetch the required data ONCE as an array.
@@ -250,7 +258,7 @@ abstract class AbstractCrudController extends Controller
 
             $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
         } else {
-            $recordArray = null;
+            //$recordArray = null;
         }
 
         // findme - override field
@@ -310,27 +318,12 @@ abstract class AbstractCrudController extends Controller
             // }
 
             $savedId = $this->saveRecord($data, $extraProcessData, $recordId); // ✅ Pass both data arrays
-            //$savedId = $this->saveRecord($data, $recordId);
-            // if ($this->repository->updateFields($recordId, $data)) {
             if ($savedId) {
                 $this->flash22->add("Record updated successfully", FlashMessageType::Success);
                 return $this->redirect($this->getRedirectUrlAfterSave($recordId));
             } else {
                 $form->addError('_form', 'Failed to update the record in the database.');
             }
-
-            // } catch (\PDOException $e) {
-            //     if ($e->getCode() === '23000') { // Integrity constraint violation
-            //         // if (str_contains($e->getMessage(), 'gender_id')) {
-            //         //     $form->addError('gender_id', 'Gender is required.');
-            //         // } else {
-            //             $form->addError('_form', 'A required field is missing or invalid.');
-            //         // }
-            //     } else {
-            //         // For other DB errors, you may want to log and show a generic error
-            //         $form->addError('_form', 'A database error occurred. Please try again.');
-            //     }
-            // }
         }
 
 
@@ -457,50 +450,70 @@ abstract class AbstractCrudController extends Controller
             $pageEntity,
         );
 
+        // $recordId = isset($this->route_params['id']) ? (int)$this->route_params['id'] : null;
+        // if ($recordId === null) {
+        //     $this->flash22->add("Invalid record ID.", FlashMessageType::Error);
+        //     return $this->redirect($this->feature->baseUrlEnum->view());
+        // }
 
-        // ✅ NEW: Inject form URLs and route context via render options
+        // // 📌 Store caller URL in session when entering edit page (GET only)
+        // if ($request->getMethod() === 'GET') {
+        //     $callerUrl = $_SERVER['HTTP_REFERER'] ?? $this->feature->listUrlEnum->url([], $this->scrap->getRouteType());
+        //     $this->returnUrlManager->setReturnUrl($recordId, $callerUrl);
+        // }
+
+        // 📌 Inject form URLs and route context via render options
         $routeType = $this->scrap->getRouteType();
 
-        // $this->formType->mergeRenderOptions([
-        //     'url_enums' => [
-        //         'action' => $this->feature->createUrlEnum, // Form action URL enum (for store)
-        //         'cancel' => $this->feature->listUrlEnum, // Cancel/back button URL enum
-        //     ],
-        //     'action_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store', // Full action URL
-        //     'cancel_url' => $this->feature->listUrlEnum->url([], $routeType), // Full cancel URL
-        //     'route_type' => $routeType, // Current route context
-        //     'ajax_store_url' => $this->feature->createUrlEnum->url([], $routeType) . '/store',
-        // ]);
         $this->formType->mergeRenderOptions([
             'action_url' => $this->feature->createUrlEnum->url([], $routeType),
             'cancel_url' => $this->feature->listUrlEnum->url([], $routeType),
             'route_type' => $routeType,
+            // 'record_id'  => $recordId,
+            // 'ajax_update_url' => $this->feature->editUrlEnum->url(['id' => $recordId], $routeType) . '/update',
         ]);
 
 
+        // 1. Define all columns needed for this request (form fields + permission fields).
+        $formFields      = $this->formType->getFields();
+        $formExtraFields = $this->formType->getExtraFields();
 
         // 1. Define all columns needed for this request (form fields + permission fields).
         $ownerForeignKey = $this->feature->ownerForeignKey;
-        // $requiredFields = array_unique(array_merge($formFields, [$ownerForeignKey]));
+        if (isset($ownerForeignKey)) {
+            $requiredFields = array_unique(array_merge($formFields, $formExtraFields, [$ownerForeignKey]));
+        }
 
-        // // 2. For create, no record array is needed (new record).
-        // $recordArray = null;
+        // if ($request->getMethod() === 'GET') {
+        //     // 2. Fetch the required data ONCE as an array.
+        //     $recordArray = $this->fetchSingleRecord($recordId, $requiredFields);
 
-        // For create, no record array is needed
+        //     // 3. Check for existence and permissions using the fetched array.
+        //     if (!$this->scrap->isAdmin()) {
+        //         $this->checkForEditPermissions($recordArray);
+        //     }
+
+        //     $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
+        // } else {
+        //     $recordArray = null;
+        // }
+
+        // findme - override field
+        // Important!!! -  atm, only used by image to change a field type from file to display
+        $this->overrideFormTypeRenderOptions([]);
+
+
+        // 4. Pass the fetched array to the form processor.
         $result = $this->processForm($request, null);
         $form = $result['form'];
 
 
-        // ✅ PLACEMENT: Call the override hook here, after the form is created.
-        $this->overrideFormTypeRenderOptions(null);
-
-
-
-
         // Prepare the form for JavaScript
-        //$form->setAttribute('data-ajax-action', $this->feature->createUrlEnum->url() . '/store');
-
-
+        // $form->setAttribute(
+        //     'data-ajax-action',
+        //     $this->feature->editUrlEnum->url(['id' => $recordId]) . '/update'
+        // );
+        //$form->setAttribute('data-ajax-save', 'true');
 
         // This block handles the submission AFTER the form has been processed
         if (
@@ -509,17 +522,19 @@ abstract class AbstractCrudController extends Controller
             && $request->getHeaderLine('X-Requested-With') !== 'XMLHttpRequest'
         ) {
             $data = $form->getUpdatableData();
-            $fullFormData = $form->getData(); // ✅ All data, including metadata
+            $extraProcessData = $form->getExtraProcessedData(); // ✅ All data, including metadata
+
+            //$fullFormData = $form->getData(); // ✅ All data, including metadata
 
             // Add owner foreign key for new records
             $currentUserId = $this->scrap->getUserId();
-            // $currentUserId = 4; // Hack because not logged in
             $data[$ownerForeignKey] = $currentUserId;
 
             if ($this->scrap->getPageFeature() !== 'User') {
-                $data['store_id'] = $this->scrap->getStoreId(); // Hack because not logged in
+                $data['store_id'] = $this->scrap->getStoreId();
             }
 
+            // if (in_array('title', $formFields)) {
             if (array_key_exists('title', $data)) {
                 // Slug regeneration if needed
                 if (isset($data['title'])) {
@@ -534,8 +549,6 @@ abstract class AbstractCrudController extends Controller
             }
 
             // Transform form data before saving
-            // $data = $this->baseFeatureService->transformToStorage($data, $pageKey);
-            // Transform form data before saving
             $data = $this->baseFeatureService->transformToStorage($data, $pageKey, $pageEntity);
 
 
@@ -546,20 +559,16 @@ abstract class AbstractCrudController extends Controller
             //     }
             // }
 
-
-            //$newRecordId = $this->repository->insertFields($data);
-            $newRecordId = $this->saveRecord($data, $fullFormData);
-
-            if ($newRecordId) {
+            $savedId = $this->saveRecord($data, $extraProcessData); // ✅ Pass both data arrays
+            if ($savedId) {
                 $this->flash22->add("Record added successfully", FlashMessageType::Success);
-                return $this->redirect($this->getRedirectUrlAfterSave((int)$newRecordId));
-            }
-
-            $form->addError('_form', 'Failed to save the record in the database.');
+                return $this->redirect($this->getRedirectUrlAfterSave((int)$savedId));
+            } else {
+                $form->addError('_form', 'Failed to add the record in the database.');
+           }
         }
 
         $renderedForm = $this->formRenderer->renderForm($form, []);
-
 
         // This block handles the initial page load (GET)
         $viewData = [

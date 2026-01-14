@@ -232,6 +232,17 @@ return [
 ]
 ```
 
+### Reporting Errors
+- We need to ask the question
+  - Evil Error, Stop all?
+    - Can the application Continue?
+    - if so we trow 500 type error
+    - log it
+  -- Production vs developement
+    - Do we just log it? do we present the develpter with a Warning on the page?
+
+
+
 ### Database & Repository Patterns
 - Repository interfaces in `App\Repository\` with implementations following naming convention
 - Entity classes in `App\Entities\` with getter/setter methods

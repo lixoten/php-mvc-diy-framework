@@ -76,6 +76,21 @@ return [
             'label'       => 'Title',
             'placeholder' => 'Enter Title',
         ],
+        'validation' => [
+            'required'  => 'xxssssThis is a required field..',
+            'invalid'   => 'xxInvalid value.',
+            'minlength' => 'xxTssssssssssssssssssshis value must be at least %d characters.',
+            'maxlength' => 'xxThis value must not exceed %d characters.',
+            'min'       => 'xxThis value must be at least %d.',
+            'max'       => 'xxThis value must not exceed %d.',
+            'pattern'   => 'xxThis value does not match the required pattern.',
+            'allowed'   => 'xxPlease select a valid allowed value.',
+            'forbidden' => 'xxThis value is not allowed.',
+            'positive_only'    => 'xxThis value must be a positive number.',
+            'negative_only'    => 'xxThis value must be a negative number.',
+            'zero_not_allowed' => 'xxZero value is not allowed.',
+            'enforce_step'     => 'xxNumber must be a multiple of %d.',
+        ],
     ],
     'generic_text' => [
         'list' => [

@@ -63,21 +63,41 @@ $isRecordNotFound = $exception instanceof \Core\Exceptions\RecordNotFoundExcepti
             </div>
         </div>
         <?php if (app()->isDebug()) : ?>
+            <?php
+                $traceInfo = htmlspecialchars($data['additionalContext']['trace']);
+                $helpInfo  = $data['debugHelp']['helpInfo'] ?? 'Resource not found';
+                $fileInfo  = htmlspecialchars($data['file'] ?? 'N/A');
+                $lineInfo  = htmlspecialchars((string)($data['line'] ?? 'N/A'));
+                $requestedMethodInfo = htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'N/A');
+                $requestedUriInfo    = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A');
+                $extraDebugHtml      = '';
+                if ($isRecordNotFound && $exception) {
+                    $exceptionTypeInfo = htmlspecialchars(get_class($exception));
+                    $entityTypeInfo    = htmlspecialchars($exception->getEntityType() ?? 'N/A');
+                    $entityIdInfo      = htmlspecialchars((string)$exception->getEntityId() ?? 'N/A');
+                    $extraDebugHtml = <<<HTML
+                        <p>Exception Type: $exceptionTypeInfo</p>
+                        <p>Entity Type: $entityTypeInfo</p>
+                        <p>Entity ID: $entityIdInfo</p>
+                    HTML;
+                }
+            ?>
+            <?= <<<HTML
             <div class="card-footer bg-light">
                 <h5>Debug Information (404 - Not Found)</h5>
-                <p>File: <?= htmlspecialchars($data['file'] ?? 'N/A') ?></p>
-                <p>Line: <?= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p>
-                <p>Debug Help: <?= htmlspecialchars($data['debugHelp'] ?? 'Resource not found') ?></p>
-                <p>Requested URL: <?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A') ?></p>
-                <?php if ($isRecordNotFound && $exception) : ?>
-                    <p>Exception Type: <?= htmlspecialchars(get_class($exception)) ?></p>
-                    <p>Entity Type: <?= htmlspecialchars($exception->getEntityType() ?? 'N/A') ?></p>
-                    <p>Entity ID: <?= htmlspecialchars((string)($exception->getEntityId() ?? 'N/A')) ?></p>
-                <?php endif; ?>
-                <?php if (isset($data['trace'])) : ?>
-                    <pre><?= htmlspecialchars($data['trace']) ?></pre>
-                <?php endif; ?>
+                <p>File: $fileInfo</p>
+                <p>Line: $lineInfo</p>
+                <p>Debug Help: $helpInfo</p>
+                <p>Request Method: $requestedMethodInfo</p>
+                <p>Request URI: $requestedUriInfo</p>
+                $extraDebugHtml
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$traceInfo</pre>
+                </div>
             </div>
+            HTML
+            ?>
         <?php endif; ?>
     </div>
 </div>

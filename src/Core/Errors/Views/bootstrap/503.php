@@ -34,15 +34,31 @@ use App\Helpers\DebugRt as Debug;
             </div>
         </div>
         <?php if (app()->isDebug()) : ?>
+            <?php
+                $traceInfo = htmlspecialchars($data['additionalContext']['trace']);
+                $helpInfo  = $data['debugHelp']['helpInfo'] ?? 'Service temporarily unavailable';
+                $fileInfo  = htmlspecialchars($data['file'] ?? 'N/A');
+                $lineInfo  = htmlspecialchars((string)($data['line'] ?? 'N/A'));
+                $requestedUriInfo = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A');
+                $userIdInfo   = htmlspecialchars((string)($_SESSION['user_id'] ?? 'Not logged in'));
+                $userRoleInfo = htmlspecialchars($_SESSION['user_role'] ?? 'N/A');
+            ?>
+            <?= <<<HTML
             <div class="card-footer bg-light">
                 <h5>Debug Information (503 - Service Unavailable)</h5>
-                <p>File: <?= htmlspecialchars($data['file'] ?? 'N/A') ?></p>
-                <p>Line: <?= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p>
-                <p>Debug Help: <?= htmlspecialchars($data['debugHelp'] ?? 'Service temporarily unavailable') ?></p>
-                <?php if (isset($data['trace'])) : ?>
-                    <pre><?= htmlspecialchars($data['trace']) ?></pre>
-                <?php endif; ?>
+                <p>File: $fileInfo</p>
+                <p>Line: $lineInfo</p>
+                <p>Debug Help: $helpInfo</p>
+                <p>Requested URI: $requestedUriInfo</p>
+                <p>User ID: $userIdInfo</p>
+                <p>User Role: $userRoleInfo</p>
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$traceInfo</pre>
+                </div>
             </div>
+            HTML
+            ?>
         <?php endif; ?>
     </div>
 </div>

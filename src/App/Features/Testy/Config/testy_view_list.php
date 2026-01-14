@@ -21,7 +21,6 @@ return [
     ],
     'render_options' => [
         'from'                  => 'testy_view_list-config',
-        // 'css_framework'         => 'bootstrap',
         'show_title_heading'    => true,
         'title_heading_level'   => 'h2',
         'title_heading_class'   => null, // Use ThemeService default, or provide custom class if needed

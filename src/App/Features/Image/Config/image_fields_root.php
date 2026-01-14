@@ -30,7 +30,7 @@ return [
                     // 'null_value' => 'Nothing here',      // Replaces null value with string
                     // 'suffix'     => "Boo",               // Appends to end of text
                     // 'transform'  => 'lowercase',
-                    'transform'  => 'uppercase',
+                    // 'transform'  => 'uppercase',
                     // 'transform'  => 'capitalize',
                     // 'transform'  => 'title',
                     // 'transform'  => 'trim',              // notes-: assuming we did not store clean data
@@ -80,10 +80,12 @@ return [
             // 'show_label'    => false,
             // 'placeholder' => true,
             'attributes'  => [
+                'required' => true,
                 'accept' => 'image/*',
             ],
             'upload' => [
-                'max_size' => 2097152, // 2MB
+                // 'max_size' => 2097152, // 2MB
+                'max_size' => 1000000, // 2MB
                 'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
                 'subdir' => 'profiles',
             ],
@@ -100,7 +102,10 @@ return [
             ],
         ],
         'validators' => [
-            'text' => [
+            'file' => [
+                'max_size' => 2097152, // 2MB (2 * 1024 * 1024)
+                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+                // 'subdir' is for storage, not direct validation, so omit here
             ],
         ],
     ],

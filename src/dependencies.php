@@ -86,19 +86,43 @@ return [
 
     'logger' => function (\Psr\Container\ContainerInterface $c) {
         // Get environment and configs
-        $config = $c->get('config')->get('logger');
+
+        // $config = $c->get('config')->get('logger');
+
+        $configService = $c->get(ConfigInterface::class); // ✅ Get ConfigService
+        $appEnv = $_ENV['APP_ENV'] ?? 'production'; // ✅ Get APP_ENV directly from $_ENV
+        $appDebug = filter_var($_ENV['APP_DEBUG'] ?? 'false', FILTER_VALIDATE_BOOLEAN); // ✅ Get APP_DEBUG directly from $_ENV
+
+        // Dynamically set min_level based on environment
+        // important!!! this is GOOD LINE
+        // $minLevel = ($appEnv === 'development') ? \Core\Logger::DEBUG : \Core\Logger::INFO;
+        // fixme!!! this is TEMP HACK... so we do not see so many DEBUG/Level-ZERO log entries
+        $minLevel = ($appEnv === 'development') ? \Core\Logger::INFO : \Core\Logger::INFO;
+        // Dynamically set debug_mode based on APP_DEBUG
+        $debugMode = $appDebug;
+        // Disable sampling in development, enable for other environments
+        $samplingRate = ($appEnv === 'development') ? 1.0 : ($configService->get('logger.sampling_rate') ?? 0.1);
+
 
         // Create logger with appropriate settings
         $logger = new \Core\Logger(
-            $config['directory'] ?? __DIR__ . '/../../logs',
-            $config['min_level'] ?? \Core\Logger::INFO,
-            $config['debug_mode'] ?? false,
-            $config['sampling_rate'] ?? 0.1
+            $c->get('Core\I18n\I18nTranslator'),
+            // $config['directory'] ?? __DIR__ . '/../../logs',
+            // $config['min_level'] ?? \Core\Logger::INFO,
+            // $config['debug_mode'] ?? false,
+            // $config['sampling_rate'] ?? 0.1
+            $configService->get('logger.directory') ?? __DIR__ . '/../../logs',
+            $minLevel, // ✅ Use dynamic minLevel
+            $debugMode, // ✅ Use dynamic debugMode
+            $samplingRate // ✅ Use dynamic samplingRate
         );
         //Debug::p($logger);
 
-        if ($config['rotation'] ?? true) {
-            $logger->cleanupOldLogs($config['retention_days'] ?? 30);
+        // if ($config['rotation'] ?? true) {
+        //     $logger->cleanupOldLogs($config['retention_days'] ?? 30);
+        // }
+        if ($configService->get('logger.rotation') ?? true) { // ✅ Use ConfigService for rotation
+            $logger->cleanupOldLogs($configService->get('logger.retention_days') ?? 30); // ✅ Use ConfigService for retention_days
         }
 
         return $logger;
@@ -1864,7 +1888,31 @@ return [
 
     //-------------------------------------------------------------------------
 
+    \Core\Services\EntityMetadataService::class => \DI\autowire(),
 
+
+    // SECTION: Form Configuration Service
+    \Core\Services\FormConfigurationService::class => \DI\autowire()
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
+        ->constructorParameter('normalizerService', \DI\get(\Core\Services\FormConfigurationNormalizerService::class)) // ✅ NEW
+        ->constructorParameter('validatorService', \DI\get(\Core\Services\FormConfigurationValidatorService::class)), // ✅ NEW
+    // END SECTION: Form Configuration Service
+
+    // Form Configuration Normalizer Service
+    \Core\Services\FormConfigurationNormalizerService::class => \DI\autowire()
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
+
+    // Form Configuration Validator Service
+    \Core\Services\FormConfigurationValidatorService::class => \DI\autowire()
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
+        ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))
+        ->constructorParameter('entityMetadataService', \DI\get('Core\Services\EntityMetadataService')),
+
+
+    \Core\Services\FieldDefinitionSchemaValidatorService::class => \DI\autowire()
+        ->constructorParameter('configService', \DI\get(\Core\Interfaces\ConfigInterface::class))
+        ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class)),
 
 
 
@@ -1876,6 +1924,12 @@ return [
         ->constructorParameter('formConfigService', \DI\get(\Core\Services\FormConfigurationService::class))
         ->constructorParameter('logger', \DI\get(\Psr\Log\LoggerInterface::class))
         ->constructorParameter('captchaService', \DI\get('Core\Security\Captcha\CaptchaServiceInterface')),
+
+
+
+
+
+
 
     // 'App\Features\Testy\Form\TestyFormType' => \DI\autowire()
     //     ->constructorParameter('fieldRegistryService', \DI\get('Core\Services\FieldRegistryService'))

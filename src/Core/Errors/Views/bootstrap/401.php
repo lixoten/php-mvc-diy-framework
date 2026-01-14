@@ -39,17 +39,31 @@ use App\Helpers\DebugRt as Debug;
             </div>
         </div>
         <?php if (app()->isDebug()) : ?>
+            <?php
+                $traceInfo = htmlspecialchars($data['additionalContext']['trace']);
+                $helpInfo  = $data['debugHelp']['helpInfo'] ?? 'Unauthorized access';
+                $fileInfo  = htmlspecialchars($data['file'] ?? 'N/A');
+                $lineInfo  = htmlspecialchars((string)($data['line'] ?? 'N/A'));
+                $requestedMethodInfo = htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'N/A');
+                $requestedUriInfo    = htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A');
+                $userAgentInfo       = htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'N/A');
+            ?>
+            <?= <<<HTML
             <div class="card-footer bg-light">
                 <h5>Debug Information (401 - Unauthorized)</h5>
-                <p>File: <?= htmlspecialchars($data['file'] ?? 'N/A') ?></p>
-                <p>Line: <?= htmlspecialchars((string)($data['line'] ?? 'N/A')) ?></p>
-                <p>Debug Help: <?= htmlspecialchars($data['debugHelp'] ?? 'Unauthorized access') ?></p>
-                <p>Requested URI: <?= htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'N/A') ?></p>
-                <p>User Agent: <?= htmlspecialchars($_SERVER['HTTP_USER_AGENT'] ?? 'N/A') ?></p>
-                <?php if (isset($data['trace'])) : ?>
-                    <pre><?= htmlspecialchars($data['trace']) ?></pre>
-                <?php endif; ?>
+                <p>File: $fileInfo</p>
+                <p>Line: $lineInfo</p>
+                <p>Debug Help: $helpInfo</p>
+                <p>Request Method: $requestedMethodInfo</p>
+                <p>Request URI: $requestedUriInfo</p>
+                <p>User Agent: $userAgentInfo</p>
+                <div style="background-color: #fff3cd; padding: 15px;">
+                    <h3>Stack Trace</h3>
+                    <pre>$traceInfo</pre>
+                </div>
             </div>
+            HTML
+            ?>
         <?php endif; ?>
     </div>
 </div>

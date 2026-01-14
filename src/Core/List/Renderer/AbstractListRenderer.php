@@ -30,7 +30,6 @@ abstract class AbstractListRenderer implements ListRendererInterface
      */
     protected array $defaultOptions = [
         'from'                  => 'AbstractListRenderer-defaultOptions',
-        'css_framework'         => '',
         'show_title_heading'    => false,
         'title_heading_level'   => 'h2',
         'title_heading_class'   => null,
