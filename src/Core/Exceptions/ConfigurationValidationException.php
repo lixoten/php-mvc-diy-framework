@@ -114,20 +114,11 @@ class ConfigurationValidationException extends Exception
     }
 
     ////////////////
-    public function toHtmlHelp(
-        // ConfigurationValidationException $exception
-    ): string {
+    public function toHtmlHelp(): string {
         $errors     = $this->getErrors();
         $configFile = htmlspecialchars($this->getConfigIdentifier());
         $pageKey    = htmlspecialchars($this->getPageKey());
         $entityName = htmlspecialchars($this->getEntityName());
-
-        // $errors     = [];//$exception->getErrors();
-        // $configFile = "";//htmlspecialchars($exception->getConfigIdentifier());
-        // $pageKey    = "";//htmlspecialchars($exception->getPageKey());
-        // $entityName = "";//htmlspecialchars($exception->getEntityName());
-
-
 
         $errorListHtml = '';
         foreach ($errors as $index => $error) {
@@ -219,8 +210,6 @@ class ConfigurationValidationException extends Exception
                 }
             }
         }
-        // 🏷️
-        // $line[] .= "<strong>Initiated by:</strong> {$callerFile} on line {$callerLine}";
         $line[] .=  str_repeat('──', 40);
         $rrr = implode("\n <br />", $line);
         return $rrr;
@@ -229,5 +218,4 @@ class ConfigurationValidationException extends Exception
     private function bullet(string $icon, string $label, string $text): string{
         return "─ $icon <strong>$label:</strong> $text";
     }
-    /////////////////
 }

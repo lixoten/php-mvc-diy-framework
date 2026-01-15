@@ -8,6 +8,7 @@ use Core\Form\Validation\Rules\EmailValidator;
 use PHPUnit\Framework\TestCase;
 
 /**
+ * @group lixoten2
  * @group lixoten
  * @group validators
  * @group email
@@ -19,7 +20,7 @@ class EmailValidatorTest extends TestCase
     protected function setUp(): void
     {
         $this->validator = new EmailValidator(
-            new \Core\Services\IdnConverterService() // ✅ Inject the required service
+            new \Core\Services\IdnConverterService() 
         );
     }
 

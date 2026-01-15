@@ -8,6 +8,7 @@ use Core\Exceptions\ConfigurationException;
 use Core\Exceptions\ConfigurationValidationException;
 use Core\I18n\I18nTranslator;
 use Core\Interfaces\ConfigInterface;
+use Core\Interfaces\CacheInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -116,7 +117,10 @@ class FormConfigurationService
         // ✅ 2️⃣ MERGE: Combine base + page (higher priority wins)
         // Page-specific config takes precedence over base config
         $mergedConfig = [
-            'render_options'     => $this->deepMerge($baseConfig['render_options'] ?? [], $pageConfig['render_options'] ?? []),
+            'render_options'     => $this->deepMerge(
+                $baseConfig['render_options'] ?? [],
+                $pageConfig['render_options'] ?? []
+            ),
             'form_layout'        => $pageConfig['form_layout'] ?? ($baseConfig['form_layout'] ?? []),
             'form_hidden_fields' => $pageConfig['form_hidden_fields'] ?? ($baseConfig['form_hidden_fields'] ?? []),
             'form_extra_fields'  => $pageConfig['form_extra_fields'] ?? ($baseConfig['form_extra_fields'] ?? []),
@@ -126,10 +130,7 @@ class FormConfigurationService
 
         // ✅ 3️⃣ NORMALIZE: Make data safe, apply defaults, cast types
         // ⚠️ This can log WARNINGS but NEVER throws exceptions
-        //tempout //fixme tempout to by passnormalization
         $normalizedConfig = $this->normalizerService->normalize($mergedConfig); // this line is good
-        // $normalizedConfig = $mergedConfig; // fixme this line is temp
-        //tempout //fixme tempout
 
         // ✅ 4️⃣ VALIDATE: Enforce business rules on normalized data
         // ⚠️ This logs ERRORS but returns results (orchestrator decides whether to throw)
@@ -205,8 +206,9 @@ class FormConfigurationService
     }
 
 
-    private function checkConfig (array $config, string $configIdentifier, string $pageName, string $pageKey): void {
-                // ✅ 1. Define ALL expected top-level keys for strict validation
+    private function checkConfig(array $config, string $configIdentifier, string $pageName, string $pageKey): void
+    {
+        // ✅ 1. Define ALL expected top-level keys for strict validation
         $allowedTopLevelKeys = ['render_options', 'form_layout', 'form_hidden_fields', 'form_extra_fields'];
 
         // ❌ 2. Check for unexpected top-level keys
@@ -228,9 +230,6 @@ class FormConfigurationService
                     $pageName                                 // Entity name
                 );
 
-
-
-
                 $this->logger->warning(
                     $message,
                     [
@@ -238,7 +237,6 @@ class FormConfigurationService
                     ]
                 );
             }
-
         }
 
         // $requiredTopLevelKeys = ['render_options', 'form_layout', 'form_hidden_fields', 'form_extra_fields'];
@@ -261,11 +259,7 @@ class FormConfigurationService
         //         );
         //     }
         // }
-
-
     }
-
-
 
     /**
      * Load page-specific form configuration.

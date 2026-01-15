@@ -110,8 +110,13 @@ class FormConfigurationNormalizerService
 
         // ✅ Type casting for boolean flags
         $booleanKeys = [
-            'ajax_save', 'auto_save', 'use_local_storage', 'force_captcha',
-            'html5_validation', 'show_title_heading', 'show_error_container'
+            'ajax_save',
+            'auto_save',
+            'use_local_storage',
+            'force_captcha',
+            'html5_validation',
+            'show_title_heading',
+            'show_error_container'
         ];
 
         foreach ($booleanKeys as $key) {
@@ -119,9 +124,12 @@ class FormConfigurationNormalizerService
                 // ⚠️ Log warning if type needs correction
                 $this->logger->warning(
                     "Normalizer: '{$key}' was not a boolean, casting to boolean.",
-                    ['original_value' => $normalizedOptions[$key], 'original_type' => gettype($normalizedOptions[$key])]
+                    [
+                        'original_value' => $normalizedOptions[$key],
+                        'original_type' => gettype($normalizedOptions[$key])
+                    ]
                 );
-                $normalizedOptions[$key] = (bool) $normalizedOptions[$key];
+                $normalizedOptions[$key] = $this->castToBoolean($normalizedOptions[$key]);
             }
         }
 
@@ -280,6 +288,41 @@ class FormConfigurationNormalizerService
     }
 
 
+    /**
+     * Converts a value to boolean, handling string representations correctly.
+     *
+     * ✅ Handles: 'true', 'false', '1', '0', 1, 0, true, false
+     * ⚠️ Any other value defaults to false (with warning logged by caller)
+     *
+     * @param mixed $value The value to convert to boolean
+     * @return bool The boolean representation
+     */
+    private function castToBoolean(mixed $value): bool
+    {
+        // ✅ Already a boolean? Return as-is
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        // ✅ Handle string boolean representations
+        if (is_string($value)) {
+            $lowercaseValue = strtolower(trim($value));
+            if ($lowercaseValue === 'true' || $lowercaseValue === '1') {
+                return true;
+            }
+            if ($lowercaseValue === 'false' || $lowercaseValue === '0') {
+                return false;
+            }
+        }
+
+        // ✅ Handle numeric boolean representations (integer 1/0)
+        if (is_int($value)) {
+            return $value !== 0;
+        }
+
+        // ⚠️ Fallback to standard bool cast for other types
+        return (bool) $value;
+    }
 
     /**
      * Normalizes the 'form_layout' section of the configuration.

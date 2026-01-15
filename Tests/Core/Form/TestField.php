@@ -30,4 +30,9 @@ class TestField implements FieldInterface
     public function getOptions(): array { return $this->options; }
     public function isRequired(): bool { return $this->options['required'] ?? false; }
     public function showLabel(): bool { return $this->options['show_label'] ?? true; }
+    public function getChoices(): array
+    {
+        // Return an empty array or mock choices as needed for your tests
+        return [];
+    }
 }

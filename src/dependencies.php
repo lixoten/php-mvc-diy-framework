@@ -27,6 +27,8 @@ use App\Services\FlashMessageService;
 use App\Services\GenericDataService;
 use App\Services\Interfaces\FlashMessageServiceInterface;
 use App\Services\Interfaces\GenericDataServiceInterface;
+use Core\Cache\NullCache;
+use Core\Cache\FileCache;
 use Core\Console\Commands\CleanupTempUploadsCommand;
 use Core\Console\Generators\ConfigViewGenerator;
 use Core\Console\Generators\GeneratorOutputService;
@@ -50,6 +52,7 @@ use Core\Form\Upload\FileUploadServiceInterface;
 use Core\Form\Upload\TemporaryFileUploadService;
 use Core\Form\Validation\ValidatorRegistry;
 use Core\I18n\I18nTranslator;
+use Core\Interfaces\CacheInterface;
 use Core\Interfaces\ConfigInterface;
 use Core\List\ListFactoryInterface;
 use Core\Middleware\RoutingMiddleware;
@@ -82,7 +85,48 @@ return [
     // Important!!! Lesson: Alias the ConfigInterface to 'config'
     'Core\Interfaces\ConfigInterface' => \DI\get('config'),
 
+
     //-----------------------------------------------------------------
+
+    // ✅ ADD THIS SECTION HERE
+    // ====================================================================
+    // SECTION: Cache Service (100% DIY File-Based Cache)
+    // ====================================================================
+
+    /**
+     * ✅ Cache Service Registration
+     *
+     * PURPOSE:
+     * - DEVELOPMENT: Use NullCache (always fresh config, no stale cache)
+     * - PRODUCTION: Use FileCache (performance optimization)
+     *
+     * IMPLEMENTATION:
+     * - FileCache: 100% DIY, zero external dependencies
+     * - NullCache: No-op implementation for development
+     *
+     * USAGE:
+     * - Swap implementations by commenting/uncommenting lines below
+     * - Or use environment variable to toggle dynamically
+     */
+    CacheInterface::class => function () {
+        // ✅ DEVELOPMENT: No-Op Cache (always fresh config)
+        return new NullCache();
+
+        // ✅ PRODUCTION: File-Based Cache (uncomment for production)
+        // return new FileCache(
+        //     cacheDirectory: __DIR__ . '/../storage/cache/config',
+        //     cleanupProbability: 100 // 1% chance to trigger cleanup on get()
+        // );
+    },
+
+    // ====================================================================
+    // END SECTION: Cache Service
+    // ====================================================================
+
+    //-----------------------------------------------------------------
+
+
+
 
     'logger' => function (\Psr\Container\ContainerInterface $c) {
         // Get environment and configs

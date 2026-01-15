@@ -73,7 +73,7 @@ class FormConfigurationValidatorService
             if (!in_array($key, $allowedTopLevelKeys, true)) {
                 $message = "Config '{$configIdentifier}': Unexpected top-level configuration key found: '{$key}'.";
                 $suggestion = "Suggestion: Only these area allowed. " . implode(', ', $allowedTopLevelKeys);
-                $errorCode = 'ERR-DEV-TL001';
+                $errorCode = 'ERR-DEV-TL-001';
                 $errors[]  = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -152,6 +152,7 @@ class FormConfigurationValidatorService
 
 
         // ✅ 6. Validate form_layout (structure, field existence in FieldRegistry)
+        // Notes-: Should ALWAYS be present due to Normalization Class
         if (isset($config['form_layout']) && is_array($config['form_layout'])) {
             $errors = array_merge(
                 $errors,
@@ -167,9 +168,15 @@ class FormConfigurationValidatorService
         // Important!!! this might be an issue if we ever decide that we can create a form field that does not need to
         //              exist as an entity field.
         //              Lets say we are capturing values that are then derived for a field that is then stored in DB.
-        // ✅ 7a. Validate hidden_fields (must be strings AND exist on entity)
+        // ✅ 7a. Validate that form_layout fields exist as entity properties
         if (isset($config['form_layout']) && is_array($config['form_layout'])) {
             foreach ($config['form_layout'] as $index => $section) {
+                // ✅ Guard: Skip sections without valid 'fields' array
+                // (These errors were already reported in validateFormLayout())
+                if (!isset($section['fields']) || !is_array($section['fields'])) {
+                    continue;
+                }
+
                 foreach ($section['fields'] as $key => $field) {
                     if (!is_string($field)) {
                         $message = "Config '{$configIdentifier}': Form_layout field at index {$index} is not a string.";
@@ -184,7 +191,7 @@ class FormConfigurationValidatorService
                         class_exists($entityFqcn) &&
                         !$this->entityMetadataService->hasField($entityFqcn, $field)
                     ) {
-                        $message    = "Config '{configIdentifier}': Form_layout field '{$field}' at index {$index} " .
+                        $message    = "Config '{$configIdentifier}': Form_layout field '{$field}' at index {$index} " .
                                         "not found as a property/getter in entity '{$entityFqcn}'.";
                         $suggestion = "Suggestion: Correct or remove missing '{$field}' from Form_layout Fields.";
                         $errorCode  = 'ERR-DEV-003b';
@@ -255,7 +262,7 @@ class FormConfigurationValidatorService
 
         // ✅ 9. Always log errors, but NEVER throw exceptions
         if (!empty($errors)) {
-            foreach ($errors as $index => $error) {
+            foreach ($errors as $error) {
                 // $message    = $error['message'];
                 // $suggestion = "Suggestion: Make sure value is a boolean '{key}' section.";
                 // $errorCode  = 'ERR-DEV-0231111';
@@ -374,7 +381,7 @@ class FormConfigurationValidatorService
             $errors[]   = [
                 'message'    => $message,
                 'suggestion' => $suggestion,
-                'dev_code' => $errorCode,
+                'dev_code'   => $errorCode,
             ];
         }
 
@@ -481,11 +488,12 @@ class FormConfigurationValidatorService
         $allowedLayoutSectionKeys = ['title', 'fields', 'divider'];
 
         // ✅ Rule: The overall 'form_layout' array cannot be empty.
+        // Notes-: Should never be triggered due to Normalization Class
         if (empty($formLayout)) {
             $message    = "Config '{$configIdentifier}': The 'form_layout' array cannot be empty. It must contain " .
                           "at least one section definition.";
             $suggestion = "Suggestion: Add at least one section (e.g., `['fields' => ['some_field']]`) to 'form_layout'.";
-            $errorCode  = 'ERR-DEV-FL-024';
+            $errorCode  = 'ERR-DEV-FL-001';
             $errors[]   = [
                 'message'    => $message,
                 'suggestion' => $suggestion,
@@ -499,7 +507,7 @@ class FormConfigurationValidatorService
             if (!is_array($section)) {
                 $message    = "Config '{$configIdentifier}': Form layout section at index {$index} must be an array. Found: " . get_debug_type($section);
                 $suggestion = "Suggestion: Ensure each entry in 'form_layout' is an array defining a section (e.g., `['title' => 'Section', 'fields' => []]`).";
-                $errorCode  = 'ERR-DEV-FL-025';
+                $errorCode  = 'ERR-DEV-FL-002';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -509,14 +517,14 @@ class FormConfigurationValidatorService
             }
 
             // ❌ This check ensures there are no misspelled or unexpected keys at the section level,
-            // like 'fieldxxs' or 'uszzzzzzzzzzzzrage'. This is a structural validation of the layout schema.
+            // like 'fields' or 'usage'. This is a structural validation of the layout schema.
             foreach (array_keys($section) as $key) {
                 if (!in_array($key, $allowedLayoutSectionKeys, true)) {
                     $message    = "Config '{$configIdentifier}': Unexpected key '{$key}' found in form layout " .
                                   "section at index {$index}. Only these keys are allowed: " .
                                   implode(', ', $allowedLayoutSectionKeys);
                     $suggestion = "Suggestion: Remove unexpected key '{$key}' or correct its name to one of the allowed keys.";
-                    $errorCode  = 'ERR-DEV-FL-026';
+                    $errorCode  = 'ERR-DEV-FL-003';
                     $errors[]   = [
                         'message'    => $message,
                         'suggestion' => $suggestion,
@@ -531,7 +539,7 @@ class FormConfigurationValidatorService
                 $message    = "Config '{$configIdentifier}': Form layout section at index {$index} has a 'title' " .
                               "value that is not a string. Found: " . get_debug_type($section['title']);
                 $suggestion = "Suggestion: Ensure the 'title' for this section is a string.";
-                $errorCode  = 'ERR-DEV-FL-027';
+                $errorCode  = 'ERR-DEV-FL-004';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -544,7 +552,7 @@ class FormConfigurationValidatorService
                 $message    = "Config '{$configIdentifier}': Form layout section at index {$index}, 'divider' " .
                               "must be a boolean. Found: " . get_debug_type($section['divider']);
                 $suggestion = "Suggestion: Ensure 'divider' is a boolean (true or false).";
-                $errorCode  = 'ERR-DEV-FL-030';
+                $errorCode  = 'ERR-DEV-FL-005';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -559,32 +567,34 @@ class FormConfigurationValidatorService
                               "'fields' key or 'fields' is not an array. Found: " .
                               (isset($section['fields']) ? get_debug_type($section['fields']) : 'not set');
                 $suggestion = "Suggestion: Add a 'fields' array (can be empty, e.g., `[]`) to this section.";
-                $errorCode  = 'ERR-DEV-FL-028';
+                $errorCode  = 'ERR-DEV-FL-006';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
                     'dev_code'   => $errorCode,
                 ];
-            } else {
-                // Track if any section has non-empty fields, which is a specific rule.
-                if (!empty($section['fields'])) {
-                    $hasAnyNonEmptyFields = true;
-                }
-
-                // ✅ DELEGATION: Validate individual field names exist.
-                // This method (validateFormLayout) does NOT check the content of $section['fields'] itself,
-                // but calls a dedicated method for that specific task, separating concerns.
-                $errors = array_merge(
-                    $errors,
-                    $this->validateReferencedFieldNames(
-                        $section['fields'],       // The array of field names (e.g., ['title', 'generic_number'])
-                        $pageKey,
-                        $entityName,
-                        $configIdentifier,
-                        "form_layout section at index {$index}" // Context for error message
-                    )
-                );
+                continue; // ✅ Skip further processing of this section
             }
+
+            // ✅ Now we KNOW $section['fields'] exists and is an array
+            // Track if any section has non-empty fields, which is a specific rule.
+            if (!empty($section['fields'])) {
+                $hasAnyNonEmptyFields = true;
+            }
+
+            // ✅ DELEGATION: Validate individual field names exist.
+            // This method (validateFormLayout) does NOT check the content of $section['fields'] itself,
+            // but calls a dedicated method for that specific task, separating concerns.
+            $errors = array_merge(
+                $errors,
+                $this->validateReferencedFieldNames(
+                    $section['fields'],       // The array of field names (e.g., ['title', 'generic_number'])
+                    $pageKey,
+                    $entityName,
+                    $configIdentifier,
+                    "form_layout section at index {$index}" // Context for error message
+                )
+            );
         }
 
         // ✅ Rule: After checking all sections, ensure at least one section had fields defined.
@@ -592,7 +602,7 @@ class FormConfigurationValidatorService
             $message    = "Config '{$configIdentifier}': The 'form_layout' does not contain any sections " .
                           "with fields defined. At least one section must have a non-empty 'fields' array.";
             $suggestion = "Suggestion: Ensure at least one 'form_layout' section has fields defined (e.g., `['fields' => ['your_field_name']]`).";
-            $errorCode  = 'ERR-DEV-FL-034';
+            $errorCode  = 'ERR-DEV-FL-007';
             $errors[]   = [
                 'message'    => $message,
                 'suggestion' => $suggestion,
@@ -604,139 +614,6 @@ class FormConfigurationValidatorService
     }
 
 
-
-    /**
-     * Validates the 'form_layout' structure.
-     *
-     * ✅ Checks for required keys ('title', 'fields')
-     * ✅ Validates field names exist in FieldRegistry
-     * ✅ Ensures 'fields' array is not empty
-     * ❌ Does NOT modify data
-     *
-     * @param array<int, array<string, mixed>> $formLayout
-     * @param string $pageKey The current page key.
-     * @param string $entityName The current entity name.
-     * @param string $configIdentifier A string identifier for the configuration source.
-     * @return array<string> An array of error messages.
-     */
-    protected function validateFormLayoutOLD(
-        array $formLayout,
-        string $pageKey,
-        string $entityName,
-        string $configIdentifier
-    ): array {
-        $errors = [];
-
-        // ❌ Check if the overall 'form_layout' array is empty
-        if (empty($formLayout)) {
-            $message    = "Config '{$configIdentifier}': The 'form_layout' array cannot be empty. It must contain " .
-                          "at least one section definition.";
-            $suggestion = "Suggestion: Check 'form_layout' section.";
-            $errorCode  = 'ERR-DEV-024';
-            $errors[]   = [
-                'message'    => $message,
-                'suggestion' => $suggestion,
-                'dev_code'   => $errorCode,
-            ];
-
-            return $errors; // No further validation possible
-        }
-
-        foreach ($formLayout as $index => $section) {
-            if (!is_array($section)) {
-                $message    = "Config '{$configIdentifier}': Form layout section at index {$index} must be an array.";
-                $suggestion = "Suggestion: Check '{form_layout}' section.";
-                $errorCode  = 'ERR-DEV-FL-025';
-                $errors[]   = [
-                    'message'    => $message,
-                    'suggestion' => $suggestion,
-                    'dev_code'   => $errorCode,
-                ];
-                continue;
-            }
-
-            // // ❌ Check for unexpected keys within a layout section
-            // foreach (array_keys($section) as $key) {
-            //     if (!in_array($key, $allowedLayoutSectionKeys, true)) {
-            //         $message    = "Config '{$configIdentifier}': Unexpected key '{$key}' found in form layout " .
-            //                       "section at index {$index}. Only these are allowed: " .
-            //                       implode(', ', $allowedLayoutSectionKeys);
-            //         $suggestion = "Suggestion: Check against allowed.";
-            //         $errorCode  = 'ERR-DEV-FL-026';
-            //         $errors[]   = [
-            //             'message'    => $message,
-            //             'suggestion' => $suggestion,
-            //             'dev_code'   => $errorCode,
-            //         ];
-            //     }
-            // }
-
-            // ✅ Check for required 'title' key
-            if (!isset($section['title']) || !is_string($section['title'])) {
-                $message    = "Config '{$configIdentifier}': Form layout section at index {$index} is missing " .
-                              "a 'title' or 'title' is not a string.";
-                $suggestion = "Suggestion: Check '{form_layout}' section.";
-                $errorCode  = 'ERR-DEV-027';
-                $errors[]   = [
-                    'message'    => $message,
-                    'suggestion' => $suggestion,
-                    'dev_code'   => $errorCode,
-                ];
-            }
-
-            // ✅ Check for required 'fields' key and that it's an array
-            if (!isset($section['fields']) || !is_array($section['fields'])) {
-                $message    = "Config '{$configIdentifier}': Form layout section at index {$index} is missing " .
-                              "'fields' or 'fields' is not an array.";
-                $suggestion = "Suggestion: Check '{form_layout}' section.";
-                $errorCode  = 'ERR-DEV-028';
-                $errors[]   = [
-                    'message'    => $message,
-                    'suggestion' => $suggestion,
-                    'dev_code'   => $errorCode,
-                ];
-            } else {
-                // ❌ Check if the 'fields' array is empty
-                if (empty($section['fields'])) {
-                    $message    = "Config '{$configIdentifier}': Form layout section at index {$index} has an " .
-                                  "empty 'fields' array. A layout section must contain at least one field.";
-                    $suggestion = "Suggestion: Check '{form_layout}' and add some fields.";
-                    $errorCode  = 'ERR-DEV-029';
-                    $errors[]   = [
-                        'message'    => $message,
-                        'suggestion' => $suggestion,
-                        'dev_code'   => $errorCode,
-                    ];
-                }
-
-                // ✅ Validate individual field names exist in FieldRegistry
-                $errors = array_merge(
-                    $errors,
-                    $this->validateReferencedFieldNames(
-                        $section['fields'],
-                        $pageKey,
-                        $entityName,
-                        $configIdentifier,
-                        "form_layout section at index {$index}"
-                    )
-                );
-            }
-
-            // ✅ Validate 'divider' is a boolean (if present)
-            if (isset($section['divider']) && !is_bool($section['divider'])) {
-                $message    = "Config '{$configIdentifier}': Form layout section at index {$index}, 'divider' " .
-                              "must be a boolean.";
-                $suggestion = "Suggestion: Check '{form_layout}' section.";
-                $errorCode  = 'ERR-DEV-030';
-                $errors[]   = [
-                    'message'    => $message,
-                    'suggestion' => $suggestion,
-                    'dev_code'   => $errorCode,
-                ];
-            }
-        }
-        return $errors;
-    }
 
     /**
      * Validates a list of referenced field names, ensuring their existence and schema validity.
@@ -770,7 +647,7 @@ class FormConfigurationValidatorService
                 $message    = "Config '{$configIdentifier}': {$context}, field at index {$fieldIndex} is not a " .
                               "string (field name).";
                 $suggestion = "Suggestion: Check '{$context}' field.";
-                $errorCode  = 'ERR-DEV-031';
+                $errorCode  = 'ERR-DEV-FN-031';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -779,13 +656,10 @@ class FormConfigurationValidatorService
                 continue;
             }
 
-            // if ($validEntity === true) {
-              // ✅ Use cache to avoid redundant validation
-                $cacheKey = "{$entityName}::{$pageKey}::{$fieldName}";
-                if (isset($this->validatedFieldsCache[$cacheKey])) {
+            $cacheKey = "{$entityName}::{$pageKey}::{$fieldName}";
+            if (isset($this->validatedFieldsCache[$cacheKey])) {
                 continue; // Already validated this field in this request
-                }
-            // }
+            }
 
             // ✅ Get the field definition from FieldRegistryService
             $fieldDefinition = $this->fieldRegistryService->getFieldWithFallbacks($fieldName, $pageKey, $entityName);
@@ -795,7 +669,7 @@ class FormConfigurationValidatorService
                 $message    = "Config '{$configIdentifier}': {$context}, field '{$fieldName}' at index {$fieldIndex} " .
                               "could not be found via FieldRegistryService.";
                 $suggestion = "Suggestion: Fix or removed field '{$fieldName}' from '{$context}'.";
-                $errorCode  = 'ERR-DEV-032';
+                $errorCode  = 'ERR-DEV-FN-032';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,
@@ -811,14 +685,26 @@ class FormConfigurationValidatorService
                     $fieldDefinition,
                     $fieldName,
                     $pageKey,
-                    $entityName
+                    $entityName,
+                    'form'
                 );
+            } catch (\Core\Exceptions\FieldSchemaValidationException $e) {
+                // ❌ Schema validation failed - custom exception with getSuggestion()
+                $message    = $e->getMessage();
+                $suggestion = $e->getSuggestion();
+                $errorCode  = $e->getDevCode();
+                $errors[]   = [
+                    'message'    => $message,
+                    'suggestion' => $suggestion,
+                    'dev_code'   => $errorCode,
+                ];
+                continue;
             } catch (\Exception $e) {
                 // ❌ Schema validation failed
                 $message    = "Config '{$configIdentifier}': {$context}, field '{$fieldName}' at index {$fieldIndex} " .
                               "failed schema validation: {$e->getMessage()}";
                 $suggestion = "Suggestion: Check '{$context}' field.";
-                $errorCode  = 'ERR-DEV-033';
+                $errorCode  = 'ERR-DEV-FN-034';
                 $errors[]   = [
                     'message'    => $message,
                     'suggestion' => $suggestion,

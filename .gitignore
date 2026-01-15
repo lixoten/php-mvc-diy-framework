@@ -112,3 +112,5 @@ _testy_list_fields*
 src/Core/Form/Validation/temp.php
 public_html/store/*
 storage/*
+storage/cache/*
+!storage/cache/.gitkeep

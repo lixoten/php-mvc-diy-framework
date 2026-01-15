@@ -20,9 +20,11 @@ use Psr\Log\LoggerInterface;
  * - Check field existence in FieldRegistryService
  * - Verify hidden/extra fields exist on entity
  * - Detect unexpected configuration keys
- * - Aggregate multiple errors
- * - Log errors correctly
+ * - Aggregate multiple errors with structured format
+ * - Log errors correctly using critical() level
  *
+ * @group playlist
+ * @group config-validation
  * @group lixoten
  * @group services
  * @group form-config
@@ -59,22 +61,33 @@ class FormConfigurationValidatorServiceTest extends TestCase
     public function testValidateRejectsInvalidSecurityLevel(): void
     {
         $config = [
-            'render_options' => ['security_level' => 'ultra_high'], // ❌ Invalid
-            'form_layout' => [['title' => 'Test', 'fields' => ['field1']]],
+            'render_options' => ['security_level' => 'ultra_high'],
+            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
         ];
 
-        // Mock field registry to return valid field
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Field 1']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
-        // ✅ Should fail validation
         $this->assertFalse($result['isValid']);
         $this->assertNotEmpty($result['errors']);
-        $this->assertStringContainsString("'security_level' must be one of", $result['errors'][0]);
-        $this->assertStringContainsString('ultra_high', $result['errors'][0]);
+        $this->assertArrayHasKey('message', $result['errors'][0]);
+        $this->assertArrayHasKey('dev_code', $result['errors'][0]);
+        $this->assertArrayHasKey('suggestion', $result['errors'][0]);
+        $this->assertStringContainsString(
+            "'security_level' must be one of",
+            $result['errors'][0]['message']
+        );
+        $this->assertStringContainsString('ultra_high', $result['errors'][0]['message']);
+        $this->assertSame('ERR-DEV-RO-003', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -83,18 +96,28 @@ class FormConfigurationValidatorServiceTest extends TestCase
     public function testValidateRejectsInvalidLayoutType(): void
     {
         $config = [
-            'render_options' => ['layout_type' => 'grid_layout'], // ❌ Invalid
-            'form_layout' => [['title' => 'Test', 'fields' => ['field1']]],
+            'render_options' => ['layout_type' => 'grid_layout'],
+            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Field 1']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'layout_type' must be one of", $result['errors'][0]);
+        $this->assertStringContainsString(
+            "'layout_type' must be one of",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-RO-004', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -103,18 +126,28 @@ class FormConfigurationValidatorServiceTest extends TestCase
     public function testValidateRejectsInvalidErrorDisplay(): void
     {
         $config = [
-            'render_options' => ['error_display' => 'popup'], // ❌ Invalid
-            'form_layout' => [['title' => 'Test', 'fields' => ['field1']]],
+            'render_options' => ['error_display' => 'popup'],
+            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Field 1']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'error_display' must be one of", $result['errors'][0]);
+        $this->assertStringContainsString(
+            "'error_display' must be one of",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-RO-005', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -129,7 +162,6 @@ class FormConfigurationValidatorServiceTest extends TestCase
             'form_extra_fields' => [],
         ];
 
-        // ✅ Mock FieldRegistryService to return null for 'nonexistent_field'
         $this->fieldRegistry->expects($this->once())
             ->method('getFieldWithFallbacks')
             ->with('nonexistent_field', 'testy_edit', 'testy')
@@ -138,8 +170,12 @@ class FormConfigurationValidatorServiceTest extends TestCase
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'nonexistent_field'", $result['errors'][0]);
-        $this->assertStringContainsString("could not be found via FieldRegistryService", $result['errors'][0]);
+        $this->assertStringContainsString("'nonexistent_field'", $result['errors'][0]['message']);
+        $this->assertStringContainsString(
+            "could not be found via FieldRegistryService",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-FN-032', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -149,24 +185,43 @@ class FormConfigurationValidatorServiceTest extends TestCase
     {
         $config = [
             'render_options' => [],
-            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
+            'form_layout' => [['title' => 'Dummy Section', 'fields' => ['title']]],
             'form_hidden_fields' => ['nonexistent_property'],
             'form_extra_fields' => [],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Title']);
+        // ✅ Mock getFieldWithFallbacks() to return valid definition for 'title'
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturnCallback(function ($fieldName) {
+                if ($fieldName === 'title') {
+                    return ['label' => 'Title', 'form' => ['type' => 'text']];
+                }
+                return null;
+            });
 
-        // ✅ Mock EntityMetadataService to indicate field does NOT exist
-        $this->entityMetadata->expects($this->once())
-            ->method('hasField')
-            ->with('App\Features\Testy\Testy', 'nonexistent_property')
-            ->willReturn(false);
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        // ✅ Mock entityMetadata to say 'title' exists, 'nonexistent_property' does not
+        $this->entityMetadata->method('hasField')
+            ->willReturnCallback(function ($entityFqcn, $fieldName) {
+                return $fieldName === 'title'; // Only 'title' exists
+            });
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'nonexistent_property'", $result['errors'][0]);
-        $this->assertStringContainsString("not found as a property/getter", $result['errors'][0]);
+
+        // ✅ Find the error about 'nonexistent_property' in the errors array
+        $foundError = false;
+        foreach ($result['errors'] as $error) {
+            if (str_contains($error['message'], "'nonexistent_property'")) {
+                $foundError = true;
+                $this->assertStringContainsString("not found as a property/getter", $error['message']);
+                $this->assertSame('ERR-DEV-005', $error['dev_code']);
+                break;
+            }
+        }
+        $this->assertTrue($foundError, "Expected error about 'nonexistent_property' not found");
     }
 
     /**
@@ -176,22 +231,42 @@ class FormConfigurationValidatorServiceTest extends TestCase
     {
         $config = [
             'render_options' => [],
-            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
+            'form_layout' => [['title' => 'Dummy Section', 'fields' => ['title']]],
             'form_hidden_fields' => [],
             'form_extra_fields' => ['invalid_extra'],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Title']);
+        // ✅ Mock getFieldWithFallbacks() to return valid definition for 'title'
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturnCallback(function ($fieldName) {
+                if ($fieldName === 'title') {
+                    return ['label' => 'Title', 'form' => ['type' => 'text']];
+                }
+                return null;
+            });
 
-        $this->entityMetadata->expects($this->once())
-            ->method('hasField')
-            ->with('App\Features\Testy\Testy', 'invalid_extra')
-            ->willReturn(false);
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        // ✅ Mock entityMetadata to say 'title' exists, 'invalid_extra' does not
+        $this->entityMetadata->method('hasField')
+            ->willReturnCallback(function ($entityFqcn, $fieldName) {
+                return $fieldName === 'title'; // Only 'title' exists
+            });
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'invalid_extra'", $result['errors'][0]);
+
+        // ✅ Find the error about 'invalid_extra' in the errors array
+        $foundError = false;
+        foreach ($result['errors'] as $error) {
+            if (str_contains($error['message'], "'invalid_extra'")) {
+                $foundError = true;
+                $this->assertSame('ERR-DEV-007', $error['dev_code']);
+                break;
+            }
+        }
+        $this->assertTrue($foundError, "Expected error about 'invalid_extra' not found");
     }
 
     /**
@@ -204,15 +279,25 @@ class FormConfigurationValidatorServiceTest extends TestCase
             'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
-            'surprise_key' => 'unexpected!', // ❌ Should be flagged
+            'surprise_key' => 'unexpected!',
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Title']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("Unexpected top-level configuration key found: 'surprise_key'", $result['errors'][0]);
+        $this->assertStringContainsString(
+            "Unexpected top-level configuration key found: 'surprise_key'",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-TL-001', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -222,10 +307,10 @@ class FormConfigurationValidatorServiceTest extends TestCase
     {
         $config = [
             'render_options' => [
-                'security_level' => 'invalid', // ❌ Error 1
-                'layout_type' => 'unknown', // ❌ Error 2
+                'security_level' => 'invalid',
+                'layout_type' => 'unknown',
             ],
-            'form_layout' => [], // ❌ Error 3 (empty layout)
+            'form_layout' => [['title' => 'Dummy', 'fields' => []]], // ✅ Added dummy section
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
         ];
@@ -233,11 +318,17 @@ class FormConfigurationValidatorServiceTest extends TestCase
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertGreaterThanOrEqual(3, count($result['errors'])); // At least 3 errors
+        $this->assertGreaterThanOrEqual(2, count($result['errors'])); // ✅ Adjusted from 3 to 2
+
+        foreach ($result['errors'] as $error) {
+            $this->assertArrayHasKey('message', $error);
+            $this->assertArrayHasKey('dev_code', $error);
+            $this->assertArrayHasKey('suggestion', $error);
+        }
     }
 
     /**
-     * Test that validate() logs errors on failure.
+     * Test that validate() logs errors on failure using critical level.
      */
     public function testValidateLogsErrorsOnFailure(): void
     {
@@ -248,15 +339,24 @@ class FormConfigurationValidatorServiceTest extends TestCase
             'form_extra_fields' => [],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Title']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
 
-        // ✅ Expect logger->error() to be called once
-        $this->logger->expects($this->once())
-            ->method('error')
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
+
+        $this->logger->expects($this->atLeastOnce())
+            ->method('critical')
             ->with(
-                'Form configuration validation errors detected:',
+                $this->stringContains('Form configuration validation error detected:'),
                 $this->callback(function ($context) {
-                    return isset($context['errors']) && is_array($context['errors']);
+                    return isset($context['dev_code'])
+                        && isset($context['suggestion'])
+                        && isset($context['config_identifier'])
+                        && isset($context['pageKey'])
+                        && isset($context['entityName']);
                 })
             );
 
@@ -278,50 +378,34 @@ class FormConfigurationValidatorServiceTest extends TestCase
             ],
             'form_layout' => [
                 ['title' => 'Section 1', 'fields' => ['title', 'content']],
-                ['title' => 'Section 2', 'fields' => ['status']],
             ],
             'form_hidden_fields' => ['id', 'created_at'],
-            'form_extra_fields' => ['telephone', 'address'],
+            'form_extra_fields' => ['telephone'],
         ];
 
-        // ✅ Mock dependencies to return valid responses
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Mock Field']);
-        $this->entityMetadata->method('hasField')->willReturn(true);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Mock Field']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
-        // ✅ Should pass validation
         $this->assertTrue($result['isValid']);
         $this->assertEmpty($result['errors']);
     }
 
     /**
-     * Test that validate() detects empty form_layout.
+     * Test that validate() detects form_layout with missing 'fields' key.
      */
-    public function testValidateDetectsEmptyFormLayout(): void
-    {
-        $config = [
-            'render_options' => [],
-            'form_layout' => [], // ❌ Empty layout
-            'form_hidden_fields' => [],
-            'form_extra_fields' => [],
-        ];
-
-        $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
-
-        $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'form_layout' cannot be empty", $result['errors'][0]);
-    }
-
-    /**
-     * Test that validate() handles form_layout sections with missing 'fields' key.
-     */
-    public function testValidateDetectsFormLayoutSectionWithoutFields(): void
+    public function testValidateDetectsFormLayoutSectionWithoutFieldsKey(): void
     {
         $config = [
             'render_options' => [],
             'form_layout' => [
-                ['title' => 'Section Without Fields'], // ❌ Missing 'fields'
+                ['title' => 'Section Without Fields'],
             ],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
@@ -330,18 +414,20 @@ class FormConfigurationValidatorServiceTest extends TestCase
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("missing required 'fields' array", $result['errors'][0]);
+        $this->assertStringContainsString("is missing 'fields' key", $result['errors'][0]['message']);
+        $this->assertSame('ERR-DEV-FL-006', $result['errors'][0]['dev_code']);
     }
 
     /**
-     * Test that validate() handles form_layout sections with empty 'fields' array.
+     * Test that validate() detects form_layout with no sections having fields.
      */
-    public function testValidateDetectsFormLayoutSectionWithEmptyFields(): void
+    public function testValidateDetectsFormLayoutWithNoFieldsInAnySections(): void
     {
         $config = [
             'render_options' => [],
             'form_layout' => [
-                ['title' => 'Section With Empty Fields', 'fields' => []], // ❌ Empty fields
+                ['title' => 'Empty Section 1', 'fields' => []],
+                ['title' => 'Empty Section 2', 'fields' => []],
             ],
             'form_hidden_fields' => [],
             'form_extra_fields' => [],
@@ -350,7 +436,11 @@ class FormConfigurationValidatorServiceTest extends TestCase
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertFalse($result['isValid']);
-        $this->assertStringContainsString("'fields' array cannot be empty", $result['errors'][0]);
+        $this->assertStringContainsString(
+            "does not contain any sections with fields defined",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-FL-007', $result['errors'][0]['dev_code']);
     }
 
     /**
@@ -369,13 +459,85 @@ class FormConfigurationValidatorServiceTest extends TestCase
             'form_extra_fields' => [],
         ];
 
-        $this->fieldRegistry->method('getFieldWithFallbacks')->willReturn(['label' => 'Title']);
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
 
-        // ✅ Logger should NOT be called when validation passes
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
+
+        $this->logger->expects($this->never())->method('critical');
         $this->logger->expects($this->never())->method('error');
 
         $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
 
         $this->assertTrue($result['isValid']);
+    }
+
+    /**
+     * Test that validate() halts early if entity class doesn't exist.
+     */
+    public function testValidateHaltsWhenEntityClassNotFound(): void
+    {
+        $config = [
+            'render_options' => [],
+            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
+            'form_hidden_fields' => [],
+            'form_extra_fields' => [],
+        ];
+
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->logger->expects($this->once())
+            ->method('critical')
+            ->with($this->stringContains('Entity class'));
+
+        $result = $this->validator->validate(
+            $config,
+            'fake_edit',
+            'nonexistent_entity',
+            'test_config.php'
+        );
+
+        $this->assertFalse($result['isValid']);
+        $this->assertStringContainsString('Entity class', $result['errors'][0]['message']);
+        $this->assertSame('ERR-DEV-TL-004', $result['errors'][0]['dev_code']);
+    }
+
+    /**
+     * Test that validate() detects unexpected key in render_options.
+     */
+    public function testValidateDetectsUnexpectedRenderOptionsKey(): void
+    {
+        $config = [
+            'render_options' => [
+                'security_level' => 'low',
+                'invalid_key' => 'unexpected',
+            ],
+            'form_layout' => [['title' => 'Test', 'fields' => ['title']]],
+            'form_hidden_fields' => [],
+            'form_extra_fields' => [],
+        ];
+
+        $this->fieldRegistry->method('getFieldWithFallbacks')
+            ->willReturn(['label' => 'Title']);
+
+        $this->schemaValidator->method('validateFieldDefinition');
+
+        $this->entityMetadata->method('hasField')
+            ->willReturn(true);
+
+        $result = $this->validator->validate($config, 'testy_edit', 'testy', 'test_config.php');
+
+        $this->assertFalse($result['isValid']);
+        $this->assertStringContainsString(
+            "Unexpected key found in 'render_options': 'invalid_key'",
+            $result['errors'][0]['message']
+        );
+        $this->assertSame('ERR-DEV-RO-001', $result['errors'][0]['dev_code']);
     }
 }

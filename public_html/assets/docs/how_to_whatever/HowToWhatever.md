@@ -330,8 +330,16 @@ Validation adding
     - `xxx`
 2. groups - **lixoten**, **validators**, **formatters**, **email**, **text**, **boolean**, **checkbox**,
     - `vendor/bin/phpunit --testdox --group lixoten`
+    - `vendor/bin/phpunit --testdox --group playlist`
+    - `vendor/bin/phpunit --testdox --group config-validation`
     - `xxx`
 
+3. **playlist** -
+    1. **config-validation** - Sub set 
+        - FormConfigurationServiceTest
+        - FormConfigurationNormalizerServiceTest
+        - FormConfigurationValidatorServiceTest
+        - FieldDefinitionSchemaValidatorServiceTest
 ---
 
 # Run Composer

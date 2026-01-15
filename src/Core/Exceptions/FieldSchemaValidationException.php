@@ -26,10 +26,8 @@ class FieldSchemaValidationException extends RuntimeException
         ?Throwable $previous = null
     ) {
         // Append devCode and suggestion to the message for easier logging/display
-        $fullMessage = $message . " -- " . $this->devCode;
-        if ($this->suggestion) {
-            $fullMessage .= " -- Suggestion: " . $this->suggestion;
-        }
+        $fullMessage = $message;
+
         parent::__construct($fullMessage, $code, $previous);
     }
 
@@ -44,9 +42,7 @@ class FieldSchemaValidationException extends RuntimeException
     }
 
     ////////////////
-    public function toHtmlHelp(
-        FieldSchemaValidationException $exception
-    ): string {
+    public function toHtmlHelp(): string {
         $errors     = [];//$exception->getErrors();
         $configFile = "";//htmlspecialchars($exception->getConfigIdentifier());
         $pageKey    = "";//htmlspecialchars($exception->getPageKey());
@@ -99,53 +95,4 @@ class FieldSchemaValidationException extends RuntimeException
         </div>
     HTML;
     }
-
-
-
-
-    // private function xxx () {
-    //     $title = '';//$this->translator->get('dev_code.' . $context['dev_code'], pageName: 'xxxx');
-    //     $title = '❌ <strong>Warning: ' . $context['dev_code'] . ' - ' . $title . '</strong>';
-    //     // $fullErrorMessage = "";
-    //     $line[] = $title;
-    //     $line[] .= '✉️ <strong>Message :</strong> ' . $plainMessage ;
-    //     $line[] .= '💡 <strong>Suggestions:</strong> ' . $context['suggestion'];
-    //     if (isset($context['details'])) {
-    //         $fullErrorMessage = '';
-    //         foreach ($context['details'] as $key => $value) {
-    //             if ($key ===  'title') {
-    //                 //$line[$key] = '❌ ' . '<strong>Warning: ' . $value . '</strong>';
-    //             } elseif ($key ===  'error') {
-    //                 $line[$key] = "🔴 $key: " . '<strong>' . $value . '</strong>';
-    //             } elseif ($key ===  'error_code') {
-    //                 // $line[$key] = "🔴 $key: " . '<strong>' . $value . '</strong>';
-    //             } elseif ($key ===  'error_dev_code') {
-    //                 $line[$key] = "🔴 $key: " . $value;
-    //             } elseif ($key ===  'type') {
-    //                 $line[$key] = "📄 $key: " . $value;
-    //             } elseif ($key ===  'entity') {
-    //                 $line[$key] = "📄 <strong>$key:</strong> " . $value;
-    //             } elseif ($key ===  'type') {
-    //                 $line[$key] = "📄  $key: " . $value;
-    //             } elseif ($key ===  'field') {
-    //                 $line[$key] = "🔹 $key: " . $value;
-    //             } elseif ($key ===  'configKey') {
-    //                 // $line[$key] = "🔑 $key: " . $value;
-    //             } elseif ($key ===  'fix') {
-    //                 // $line[$key] = "💡 $key: " . $value;
-    //             } elseif ($key ===  'suggestions') {
-    //                 // $line[$key] = "💡 $key: " . $value;
-    //             } elseif ($key ===  'msg') {
-    //             } else {
-    //                 $line[$key] = '📄 <strong>' . $key . ':</strong> ' . $value; // 📝 💡 Fix t 🏷️ 🆔 ! ⚠️
-    //             }
-    //         }
-    //     }
-    //     // 🏷️
-    //     $line[] .= "<strong>Initiated by:</strong> {$callerFile} on line {$callerLine}";
-    //     $line[] .=  str_repeat('──', 40);
-    //     $fullErrorMessage .=  implode("\n <br />", $line);
-
-    // }
-    /////////////////
 }
