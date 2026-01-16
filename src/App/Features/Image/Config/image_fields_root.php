@@ -41,7 +41,7 @@ return [
         'form' => [
             'type'        => 'text',
             // 'show_label'  => false,
-            'placeholder' => true,
+            // 'placeholder' => true,
             'attributes'  => [
                 'required'    => true,
                 'minlength'   => 5,
@@ -115,7 +115,7 @@ return [
             'formatters' => [
                 'text' => [
                 ],
-        ],
+            ],
         ],
         'form' => [
             'type'        => 'display',

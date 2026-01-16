@@ -420,8 +420,8 @@ class FieldDefinitionSchemaValidatorService
         if (!empty($unknownValidatorOptions)) {
             $forFile    = $entityName . '_fields_' . 'root/edit/view.php';
             $message    = "Field '{$fieldName}' (page: {$pageKey}, entity: {$entityName}, type: {$fieldType}) has " .
-                          "unknown validator options in 'validators.{$fieldType}': "
-                          . implode(', ', $unknownValidatorOptions);
+                          "unknown validator options in 'validators.{$fieldType}': '"
+                          . implode(', ', $unknownValidatorOptions) . "'";
             $suggestion = "Check for typos or add these options to forms/schema.php under '{$fieldType}' -> " .
                           "'default_validation_rules'. Look at {$forFile}.";
             $errorCode  = 'ERR-DEV-F-FD-006'; // ok
@@ -463,7 +463,11 @@ class FieldDefinitionSchemaValidatorService
             $isAttributeInSchema = (isset($typeSchema[$configKey]) && is_array($typeSchema[$configKey])) ||
                                    (isset($globalSchema[$configKey]) && is_array($globalSchema[$configKey]));
 
-            if ($configKey === 'formatters' && $fieldType !== 'tel') {
+            // if ($configKey === 'formatters' && $fieldType !== 'tel') {
+            if (
+                $configKey === 'formatters'
+                && !in_array($fieldType, ['tel', 'file'], true)
+            ) {
                 $forFile    = $entityName . '_fields_' . 'root/edit/view.php';
                 $message    = "Field '{$fieldName}' (page: {$pageKey}, entity: {$entityName}, type: {$fieldType}) " .
                               "has 'formatters' key under 'form', but this is only allowed for 'tel' type fields.";
@@ -560,16 +564,34 @@ class FieldDefinitionSchemaValidatorService
                 'bool' => is_bool($value),
                 'numeric' => is_numeric($value),
                 'array' => is_array($value),
+                'array_of_mime_types' => $this->isValidMimeTypeArray($value),
                 default => throw new \RuntimeException("Unknown type specifier: {$expectedValues}")
             };
-            $problem = "expected a {$expectedValues}";
-        } elseif (is_array($expectedValues)) {
+
+            // ✅ More descriptive problem messages for array_of_mime_types
+            if ($expectedValues === 'array_of_mime_types' && !$isValid) {
+                if (!is_array($value)) {
+                    $problem = "expected an array of valid MIME type strings, but got " . get_debug_type($value);
+                } elseif (empty($value)) {
+                    $problem = "expected a non-empty array of valid MIME type strings, but got an empty array";
+                } else {
+                    // ✅ Find the first invalid MIME type to show in error message
+                    $invalidMimeType = $this->getFirstInvalidMimeType($value);
+                    $problem = "expected an array of valid MIME type strings (e.g., 'image/jpeg', 'application/pdf'), but found invalid MIME type: '{$invalidMimeType}'";
+                }
+            } else {
+                $problem = "expected a {$expectedValues}";
+            }        } elseif (is_array($expectedValues)) {
             $isValid = in_array($value, $expectedValues, true);
             $problem = 'expected one of [' . implode(', ', $expectedValues) . ']';
         }
 
         if (!$isValid) {
-            $valueStr = is_scalar($value) ? (string)$value : get_debug_type($value);
+            // $valueStr = is_scalar($value) ? (string)$value : get_debug_type($value);
+            $valueStr = ($expectedValues === 'array_of_mime_types' && is_array($value))
+                ? 'array with invalid MIME types'
+                : (is_scalar($value) ? (string)$value : get_debug_type($value));
+
             $forFile  = $entityName . '_fields_' . 'root/edit/view.php';
             $message  = "Field '{$fieldName}' (page: {$pageKey}, entity: {$entityName}, type: {$fieldType}) in " .
                         "'{$section}': Invalid value for '{$name}'. {$problem}, but got '{$valueStr}'.";
@@ -659,5 +681,108 @@ class FieldDefinitionSchemaValidatorService
         ?array $details = null
     ): void {
         throw new FieldSchemaValidationException($message, $devCode, $suggestion);
+    }
+
+    /**
+     * Validates that a value is an array of properly formatted MIME type strings.
+     *
+     * @param mixed $value The value to validate
+     * @return bool True if valid array of MIME types, false otherwise
+     */
+    private function isValidMimeTypeArray(mixed $value): bool
+    {
+        if (!is_array($value) || empty($value)) {
+            return false;
+        }
+
+        $validMimePatterns = [
+            // Images
+            '/^image\/(jpeg|jpg|png|gif|webp|svg\+xml|bmp|tiff|x-icon|avif)$/i',
+            // Audio
+            '/^audio\/(mpeg|mp3|ogg|wav|webm|aac|flac|midi)$/i',
+            // Video
+            '/^video\/(mp4|mpeg|ogg|webm|quicktime|x-msvideo|x-flv)$/i',
+            // Applications
+            '/^application\/(pdf|json|xml|zip|gzip|x-tar|msword|' .
+            'vnd\.openxmlformats-officedocument\.wordprocessingml\.document|' .
+            'vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|' .
+            'vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.presentationml\.presentation|' .
+            'octet-stream|javascript|x-www-form-urlencoded)$/i',
+            // Text
+            '/^text\/(plain|html|css|csv|calendar|javascript)$/i',
+            // Fonts
+            '/^font\/(woff|woff2|ttf|otf)$/i',
+        ];
+
+        foreach ($value as $item) {
+            if (!is_string($item)) {
+                return false;
+            }
+
+            // Check if the MIME type matches any of the valid patterns
+            $isValid = false;
+            foreach ($validMimePatterns as $pattern) {
+                if (preg_match($pattern, $item)) {
+                    $isValid = true;
+                    break;
+                }
+            }
+
+            if (!$isValid) {
+                return false; // ✅ This will catch 'imagxe/jpexg', 'imxage/pnxg', etc.
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * ✅ NEW: Returns the first invalid MIME type string found in the array.
+     * Used for better error reporting.
+     *
+     * @param array<mixed> $value The array to check
+     * @return string The first invalid MIME type found, or 'unknown' if none found
+     */
+    private function getFirstInvalidMimeType(array $value): string
+    {
+        $validMimePatterns = [
+            // Images
+            '/^image\/(jpeg|jpg|png|gif|webp|svg\+xml|bmp|tiff|x-icon|avif)$/i',
+            // Audio
+            '/^audio\/(mpeg|mp3|ogg|wav|webm|aac|flac|midi)$/i',
+            // Video
+            '/^video\/(mp4|mpeg|ogg|webm|quicktime|x-msvideo|x-flv)$/i',
+            // Applications
+            '/^application\/(pdf|json|xml|zip|gzip|x-tar|msword|' .
+            'vnd\.openxmlformats-officedocument\.wordprocessingml\.document|' .
+            'vnd\.ms-excel|vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet|' .
+            'vnd\.ms-powerpoint|vnd\.openxmlformats-officedocument\.presentationml\.presentation|' .
+            'octet-stream|javascript|x-www-form-urlencoded)$/i',
+            // Text
+            '/^text\/(plain|html|css|csv|calendar|javascript)$/i',
+            // Fonts
+            '/^font\/(woff|woff2|ttf|otf)$/i',
+        ];
+
+        foreach ($value as $item) {
+            if (!is_string($item)) {
+                return '(non-string value: ' . get_debug_type($item) . ')';
+            }
+
+            // Check if the MIME type matches any of the valid patterns
+            $isValid = false;
+            foreach ($validMimePatterns as $pattern) {
+                if (preg_match($pattern, $item)) {
+                    $isValid = true;
+                    break;
+                }
+            }
+
+            if (!$isValid) {
+                return $item; // ✅ Return the first invalid MIME type string
+            }
+        }
+
+        return 'unknown'; // Should not reach here if isValidMimeTypeArray() is working correctly
     }
 }

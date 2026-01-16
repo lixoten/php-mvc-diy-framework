@@ -541,8 +541,11 @@ class FieldDefinitionSchemaValidatorServiceTest extends TestCase
             ],
         ];
 
+        // $this->expectException(FieldSchemaValidationException::class);
+        // $this->expectExceptionMessage("has unknown validator options in 'validators.text': unknown_rule");
         $this->expectException(FieldSchemaValidationException::class);
-        $this->expectExceptionMessage("has unknown validator options in 'validators.text': unknown_rule");
+        // ✅ FIX: Updated to match the actual error message format
+        $this->expectExceptionMessageMatches("/has unknown validator options in 'validators\.text': 'unknown_rule'/");
 
         $this->validator->validateFieldDefinition(
             $fieldDefinition,

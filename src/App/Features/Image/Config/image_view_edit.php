@@ -33,9 +33,8 @@ return [
         'error_display'         => 'inline', //'inline', //'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
-        'c..ss_form_theme_class'  => '', // "form-theme-christmas",
-        'c..ss_form_theme_file'   => '', // "christmas",
-        'd..efault_form_theme'    => '', // 'christmas' ?? 'default',
+        'css_form_theme_class'  => '', // "form-theme-christmas",
+        'css_form_theme_file'   => '', // "christmas",
 
         'show_title_heading'    => true,
         'title_heading_level'         => 'h3', // Default is 'h2'

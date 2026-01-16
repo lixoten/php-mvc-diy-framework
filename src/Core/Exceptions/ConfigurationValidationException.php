@@ -122,9 +122,9 @@ class ConfigurationValidationException extends Exception
 
         $errorListHtml = '';
         foreach ($errors as $index => $error) {
-            if (is_string($error)) {
-                $errorListHtml .= '<li class="error-item">' . htmlspecialchars($error) . '</li>';
-            }
+            //if (is_string($error)) {
+                $errorListHtml .= '<li class="error-item">' . htmlspecialchars("dd'dd'dd") . '</li>'; // ERROR is not an array
+            //}
 
             if (is_array($error)) {
                 $xxx = $this->xxx($error);
@@ -177,7 +177,7 @@ class ConfigurationValidationException extends Exception
         $title = $this->translator->get('dev_code.' . $context['dev_code'], pageName: 'xxxx');
         $title = '❌ <strong>Critical: ' . $context['dev_code'] . ' - ' . $title . '</strong>';
         $line[] = $title;
-        $line[] .= $this->bullet('✉️', 'Message', $context['message']);
+        $line[] .= $this->bullet('✉️', 'Message', $this->formatTextHighlightKeywords($context['message']));
         $line[] .= $this->bullet('💡', 'Suggestions', $context['suggestion']);
         if (isset($context['details'])) {
             foreach ($context['details'] as $key => $value) {
@@ -217,5 +217,31 @@ class ConfigurationValidationException extends Exception
 
     private function bullet(string $icon, string $label, string $text): string{
         return "─ $icon <strong>$label:</strong> $text";
+    }
+
+    /**
+     * Helper to format text: applies HTML escaping and bolds content within single quotes.
+     * Example: "Invalid value for 'max_size'." becomes "Invalid value for <strong>max_size</strong>."
+     *
+     * @param string $text The raw message text to format.
+     * @return string The HTML formatted text.
+     */
+    private function formatTextHighlightKeywords(string $text): string
+    {
+        // 1. Sanitize the string.
+        // This turns <script> into safe text.
+        $safeText = htmlspecialchars($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // 2. Use a Regex that looks for BOTH possible single-quote entities:
+        // &#039; OR &apos;
+        $pattern = "/(&#039;|&apos;)(.*?)(&#039;|&apos;)/";
+
+        $formattedText = preg_replace(
+            $pattern,
+            "<span style='font-weight: bold; color: red;'>$1$2$3</span>",
+            $safeText
+        );
+
+        return $formattedText;
     }
 }

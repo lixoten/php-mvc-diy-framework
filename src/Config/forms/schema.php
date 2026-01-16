@@ -873,6 +873,17 @@ return [
         'required'  => ['default' => false, 'values' => 'bool'],
         'multiple'  => ['default' => false, 'values' => 'bool'],
         'accept'    => ['default' => null, 'values' => 'string'], // e.g., 'image/*', '.pdf'
+
+        'default_validation_rules' => [ // max_size //dddd
+            'max_size'      => ['default' => null, 'values' => 'int'],
+            'mime_types'    => ['values' => 'array_of_mime_types', 'default' => []], // ✅ Changed from 'array'
+        ],
+
+        // notes-: Took it out....logic got to complicated.
+        // '_mime_type_whitelist' => [
+        //     'image' => ['jpeg', 'jpg', 'png', 'gif', 'webp', 'svg+xml', 'bmp', 'tiff', 'x-icon', 'avif'],
+        //     'audio' => ['mpeg', 'mp3', 'ogg', 'wav', 'webm', 'aac', 'flac', 'midi'],
+        // ],
     ],
     'extratest' => [ // 25
         'default_validation_rules' => [
