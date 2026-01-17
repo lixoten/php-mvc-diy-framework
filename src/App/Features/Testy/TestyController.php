@@ -210,7 +210,8 @@ class TestyController extends AbstractCrudController
 
 
     /** {@inheritdoc} */
-    protected function overrideFormTypeRenderOptions(?array $recordData = null): void
+    // protected function overrideFormTypeRenderOptions(?array $recordData = null): void
+    protected function overrideFormTypeRenderOptions(string $pageAction, array $formFields, ?array $recordData = null): void
     {
         // $options = [
             // 'options' can contain general form options if defined in your config

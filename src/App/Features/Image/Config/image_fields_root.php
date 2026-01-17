@@ -54,6 +54,7 @@ return [
         ],
         'validators' => [
             'text' => [
+                // 'message_required' => "WTF!!!!",
                 // 'ignore_allowed'   => true,
                 // 'ignore_forbidden' => false,
                 // 'allowed'          => [aaaa, bbbb],
@@ -86,7 +87,7 @@ return [
             'upload' => [
                 // 'max_size' => 2097152, // 2MB
                 'max_size' => 1000000, // 2MB
-                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+                'mime_types' => ['image/png', 'image/webp', 'image/gif'], //'image/jpeg',
                 'subdir' => 'profiles',
             ],
             'formatters' => [
@@ -104,7 +105,8 @@ return [
         'validators' => [
             'file' => [
                 'max_size' => 2097152, // 2MB (2 * 1024 * 1024)
-                'mime_types' => ['image/jpeg', 'image/png', 'image/webp'],
+                'mime_types' => ['image/png', 'image/webp'], // 'image/jpeg', 
+                // 'message_invalid_mime' => 'WTF',
                 // 'subdir' is for storage, not direct validation, so omit here
             ],
         ],

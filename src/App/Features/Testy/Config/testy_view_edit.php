@@ -54,7 +54,7 @@ return [
         [
             'title' => 'Your Favorite',
             'fields'    => [
-                'title'
+                'title',
             ],
             // 'fields' => 'Your Favorite',
             // 'fieldxxs'    => [

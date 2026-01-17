@@ -111,11 +111,19 @@ class Validator
         $validatorList = $this->normalizeValidatorList($validatorList);
 
         $fieldName     = $field->getName();
-        $value         = $field->getValue();
-        $type          = $field->getType();
+        $fieldValue    = $field->getValue();
+        $fieldType     = $field->getType();
         $attributes    = $field->getAttributes();
         $options       = $field->getOptions();
         $choices       = $field->getChoices();
+
+
+        // ✅ NEW: If this is a file field, inject temp file metadata into validation context
+        if ($fieldType === 'file' && isset($context['_uploaded_file_temp_info'][$fieldName])) {
+            $tempFileMetadata = $context['_uploaded_file_temp_info'][$fieldName];
+            // ✅ Inject metadata into validator options for FileValidator to access
+            $context['_temp_file_metadata'] = $tempFileMetadata;
+        }
 
         // Merge context into attributes
         $mergedAttributes     = array_merge($attributes, $context);
@@ -125,7 +133,7 @@ class Validator
 
         // 📌 3. Get Validation Rules from the specific Validator.
         // -- These come from the config file (feature)_fields_(root, edit, view)
-        $validatorValidationRules = $validatorList[$type] ?? [];
+        $validatorValidationRules = $validatorList[$fieldType] ?? [];
         // if (isset($choices)) {
             // $validatorValidationRules['choices'] = $choices;
         // }
@@ -139,7 +147,7 @@ class Validator
         // 📌 4. Log Warning id attributes are repeated in attributes and in validator
         // -- Also Log Warning by checking if an attribute is valid for that element typee using Form Schema
         $finalValidationRules = $this->buildValidationRules(
-            $type,
+            $fieldType,
             $attributeValidationRules,
             $validatorValidationRules,
             $context
@@ -148,7 +156,7 @@ class Validator
         // 📌 5. Required validation
         $required = $attributes['required'] ?? false;
         if ($required) {
-            $error = $this->registry->validate($value, 'required', $finalValidationRules);
+            $error = $this->registry->validate($fieldValue, 'required', $finalValidationRules);
             if ($error) {
                 // $errors[] = $error;
                 $errors[] = $fieldName . '.' . $error;
@@ -157,13 +165,13 @@ class Validator
         }
 
         // 📌 6. Skip other validations if empty and is not required
-        if (($value === null || $value === '') && !$required) {
+        if (($fieldValue === null || $fieldValue === '') && !$required) {
             return $errors;
         }
 
         // // fixme fuckup bigtime
-        // if ($type === 'tel') {
-        //     $type = 'tel';
+        // if ($fieldType === 'tel') {
+        //     $fieldType = 'tel';
         // }
         // if ($field->getName() === 'generic_text') {
         //     $rrr = 'tel';
@@ -173,10 +181,10 @@ class Validator
         // 📌 7. We ran default Validator (always)
         // regardless if default validator is present, we Unset so we do not run it more than once.
         // default validator is always run. So if text element then we use TextValidator,
-        // if type is select, then we use SelectValidator...
-        unset($validatorList[$type]);
+        // if fieldType is select, then we use SelectValidator...
+        unset($validatorList[$fieldType]);
         // $rrr = 123;
-        $error = $this->registry->validate($value, $type, $finalValidationRules);
+        $error = $this->registry->validate($fieldValue, $fieldType, $finalValidationRules);
         if ($error) {
             $errors[] = $fieldName . '.' . $error;
             return $errors;
@@ -189,7 +197,7 @@ class Validator
                     // Handle callback validator
                     if (isset($validatorOptions['callback']) && is_callable($validatorOptions['callback'])) {
                         $callback = $validatorOptions['callback'];
-                        if (!$callback($value)) {
+                        if (!$callback($fieldValue)) {
                             $errors[] = $validatorOptions['message'] ?? 'Validation failed.';
                         }
                     }
@@ -201,7 +209,7 @@ class Validator
                         $context
                     );
 
-                    $error = $this->registry->validate($value, $validator, $finalValidationRules);
+                    $error = $this->registry->validate($fieldValue, $validator, $finalValidationRules);
 
                     if ($error) {
                         // $errors[] = $error;

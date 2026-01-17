@@ -79,7 +79,7 @@ return [
         'validation' => [
             'required'  => 'xxssssThis is a required field..',
             'invalid'   => 'xxInvalid value.',
-            'minlength' => 'xxTssssssssssssssssssshis value must be at least %d characters.',
+            'minlength' => 'xxThis value must be at least %d characters.',
             'maxlength' => 'xxThis value must not exceed %d characters.',
             'min'       => 'xxThis value must be at least %d.',
             'max'       => 'xxThis value must not exceed %d.',

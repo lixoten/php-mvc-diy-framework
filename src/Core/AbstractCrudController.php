@@ -258,12 +258,12 @@ abstract class AbstractCrudController extends Controller
 
             $recordArray = $this->baseFeatureService->transformToDisplay($recordArray, $pageKey, $pageEntity);
         } else {
-            //$recordArray = null;
+            $recordArray = null;
         }
 
-        // findme - override field
+        // findme - override field`
         // Important!!! -  atm, only used by image to change a field type from file to display
-        $this->overrideFormTypeRenderOptions($recordArray);
+        $this->overrideFormTypeRenderOptions($pageAction, $formFields, $recordArray );
 
 
         // 4. Pass the fetched array to the form processor.
@@ -500,7 +500,8 @@ abstract class AbstractCrudController extends Controller
 
         // findme - override field
         // Important!!! -  atm, only used by image to change a field type from file to display
-        $this->overrideFormTypeRenderOptions([]);
+        //$this->overrideFormTypeRenderOptions([]);
+        $this->overrideFormTypeRenderOptions($pageAction, $formFields);
 
 
         // 4. Pass the fetched array to the form processor.
@@ -801,7 +802,8 @@ abstract class AbstractCrudController extends Controller
      *                      or null for new creation.
      * @return void
      */
-    abstract protected function overrideFormTypeRenderOptions(?array $recordData = null): void;
+    // abstract protected function overrideFormTypeRenderOptions(?array $recordData = null): void;
+    abstract protected function overrideFormTypeRenderOptions(string $pageAction, array $formFields, ?array $recordData = null): void;
 
 
     /**

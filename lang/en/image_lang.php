@@ -80,13 +80,13 @@ return [
 
         ],
         'validation' => [
-                    'required'  => 'Image title text is required.',
-                'invalid'   => 'Invalid Image title text.',
-                'minlength' => 'Image title text must be at least %d characters.',
-                'maxlength' => 'Image title text must not exceed %d characters.',
-                'pattern'   => 'Image title text does not match the required pattern.',
-                'allowed'   => 'Please select a valid Image title text.',
-                'forbidden' => 'This Image title text is not allowed.',
+            'required'  => 'Image title text is required. from img',
+            'invalid'   => 'Invalid Image title text.',
+            'minlength' => 'Image title text must be at least %d characters.',
+            'maxlength' => 'Image title text must not exceed %d characters.',
+            'pattern'   => 'Image title text does not match the required pattern.',
+            'allowed'   => 'Please select a valid Image title text.',
+            'forbidden' => 'This Image title text is not allowed.',
         ],
     ],
     'filename' => [
@@ -100,6 +100,7 @@ return [
         'formatters' => [
         ],
         'validation' => [
+            'invalid_mime' => 'filename has Invaliddd mime type. img',
         ],
     ]
 ];

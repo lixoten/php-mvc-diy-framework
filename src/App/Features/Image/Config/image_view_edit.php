@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 return [
     'render_options' => [ // gen
-        'from'                  => 'testy_view_create-config',
+        'from'                  => 'testy_view_edit-config',
 
         // HTML attributes (id, data-*, aria-*)
         'attributes' => [

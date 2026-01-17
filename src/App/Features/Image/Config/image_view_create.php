@@ -33,18 +33,15 @@ return [
         'error_display'         => 'summary', //CONST_ED::SUMMARY,   // SUMMARY / SUMMARY / INLINE
         'html5_validation'      => false,
 
-        'c..ss_form_theme_class'  => '', // "form-theme-christmas",
-        'c..ss_form_theme_file'   => '', // "christmas",
-        'd..efault_form_theme'    => '', // 'christmas' ?? 'default',
+        'css_form_theme_class'  => '', // "form-theme-christmas",
+        'css_form_theme_file'   => '', // "christmas",
 
-        // 'title_heading_level'         => 'h3', // Default is 'h2'
-        'title_heading'               => "form.heading",
-        'title_heading_class'         => null, // Use ThemeService default, or provide custom class if needed
+        'show_title_heading'   => true,
+        'title_heading_level'  => 'h3', // Default is 'h2'
+        'title_heading_class'  => null, // Use ThemeService default, or provide custom class if needed
         'form_heading_wrapper_class' => null, // Use ThemeService default, do-not-change. See note-#52
 
-        'submit_text'           => "button.save",
         'submit_button_variant' => 'primary',
-        'cancel_text'           => 'button.cancel', // Added for translation
         'cancel_button_variant' => 'secondary',
 
 
@@ -52,7 +49,7 @@ return [
     ],
     'form_layout' => [
         [
-            'title' => 'Your Favorite',
+            'title' => 'Your Favorite11',
            'fields'    => [
                 // 'id',
                 'title',
@@ -65,7 +62,7 @@ return [
             'divider' => true,
         ],
         [
-            'title'     => 'Your Title',
+            'title'     => 'Your Title22',
             'fields'    => [
                 // 'id',
                 // 'title',

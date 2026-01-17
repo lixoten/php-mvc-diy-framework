@@ -873,16 +873,28 @@ abstract class AbstractFormRenderer implements FormRendererInterface
         $validationFlag = array_slice($parts, -2, 1)[0];
 
         if ($validationFlag !== 'validation') {
+            if ($field->getName() === $parts[0]) {
+                unset($parts[0]);
+                return implode('.', $parts);
+            }
             return null;
         }
 
         $errorType  = $parts[array_key_last($parts)];
         $attrs      = $field->getAttributes();
+        //$attrs      = $field->getAttributes();
         $replacements = [];
+
+        if (isset($field->getValidators()['file'])) {
+            $rrr = $field->getValidators()['file'];
+            $maxSize = $field->getValidators()['file']['max_size'];
+            $maxSizeMB = round($maxSize / 1048576, 2);
+            $attrs['max_size'] = $maxSizeMB;
+        }
 
         // Define error types that require a value from field attributes for replacement.
         // For these types, the attribute directly informs the message (e.g., "must be at least {minlength}").
-        $attributeBasedErrorTypes = ['minlength', 'maxlength', 'min', 'max', 'step', 'pattern'];
+        $attributeBasedErrorTypes = ['minlength', 'maxlength', 'min', 'max', 'step', 'pattern', 'max_size'];
 
         // Only add a replacement if the error type is attribute-based and the attribute exists.
         if ($errorType === 'enforce_step') {

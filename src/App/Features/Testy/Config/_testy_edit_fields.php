@@ -80,7 +80,7 @@ return [
             ],
             'upload' => [
                 'max_size' => 2097152,  // 2 MB
-                'mime_types' => ['image/jpeg', 'image/png', 'image/gif'],
+                'mime_types' => ['image/jpeg', 'image/png'],
                 'subdir' => 'pictures',
             ],
         ],

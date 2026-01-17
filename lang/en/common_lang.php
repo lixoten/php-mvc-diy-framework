@@ -243,6 +243,8 @@ return [
         'zero_not_allowed' => 'xxZero value is not allowed.',
         'enforce_step'     => 'xxNumber must be a multiple of %d.',
         'file_to_large'     => 'The file is too large. Maximum allowed size is %d.',
+        'invalid_mime'     => 'Invaliddd mime type. common',
+        'max_size'     => 'File size must not exceed... %d {$maxSizeMB} MB.',
     ],
 
 

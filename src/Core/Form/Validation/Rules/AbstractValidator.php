@@ -127,7 +127,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateType(mixed $value, string $expectedType, array $options): ?string
     {
         if (gettype($value) !== $expectedType) {
-            $options['message'] ??= $options['invalid_message'] ?? null;
+            $options['message'] = $options['invalid_message'] ?? null;
             return $this->getErrorMessage($options, "validation.invalid");
             // return $this->getErrorMessage($options, "Invalid {$expectedType} format.");
         }
@@ -146,7 +146,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinLength(int $length, array $options): ?string
     {
         if (isset($options['minlength']) && $length < $options['minlength']) {
-            $options['message'] ??= $options['minlength_message'] ?? null;
+            $options['message'] = $options['minlength_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.minlength');
         }
         return null;
@@ -162,7 +162,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxLength(int $length, array $options): ?string
     {
         if (isset($options['maxlength']) && $length > $options['maxlength']) {
-            $options['message'] ??= $options['maxlength_message'] ?? null;
+            $options['message'] = $options['maxlength_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.maxlength');
         }
         return null;
@@ -179,7 +179,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validatePattern(mixed $value, array $options): ?string
     {
         if (!empty($options['pattern']) && !preg_match($options['pattern'], $value)) {
-            $options['message'] ??= $options['pattern_message'] ?? null;
+            $options['message'] = $options['pattern_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.pattern');
         }
         return null;
@@ -225,7 +225,7 @@ abstract class AbstractValidator implements ValidatorInterface
 
 
         if (!empty($allowedValues) && !in_array($value, $allowedValues, true)) {
-            $options['message'] ??= $options['allowed_message'] ?? null;
+            $options['message'] = $options['allowed_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.allowed');
         }
         return null;
@@ -270,7 +270,7 @@ abstract class AbstractValidator implements ValidatorInterface
 
         // ✅ CORRECTED FIX: Use $forbiddenValues for the check
         if (!empty($forbiddenValues) && in_array($value, $forbiddenValues, true)) {
-            $options['message'] ??= $options['forbidden_message'] ?? null;
+            $options['message'] = $options['forbidden_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.forbidden');
         }
         return null;
@@ -288,7 +288,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinNumeric(int|float $value, array $options): ?string
     {
         if (isset($options['min']) && $value < $options['min']) {
-            $options['message'] ??= $options['min_message'] ?? null;
+            $options['message'] = $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
         return null;
@@ -304,7 +304,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxNumeric(int|float $value, array $options): ?string
     {
         if (isset($options['max']) && $value > $options['max']) {
-            $options['message'] ??= $options['max_message'] ?? null;
+            $options['message'] = $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
@@ -320,7 +320,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMinDate(\DateTime $value, array $options): ?string
     {
         if (isset($options['min']) && $value < new \DateTime($options['min'])) {
-            $options['message'] ??= $options['min_message'] ?? null;
+            $options['message'] = $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
         return null;
@@ -336,7 +336,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxDate(\DateTime $value, array $options): ?string
     {
         if (isset($options['max']) && $value > new \DateTime($options['max'])) {
-            $options['message'] ??= $options['max_message'] ?? null;
+            $options['message'] = $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
@@ -348,7 +348,7 @@ abstract class AbstractValidator implements ValidatorInterface
     {
 
         if (isset($options['min']) && $value < $options['min']) {
-            $options['message'] ??= $options['min_message'] ?? null;
+            $options['message'] = $options['min_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.min');
         }
 
@@ -359,7 +359,7 @@ abstract class AbstractValidator implements ValidatorInterface
     protected function validateMaxString(string $value, array $options): ?string
     {
         if (isset($options['max']) && $value > $options['max']) {
-            $options['message'] ??= $options['max_message'] ?? null;
+            $options['message'] = $options['max_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.max');
         }
         return null;
@@ -387,12 +387,12 @@ abstract class AbstractValidator implements ValidatorInterface
 
         // Ensure value is scalar for array_key_exists.
         if (!is_scalar($value)) {
-            $options['message'] ??= $options['invalid_message'] ?? null;
+            $options['message'] = $options['invalid_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.invalid');
         }
 
         if (!array_key_exists((string) $value, $choices)) {
-            $options['message'] ??= $options['invalid_message'] ?? null;
+            $options['message'] = $options['invalid_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.invalid');
         }
 

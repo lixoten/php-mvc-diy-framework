@@ -70,7 +70,8 @@ class I18nTranslator implements TranslatorInterface
         $resolvedValue = $resolvePath($this->translations, $specificLookupKey);
         if (is_string($resolvedValue)) { // findme - c lang
             $current = $resolvedValue . '*';  // findme - * lang
-        }
+        } //"image.filename.validation.invalid_mime"
+          //   "image.title.validation.required"
 
         if (is_string($current)) {
             // return $this->replacePlaceholders($current, $replacements);

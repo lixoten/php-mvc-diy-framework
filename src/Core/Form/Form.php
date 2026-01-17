@@ -231,6 +231,10 @@ class Form implements FormInterface
     {
         $this->errors = []; // Reset errors before validation
         $isValid = true;
+
+        // ✅ FIX: Merge extraProcessedData (contains _uploaded_file_temp_info) into validation context
+        $validationContext = array_merge($fieldContext, $this->extraProcessedData);
+
         // Ensure the validator is set
         if ($this->validator) {
             foreach ($this->fields as $name => $field) {
@@ -249,7 +253,7 @@ class Form implements FormInterface
 
                 // FindMe - Validate Entry
                 // Pass context to validator
-                $fieldErrors = $this->validator->validateField($field, $fieldContext);
+                $fieldErrors = $this->validator->validateField($field, $validationContext);
 
                 if (!empty($fieldErrors)) {
                     // Add errors to the form's error list

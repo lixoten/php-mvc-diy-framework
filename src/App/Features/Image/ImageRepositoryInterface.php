@@ -21,6 +21,6 @@ interface ImageRepositoryInterface extends BaseRepositoryInterface
      * @param string $filename The unique filename (hash) of the image.
      * @return Image|null The Image entity or null if not found.
      */
-    public function findByFilename(string $filename): ?Image; 
+    public function findByFilename(string $filename): ?Image;
 
 }

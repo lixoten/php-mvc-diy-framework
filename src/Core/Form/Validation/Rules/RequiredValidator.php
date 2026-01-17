@@ -21,7 +21,7 @@ class RequiredValidator extends AbstractValidator
         // Check if value is empty - NOTE: We don't use shouldSkipValidation here
         // since empty check is the actual validation logic for this validator
         if ($value === null || $value === '' || (is_array($value) && count($value) === 0)) {
-            $options['message'] ??= $options['required_message'] ?? null;
+            $options['message'] = $options['required_message'] ?? null;
             return $this->getErrorMessage($options, 'validation.required');
         }
 

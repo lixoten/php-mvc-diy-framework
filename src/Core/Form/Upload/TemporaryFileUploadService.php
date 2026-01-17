@@ -72,14 +72,15 @@ class TemporaryFileUploadService implements FileUploadServiceInterface
         $errorMessage = $this->getPhpUploadErrorMessage($uploadedFile->getError());
 
         $metadata = [
-            'status' => 'failed',
-            'error_code' => $uploadedFile->getError(),
-            //'error_message' => $uploadedFile->getError() !== UPLOAD_ERR_OK ? $uploadedFile->getErrorMessage() : null,
-            'error_message' => $errorMessage, // ✅ FIX: Use the generated error message
+            'status'            => 'failed',
+            'error_code'        => $uploadedFile->getError(),
+            //'error_message'   => $uploadedFile->getError() !== UPLOAD_ERR_OK ? $uploadedFile->getErrorMessage() : null,
+            'error_message'     => $errorMessage, // ✅ FIX: Use the generated error message
             'original_filename' => $uploadedFile->getClientFilename(),
-            'mime_type' => $uploadedFile->getClientMediaType(),
-            'size_bytes' => $uploadedFile->getSize(),
-            'temporary_path' => null,
+            'client_mime_type'  => $uploadedFile->getClientMediaType(), // ⚠️ FROM BROWSER (untrusted)
+            'mime_type'         => null, // ✅ NEW: Will be detected from disk
+            'size_bytes'        => $uploadedFile->getSize(),
+            'temporary_path'   => null,
         ];
 
         if ($uploadedFile->getError() === UPLOAD_ERR_NO_FILE) {
@@ -101,7 +102,13 @@ class TemporaryFileUploadService implements FileUploadServiceInterface
 
             $uploadedFile->moveTo($temporaryPath);
 
+            // ✅ NEW: Detect REAL MIME type from disk using finfo
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $realMimeType = finfo_file($finfo, $temporaryPath);
+            finfo_close($finfo);
+
             $metadata['temporary_path'] = $temporaryPath;
+            $metadata['mime_type'] = $realMimeType; // ✅ TRUSTED MIME type from disk
             $metadata['status'] = 'success';
             $metadata['error_code'] = UPLOAD_ERR_OK;
             $metadata['error_message'] = null; // Clear error message on success
@@ -109,6 +116,8 @@ class TemporaryFileUploadService implements FileUploadServiceInterface
             $this->logger->info("File successfully moved to temporary location: {$temporaryPath}", [
                 'field' => $fieldName,
                 'original_filename' => $metadata['original_filename'],
+                'client_mime_type' => $metadata['client_mime_type'],
+                'real_mime_type' => $metadata['mime_type'], // ✅ Log both for debugging
             ]);
         } catch (RuntimeException $e) {
             $metadata['error_message'] = 'Failed to move uploaded file to temporary directory: ' . $e->getMessage();

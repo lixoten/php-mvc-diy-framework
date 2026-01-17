@@ -20,7 +20,7 @@ class ColorValidator extends AbstractValidator
 
         // Validate hex color format (#RRGGBB)
         if (!is_string($value) || !preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
-                $options['message'] ??= $options['invalid_message'] ?? null;
+            $options['message'] = $options['invalid_message'] ?? null;
             return $this->getErrorMessage($options, 'Please select a valid color (e.g., #FF5733).');
         }
 

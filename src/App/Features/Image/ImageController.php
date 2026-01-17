@@ -234,26 +234,41 @@ class ImageController extends AbstractCrudController
         return parent::viewAction(request: $request);
     }
 
+    private function checkForFilenameField(array $formFields): bool {
+        foreach ($formFields as $index => $field) {
+            if ($field === 'filename') {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /** {@inheritdoc} */
-    protected function overrideFormTypeRenderOptions(?array $recordData = null): void
+    protected function overrideFormTypeRenderOptions(string $pageAction, array $formFields, ?array $recordData = null): void
     {
         // findme - override field
         $options = []; // Initialize options array
 
+
         // Logic to determine if a filename exists for an existing record
         $currentFilenameExists = false;
-        // ✅ Check if recordData exists and has a 'filename' key with a non-null value
-        if ($recordData !== null && isset($recordData['filename']) && $recordData['filename'] !== null) {
-            $currentFilenameExists = true;
+        if ($pageAction === 'create') {
+            // ✅ Check if recordData exists and has a 'filename' key with a non-null value
+            if ($recordData !== null && isset($recordData['filename']) && $recordData['filename'] !== null) {
+                $currentFilenameExists = true;
+            }
+        } else {
+            if ($this->checkForFilenameField($formFields)) {
+                $currentFilenameExists = true;
+            }
         }
-
 
         // Set the override for the 'filename' field
         $options['options']['form_field_overrides']['filename'] = [
             'current_filename_exists' => $currentFilenameExists,
         ];
-        
+
         if (isset($recordData['original_filename'])) {
             $options['options']['form_field_overrides']['filename']['value_override'] = $recordData['original_filename'];
         }
@@ -326,6 +341,72 @@ class ImageController extends AbstractCrudController
 
         // return $this->view(Url::CORE_IMAGE_CREATE->view(), $viewData);
     }
+
+
+
+    /**
+     * ✅ CONTROLLER: Handles user's "Cancel Upload" request.
+     */
+    public function cancelUploadAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $uploadToken = $_SESSION['current_image_upload_token'] ?? null;
+
+        if (!$uploadToken) {
+            $this->flash->addMessage('error', 'No pending upload found.', FlashMessageType::ERROR);
+            return $this->redirect(Url::CORE_IMAGE_LIST->url());
+        }
+
+        try {
+            // ✅ Delegate to service (business logic)
+            $this->imageService->cancelPendingUpload(
+                $uploadToken,
+                $this->scrap->getUserId(),
+                $this->scrap->getStoreId()
+            );
+
+            // ✅ Clear session token
+            unset($_SESSION['current_image_upload_token']);
+
+            $this->flash->addMessage('success', 'Upload cancelled successfully.', FlashMessageType::SUCCESS);
+            return $this->redirect(Url::CORE_IMAGE_LIST->url());
+        } catch (\Throwable $e) {
+            $this->flash->addMessage('error', $e->getMessage(), FlashMessageType::ERROR);
+            return $this->redirect(Url::CORE_IMAGE_LIST->url());
+        }
+    }
+
+    /**
+     * ✅ CONTROLLER: Handles user's "Upload Different Image" request.
+     */
+    public function uploadDifferentImageAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $uploadToken = $_SESSION['current_image_upload_token'] ?? null;
+
+        if (!$uploadToken) {
+            $this->flash->addMessage('error', 'No pending upload found.', FlashMessageType::ERROR);
+            return $this->redirect(Url::CORE_IMAGE_CREATE->url());
+        }
+
+        try {
+            // ✅ Same cleanup as cancel, but different redirect
+            $this->imageService->cancelPendingUpload(
+                $uploadToken,
+                $this->scrap->getUserId(),
+                $this->scrap->getStoreId()
+            );
+
+            unset($_SESSION['current_image_upload_token']);
+
+            $this->flash->addMessage('info', 'You can now upload a different image.', FlashMessageType::INFO);
+            return $this->redirect(Url::CORE_IMAGE_CREATE->url()); // ✅ Redirect to Step 1
+        } catch (\Throwable $e) {
+            $this->flash->addMessage('error', $e->getMessage(), FlashMessageType::ERROR);
+            return $this->redirect(Url::CORE_IMAGE_LIST->url());
+        }
+    }
+
+
+
 
     public function placeHolderAction(ServerRequestInterface $request): ResponseInterface
     {

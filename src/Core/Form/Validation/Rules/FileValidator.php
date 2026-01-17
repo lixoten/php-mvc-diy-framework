@@ -20,6 +20,76 @@ class FileValidator extends AbstractValidator
      */
     public function validate($value, array $options = []): ?string
     {
+        $isRequired = (bool) ($options['required'] ?? false);
+
+        // ✅ Handle UPLOAD_ERR_NO_FILE explicitly for required fields
+        if ($value instanceof UploadedFileInterface && $value->getError() === UPLOAD_ERR_NO_FILE) {
+            return $isRequired ? 'This file is required.' : null;
+        }
+
+        if (!($value instanceof UploadedFileInterface)) {
+            return $isRequired ? 'This file is required.' : null;
+        }
+
+        if ($value->getError() !== UPLOAD_ERR_OK) {
+            return match ($value->getError()) {
+                UPLOAD_ERR_INI_SIZE => 'File exceeds server upload limit.',
+                UPLOAD_ERR_FORM_SIZE => 'File exceeds form upload limit.',
+                UPLOAD_ERR_PARTIAL => 'File was only partially uploaded.',
+                UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder.',
+                UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk.',
+                UPLOAD_ERR_EXTENSION => 'File upload stopped by extension.',
+                default => 'Unknown upload error.',
+            };
+        }
+
+        // ✅ Check for temp file metadata (injected by Validator service)
+        $tempFileMetadata = $options['_temp_file_metadata'] ?? null;
+
+        // ✅ Validate MIME type using REAL MIME type from disk (if available)
+        if (isset($options['mime_types']) && is_array($options['mime_types'])) {
+            $mimeType = $tempFileMetadata['mime_type'] ?? $value->getClientMediaType(); // ✅ Prefer real MIME type
+
+            if (!in_array($mimeType, $options['mime_types'], true)) {//xxxx
+                //return 'Invalid file type. Allowed types: ' . implode(', ', $options['mime_types']);
+                $options['message'] = $options['message_invalid_mime'] ?? null;
+                return $this->getErrorMessage($options, 'validation.invalid_mime');
+                //return $this->getErrorMessage($options, $options['message_mime'] ?? 'validation.mime2');
+                //$options['message'] ??= $options['required_message'] ?? null;
+                //return $this->getErrorMessage($options, 'validation.required');
+            }
+        }
+
+        // ✅ Validate max_size
+        if (isset($options['max_size'])) {
+            $fileSize = $tempFileMetadata['size_bytes'] ?? $value->getSize(); // ✅ Prefer validated size
+
+            if ($fileSize > $options['max_size']) {
+                $maxSizeMB = round($options['max_size'] / 1048576, 2);
+                $options['message'] = $options['message_max_size'] ?? null;
+                return $this->getErrorMessage($options, 'validation.max_size');
+                //return "File size must not exceed {$maxSizeMB} MB.";
+            }
+        }
+
+            // 2097152 x / 1048576, 2
+        // ✅ Validate min_size (optional, rarely used but good for completeness)
+        if (isset($options['min_size'])) {
+            $fileSize = $tempFileMetadata['size_bytes'] ?? $value->getSize();
+
+            if ($fileSize < $options['min_size']) {
+                $minSizeKB = round($options['min_size'] / 1024, 2);
+                return "File size must be at least {$minSizeKB} KB.";
+            }
+        }
+
+        return null;
+    }
+
+
+
+    public function validateOLD2($value, array $options = []): ?string
+    {
         // Get 'required' status from options (merged from form attributes in Validator service)
         $isRequired = (bool) ($options['required'] ?? false);
 
