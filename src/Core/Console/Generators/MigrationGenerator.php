@@ -15,6 +15,8 @@ class MigrationGenerator
     private GeneratorOutputService $generatorOutputService;
 
     /**
+     * MigrationGenerator constructor.
+     *
      * @param GeneratorOutputService $generatorOutputService The service for managing output directories.
      */
     public function __construct(GeneratorOutputService $generatorOutputService)
@@ -22,32 +24,33 @@ class MigrationGenerator
         $this->generatorOutputService = $generatorOutputService;
     }
 
+
     /**
      * Generate a migration file for the given entity schema.
      *
-     * @param array<string, mixed> $schema
+     * @param array<string, mixed> $schema      The loaded schema definition.
+     * @param string               $featureName The name of the feature for this entity (e.g., 'Image'). // ✅
+     * @param string               $entityName  The name of the entity (e.g., 'PendingImageUpload').     // ✅
      * @return string The generated file path
      * @throws SchemaDefinitionException
      * @throws \RuntimeException If the output directory cannot be created or file cannot be written.
      */
-    public function generate(array $schema): string
+    public function generate(array $schema, string $featureName, string $entityName): string
     {
-        if (empty($schema['entity']['name']) || empty($schema['fields'])) {
-            throw new SchemaDefinitionException('Invalid schema: missing entity name or fields.');
+        if (empty($schema['fields'])) {
+            throw new SchemaDefinitionException('Invalid schema: missing fields.');
         }
 
-        $entityName = $schema['entity']['name'];
-        $tableName = $schema['entity']['table'] ?? strtolower($entityName);
+        // Use the passed $entityName and $featureName for consistency
+        $tableName   = $schema['entity']['table'] ?? strtolower($entityName);
 
         $className = 'Create' . ucfirst($entityName) . 'Table';
-        $fileName = date('Ymd_His') . "_{$className}.php";
+        $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
+        $fileName = $generatedTimestamp . "_{$className}.php";
 
         // output directory
-        $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
+        $outputDir = $this->generatorOutputService->getFeatureGeneratedOutputDir($featureName); // ✅
         $filePath = $outputDir . $fileName;
-
-        // Get the generated timestamp from the service
-        $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
 
         // Build the migration class content
         $fieldsCode = $this->generateFieldsCode($schema['fields'], $schema);
@@ -64,7 +67,7 @@ use Core\Database\Schema\Blueprint;
 
 /**
  * Generated File - Date: {$generatedTimestamp}
- * Migration for creating the '{$tableName}' table.
+ * Migration for creating the '{$tableName}' table for the '{$featureName}' feature.
  */
 class {$className} extends Migration
 {

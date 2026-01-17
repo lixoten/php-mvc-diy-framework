@@ -114,3 +114,5 @@ public_html/store/*
 storage/*
 storage/cache/*
 !storage/cache/.gitkeep
+public_html/assets/docs/temp.md
+public_html/assets/docs/temp.md

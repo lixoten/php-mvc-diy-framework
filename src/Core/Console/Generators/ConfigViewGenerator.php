@@ -300,13 +300,6 @@ PHP;
     }
 
 
-
-
-
-
-
-
-
     /**
      * Maps a database type from schema to an appropriate HTML form input type.
      *

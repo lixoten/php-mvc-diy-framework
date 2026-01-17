@@ -157,6 +157,7 @@ htmlspecialchars($options['add_url'] ?? '')
 **Feature-Based MVC Framework** with layered configuration and dependency injection:
 
 - **Feature Organization:** Code organized under `src/App/Features/{FeatureName}/` with Controller, List/, Form/, Views/ subdirectories
+  - a Feature can have multiple table / Entities
 - **Thin Type Classes:** ListType/FormType classes only set context (entity name, default columns/fields). All business logic resides in abstract base classes.
 - **Abstract Base Classes:** `AbstractListType` and `AbstractFormType` implement all shared logic for building, rendering, and field resolution.
 - **Field Registry Pattern:** `FieldRegistryService` centralizes field/column/field definition lookup with **layered fallbacks**:

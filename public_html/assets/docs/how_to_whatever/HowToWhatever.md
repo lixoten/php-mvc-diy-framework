@@ -27,7 +27,8 @@ HowToWhatever.md
     2. [How-to-bring-in-favorites-json-to-new-project](#how-to-bring-in-favorites-json-to-new-project)
 7. [Application Processes](#application-processes)
     1. [MVC Migrations - Complete Reference Guide](#mvc-migrations---complete-reference-guide)
-        1. [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
+        1. [Working on Generators](#working-on-generators)
+        2. [Quick Steps to create a new field recreate ble with new data](#quick-steps-to-create-a-new-field-recreate-ble-with-new-data)
 8. [Apache Server](#apache-server)
 9. [XAMPP - Recover](#xampp---recover)
 10. [Unit Test](#unit-test)
@@ -168,6 +169,13 @@ Understanding Settings.json
 # Application Processes
 
 ## [MVC Migrations - Complete Reference Guide](<MVC Migrations - Complete Reference Guide.md>)
+
+### Working on Generators
+1. Schema File
+    1. testy_schema File
+2. Generate Migration File
+    1. 
+
 ### Quick Steps to create a new field recreate ble with new data
 1. Make sure database is exists.  `mvclixo`
     - HeidiSQL
@@ -335,7 +343,7 @@ Validation adding
     - `xxx`
 
 3. **playlist** -
-    1. **config-validation** - Sub set 
+    1. **config-validation** - Sub set
         - FormConfigurationServiceTest
         - FormConfigurationNormalizerServiceTest
         - FormConfigurationValidatorServiceTest

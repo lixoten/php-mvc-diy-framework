@@ -28,6 +28,7 @@ class GeneratorOutputService
     private PathResolverService $pathResolverService;
 
     /**
+     * @param ConfigInterface $config The application configuration service.
      * @param PathResolverService $pathResolverService The service for resolving application paths.
      */
     public function __construct(
@@ -42,14 +43,14 @@ class GeneratorOutputService
      * Get the absolute path to the staging output directory for a given entity.
      * Ensures the directory exists.
      *
-     * @param string $entityName The name of the entity (e.g., 'Testy').
-     * @return string The absolute path to the entity's staging directory.
+     * @param string $featureName The name of the feature (e.g., 'Testy').
+     * @return string The absolute path to the feature's staging directory.
      * @throws \RuntimeException If the directory cannot be created or is not a valid directory.
      */
-    public function getEntityOutputDir(string $entityName): string
+    public function getFeatureGeneratedOutputDir(string $featureName): string
     {
         // Use PathResolverService to get the base generated path
-        $outputDir = $this->pathResolverService->getGeneratedEntityPath($entityName);
+        $outputDir = $this->pathResolverService->getGeneratedEntityPath($featureName);
 
         // mkdir will handle creation and subsequent is_dir check.
         if (!is_dir($outputDir)) {
@@ -72,7 +73,6 @@ class GeneratorOutputService
 
         $tz = new \DateTimeZone($appTimezone);
         $dt = new \DateTime('now', $tz);
-        // return $dt->format('Y-m-d H:i'); // e.g., 2025-10-29 22:30
         return $dt->format('Ymd_His');
     }
 }

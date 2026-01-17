@@ -26,21 +26,23 @@ class EntityGenerator
      * Generate Entity class from schema.
      *
      * @param array<string, mixed> $schema Schema definition
+     * @param string               $featureName The name of the feature for this entity (e.g., 'Image').
+     * @param string               $entityName  The name of the entity (e.g., 'PendingImageUpload').
      * @return string File path of generated entity
      * @throws SchemaDefinitionException
      * @throws \RuntimeException If the output directory cannot be created or file cannot be written.
      */
-    public function generate(array $schema): string
+    public function generate(array $schema, string $featureName, string $entityName): string
     {
         if (empty($schema['entity']['name'])) {
             throw new SchemaDefinitionException('Invalid schema: missing entity name.');
         }
 
         $entityName = $schema['entity']['name'];
-        $fields = $schema['fields'] ?? [];
+        $fields     = $schema['fields'] ?? [];
 
         // Use the service to get the output directory
-        $outputDir = $this->generatorOutputService->getEntityOutputDir($entityName);
+        $outputDir = $this->generatorOutputService->getFeatureGeneratedOutputDir($featureName);
         $filePath = $outputDir . $entityName . '.php'; // Entity files are named directly after the entity
 
         $entityContent = $this->generateEntityClass($entityName, $fields);

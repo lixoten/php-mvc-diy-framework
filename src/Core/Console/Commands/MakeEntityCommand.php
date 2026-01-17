@@ -65,17 +65,33 @@ class MakeEntityCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $entityName = $input->getArgument('entity');
+        $entityArgument = $input->getArgument('entity');
 
-        $io->title("Generating Entity for '{$entityName}'");
+        $featureName = '';
+        $entityName = '';
+
+        // Parse "Feature:Entity"
+        if (str_contains($entityArgument, ':')) {
+            [$featureName, $entityName] = explode(':', $entityArgument, 2);
+        } else {
+            $io->error("❌ Error: Missing feature prefix. Please use the format 'FeatureName:EntityName' (e.g., 'Image:PendingImageUpload').");
+            return Command::FAILURE;
+        }
+
+        // Sanitize names for consistency (e.g., ensuring PascalCase)
+        $tableName   = $entityName;
+        $featureName = $this->sanitizeName($featureName);
+        $entityName  = $this->sanitizeName($entityName);
+
+        $io->title("Generating Entity for Feature: {$featureName}, Table: {$tableName}");
 
         try {
-            // Load the schema for the given entity
-            $schema = $this->schemaLoaderService->load($entityName);
+            // Load the schema for the given entity and feature
+            $schema = $this->schemaLoaderService->load($featureName, $tableName);
 
             // Pass the loaded schema (array) to the generator
-            $filePath = $this->entityGenerator->generate($schema);
-            $io->success("Entity '{$entityName}' generated successfully at: {$filePath}");
+            $filePath = $this->entityGenerator->generate($schema, $featureName, $entityName);
+            $io->success("Entity for '{$featureName}:{$entityName}' generated successfully at: {$filePath}");
             return Command::SUCCESS;
         } catch (SchemaDefinitionException $e) {
             $io->error("Schema error for '{$entityName}': " . $e->getMessage());
@@ -84,5 +100,19 @@ class MakeEntityCommand extends Command
             $io->error("Error generating entity for '{$entityName}': " . $e->getMessage());
             return Command::FAILURE;
         }
+    }
+
+    /**
+     * Sanitizes a string to ensure it's in PascalCase by removing non-alphanumeric
+     * characters and capitalizing words.
+     *
+     * @param string $name The input string (e.g., 'pending_image_upload', 'image-processor').
+     * @return string The sanitized string in PascalCase (e.g., 'PendingImageUpload', 'ImageProcessor').
+     */
+    private function sanitizeName(string $name): string 
+    {
+        // Replace non-alphanumeric characters (including spaces, hyphens, underscores) with a space
+        // Then capitalize the first letter of each word and remove spaces
+        return str_replace(' ', '', ucwords(preg_replace('/[^a-zA-Z0-9\s]/', ' ', str_replace(['-', '_'], ' ', $name))));
     }
 }

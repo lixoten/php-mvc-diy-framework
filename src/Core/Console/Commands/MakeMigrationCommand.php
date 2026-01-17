@@ -63,24 +63,61 @@ class MakeMigrationCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $entityName = $input->getArgument('entity');
+        $entityArgument = $input->getArgument('entity');
 
-        $io->title("Generating Migration for Entity: {$entityName}");
+        $featureName = '';
+        $entityName  = '';
+        $tableName   = '';
 
-        try {
-            // Load the schema for the given entity
-            $schema = $this->schemaLoaderService->load($entityName);
-
-            // Pass the schema to the MigrationGenerator
-            $filePath = $this->migrationGenerator->generate($schema);
-            $io->success("Migration for '{$entityName}' generated successfully at: {$filePath}");
-            return Command::SUCCESS;
-        } catch (SchemaDefinitionException $e) {
-            $io->error("Schema error for '{$entityName}': " . $e->getMessage());
-            return Command::FAILURE;
-        } catch (\Throwable $e) {
-            $io->error("Error generating migration for '{$entityName}': " . $e->getMessage());
+        // Parse "Feature:Entity"
+        if (str_contains($entityArgument, ':')) {
+            [$featureName, $entityName] = explode(':', $entityArgument, 2);
+        } else {
+            $io->error("❌ Error: Missing feature prefix. Please use the format 'FeatureName:EntityName' (e.g., 'Image:PendingImageUpload').");
             return Command::FAILURE;
         }
+
+        // Sanitize names for consistency (e.g., ensuring PascalCase)
+        $tableName   = $entityName;
+        $featureName = $this->sanitizeName($featureName);
+        $entityName  = $this->sanitizeName($entityName);
+
+        if (empty($featureName) || empty($entityName)) {
+            $io->error('Invalid feature or entity name provided.');
+            return Command::FAILURE;
+        }
+
+        $io->title("Generating Migration for Feature: {$featureName}, Table: {$tableName}");
+
+        try {
+            // Load the schema for the given entity and feature
+            $schema = $this->schemaLoaderService->load($featureName, $tableName);
+
+            // Pass the schema, featureName, and entityName to the MigrationGenerator
+            $filePath = $this->migrationGenerator->generate($schema, $featureName, $entityName);
+            $io->success("Migration for '{$featureName}:{$entityName}' generated successfully at: {$filePath}");
+            $io->info("Remember to run 'php bin/console.php feature:move {$featureName}' to finalize its placement.");
+            return Command::SUCCESS;
+        } catch (SchemaDefinitionException $e) {
+            $io->error("Schema error for '{$featureName}:{$entityName}': " . $e->getMessage());
+            return Command::FAILURE;
+        } catch (\Throwable $e) {
+            $io->error("Error generating migration for '{$featureName}:{$entityName}': " . $e->getMessage());
+            return Command::FAILURE;
+        }
+    }
+
+    /**
+     * Sanitizes a string to ensure it's in PascalCase by removing non-alphanumeric
+     * characters and capitalizing words.
+     *
+     * @param string $name The input string (e.g., 'pending_image_upload', 'image-processor').
+     * @return string The sanitized string in PascalCase (e.g., 'PendingImageUpload', 'ImageProcessor').
+     */
+    private function sanitizeName(string $name): string // ✅ ADDED: Helper method for sanitization
+    {
+        // Replace non-alphanumeric characters (including spaces, hyphens, underscores) with a space
+        // Then capitalize the first letter of each word and remove spaces
+        return str_replace(' ', '', ucwords(preg_replace('/[^a-zA-Z0-9\s]/', ' ', str_replace(['-', '_'], ' ', $name))));
     }
 }
