@@ -45,7 +45,7 @@ class EntityGenerator
         $outputDir = $this->generatorOutputService->getFeatureGeneratedOutputDir($featureName);
         $filePath = $outputDir . $entityName . '.php'; // Entity files are named directly after the entity
 
-        $entityContent = $this->generateEntityClass($entityName, $fields);
+        $entityContent = $this->generateEntityClass($featureName, $entityName, $fields);
 
         // Write file directly
         $success = file_put_contents($filePath, $entityContent);
@@ -59,11 +59,12 @@ class EntityGenerator
     /**
      * Generate the PHP code for the Entity class.
      *
+     * @param string $featureName
      * @param string $entityName
      * @param array<string, array<string, mixed>> $fields
      * @return string
      */
-    protected function generateEntityClass(string $entityName, array $fields): string
+    protected function generateEntityClass(string $featureName, string $entityName, array $fields): string
     {
         $generatedTimestamp = $this->generatorOutputService->getGeneratedFileTimestamp();
 
@@ -83,12 +84,12 @@ class EntityGenerator
 
         $useStatements = [];
         if ($usesStatusEnum) {
-            $useStatements[] = "use App\\Enums\\{$entityName}Status;";
+            $useStatements[] = "use App\\Enums\\{$featureName}Status;";
         }
         $useStatementsString = !empty($useStatements) ? implode("\n", $useStatements) . "\n" : '';
         // --- END FIX ---
 
-        $nameSpace = "App\Features\\{$entityName}";
+        $nameSpace = "App\Features\\{$featureName}";
         $php = <<<PHP
 <?php
 

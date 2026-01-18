@@ -57,7 +57,7 @@ class ConfigFieldsGenerator
      * @throws SchemaDefinitionException If the schema is invalid or not found.
      * @throws \RuntimeException If the output directory cannot be created or file cannot be written.
      */
-    public function generate(array $schema, string $configType): string
+    public function generate(array $schema, string $featureName, string $configType): string
     {
         if (empty($schema['entity']['name'])) {
             throw new SchemaDefinitionException('Invalid schema: missing entity name.');
@@ -82,7 +82,8 @@ class ConfigFieldsGenerator
         }
 
         // Get the output directory for the feature's config
-        $outputDir = $this->generatorOutputService->getEntityOutputDir($entity);
+        // $outputDir = $this->generatorOutputService->getEntityOutputDir($entity);
+        $outputDir = $this->generatorOutputService->getFeatureGeneratedOutputDir($featureName);
 
         // Ensure the directory exists
         if (!is_dir($outputDir)) {

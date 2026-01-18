@@ -66,52 +66,69 @@ class FeatureMoveCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        $entity = ucfirst($input->getArgument('entity')); // Ensure entity name is PascalCase
+        $entityArgument = ucfirst($input->getArgument('entity')); // Ensure entity name is PascalCase
         $type = strtolower($input->getArgument('type'));
 
-        $io->title("Moving Feature Files for '{$entity}' (Type: {$type})");
 
-        $generatedDir = $this->pathResolverService->getGeneratedEntityPath($entity);
+        $featureName = '';
+        $entityName = '';
+
+        // Parse "Feature:Entity"
+        if (str_contains($entityArgument, ':')) {
+            [$featureName, $entityName] = explode(':', $entityArgument, 2);
+        } else {
+            $io->error("❌ Error: Missing feature prefix. Please use the format 'FeatureName:EntityName' (e.g., 'Image:PendingImageUpload').");
+            return Command::FAILURE;
+        }
+
+       // Sanitize names for consistency (e.g., ensuring PascalCase)
+        $tableName   = $entityName;
+        $featureName = $this->sanitizeName($featureName);
+        $entityName  = $this->sanitizeName($entityName);
+
+        $io->title("Moving Feature Files for Feature: {$featureName}, Table: {$tableName}");
+
+        $generatedDir = $this->pathResolverService->getGeneratedEntityPath($featureName);
 
         if (!is_dir($generatedDir)) {
-            $io->warning("No generated files found for entity '{$entity}' in {$generatedDir}");
+            $io->warning("No generated files found for entity '{$entityName}' in {$generatedDir}");
             return Command::SUCCESS; // Not an error if nothing to move
         }
 
         // Map of generated file patterns to final destinations and processing flags
         $moveMap = [
             'entity' => [
-                'pattern' => "{$entity}.php",
-                'dest' => $this->pathResolverService->getAppFeatureEntityPath($entity),
+                'pattern' => "{$entityName}.php",
+                'dest' => $this->pathResolverService->getAppFeatureEntityPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one entity file expected
             ],
             'repositoryinterface' => [
-                'pattern' => "{$entity}RepositoryInterface.php",
-                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity),
+                'pattern' => "{$entityName}RepositoryInterface.php",
+                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one interface file expected
             ],
             'repository' => [
-                'pattern' => "{$entity}Repository.php",
-                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($entity),
+                'pattern' => "{$entityName}Repository.php",
+                'dest' => $this->pathResolverService->getAppFeatureRepositoryPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false, // Only one repository file expected
             ],
             'migration' => [
-                'pattern' => "*Create{$entity}Table.php",
+                'pattern' => "*Create{$entityName}Table.php",
                 'dest' => $this->pathResolverService->getDatabaseMigrationsPath(),
                 'rename_on_move' => false, // Migrations keep timestamped names
                 'process_all_matching' => false, // All matching migrations should be moved
             ],
             'seeder' => [
-                'pattern' => "*{$entity}Seeder.php",
+                'pattern' => "*{$entityName}Seeder.php",
                 'dest' => $this->pathResolverService->getDatabaseSeedersPath(),
                 'rename_on_move' => true, // Seeders are renamed to EntitySeeder.php
                 'process_all_matching' => false, // Only the latest seeder is moved
             ],
             'langmainfile' => [
-                'pattern' => strtolower($entity) . "_lang" . ".php",
+                'pattern' => strtolower($entityName) . "_lang" . ".php",
                 'dest' => $this->pathResolverService->getLangFilePath(),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
@@ -129,32 +146,32 @@ class FeatureMoveCommand extends Command
                 'process_all_matching' => false,
             ],
             'configfieldsroot' => [
-                'pattern' => strtolower($entity) . "_fields_root" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'pattern' => strtolower($entityName) . "_fields_root" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
             'configfieldslist' => [
-                'pattern' => strtolower($entity) . "_fields_list" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'pattern' => strtolower($entityName) . "_fields_list" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
             'configfieldsedit' => [
-                'pattern' => strtolower($entity) . "_fields_edit" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'pattern' => strtolower($entityName) . "_fields_edit" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
             'configviewlist' => [
-                'pattern' => strtolower($entity) . "_view_list" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'pattern' => strtolower($entityName) . "_view_list" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
             'configviewedit' => [
-                'pattern' => strtolower($entity) . "_view_edit" . ".php",
-                'dest' => $this->pathResolverService->getAppFeatureConfigPath($entity),
+                'pattern' => strtolower($entityName) . "_view_edit" . ".php",
+                'dest' => $this->pathResolverService->getAppFeatureConfigPath($featureName),
                 'rename_on_move' => false,
                 'process_all_matching' => false,
             ],
@@ -265,7 +282,7 @@ class FeatureMoveCommand extends Command
 
                 if (strtolower($answer) === 'y') {
                     if (file_exists($destinationFilePath)) {
-                        $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($entity);
+                        $archiveDir = $this->pathResolverService->getGeneratedEntityArchivePath($featureName);
                         $this->ensureDirectoryExists($archiveDir, $io);
                         $archiveExistingPath = $archiveDir . DIRECTORY_SEPARATOR
                                                            . $this->addTimestampToFilename(basename($destinationFilePath));
@@ -300,9 +317,9 @@ class FeatureMoveCommand extends Command
         }
 
         if ($movedCount === 0) {
-            $io->info("No files moved for entity '{$entity}'.");
+            $io->info("No files moved for entity '{$featureName}'.");
         } else {
-            $io->success("{$movedCount} files for '{$entity}' moved to their final locations.");
+            $io->success("{$movedCount} files for '{$featureName}' moved to their final locations.");
         }
 
         return Command::SUCCESS;
@@ -336,5 +353,19 @@ class FeatureMoveCommand extends Command
             }
             $io->note("Created directory: {$directoryPath}");
         }
+    }
+
+    /**
+     * Sanitizes a string to ensure it's in PascalCase by removing non-alphanumeric
+     * characters and capitalizing words.
+     *
+     * @param string $name The input string (e.g., 'pending_image_upload', 'image-processor').
+     * @return string The sanitized string in PascalCase (e.g., 'PendingImageUpload', 'ImageProcessor').
+     */
+    private function sanitizeName(string $name): string
+    {
+        // Replace non-alphanumeric characters (including spaces, hyphens, underscores) with a space
+        // Then capitalize the first letter of each word and remove spaces
+        return str_replace(' ', '', ucwords(preg_replace('/[^a-zA-Z0-9\s]/', ' ', str_replace(['-', '_'], ' ', $name))));
     }
 }
